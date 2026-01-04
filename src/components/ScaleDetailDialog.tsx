@@ -62,10 +62,15 @@ const ScaleDetailDialog: React.FC<ScaleDetailDialogProps> = ({ scaleItem, childr
     
     const currentStatus: ScaleStatus = progressMap[practiceId] || 'untouched';
     
-    // Toggle logic: untouched/practiced -> mastered -> untouched
-    const nextStatus: ScaleStatus = (currentStatus === 'untouched' || currentStatus === 'practiced') 
-      ? 'mastered' 
-      : 'untouched';
+    // Cycle logic: untouched -> practiced -> mastered -> untouched
+    let nextStatus: ScaleStatus;
+    if (currentStatus === 'untouched') {
+      nextStatus = 'practiced';
+    } else if (currentStatus === 'practiced') {
+      nextStatus = 'mastered';
+    } else { // currentStatus === 'mastered'
+      nextStatus = 'untouched';
+    }
       
     updatePracticeStatus(practiceId, nextStatus);
   };
@@ -125,7 +130,7 @@ const ScaleDetailDialog: React.FC<ScaleDetailDialogProps> = ({ scaleItem, childr
                             getStatusClasses(status)
                           )}
                           size="sm"
-                          aria-label={`${articulation} at ${tempo} status: ${statusText}. Click to toggle Mastered.`}
+                          aria-label={`${articulation} at ${tempo} status: ${statusText}. Click to cycle status.`}
                         >
                           {getStatusIcon(status)}
                         </Button>
@@ -138,7 +143,7 @@ const ScaleDetailDialog: React.FC<ScaleDetailDialogProps> = ({ scaleItem, childr
           </table>
         </div>
         <p className="text-sm text-muted-foreground mt-4">
-          Click a cell to toggle its status between Mastered and Untouched for the default permutation. Statuses are automatically set to Practiced when logged via the timer/snapshot.
+          Click a cell to cycle its status: Untouched → Practiced → Mastered. Statuses are automatically set to Practiced when logged via the timer/snapshot.
         </p>
       </DialogContent>
     </Dialog>
