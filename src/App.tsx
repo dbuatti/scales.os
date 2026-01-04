@@ -9,6 +9,7 @@ import AppLayout from "./components/AppLayout";
 import ProgressPage from "./pages/Progress";
 import Login from "./pages/Login";
 import AuthGuard from "./components/AuthGuard";
+import ProtectedWrapper from "./components/ProtectedWrapper";
 
 const queryClient = new QueryClient();
 
@@ -27,8 +28,10 @@ const App = () => (
 
             {/* Protected Routes */}
             <Route element={<AuthGuard />}>
-              <Route path="/" element={<Index />} />
-              <Route path="/progress" element={<ProgressPage />} />
+              <Route element={<ProtectedWrapper />}>
+                <Route path="/" element={<Index />} />
+                <Route path="/progress" element={<ProgressPage />} />
+              </Route>
             </Route>
             
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

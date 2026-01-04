@@ -1,10 +1,10 @@
 import React from 'react';
 import { MadeWithDyad } from "@/components/made-with-dyad";
 import PracticeCommandCenter from '@/components/PracticeCommandCenter';
-import { ScalesProvider, useScales } from '../context/ScalesContext';
+import { useScales } from '../context/ScalesContext';
 import { Skeleton } from '@/components/ui/skeleton';
 
-const IndexContent = () => {
+const Index = () => {
   const { isLoading } = useScales();
 
   if (isLoading) {
@@ -22,11 +22,5 @@ const IndexContent = () => {
     </div>
   );
 };
-
-const Index = () => (
-  <ScalesProvider>
-    <IndexContent />
-  </ScalesProvider>
-);
 
 export default Index;
