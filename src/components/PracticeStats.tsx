@@ -101,45 +101,45 @@ const PracticeStats = () => {
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
       {/* Card 1: Overall Progress */}
-      <Card className="md:col-span-2">
+      <Card className="md:col-span-2 border-primary/50 shadow-lg shadow-primary/20">
         <CardHeader>
-          <CardTitle>Overall Mastery</CardTitle>
+          <CardTitle className="font-mono text-primary">Overall Mastery</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="flex justify-between text-sm font-medium">
-            <span>Mastery Progress</span>
-            <span>{stats.completionPercentage}%</span>
+          <div className="flex justify-between text-sm font-mono font-medium">
+            <span>Mastery Completion</span>
+            <span className="text-primary">{stats.completionPercentage}%</span>
           </div>
-          <Progress value={stats.completionPercentage} className="h-3" />
+          <Progress value={stats.completionPercentage} className="h-3 [&>div]:bg-primary" />
           <div className="grid grid-cols-3 gap-4 text-center">
             <div className="flex flex-col items-center">
-              <Check className="w-5 h-5 text-green-600" />
-              <span className="text-xl font-bold mt-1">{stats.masteredCount}</span>
-              <span className="text-xs text-muted-foreground">Mastered Combos</span>
+              <Check className="w-5 h-5 text-green-400" />
+              <span className="text-xl font-bold mt-1 font-mono">{stats.masteredCount}</span>
+              <span className="text-xs text-muted-foreground font-mono">Mastered Combos</span>
             </div>
             <div className="flex flex-col items-center">
-              <Clock className="w-5 h-5 text-yellow-600" />
-              <span className="text-xl font-bold mt-1">{stats.practicedCount}</span>
-              <span className="text-xs text-muted-foreground">Practiced Combos</span>
+              <Clock className="w-5 h-5 text-yellow-400" />
+              <span className="text-xl font-bold mt-1 font-mono">{stats.practicedCount}</span>
+              <span className="text-xs text-muted-foreground font-mono">Practiced Combos</span>
             </div>
             <div className="flex flex-col items-center">
-              <Target className="w-5 h-5 text-red-600" />
-              <span className="text-xl font-bold mt-1">{stats.untouchedCount}</span>
-              <span className="text-xs text-muted-foreground">Untouched Combos</span>
+              <Target className="w-5 h-5 text-destructive" />
+              <span className="text-xl font-bold mt-1 font-mono">{stats.untouchedCount}</span>
+              <span className="text-xs text-muted-foreground font-mono">Untouched Combos</span>
             </div>
           </div>
         </CardContent>
       </Card>
 
       {/* Card 2: Next Focus */}
-      <Card>
+      <Card className="border-primary/50 shadow-lg shadow-primary/20">
         <CardHeader>
-          <CardTitle>Next Focus</CardTitle>
+          <CardTitle className="font-mono text-primary">Next Focus Target</CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
           {suggestedScale ? (
-            <div className="space-y-2">
-              <p className="text-lg font-semibold">
+            <div className="space-y-2 font-mono">
+              <p className="text-lg font-semibold text-primary">
                 {suggestedScale.key} {suggestedScale.type}
               </p>
               <p className="text-sm text-muted-foreground">
@@ -149,19 +149,19 @@ const PracticeStats = () => {
                 Tempo: <span className="font-medium text-foreground">{suggestedScale.tempo}</span>
               </p>
               {suggestedScale.review && (
-                  <p className="text-xs text-yellow-600">
+                  <p className="text-xs text-yellow-400">
                       (Review suggested)
                   </p>
               )}
             </div>
           ) : (
-            <p className="text-muted-foreground">
+            <p className="text-muted-foreground font-mono">
               Congratulations! All combinations are mastered.
             </p>
           )}
-          <div className="pt-2 border-t mt-4">
-            <p className="text-xs text-muted-foreground">
-              Total Practice Time: <span className="font-medium text-foreground">{stats.totalDurationMinutes} minutes</span>
+          <div className="pt-2 border-t border-border mt-4">
+            <p className="text-xs text-muted-foreground font-mono">
+              Total Practice Time: <span className="font-medium text-primary">{stats.totalDurationMinutes} minutes</span>
             </p>
           </div>
         </CardContent>

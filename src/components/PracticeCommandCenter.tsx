@@ -68,24 +68,24 @@ const PracticeTimer: React.FC = () => {
       <CardContent className="flex flex-col items-center space-y-3 p-4">
         <div className={cn(
             "text-6xl font-mono font-extrabold transition-colors",
-            isFinished ? "text-green-400" : "text-primary-foreground"
+            isFinished ? "text-destructive" : "text-primary" // Use primary for neon effect, destructive for finished
         )}>
           {formatTime(time)}
         </div>
         {isFinished && (
-            <p className="text-sm font-semibold text-green-400">Session Complete</p>
+            <p className="text-sm font-semibold text-destructive">Session Complete</p>
         )}
         <div className="flex space-x-4">
           {isRunning ? (
-            <Button onClick={handlePause} variant="secondary" size="sm" className="bg-red-600 hover:bg-red-700 text-white">
+            <Button onClick={handlePause} variant="secondary" size="sm" className="bg-destructive hover:bg-destructive/90 text-destructive-foreground">
               <Pause className="w-4 h-4 mr-1" /> PAUSE
             </Button>
           ) : (
-            <Button onClick={handleStart} size="sm" disabled={isFinished} className="bg-green-600 hover:bg-green-700 text-white">
+            <Button onClick={handleStart} size="sm" disabled={isFinished} className="bg-primary hover:bg-primary/90 text-primary-foreground">
               <Play className="w-4 h-4 mr-1" /> START
             </Button>
           )}
-          <Button onClick={handleReset} variant="outline" size="sm" className="border-primary text-primary hover:bg-primary/10">
+          <Button onClick={handleReset} variant="outline" size="sm" className="border-muted-foreground text-muted-foreground hover:bg-accent">
             <RotateCcw className="w-4 h-4 mr-1" /> RESET
           </Button>
         </div>
@@ -149,8 +149,8 @@ const PracticeCommandCenter: React.FC = () => {
 
 
   return (
-    <div className="p-4 md:p-8 min-h-[calc(100vh-64px)] flex items-center justify-center bg-gray-900 text-white">
-      <Card className="w-full max-w-6xl bg-gray-800 border-2 border-primary shadow-2xl shadow-primary/50 transition-all duration-500">
+    <div className="p-4 md:p-8 min-h-[calc(100vh-64px)] flex items-center justify-center bg-background">
+      <Card className="w-full max-w-6xl bg-card border-2 border-primary shadow-2xl shadow-primary/50 transition-all duration-500">
         <CardHeader className="p-4 border-b border-primary/50">
           <CardTitle className="text-2xl font-mono tracking-widest text-primary text-center">
             PRACTICE CONTROL PANEL
@@ -162,8 +162,8 @@ const PracticeCommandCenter: React.FC = () => {
           <div className="space-y-6 lg:col-span-2">
             
             {/* Key Selection */}
-            <div className="space-y-3 border p-4 rounded-lg border-primary/30 bg-gray-700/30">
-              <Label className="text-lg font-semibold text-primary block mb-2">KEY SELECTION</Label>
+            <div className="space-y-3 border p-4 rounded-lg border-primary/30 bg-secondary/50">
+              <Label className="text-lg font-semibold text-primary block mb-2 font-mono">KEY SELECTION</Label>
               <ToggleGroup 
                 type="single" 
                 value={selectedKey} 
@@ -176,7 +176,7 @@ const PracticeCommandCenter: React.FC = () => {
                     key={key} 
                     value={key} 
                     aria-label={`Select key ${key}`}
-                    className="data-[state=on]:bg-primary data-[state=on]:text-primary-foreground data-[state=on]:shadow-md data-[state=on]:border-primary/80 border border-gray-500 text-sm px-3 py-1 h-auto"
+                    className="data-[state=on]:bg-primary data-[state=on]:text-primary-foreground data-[state=on]:shadow-md data-[state=on]:border-primary/80 border border-border text-sm px-3 py-1 h-auto font-mono"
                   >
                     {key}
                   </ToggleGroupItem>
@@ -186,8 +186,8 @@ const PracticeCommandCenter: React.FC = () => {
             </div>
 
             {/* Scale/Arpeggio Type Selection */}
-            <div className="space-y-3 border p-4 rounded-lg border-primary/30 bg-gray-700/30">
-              <Label className="text-lg font-semibold text-primary block mb-2">SCALE/ARPEGGIO TYPE</Label>
+            <div className="space-y-3 border p-4 rounded-lg border-primary/30 bg-secondary/50">
+              <Label className="text-lg font-semibold text-primary block mb-2 font-mono">SCALE/ARPEGGIO TYPE</Label>
               <ToggleGroup 
                 type="single" 
                 value={selectedType} 
@@ -206,7 +206,7 @@ const PracticeCommandCenter: React.FC = () => {
                     key={type} 
                     value={type} 
                     aria-label={`Select type ${type}`}
-                    className="data-[state=on]:bg-primary data-[state=on]:text-primary-foreground data-[state=on]:shadow-md data-[state=on]:border-primary/80 border border-gray-500 text-sm px-4 py-2 h-auto"
+                    className="data-[state=on]:bg-primary data-[state=on]:text-primary-foreground data-[state=on]:shadow-md data-[state=on]:border-primary/80 border border-border text-sm px-4 py-2 h-auto font-mono"
                   >
                     {type}
                   </ToggleGroupItem>
@@ -219,13 +219,13 @@ const PracticeCommandCenter: React.FC = () => {
           <div className="space-y-6 lg:col-span-1">
             
             {/* Articulation Selection */}
-            <div className="space-y-3 border p-4 rounded-lg border-primary/30 bg-gray-700/30">
-              <Label className="text-lg font-semibold text-primary block mb-2">ARTICULATION MODE</Label>
+            <div className="space-y-3 border p-4 rounded-lg border-primary/30 bg-secondary/50">
+              <Label className="text-lg font-semibold text-primary block mb-2 font-mono">ARTICULATION MODE</Label>
               <div className="space-y-2">
                 {ARTICULATIONS.map(articulation => (
                   <div key={articulation} className={cn(
                     "flex items-center space-x-3 p-3 rounded-md transition-colors cursor-pointer",
-                    selectedArticulation === articulation ? "bg-primary/20 border border-primary" : "hover:bg-gray-700"
+                    selectedArticulation === articulation ? "bg-primary/20 border border-primary" : "hover:bg-accent"
                   )}
                    onClick={() => setSelectedArticulation(articulation)}>
                     <Checkbox 
@@ -234,7 +234,7 @@ const PracticeCommandCenter: React.FC = () => {
                       onCheckedChange={() => setSelectedArticulation(articulation)}
                       className="border-primary data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground"
                     />
-                    <Label htmlFor={`art-${articulation}`} className="text-sm font-medium leading-none cursor-pointer text-foreground">
+                    <Label htmlFor={`art-${articulation}`} className="text-sm font-medium leading-none cursor-pointer text-foreground font-mono">
                       {articulation}
                     </Label>
                   </div>
@@ -250,9 +250,9 @@ const PracticeCommandCenter: React.FC = () => {
         {/* Footer: Tempo Slider and Save Button */}
         <div className="p-6 pt-0 space-y-6 border-t border-primary/50">
             {/* Tempo Slider */}
-            <div className="space-y-4 pt-4 border-t border-gray-700">
-              <Label className="text-lg font-semibold text-primary block">
-                TEMPO LEVEL: <span className="font-mono text-xl text-green-400">{selectedTempo}</span>
+            <div className="space-y-4 pt-4 border-t border-border">
+              <Label className="text-lg font-semibold text-primary block font-mono">
+                TEMPO LEVEL: <span className="font-mono text-xl text-primary">{selectedTempo}</span>
               </Label>
               <Slider
                 min={0}
@@ -270,7 +270,7 @@ const PracticeCommandCenter: React.FC = () => {
 
             <Button 
               onClick={handleSaveSnapshot} 
-              className="w-full text-xl py-6 bg-green-600 hover:bg-green-700 transition-all duration-300 shadow-lg shadow-green-600/50"
+              className="w-full text-xl py-6 bg-primary hover:bg-primary/90 transition-all duration-300 shadow-lg shadow-primary/50 text-primary-foreground"
             >
               <LogIn className="w-6 h-6 mr-3" /> LOG PRACTICE SNAPSHOT
             </Button>

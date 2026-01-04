@@ -8,10 +8,10 @@ import { Separator } from '@/components/ui/separator';
 const ProgressPage: React.FC = () => {
   return (
     <div className="container mx-auto p-4 md:p-8 space-y-10">
-      <h1 className="text-4xl font-extrabold tracking-tight text-center lg:text-5xl">
-        Mastery Matrix & History
+      <h1 className="text-4xl font-extrabold tracking-tight text-center lg:text-5xl font-mono text-primary">
+        MASTER Y O U R SCALES
       </h1>
-      <p className="text-center text-lg text-muted-foreground max-w-3xl mx-auto">
+      <p className="text-center text-lg text-muted-foreground max-w-3xl mx-auto font-mono">
         Review your progress across all scale and arpeggio combinations.
       </p>
 
@@ -19,7 +19,7 @@ const ProgressPage: React.FC = () => {
 
       <Card>
         <CardHeader>
-          <CardTitle>Scale Mastery Matrix</CardTitle>
+          <CardTitle className="font-mono text-primary">Scale Mastery Matrix</CardTitle>
         </CardHeader>
         <CardContent>
           <ScaleGrid />
