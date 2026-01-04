@@ -103,15 +103,7 @@ export const ScalesProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     };
     setLog(prev => [newEntry, ...prev]);
 
-    // Update status for all practiced combinations
-    entry.scalesPracticed.forEach(({ scaleId, articulation, tempo }) => {
-      const practiceId = getPracticeId(scaleId, articulation, tempo);
-      
-      // Automatically mark practiced combinations as 'practiced' if they were 'untouched'
-      if (progress[practiceId] === 'untouched') {
-        updatePracticeStatus(practiceId, 'practiced');
-      }
-    });
+    // NOTE: Removed automatic status update. Status is now controlled manually via the grid.
   };
 
   const contextValue = useMemo(() => ({

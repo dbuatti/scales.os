@@ -51,7 +51,7 @@ const PracticeLog = () => {
                   </p>
                 )}
 
-                {entry.scalesPracticed.length > 0 && (
+                {entry.scalesPracticed.length > 0 ? (
                   <div className="mt-2 flex flex-wrap gap-2">
                     {entry.scalesPracticed.map((item, index) => (
                       <Badge key={index} variant="secondary" className="flex flex-col items-start p-2 h-auto">
@@ -60,6 +60,10 @@ const PracticeLog = () => {
                       </Badge>
                     ))}
                   </div>
+                ) : (
+                  <p className="text-xs text-muted-foreground mt-2">
+                    General practice session logged. Specific scale progress tracked via Mastery Matrix.
+                  </p>
                 )}
               </div>
             ))}
