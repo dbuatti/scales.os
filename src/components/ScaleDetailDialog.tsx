@@ -7,7 +7,8 @@ import {
 } from '@/lib/scales';
 import { useScales, ScaleStatus } from '../context/ScalesContext';
 import { cn } from '@/lib/utils';
-import { Check, Clock, X } from 'lucide-react';
+import { Check, Clock, X, RotateCcw } from 'lucide-react';
+import { showError, showSuccess } from '@/utils/toast';
 
 interface ScaleDetailDialogProps {
   scaleItem: ScaleItem;
@@ -47,9 +48,24 @@ const getStatusClasses = (status: ScaleStatus) => {
 
 const ScaleDetailDialog: React.FC<ScaleDetailDialogProps> = ({ scaleItem, children }) => {
   const { progressMap, updatePracticeStatus } = useScales();
+  const [selectedArticulation, setSelectedArticulation] = React.useState<Articulation>(ARTICULATIONS[0]);
+  const [selectedTempo, setSelectedTempo] = React.useState<TempoLevel>(TEMPO_LEVELS[0]);
+  
+  // Determine the practice ID for the currently selected combination in the dialog
+  const currentPracticeId = getPracticeId(
+    scaleItem.id, 
+    selectedArticulation, 
+    selectedTempo,
+    DEFAULT_DIRECTION,
+    DEFAULT_HAND_CONFIG,
+    DEFAULT_RHYTHM,
+    DEFAULT_ACCENT
+  );
+  
+  const currentStatus: ScaleStatus = progressMap[currentPracticeId] || 'untouched';
+
 
   const handleToggleStatus = (articulation: Articulation, tempo: TempoLevel) => {
-    // Use default values for the new dimensions when toggling status in this simplified matrix view
     const practiceId = getPracticeId(
       scaleItem.id, 
       articulation, 
@@ -60,19 +76,29 @@ const ScaleDetailDialog: React.FC<ScaleDetailDialogProps> = ({ scaleItem, childr
       DEFAULT_ACCENT
     );
     
-    const currentStatus: ScaleStatus = progressMap[practiceId] || 'untouched';
+    const status: ScaleStatus = progressMap[practiceId] || 'untouched';
     
     // Cycle logic: untouched -> practiced -> mastered -> untouched
     let nextStatus: ScaleStatus;
-    if (currentStatus === 'untouched') {
+    if (status === 'untouched') {
       nextStatus = 'practiced';
-    } else if (currentStatus === 'practiced') {
+    } else if (status === 'practiced') {
       nextStatus = 'mastered';
-    } else { // currentStatus === 'mastered'
+    } else { // status === 'mastered'
       nextStatus = 'untouched';
     }
       
     updatePracticeStatus(practiceId, nextStatus);
+  };
+  
+  const handleResetStatus = () => {
+    if (currentStatus === 'untouched') {
+      showError("Status is already Untouched.");
+      return;
+    }
+    
+    updatePracticeStatus(currentPracticeId, 'untouched');
+    showSuccess(`Status for ${scaleItem.key} ${scaleItem.type} (${selectedArticulation}, ${selectedTempo.split(' ')[0]}) reset to Untouched.`);
   };
 
   return (
@@ -124,10 +150,16 @@ const ScaleDetailDialog: React.FC<ScaleDetailDialogProps> = ({ scaleItem, childr
                     return (
                       <td key={tempo} className="px-4 py-2">
                         <Button
-                          onClick={() => handleToggleStatus(articulation, tempo)}
+                          onClick={() => {
+                            handleToggleStatus(articulation, tempo);
+                            setSelectedArticulation(articulation);
+                            setSelectedTempo(tempo);
+                          }}
                           className={cn(
                             "w-full h-10 flex items-center justify-center rounded-md transition-colors duration-150",
-                            getStatusClasses(status)
+                            getStatusClasses(status),
+                            // Highlight the currently selected cell for reset button context
+                            articulation === selectedArticulation && tempo === selectedTempo && "ring-2 ring-offset-2 ring-primary ring-offset-background"
                           )}
                           size="sm"
                           aria-label={`${articulation} at ${tempo} status: ${statusText}. Click to cycle status.`}
@@ -142,8 +174,22 @@ const ScaleDetailDialog: React.FC<ScaleDetailDialogProps> = ({ scaleItem, childr
             </tbody>
           </table>
         </div>
-        <p className="text-sm text-muted-foreground mt-4">
-          Click a cell to cycle its status: Untouched → Practiced → Mastered. Statuses are automatically set to Practiced when logged via the timer/snapshot.
+        
+        <div className="flex justify-between items-center mt-4 pt-4 border-t border-border">
+            <p className="text-sm text-muted-foreground">
+              Click a cell to cycle its status: Untouched → Practiced → Mastered.
+            </p>
+            <Button 
+                onClick={handleResetStatus} 
+                variant="destructive" 
+                size="sm"
+                disabled={currentStatus === 'untouched'}
+            >
+                <RotateCcw className="w-4 h-4 mr-2" /> Reset Selected Status
+            </Button>
+        </div>
+        <p className="text-xs text-muted-foreground">
+            Currently selected combination: <span className="font-mono text-foreground">{selectedArticulation}</span> at <span className="font-mono text-foreground">{selectedTempo.split(' ')[0]}</span>. Status: <span className={cn("font-mono font-bold", currentStatus === 'mastered' ? 'text-green-400' : currentStatus === 'practiced' ? 'text-yellow-400' : 'text-gray-400')}>{currentStatus.toUpperCase()}</span>
         </p>
       </DialogContent>
     </Dialog>
