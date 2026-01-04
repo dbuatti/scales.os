@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
@@ -78,7 +78,21 @@ const PracticeCommandCenter: React.FC = () => {
   const [selectedAccent, setSelectedAccent] = useState<AccentDistribution>(ACCENT_DISTRIBUTIONS[3]);
 
   const selectedTempo = TEMPO_LEVELS[selectedTempoIndex];
-  const currentBPM = TEMPO_BPM_MAP[selectedTempo];
+  
+  // State for fine-tuned BPM (Metronome feature)
+  const initialBPM = TEMPO_BPM_MAP[TEMPO_LEVELS[0]];
+  const [currentBPM, setCurrentBPM] = useState(initialBPM);
+
+  // Sync currentBPM when selectedTempoIndex changes (from slider)
+  useEffect(() => {
+      setCurrentBPM(TEMPO_BPM_MAP[TEMPO_LEVELS[selectedTempoIndex]]);
+  }, [selectedTempoIndex]);
+  
+  // Handler for +/- 1 BPM adjustment
+  const handleBpmChange = (delta: number) => {
+      setCurrentBPM(prev => Math.max(1, prev + delta)); // Ensure BPM doesn't go below 1
+  };
+
 
   const getScaleItemAndPracticeId = () => {
     let scaleItem;
@@ -125,7 +139,7 @@ const PracticeCommandCenter: React.FC = () => {
         rhythm: selectedRhythm,
         accent: selectedAccent,
       }],
-      notes: `Snapshot: ${scaleItem.key} ${scaleItem.type} (${selectedArticulation}, ${selectedTempo}, ${selectedDirection}, ${selectedHandConfig}, ${selectedRhythm}, ${selectedAccent})`,
+      notes: `Snapshot: ${scaleItem.key} ${scaleItem.type} (${selectedArticulation}, ${selectedTempo}, ${selectedDirection}, ${selectedHandConfig}, ${selectedRhythm}, ${selectedAccent}). Target BPM: ${currentBPM}`,
     });
 
     // 3. Update the status to 'practiced'
@@ -151,7 +165,7 @@ const PracticeCommandCenter: React.FC = () => {
         rhythm: selectedRhythm,
         accent: selectedAccent,
       }],
-      notes: `Timed session focused on: ${scaleItem.key} ${scaleItem.type} (${selectedArticulation}, ${selectedTempo})`,
+      notes: `Timed session focused on: ${scaleItem.key} ${scaleItem.type} (${selectedArticulation}, ${selectedTempo}). Actual BPM used: ${currentBPM}`,
     });
 
     // 3. Update the status to 'practiced'
@@ -177,15 +191,35 @@ const PracticeCommandCenter: React.FC = () => {
           {/* Top Row: BPM and Timer */}
           <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center space-y-4 lg:space-y-0 lg:space-x-8">
             
-            {/* Tempo Display */}
+            {/* Tempo Display / Metronome Control */}
             <div className="flex-1 space-y-2">
-                <Label className="text-lg font-semibold text-primary block font-mono">
+                <Label className="text-lg font-semibold text-primary block font-mono text-center lg:text-left">
                     TARGET TEMPO (BPM)
                 </Label>
-                <div className="text-7xl font-mono font-extrabold text-primary tracking-tighter">
-                    {currentBPM}
+                <div className="flex items-center justify-center lg:justify-start space-x-4">
+                    <Button 
+                        onClick={() => handleBpmChange(-1)} 
+                        variant="outline" 
+                        size="icon" 
+                        className="w-12 h-12 text-primary border-primary/50 text-2xl font-bold hover:bg-accent"
+                    >
+                        -
+                    </Button>
+                    <div className="text-7xl font-mono font-extrabold text-primary tracking-tighter min-w-[120px] text-center">
+                        {currentBPM}
+                    </div>
+                    <Button 
+                        onClick={() => handleBpmChange(1)} 
+                        variant="outline" 
+                        size="icon" 
+                        className="w-12 h-12 text-primary border-primary/50 text-2xl font-bold hover:bg-accent"
+                    >
+                        +
+                    </Button>
                 </div>
-                <p className="text-sm text-muted-foreground font-mono">{selectedTempo}</p>
+                <p className="text-sm text-muted-foreground font-mono text-center lg:text-left">
+                    Tempo Category: {selectedTempo}
+                </p>
             </div>
 
             {/* Timer Integration (Top Right) */}
