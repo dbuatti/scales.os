@@ -2,7 +2,7 @@ import React from 'react';
 import { useScales, ScaleStatus } from '../context/ScalesContext';
 import { 
   KEYS, SCALE_TYPES, ARPEGGIO_TYPES, ScaleItem, ARTICULATIONS, TEMPO_LEVELS, getPracticeId,
-  DIRECTION_TYPES, HAND_CONFIGURATIONS, RHYTHMIC_PERMUTATIONS, ACCENT_DISTRIBUTIONS
+  DIRECTION_TYPES, HAND_CONFIGURATIONS, RHYTHMIC_PERMUTATIONS, ACCENT_DISTRIBUTIONS, OCTAVE_CONFIGURATIONS
 } from '@/lib/scales';
 import { cn } from '@/lib/utils';
 import { Check, X, Clock, Eye } from 'lucide-react';
@@ -50,23 +50,26 @@ const getOverallStatus = (scaleItem: ScaleItem, progressMap: Record<string, 'pra
         HAND_CONFIGURATIONS.forEach(handConfig => {
           RHYTHMIC_PERMUTATIONS.forEach(rhythm => {
             ACCENT_DISTRIBUTIONS.forEach(accent => {
-              const practiceId = getPracticeId(
-                scaleItem.id, 
-                articulation, 
-                tempo, 
-                direction, 
-                handConfig, 
-                rhythm, 
-                accent
-              );
-              const status: ScaleStatus = progressMap[practiceId] || 'untouched';
-              totalCombinations++;
-              
-              if (status === 'mastered') {
-                masteredCount++;
-              } else if (status === 'practiced') {
-                practicedCount++;
-              }
+              OCTAVE_CONFIGURATIONS.forEach(octaves => {
+                const practiceId = getPracticeId(
+                  scaleItem.id, 
+                  articulation, 
+                  tempo, 
+                  direction, 
+                  handConfig, 
+                  rhythm, 
+                  accent,
+                  octaves
+                );
+                const status: ScaleStatus = progressMap[practiceId] || 'untouched';
+                totalCombinations++;
+                
+                if (status === 'mastered') {
+                  masteredCount++;
+                } else if (status === 'practiced') {
+                  practicedCount++;
+                }
+              });
             });
           });
         });

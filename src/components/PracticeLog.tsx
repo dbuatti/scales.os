@@ -59,7 +59,7 @@ const PracticeLog = () => {
                       <Badge key={index} variant="secondary" className="flex flex-col items-start p-2 h-auto text-left">
                         <span className="font-bold">{scaleMap[item.scaleId] || item.scaleId}</span>
                         <span className="text-xs font-normal mt-1">
-                            Art: {item.articulation} | Tempo: {item.tempo.split(' ')[0]}
+                            Art: {item.articulation} | Tempo: {item.tempo.split(' ')[0]} | Octaves: {item.octaves.split(' ')[0]}
                         </span>
                         <span className="text-xs font-normal">
                             Dir: {item.direction} | Hands: {item.handConfig}

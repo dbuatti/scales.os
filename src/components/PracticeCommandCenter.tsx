@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
@@ -7,17 +7,21 @@ import { LogIn } from 'lucide-react';
 import { 
   KEYS, SCALE_TYPES, ARPEGGIO_TYPES, ARTICULATIONS, TEMPO_LEVELS, getPracticeId, 
   Key, Articulation, TempoLevel, ALL_SCALE_ITEMS,
-  DIRECTION_TYPES, HAND_CONFIGURATIONS, RHYTHMIC_PERMUTATIONS, ACCENT_DISTRIBUTIONS,
-  DirectionType, HandConfiguration, RhythmicPermutation, AccentDistribution
+  DIRECTION_TYPES, HAND_CONFIGURATIONS, RHYTHMIC_PERMUTATIONS, ACCENT_DISTRIBUTIONS, OCTAVE_CONFIGURATIONS,
+  DirectionType, HandConfiguration, RhythmicPermutation, AccentDistribution, OctaveConfiguration
 } from '@/lib/scales';
 import { useScales } from '../context/ScalesContext';
 import { showSuccess, showError } from '@/utils/toast';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { cn } from '@/lib/utils';
 import PracticeTimer from './PracticeTimer';
+import { formatDistanceToNow } from 'date-fns';
 
 // Helper to combine scale and arpeggio types for selection
 const ALL_TYPES = [...SCALE_TYPES, ...ARPEGGIO_TYPES];
+
+const MIN_BPM = 40;
+const MAX_BPM = 250;
 
 const TEMPO_BPM_MAP: Record<TempoLevel, number> = {
   "Slow (Under 80 BPM)": 70,
@@ -65,7 +69,7 @@ const PermutationSection = <T extends string>({ title, description, options, sel
 
 
 const PracticeCommandCenter: React.FC = () => {
-  const { addLogEntry, updatePracticeStatus, allScales } = useScales();
+  const { addLogEntry, updatePracticeStatus, allScales, log } = useScales();
   
   // State for selected parameters
   const [selectedKey, setSelectedKey] = useState<Key>(KEYS[0]);
@@ -78,6 +82,7 @@ const PracticeCommandCenter: React.FC = () => {
   const [selectedHandConfig, setSelectedHandConfig] = useState<HandConfiguration>(HAND_CONFIGURATIONS[0]);
   const [selectedRhythm, setSelectedRhythm] = useState<RhythmicPermutation>(RHYTHMIC_PERMUTATIONS[0]);
   const [selectedAccent, setSelectedAccent] = useState<AccentDistribution>(ACCENT_DISTRIBUTIONS[3]);
+  const [selectedOctaves, setSelectedOctaves] = useState<OctaveConfiguration>(OCTAVE_CONFIGURATIONS[1]); // Default to 2 Octaves
 
   const selectedTempo = TEMPO_LEVELS[selectedTempoIndex];
   
@@ -87,12 +92,13 @@ const PracticeCommandCenter: React.FC = () => {
 
   // Sync currentBPM when selectedTempoIndex changes (from slider)
   useEffect(() => {
+      // Reset BPM to the category's default when the category changes
       setCurrentBPM(TEMPO_BPM_MAP[TEMPO_LEVELS[selectedTempoIndex]]);
   }, [selectedTempoIndex]);
   
   // Handler for +/- 1 BPM adjustment
   const handleBpmChange = (delta: number) => {
-      setCurrentBPM(prev => Math.max(1, prev + delta)); // Ensure BPM doesn't go below 1
+      setCurrentBPM(prev => Math.min(MAX_BPM, Math.max(MIN_BPM, prev + delta)));
   };
 
 
@@ -118,11 +124,53 @@ const PracticeCommandCenter: React.FC = () => {
       selectedDirection, 
       selectedHandConfig, 
       selectedRhythm, 
-      selectedAccent
+      selectedAccent,
+      selectedOctaves
     );
     
     return { scaleItem, practiceId };
   }
+  
+  const currentPracticeId = useMemo(() => {
+    const result = getScaleItemAndPracticeId();
+    return result ? result.practiceId : null;
+  }, [selectedKey, selectedType, selectedArticulation, selectedTempo, selectedDirection, selectedHandConfig, selectedRhythm, selectedAccent, selectedOctaves, allScales]);
+
+  const lastLogEntry = useMemo(() => {
+    if (!currentPracticeId) return null;
+    
+    // Find the most recent log entry that includes this specific practiceId combination
+    const entry = log.find(logEntry => 
+        logEntry.scalesPracticed.some(sp => {
+            // Reconstruct the practice ID from the log entry item
+            const logPracticeId = getPracticeId(
+                sp.scaleId, 
+                sp.articulation, 
+                sp.tempo, 
+                sp.direction, 
+                sp.handConfig, 
+                sp.rhythm, 
+                sp.accent,
+                sp.octaves
+            );
+            return logPracticeId === currentPracticeId;
+        })
+    );
+    
+    if (entry) {
+        // Try to extract BPM from notes if it was a snapshot log
+        const bpmMatch = entry.notes.match(/BPM: (\d+)/);
+        const lastBPM = bpmMatch ? parseInt(bpmMatch[1], 10) : null;
+        
+        return {
+            timestamp: entry.timestamp,
+            lastBPM: lastBPM,
+            duration: entry.durationMinutes,
+        };
+    }
+    return null;
+  }, [log, currentPracticeId]);
+
 
   const handleSaveSnapshot = () => {
     const result = getScaleItemAndPracticeId();
@@ -140,8 +188,9 @@ const PracticeCommandCenter: React.FC = () => {
         handConfig: selectedHandConfig,
         rhythm: selectedRhythm,
         accent: selectedAccent,
+        octaves: selectedOctaves,
       }],
-      notes: `Snapshot: ${scaleItem.key} ${scaleItem.type} (${selectedArticulation}, ${selectedTempo}, ${selectedDirection}, ${selectedHandConfig}, ${selectedRhythm}, ${selectedAccent}). Target BPM: ${currentBPM}`,
+      notes: `Snapshot: ${scaleItem.key} ${scaleItem.type} (${selectedArticulation}, ${selectedTempo}, ${selectedDirection}, ${selectedHandConfig}, ${selectedRhythm}, ${selectedAccent}, ${selectedOctaves}). Target BPM: ${currentBPM}`,
     });
 
     // 3. Update the status to 'practiced'
@@ -166,8 +215,9 @@ const PracticeCommandCenter: React.FC = () => {
         handConfig: selectedHandConfig,
         rhythm: selectedRhythm,
         accent: selectedAccent,
+        octaves: selectedOctaves,
       }],
-      notes: `Timed session focused on: ${scaleItem.key} ${scaleItem.type} (${selectedArticulation}, ${selectedTempo}). Actual BPM used: ${currentBPM}`,
+      notes: `Timed session focused on: ${scaleItem.key} ${scaleItem.type} (${selectedArticulation}, ${selectedTempo}, ${selectedOctaves}). Actual BPM used: ${currentBPM}`,
     });
 
     // 3. Update the status to 'practiced'
@@ -195,6 +245,24 @@ const PracticeCommandCenter: React.FC = () => {
             
             {/* Tempo Display / Metronome Control */}
             <div className="flex-1 space-y-2">
+                {/* Last Practiced Message */}
+                <div className="h-10 flex items-center justify-center lg:justify-start">
+                    {lastLogEntry ? (
+                        <p className="text-sm text-yellow-400 font-mono text-center lg:text-left">
+                            LAST SESSION ({formatDistanceToNow(lastLogEntry.timestamp, { addSuffix: true })}): 
+                            {lastLogEntry.lastBPM ? (
+                                <span className="font-bold ml-1">Targeted {lastLogEntry.lastBPM} BPM.</span>
+                            ) : (
+                                <span className="font-bold ml-1">Logged {lastLogEntry.duration} min.</span>
+                            )}
+                        </p>
+                    ) : (
+                        <p className="text-sm text-muted-foreground font-mono text-center lg:text-left">
+                            No previous log found for this combination.
+                        </p>
+                    )}
+                </div>
+                
                 <Label className="text-lg font-semibold text-primary block font-mono text-center lg:text-left">
                     TARGET TEMPO (BPM)
                 </Label>
@@ -204,6 +272,7 @@ const PracticeCommandCenter: React.FC = () => {
                         variant="outline" 
                         size="icon" 
                         className="w-12 h-12 text-primary border-primary/50 text-2xl font-bold hover:bg-accent"
+                        disabled={currentBPM <= MIN_BPM}
                     >
                         -
                     </Button>
@@ -215,6 +284,7 @@ const PracticeCommandCenter: React.FC = () => {
                         variant="outline" 
                         size="icon" 
                         className="w-12 h-12 text-primary border-primary/50 text-2xl font-bold hover:bg-accent"
+                        disabled={currentBPM >= MAX_BPM}
                     >
                         +
                     </Button>
@@ -346,16 +416,23 @@ const PracticeCommandCenter: React.FC = () => {
                 <div className="flex-grow border-t border-dashed border-primary/50"></div>
             </div>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <PermutationSection
-                    title="1. DIRECTION & STARTING POINT"
+                    title="1. OCTAVE RANGE"
+                    description="Increase range to test consistency and endurance."
+                    options={OCTAVE_CONFIGURATIONS}
+                    selectedValue={selectedOctaves}
+                    onValueChange={(value) => setSelectedOctaves(value)}
+                />
+                <PermutationSection
+                    title="2. DIRECTION & STARTING POINT"
                     description="Removes 'muscle-memory autopilot' and tests mental mapping."
                     options={DIRECTION_TYPES}
                     selectedValue={selectedDirection}
                     onValueChange={(value) => setSelectedDirection(value)}
                 />
                 <PermutationSection
-                    title="2. HAND CONFIGURATION"
+                    title="3. HAND CONFIGURATION"
                     description="Professional expectation: tests coordination and integration."
                     options={HAND_CONFIGURATIONS}
                     selectedValue={selectedHandConfig}
@@ -365,14 +442,14 @@ const PracticeCommandCenter: React.FC = () => {
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <PermutationSection
-                    title="3. RHYTHMIC PERMUTATIONS"
+                    title="4. RHYTHMIC PERMUTATIONS"
                     description="High value, low time: reveals weak fingers and hidden tension."
                     options={RHYTHMIC_PERMUTATIONS}
                     selectedValue={selectedRhythm}
                     onValueChange={(value) => setSelectedRhythm(value)}
                 />
                 <PermutationSection
-                    title="4. ACCENT & WEIGHT DISTRIBUTION"
+                    title="5. ACCENT & WEIGHT DISTRIBUTION"
                     description="Quietly professional: ensures neutral evenness and control."
                     options={ACCENT_DISTRIBUTIONS}
                     selectedValue={selectedAccent}

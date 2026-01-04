@@ -3,7 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Button } from '@/components/ui/button';
 import { 
   ScaleItem, ARTICULATIONS, TEMPO_LEVELS, getPracticeId, Articulation, TempoLevel,
-  DIRECTION_TYPES, HAND_CONFIGURATIONS, RHYTHMIC_PERMUTATIONS, ACCENT_DISTRIBUTIONS
+  DIRECTION_TYPES, HAND_CONFIGURATIONS, RHYTHMIC_PERMUTATIONS, ACCENT_DISTRIBUTIONS, OCTAVE_CONFIGURATIONS
 } from '@/lib/scales';
 import { useScales, ScaleStatus } from '../context/ScalesContext';
 import { cn } from '@/lib/utils';
@@ -20,6 +20,7 @@ const DEFAULT_DIRECTION = DIRECTION_TYPES[2]; // "Asc + Desc (standard)"
 const DEFAULT_HAND_CONFIG = HAND_CONFIGURATIONS[0]; // "Hands together"
 const DEFAULT_RHYTHM = RHYTHMIC_PERMUTATIONS[0]; // "Straight"
 const DEFAULT_ACCENT = ACCENT_DISTRIBUTIONS[3]; // "No accent (neutral evenness)"
+const DEFAULT_OCTAVES = OCTAVE_CONFIGURATIONS[1]; // "2 Octaves (Standard)"
 
 
 const getStatusIcon = (status: ScaleStatus) => {
@@ -59,7 +60,8 @@ const ScaleDetailDialog: React.FC<ScaleDetailDialogProps> = ({ scaleItem, childr
     DEFAULT_DIRECTION,
     DEFAULT_HAND_CONFIG,
     DEFAULT_RHYTHM,
-    DEFAULT_ACCENT
+    DEFAULT_ACCENT,
+    DEFAULT_OCTAVES
   );
   
   const currentStatus: ScaleStatus = progressMap[currentPracticeId] || 'untouched';
@@ -73,7 +75,8 @@ const ScaleDetailDialog: React.FC<ScaleDetailDialogProps> = ({ scaleItem, childr
       DEFAULT_DIRECTION,
       DEFAULT_HAND_CONFIG,
       DEFAULT_RHYTHM,
-      DEFAULT_ACCENT
+      DEFAULT_ACCENT,
+      DEFAULT_OCTAVES
     );
     
     const status: ScaleStatus = progressMap[practiceId] || 'untouched';
@@ -112,7 +115,7 @@ const ScaleDetailDialog: React.FC<ScaleDetailDialogProps> = ({ scaleItem, childr
         </DialogHeader>
         
         <p className="text-sm text-yellow-500 mb-4">
-          Note: This matrix tracks the default permutation: {DEFAULT_DIRECTION}, {DEFAULT_HAND_CONFIG}, {DEFAULT_RHYTHM}, {DEFAULT_ACCENT}.
+          Note: This matrix tracks the default permutation: {DEFAULT_DIRECTION}, {DEFAULT_HAND_CONFIG}, {DEFAULT_RHYTHM}, {DEFAULT_ACCENT}, {DEFAULT_OCTAVES}.
         </p>
 
         <div className="overflow-x-auto">
@@ -142,7 +145,8 @@ const ScaleDetailDialog: React.FC<ScaleDetailDialogProps> = ({ scaleItem, childr
                       DEFAULT_DIRECTION,
                       DEFAULT_HAND_CONFIG,
                       DEFAULT_RHYTHM,
-                      DEFAULT_ACCENT
+                      DEFAULT_ACCENT,
+                      DEFAULT_OCTAVES
                     );
                     const status: ScaleStatus = progressMap[practiceId] || 'untouched';
                     const statusText = status === 'mastered' ? 'Mastered' : status === 'practiced' ? 'Practiced' : 'Untouched';

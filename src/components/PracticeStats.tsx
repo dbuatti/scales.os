@@ -4,8 +4,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { 
   getPracticeId, ARTICULATIONS, TEMPO_LEVELS, ScaleItem, Articulation, TempoLevel,
-  DIRECTION_TYPES, HAND_CONFIGURATIONS, RHYTHMIC_PERMUTATIONS, ACCENT_DISTRIBUTIONS,
-  DirectionType, HandConfiguration, RhythmicPermutation, AccentDistribution
+  DIRECTION_TYPES, HAND_CONFIGURATIONS, RHYTHMIC_PERMUTATIONS, ACCENT_DISTRIBUTIONS, OCTAVE_CONFIGURATIONS,
+  DirectionType, HandConfiguration, RhythmicPermutation, AccentDistribution, OctaveConfiguration
 } from '@/lib/scales';
 import { Clock, Check, Target } from 'lucide-react';
 
@@ -13,7 +13,7 @@ const PracticeStats = () => {
   const { progressMap, log, allScales } = useScales();
 
   const stats = useMemo(() => {
-    const totalCombinations = allScales.length * ARTICULATIONS.length * TEMPO_LEVELS.length * DIRECTION_TYPES.length * HAND_CONFIGURATIONS.length * RHYTHMIC_PERMUTATIONS.length * ACCENT_DISTRIBUTIONS.length;
+    const totalCombinations = allScales.length * ARTICULATIONS.length * TEMPO_LEVELS.length * DIRECTION_TYPES.length * HAND_CONFIGURATIONS.length * RHYTHMIC_PERMUTATIONS.length * ACCENT_DISTRIBUTIONS.length * OCTAVE_CONFIGURATIONS.length;
     let masteredCount = 0;
     let practicedCount = 0;
     let totalDurationMinutes = 0;
@@ -45,19 +45,22 @@ const PracticeStats = () => {
     };
   }, [progressMap, log, allScales]);
 
-  // Logic to suggest the next scale: prioritize untouched scales
+  // Logic to suggest the next scale: prioritize progression
   const suggestedScale = useMemo(() => {
-    const untouchedEntries: { 
+    const allCombinations: { 
         scaleId: string, 
         articulation: Articulation, 
         tempo: TempoLevel,
         direction: DirectionType,
         handConfig: HandConfiguration,
         rhythm: RhythmicPermutation,
-        accent: AccentDistribution
+        accent: AccentDistribution,
+        octaves: OctaveConfiguration,
+        status: ScaleStatus,
+        practiceId: string
     }[] = [];
 
-    // Iterate over all possible combinations to find untouched ones
+    // 1. Generate ALL possible combinations and their current status
     allScales.forEach(scale => {
       ARTICULATIONS.forEach(articulation => {
         TEMPO_LEVELS.forEach(tempo => {
@@ -65,11 +68,11 @@ const PracticeStats = () => {
             HAND_CONFIGURATIONS.forEach(handConfig => {
               RHYTHMIC_PERMUTATIONS.forEach(rhythm => {
                 ACCENT_DISTRIBUTIONS.forEach(accent => {
-                  const practiceId = getPracticeId(scale.id, articulation, tempo, direction, handConfig, rhythm, accent);
-                  // If the practiceId is NOT in progressMap, it is 'untouched'
-                  if (!progressMap[practiceId]) {
-                    untouchedEntries.push({ scaleId: scale.id, articulation, tempo, direction, handConfig, rhythm, accent });
-                  }
+                  OCTAVE_CONFIGURATIONS.forEach(octaves => {
+                    const practiceId = getPracticeId(scale.id, articulation, tempo, direction, handConfig, rhythm, accent, octaves);
+                    const status: ScaleStatus = progressMap[practiceId] || 'untouched';
+                    allCombinations.push({ scaleId: scale.id, articulation, tempo, direction, handConfig, rhythm, accent, octaves, status, practiceId });
+                  });
                 });
               });
             });
@@ -78,10 +81,12 @@ const PracticeStats = () => {
       });
     });
 
-    if (untouchedEntries.length > 0) {
-      // Pick a random untouched combination
-      const randomIndex = Math.floor(Math.random() * untouchedEntries.length);
-      const suggestion = untouchedEntries[randomIndex];
+    // 2. Prioritize: Practiced -> Mastered (Focus on existing work)
+    const practicedButNotMastered = allCombinations.filter(c => c.status === 'practiced');
+    if (practicedButNotMastered.length > 0) {
+      // Pick a random practiced combination to push for mastery
+      const randomIndex = Math.floor(Math.random() * practicedButNotMastered.length);
+      const suggestion = practicedButNotMastered[randomIndex];
       
       const scaleItem = allScales.find(s => s.id === suggestion.scaleId);
       if (scaleItem) {
@@ -94,12 +99,53 @@ const PracticeStats = () => {
           handConfig: suggestion.handConfig,
           rhythm: suggestion.rhythm,
           accent: suggestion.accent,
-          review: false
+          octaves: suggestion.octaves,
+          review: true,
+          goal: "Achieve Mastery (Mastered status)",
+        };
+      }
+    }
+
+    // 3. Secondary Priority: Untouched, focusing on core elements (Key, Tempo, Legato, 2 Octaves)
+    const untouchedEntries = allCombinations.filter(c => c.status === 'untouched');
+    if (untouchedEntries.length > 0) {
+      // Filter for Legato, Slowest Tempo, 2 Octaves (Standard)
+      const coreFocusEntries = untouchedEntries.filter(c => 
+        c.articulation === ARTICULATIONS[0] && // Legato
+        c.tempo === TEMPO_LEVELS[0] && // Slow
+        c.octaves === OCTAVE_CONFIGURATIONS[1] // 2 Octaves
+      );
+      
+      let suggestion;
+      if (coreFocusEntries.length > 0) {
+        // Pick a random core focus entry
+        const randomIndex = Math.floor(Math.random() * coreFocusEntries.length);
+        suggestion = coreFocusEntries[randomIndex];
+      } else {
+        // Fallback: Pick a random untouched entry
+        const randomIndex = Math.floor(Math.random() * untouchedEntries.length);
+        suggestion = untouchedEntries[randomIndex];
+      }
+      
+      const scaleItem = allScales.find(s => s.id === suggestion.scaleId);
+      if (scaleItem) {
+        return {
+          key: scaleItem.key,
+          type: scaleItem.type,
+          articulation: suggestion.articulation,
+          tempo: suggestion.tempo,
+          direction: suggestion.direction,
+          handConfig: suggestion.handConfig,
+          rhythm: suggestion.rhythm,
+          accent: suggestion.accent,
+          octaves: suggestion.octaves,
+          review: false,
+          goal: "Initial Practice (Practiced status)",
         };
       }
     }
     
-    // If everything is practiced/mastered, return null
+    // If everything is mastered, return null
     return null;
   }, [progressMap, allScales]);
 
@@ -147,11 +193,17 @@ const PracticeStats = () => {
               <p className="text-lg font-semibold text-primary">
                 {suggestedScale.key} {suggestedScale.type}
               </p>
+              <p className="text-sm font-bold text-yellow-400 mb-2">
+                GOAL: {suggestedScale.goal}
+              </p>
               <p className="text-muted-foreground">
                 Articulation: <span className="font-medium text-foreground">{suggestedScale.articulation}</span>
               </p>
               <p className="text-muted-foreground">
                 Tempo: <span className="font-medium text-foreground">{suggestedScale.tempo}</span>
+              </p>
+              <p className="text-muted-foreground">
+                Octaves: <span className="font-medium text-foreground">{suggestedScale.octaves}</span>
               </p>
               <p className="text-muted-foreground">
                 Direction: <span className="font-medium text-foreground">{suggestedScale.direction}</span>

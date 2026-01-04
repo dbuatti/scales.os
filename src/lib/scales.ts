@@ -62,6 +62,13 @@ export const ACCENT_DISTRIBUTIONS = [
   "No accent (neutral evenness)",
 ] as const;
 
+export const OCTAVE_CONFIGURATIONS = [
+  "1 Octave (Beginner)",
+  "2 Octaves (Standard)",
+  "3 Octaves (Advanced)",
+  "4 Octaves (Professional)",
+] as const;
+
 
 export type Key = typeof KEYS[number];
 export type ScaleType = typeof SCALE_TYPES[number];
@@ -72,6 +79,7 @@ export type DirectionType = typeof DIRECTION_TYPES[number];
 export type HandConfiguration = typeof HAND_CONFIGURATIONS[number];
 export type RhythmicPermutation = typeof RHYTHMIC_PERMUTATIONS[number];
 export type AccentDistribution = typeof ACCENT_DISTRIBUTIONS[number];
+export type OctaveConfiguration = typeof OCTAVE_CONFIGURATIONS[number];
 
 
 export type ScaleItem = {
@@ -126,8 +134,9 @@ export const getPracticeId = (
   direction: DirectionType,
   handConfig: HandConfiguration,
   rhythm: RhythmicPermutation,
-  accent: AccentDistribution
+  accent: AccentDistribution,
+  octaves: OctaveConfiguration
 ): string => {
   const cleanString = (s: string) => s.replace(/[\s\/\(\)]/g, "");
-  return `${scaleId}-${cleanString(articulation)}-${cleanString(tempo)}-${cleanString(direction)}-${cleanString(handConfig)}-${cleanString(rhythm)}-${cleanString(accent)}`;
+  return `${scaleId}-${cleanString(articulation)}-${cleanString(tempo)}-${cleanString(direction)}-${cleanString(handConfig)}-${cleanString(rhythm)}-${cleanString(accent)}-${cleanString(octaves)}`;
 };

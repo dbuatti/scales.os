@@ -1,8 +1,8 @@
 import React, { createContext, useContext, useState, useMemo, useEffect, useCallback } from 'react';
 import { 
   ALL_SCALE_ITEMS, ScaleItem, ARTICULATIONS, TEMPO_LEVELS, Articulation, TempoLevel, getPracticeId,
-  DIRECTION_TYPES, HAND_CONFIGURATIONS, RHYTHMIC_PERMUTATIONS, ACCENT_DISTRIBUTIONS,
-  DirectionType, HandConfiguration, RhythmicPermutation, AccentDistribution
+  DIRECTION_TYPES, HAND_CONFIGURATIONS, RHYTHMIC_PERMUTATIONS, ACCENT_DISTRIBUTIONS, OCTAVE_CONFIGURATIONS,
+  DirectionType, HandConfiguration, RhythmicPermutation, AccentDistribution, OctaveConfiguration
 } from '@/lib/scales';
 import { useSupabaseSession } from '@/hooks/use-supabase-session';
 import { supabase } from '@/integrations/supabase/client';
@@ -12,7 +12,7 @@ import { showSuccess, showError } from '@/utils/toast';
 
 export type ScaleStatus = 'untouched' | 'practiced' | 'mastered';
 
-// Progress is now keyed by a combination ID (scaleId-Articulation-Tempo-Direction-HandConfig-Rhythm-Accent)
+// Progress is now keyed by a combination ID (scaleId-Articulation-Tempo-Direction-HandConfig-Rhythm-Accent-Octaves)
 // We only store 'practiced' or 'mastered' entries in the database/state. 'untouched' is the default.
 export interface StoredProgressEntry {
   practice_id: string;
@@ -31,6 +31,7 @@ export interface PracticeLogEntry {
     handConfig: HandConfiguration;
     rhythm: RhythmicPermutation;
     accent: AccentDistribution;
+    octaves: OctaveConfiguration;
   }[];
   notes: string;
 }
