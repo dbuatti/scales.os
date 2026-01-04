@@ -6,7 +6,7 @@ import { format } from 'date-fns';
 import { ScrollArea } from '@/components/ui/scroll-area';
 
 const PracticeLog = () => {
-  const { log, allScales } = useScales();
+  const { log, allScales, allDohnanyi } = useScales();
 
   if (log.length === 0) {
     return (
@@ -25,6 +25,12 @@ const PracticeLog = () => {
     acc[scale.id] = `${scale.key} ${scale.type}`;
     return acc;
   }, {} as Record<string, string>);
+  
+  const dohnanyiMap = allDohnanyi.reduce((acc, item) => {
+    acc[item.id] = item.name;
+    return acc;
+  }, {} as Record<string, string>);
+
 
   return (
     <Card>
@@ -53,26 +59,38 @@ const PracticeLog = () => {
                   </p>
                 )}
 
-                {entry.scalesPracticed.length > 0 ? (
+                {entry.itemsPracticed.length > 0 ? (
                   <div className="mt-2 flex flex-wrap gap-2">
-                    {entry.scalesPracticed.map((item, index) => (
+                    {entry.itemsPracticed.map((item, index) => (
                       <Badge key={index} variant="secondary" className="flex flex-col items-start p-2 h-auto text-left">
-                        <span className="font-bold">{scaleMap[item.scaleId] || item.scaleId}</span>
-                        <span className="text-xs font-normal mt-1">
-                            Art: {item.articulation} | Tempo: {item.tempo.split(' ')[0]} | Octaves: {item.octaves.split(' ')[0]}
-                        </span>
-                        <span className="text-xs font-normal">
-                            Dir: {item.direction} | Hands: {item.handConfig}
-                        </span>
-                        <span className="text-xs font-normal">
-                            Rhythm: {item.rhythm} | Accent: {item.accent}
-                        </span>
+                        {item.type === 'scale' && item.scaleId && (
+                            <>
+                                <span className="font-bold">{scaleMap[item.scaleId] || item.scaleId}</span>
+                                <span className="text-xs font-normal mt-1">
+                                    Art: {item.articulation} | Tempo: {item.tempo?.split(' ')[0]} | Octaves: {item.octaves?.split(' ')[0]}
+                                </span>
+                                <span className="text-xs font-normal">
+                                    Dir: {item.direction} | Hands: {item.handConfig}
+                                </span>
+                                <span className="text-xs font-normal">
+                                    Rhythm: {item.rhythm} | Accent: {item.accent}
+                                </span>
+                            </>
+                        )}
+                        {item.type === 'dohnanyi' && item.dohnanyiName && (
+                            <>
+                                <span className="font-bold text-primary">{item.dohnanyiName}</span>
+                                <span className="text-xs font-normal mt-1">
+                                    Mastery Target: {item.bpmTarget} BPM
+                                </span>
+                            </>
+                        )}
                       </Badge>
                     ))}
                   </div>
                 ) : (
                   <p className="text-xs text-muted-foreground mt-2">
-                    General practice session logged. Specific scale progress tracked via Mastery Matrix.
+                    General practice session logged. Specific progress tracked via Mastery Matrix/Grade Tracker.
                   </p>
                 )}
               </div>

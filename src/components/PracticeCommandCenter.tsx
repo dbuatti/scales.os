@@ -1,164 +1,48 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
-import { Slider } from '@/components/ui/slider';
 import { LogIn } from 'lucide-react';
-import { 
-  KEYS, SCALE_TYPES, ARPEGGIO_TYPES, ARTICULATIONS, TEMPO_LEVELS, getPracticeId, 
-  Key, Articulation, TempoLevel, ALL_SCALE_ITEMS,
-  DIRECTION_TYPES, HAND_CONFIGURATIONS, RHYTHMIC_PERMUTATIONS, ACCENT_DISTRIBUTIONS, OCTAVE_CONFIGURATIONS,
-  DirectionType, HandConfiguration, RhythmicPermutation, AccentDistribution, OctaveConfiguration
-} from '@/lib/scales';
 import { useScales } from '../context/ScalesContext';
-import { showSuccess, showError } from '@/utils/toast';
-import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
-import { cn } from '@/lib/utils';
+import { showSuccess } from '@/utils/toast';
 import PracticeTimer from './PracticeTimer';
 import { formatDistanceToNow } from 'date-fns';
-
-// Helper to combine scale and arpeggio types for selection
-const ALL_TYPES = [...SCALE_TYPES, ...ARPEGGIO_TYPES];
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import ScalePracticePanel from './ScalePracticePanel';
+import DohnanyiPracticePanel from './DohnanyiPracticePanel';
+import GradeTracker from './GradeTracker'; // New component for grading
 
 const MIN_BPM = 40;
 const MAX_BPM = 250;
 
-const TEMPO_BPM_MAP: Record<TempoLevel, number> = {
-  "Slow (Under 80 BPM)": 70,
-  "Moderate (80-100 BPM)": 90,
-  "Fast (100-120 BPM)": 110,
-  "Professional (120+ BPM)": 130,
-};
-
-interface PermutationSectionProps<T extends string> {
-    title: string;
-    description: string;
-    options: readonly T[];
-    selectedValue: T;
-    onValueChange: (value: T) => void;
-}
-
-// Refined PermutationSection component using vertical ToggleGroup
-const PermutationSection = <T extends string>({ title, description, options, selectedValue, onValueChange }: PermutationSectionProps<T>) => (
-    <div className="space-y-3 border p-4 rounded-lg border-primary/30 bg-secondary/50">
-        <Label className="text-lg font-semibold text-primary block mb-2 font-mono">{title}</Label>
-        <p className="text-xs text-muted-foreground italic mb-4">{description}</p>
-        <ToggleGroup 
-            type="single" 
-            value={selectedValue} 
-            onValueChange={(value) => value && onValueChange(value as T)}
-            className="flex flex-col space-y-2 w-full"
-        >
-            {options.map(option => (
-                <ToggleGroupItem 
-                    key={option} 
-                    value={option} 
-                    aria-label={`Select ${option}`}
-                    className={cn(
-                        "w-full justify-start data-[state=on]:bg-primary data-[state=on]:text-primary-foreground data-[state=on]:shadow-md data-[state=on]:border-primary/80 border border-border text-sm px-4 py-2 h-auto font-mono transition-all duration-150",
-                        "hover:bg-accent/50",
-                        selectedValue === option ? "bg-primary text-primary-foreground" : "bg-card text-foreground"
-                    )}
-                >
-                    {option}
-                </ToggleGroupItem>
-            ))}
-        </ToggleGroup>
-    </div>
-);
-
-
 const PracticeCommandCenter: React.FC = () => {
-  const { addLogEntry, updatePracticeStatus, allScales, log } = useScales();
-  
-  // State for selected parameters
-  const [selectedKey, setSelectedKey] = useState<Key>(KEYS[0]);
-  const [selectedType, setSelectedType] = useState<string>(ALL_TYPES[0]); 
-  const [selectedArticulation, setSelectedArticulation] = useState<Articulation>(ARTICULATIONS[0]);
-  const [selectedTempoIndex, setSelectedTempoIndex] = useState<number>(0); 
-
-  // New states
-  const [selectedDirection, setSelectedDirection] = useState<DirectionType>(DIRECTION_TYPES[2]);
-  const [selectedHandConfig, setSelectedHandConfig] = useState<HandConfiguration>(HAND_CONFIGURATIONS[0]);
-  const [selectedRhythm, setSelectedRhythm] = useState<RhythmicPermutation>(RHYTHMIC_PERMUTATIONS[0]);
-  const [selectedAccent, setSelectedAccent] = useState<AccentDistribution>(ACCENT_DISTRIBUTIONS[3]);
-  const [selectedOctaves, setSelectedOctaves] = useState<OctaveConfiguration>(OCTAVE_CONFIGURATIONS[1]); // Default to 2 Octaves
-
-  const selectedTempo = TEMPO_LEVELS[selectedTempoIndex];
+  const { addLogEntry, allScales, log, progressMap, updatePracticeStatus } = useScales();
   
   // State for fine-tuned BPM (Metronome feature)
-  const initialBPM = TEMPO_BPM_MAP[TEMPO_LEVELS[0]];
-  const [currentBPM, setCurrentBPM] = useState(initialBPM);
+  const [currentBPM, setCurrentBPM] = useState(100); // Default starting BPM
 
-  // Sync currentBPM when selectedTempoIndex changes (from slider)
-  useEffect(() => {
-      // Reset BPM to the category's default when the category changes
-      setCurrentBPM(TEMPO_BPM_MAP[TEMPO_LEVELS[selectedTempoIndex]]);
-  }, [selectedTempoIndex]);
-  
   // Handler for +/- 1 BPM adjustment
   const handleBpmChange = (delta: number) => {
       setCurrentBPM(prev => Math.min(MAX_BPM, Math.max(MIN_BPM, prev + delta)));
   };
 
+  const handleLogSession = (durationMinutes: number) => {
+    // When logging a timed session, we log a general entry without specific scale/dohnanyi items, 
+    // as the user might switch between exercises during the timed session.
+    addLogEntry({
+      durationMinutes: durationMinutes, 
+      itemsPracticed: [],
+      notes: `General timed practice session logged. Focused BPM: ${currentBPM}`,
+    });
 
-  const getScaleItemAndPracticeId = () => {
-    let scaleItem;
-    const isChromatic = selectedType === "Chromatic";
+    showSuccess(`Logged ${durationMinutes} minutes of general practice.`);
+  };
 
-    if (isChromatic) {
-        scaleItem = allScales.find(s => s.type === "Chromatic");
-    } else {
-        scaleItem = allScales.find(s => s.key === selectedKey && s.type === selectedType);
-    }
-
-    if (!scaleItem) {
-      showError("Could not identify the scale/arpeggio combination.");
-      return null;
-    }
-
-    const practiceId = getPracticeId(
-      scaleItem.id, 
-      selectedArticulation, 
-      selectedTempo,
-      selectedDirection, 
-      selectedHandConfig, 
-      selectedRhythm, 
-      selectedAccent,
-      selectedOctaves
-    );
-    
-    return { scaleItem, practiceId };
-  }
-  
-  const currentPracticeId = useMemo(() => {
-    const result = getScaleItemAndPracticeId();
-    return result ? result.practiceId : null;
-  }, [selectedKey, selectedType, selectedArticulation, selectedTempo, selectedDirection, selectedHandConfig, selectedRhythm, selectedAccent, selectedOctaves, allScales]);
-
+  // Find the most recent log entry that includes BPM information
   const lastLogEntry = useMemo(() => {
-    if (!currentPracticeId) return null;
-    
-    // Find the most recent log entry that includes this specific practiceId combination
-    const entry = log.find(logEntry => 
-        logEntry.scalesPracticed.some(sp => {
-            // Reconstruct the practice ID from the log entry item
-            const logPracticeId = getPracticeId(
-                sp.scaleId, 
-                sp.articulation, 
-                sp.tempo, 
-                sp.direction, 
-                sp.handConfig, 
-                sp.rhythm, 
-                sp.accent,
-                sp.octaves
-            );
-            return logPracticeId === currentPracticeId;
-        })
-    );
+    const entry = log.find(logEntry => logEntry.notes.includes("BPM:"));
     
     if (entry) {
-        // Try to extract BPM from notes if it was a snapshot log
         const bpmMatch = entry.notes.match(/BPM: (\d+)/);
         const lastBPM = bpmMatch ? parseInt(bpmMatch[1], 10) : null;
         
@@ -169,69 +53,11 @@ const PracticeCommandCenter: React.FC = () => {
         };
     }
     return null;
-  }, [log, currentPracticeId]);
-
-
-  const handleSaveSnapshot = () => {
-    const result = getScaleItemAndPracticeId();
-    if (!result) return;
-    const { scaleItem, practiceId } = result;
-
-    // 2. Log the snapshot (durationMinutes: 0 indicates a snapshot log)
-    addLogEntry({
-      durationMinutes: 0, 
-      scalesPracticed: [{
-        scaleId: scaleItem.id,
-        articulation: selectedArticulation,
-        tempo: selectedTempo,
-        direction: selectedDirection,
-        handConfig: selectedHandConfig,
-        rhythm: selectedRhythm,
-        accent: selectedAccent,
-        octaves: selectedOctaves,
-      }],
-      notes: `Snapshot: ${scaleItem.key} ${scaleItem.type} (${selectedArticulation}, ${selectedTempo}, ${selectedDirection}, ${selectedHandConfig}, ${selectedRhythm}, ${selectedAccent}, ${selectedOctaves}). Target BPM: ${currentBPM}`,
-    });
-
-    // 3. Update the status to 'practiced'
-    updatePracticeStatus(practiceId, 'practiced');
-
-    showSuccess(`Snapshot saved! Combination marked as practiced.`);
-  };
-  
-  const handleLogSession = (durationMinutes: number) => {
-    const result = getScaleItemAndPracticeId();
-    if (!result) return;
-    const { scaleItem, practiceId } = result;
-
-    // 2. Log the session duration
-    addLogEntry({
-      durationMinutes: durationMinutes, 
-      scalesPracticed: [{
-        scaleId: scaleItem.id,
-        articulation: selectedArticulation,
-        tempo: selectedTempo,
-        direction: selectedDirection,
-        handConfig: selectedHandConfig,
-        rhythm: selectedRhythm,
-        accent: selectedAccent,
-        octaves: selectedOctaves,
-      }],
-      notes: `Timed session focused on: ${scaleItem.key} ${scaleItem.type} (${selectedArticulation}, ${selectedTempo}, ${selectedOctaves}). Actual BPM used: ${currentBPM}`,
-    });
-
-    // 3. Update the status to 'practiced'
-    updatePracticeStatus(practiceId, 'practiced');
-  };
-
-
-  // Determine available keys based on selected type
-  const isChromatic = selectedType === "Chromatic";
-  const availableKeys = isChromatic ? ["C"] : KEYS;
+  }, [log]);
 
 
   return (
-    <div className="p-4 md:p-8 min-h-[calc(100vh-64px)] flex items-center justify-center bg-background">
+    <div className="p-4 md:p-8 min-h-[calc(100vh-64px)] flex flex-col items-center justify-start bg-background">
       <Card className="w-full max-w-6xl bg-card border-2 border-primary shadow-2xl shadow-primary/50 transition-all duration-500">
         <CardHeader className="p-4 border-b border-primary/50">
           <CardTitle className="text-2xl font-mono tracking-widest text-primary text-center">
@@ -249,7 +75,7 @@ const PracticeCommandCenter: React.FC = () => {
                 <div className="h-10 flex items-center justify-center lg:justify-start">
                     {lastLogEntry ? (
                         <p className="text-sm text-yellow-400 font-mono text-center lg:text-left">
-                            LAST SESSION ({formatDistanceToNow(lastLogEntry.timestamp, { addSuffix: true })}): 
+                            LAST LOG ({formatDistanceToNow(lastLogEntry.timestamp, { addSuffix: true })}): 
                             {lastLogEntry.lastBPM ? (
                                 <span className="font-bold ml-1">Targeted {lastLogEntry.lastBPM} BPM.</span>
                             ) : (
@@ -258,13 +84,13 @@ const PracticeCommandCenter: React.FC = () => {
                         </p>
                     ) : (
                         <p className="text-sm text-muted-foreground font-mono text-center lg:text-left">
-                            No previous log found for this combination.
+                            No recent practice log found.
                         </p>
                     )}
                 </div>
                 
                 <Label className="text-lg font-semibold text-primary block font-mono text-center lg:text-left">
-                    TARGET TEMPO (BPM)
+                    CURRENT TEMPO (BPM)
                 </Label>
                 <div className="flex items-center justify-center lg:justify-start space-x-4">
                     <Button 
@@ -290,7 +116,7 @@ const PracticeCommandCenter: React.FC = () => {
                     </Button>
                 </div>
                 <p className="text-sm text-muted-foreground font-mono text-center lg:text-left">
-                    Tempo Category: {selectedTempo}
+                    Use +/- buttons or the slider below to set BPM.
                 </p>
             </div>
 
@@ -300,163 +126,56 @@ const PracticeCommandCenter: React.FC = () => {
             </div>
           </div>
           
-          {/* Tempo Slider */}
+          {/* BPM Slider (Fine-tuned control) */}
           <div className="space-y-4 pt-4 border-t border-border">
-            <Slider
-              min={0}
-              max={TEMPO_LEVELS.length - 1}
-              step={1}
-              value={[selectedTempoIndex]}
-              onValueChange={(value) => setSelectedTempoIndex(value[0])}
-              className="w-full [&>span:first-child]:bg-primary [&>span:first-child]:h-2 [&>span:first-child]:rounded-full [&>span:nth-child(2)]:bg-primary [&>span:nth-child(2)]:border-2 [&>span:nth-child(2)]:border-primary-foreground [&>span:nth-child(2)]:w-5 [&>span:nth-child(2)]:h-5"
-            />
-            <div className="flex justify-between text-xs text-muted-foreground font-mono">
-              <span>{TEMPO_LEVELS[0].split(' ')[0]}</span>
-              <span>{TEMPO_LEVELS[TEMPO_LEVELS.length - 1].split(' ')[0]}</span>
+            <Label className="text-sm font-semibold text-muted-foreground block font-mono">BPM Fine Control</Label>
+            <div className="flex items-center space-x-4">
+                <span className="text-sm text-muted-foreground font-mono">{MIN_BPM}</span>
+                <div className="flex-1">
+                    <input
+                        type="range"
+                        min={MIN_BPM}
+                        max={MAX_BPM}
+                        step={1}
+                        value={currentBPM}
+                        onChange={(e) => setCurrentBPM(parseInt(e.target.value))}
+                        className="w-full h-2 bg-secondary rounded-lg appearance-none cursor-pointer range-lg dark:bg-muted"
+                    />
+                </div>
+                <span className="text-sm text-muted-foreground font-mono">{MAX_BPM}</span>
             </div>
           </div>
 
-          {/* Primary Selections: Key, Type, Articulation (New Grid Layout) */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-4 border-t border-border">
-            
-            {/* Key Selection */}
-            <div className="space-y-3 border p-4 rounded-lg border-primary/30 bg-secondary/50 md:col-span-1">
-              <Label className="text-lg font-semibold text-primary block mb-2 font-mono">KEY</Label>
-              <ToggleGroup 
-                type="single" 
-                value={selectedKey} 
-                onValueChange={(value) => value && setSelectedKey(value as Key)}
-                className="flex flex-wrap justify-center gap-2 w-full"
-                disabled={isChromatic}
-              >
-                {availableKeys.map(key => (
-                  <ToggleGroupItem 
-                    key={key} 
-                    value={key} 
-                    aria-label={`Select key ${key}`}
-                    className={cn(
-                      "data-[state=on]:bg-primary data-[state=on]:text-primary-foreground data-[state=on]:shadow-md data-[state=on]:border-primary/80 border border-border text-sm px-3 py-3 h-10 w-10 rounded-full font-mono flex items-center justify-center",
-                      isChromatic && "opacity-50 cursor-not-allowed"
-                    )}
-                  >
-                    {key.replace(/\/.*/, '')}
-                  </ToggleGroupItem>
-                ))}
-              </ToggleGroup>
-              {isChromatic && <p className="text-xs text-yellow-400 mt-2 text-center">Chromatic scale is key-independent (C selected).</p>}
-            </div>
+          {/* Grade Tracker */}
+          <GradeTracker />
 
-            {/* Scale/Arpeggio Type Selection */}
-            <div className="space-y-3 border p-4 rounded-lg border-primary/30 bg-secondary/50 md:col-span-1">
-              <Label className="text-lg font-semibold text-primary block mb-2 font-mono">TYPE</Label>
-              <ToggleGroup 
-                type="single" 
-                value={selectedType} 
-                onValueChange={(value) => {
-                  if (value) {
-                    setSelectedType(value);
-                    if (value === "Chromatic") {
-                        setSelectedKey("C");
-                    }
-                  }
-                }}
-                className="flex flex-wrap justify-center gap-2 w-full"
-              >
-                {ALL_TYPES.map(type => (
-                  <ToggleGroupItem 
-                    key={type} 
-                    value={type} 
-                    aria-label={`Select type ${type}`}
-                    className="data-[state=on]:bg-primary data-[state=on]:text-primary-foreground data-[state=on]:shadow-md data-[state=on]:border-primary/80 border border-border text-xs px-2 py-1 h-auto font-mono flex-1 min-w-[80px]"
-                  >
-                    {type.replace(' Arpeggio', '').replace(' Minor', ' Min').replace(' Major', ' Maj')}
-                  </ToggleGroupItem>
-                ))}
-              </ToggleGroup>
-            </div>
-            
-            {/* Articulation Selection */}
-            <div className="space-y-3 border p-4 rounded-lg border-primary/30 bg-secondary/50 md:col-span-1">
-              <Label className="text-lg font-semibold text-primary block mb-2 font-mono">ARTICULATION</Label>
-              <ToggleGroup 
-                type="single" 
-                value={selectedArticulation} 
-                onValueChange={(value) => value && setSelectedArticulation(value as Articulation)}
-                className="flex flex-wrap justify-center gap-2 w-full"
-              >
-                {ARTICULATIONS.map(articulation => (
-                  <ToggleGroupItem 
-                    key={articulation} 
-                    value={articulation} 
-                    aria-label={`Select articulation ${articulation}`}
-                    className="data-[state=on]:bg-primary data-[state=on]:text-primary-foreground data-[state=on]:shadow-md data-[state=on]:border-primary/80 border border-border text-xs px-2 py-1 h-auto font-mono flex-1 min-w-[80px]"
-                  >
-                    {articulation.split(' ')[0]}
-                  </ToggleGroupItem>
-                ))}
-              </ToggleGroup>
-            </div>
-          </div>
-
-          {/* Log Snapshot Button */}
-          <Button 
-            onClick={handleSaveSnapshot} 
-            className="w-full text-xl py-6 bg-primary hover:bg-primary/90 transition-all duration-300 shadow-lg shadow-primary/50 text-primary-foreground"
-          >
-            <LogIn className="w-6 h-6 mr-3" /> LOG PRACTICE SNAPSHOT
-          </Button>
-          
-          {/* Extra Special Edition Permutations */}
-          <div className="pt-8 space-y-6">
-            <div className="flex items-center">
-                <div className="flex-grow border-t border-dashed border-primary/50"></div>
-                <span className="flex-shrink mx-4 text-xl font-mono font-bold text-primary">
-                    EXTRA SPECIAL EDITION PERMUTATIONS
-                </span>
-                <div className="flex-grow border-t border-dashed border-primary/50"></div>
-            </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <PermutationSection
-                    title="1. OCTAVE RANGE"
-                    description="Increase range to test consistency and endurance."
-                    options={OCTAVE_CONFIGURATIONS}
-                    selectedValue={selectedOctaves}
-                    onValueChange={(value) => setSelectedOctaves(value)}
-                />
-                <PermutationSection
-                    title="2. DIRECTION & STARTING POINT"
-                    description="Removes 'muscle-memory autopilot' and tests mental mapping."
-                    options={DIRECTION_TYPES}
-                    selectedValue={selectedDirection}
-                    onValueChange={(value) => setSelectedDirection(value)}
-                />
-                <PermutationSection
-                    title="3. HAND CONFIGURATION"
-                    description="Professional expectation: tests coordination and integration."
-                    options={HAND_CONFIGURATIONS}
-                    selectedValue={selectedHandConfig}
-                    onValueChange={(value) => setSelectedHandConfig(value)}
-                />
-            </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <PermutationSection
-                    title="4. RHYTHMIC PERMUTATIONS"
-                    description="High value, low time: reveals weak fingers and hidden tension."
-                    options={RHYTHMIC_PERMUTATIONS}
-                    selectedValue={selectedRhythm}
-                    onValueChange={(value) => setSelectedRhythm(value)}
-                />
-                <PermutationSection
-                    title="5. ACCENT & WEIGHT DISTRIBUTION"
-                    description="Quietly professional: ensures neutral evenness and control."
-                    options={ACCENT_DISTRIBUTIONS}
-                    selectedValue={selectedAccent}
-                    onValueChange={(value) => setSelectedAccent(value)}
-                />
-            </div>
-          </div>
+          {/* Tabbed Practice Panels */}
+          <Tabs defaultValue="scales" className="w-full pt-4">
+            <TabsList className="grid w-full grid-cols-2 bg-secondary/50 border border-primary/30">
+              <TabsTrigger value="scales" className="font-mono text-primary data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+                Scales & Arpeggios
+              </TabsTrigger>
+              <TabsTrigger value="dohnanyi" className="font-mono text-primary data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+                Dohnányi Exercises
+              </TabsTrigger>
+            </TabsList>
+            <TabsContent value="scales" className="mt-4">
+              <ScalePracticePanel 
+                currentBPM={currentBPM} 
+                addLogEntry={addLogEntry} 
+                updatePracticeStatus={updatePracticeStatus} 
+                allScales={allScales} 
+              />
+            </TabsContent>
+            <TabsContent value="dohnanyi" className="mt-4">
+              <DohnanyiPracticePanel 
+                currentBPM={currentBPM} 
+                addLogEntry={addLogEntry} 
+                updatePracticeStatus={updatePracticeStatus} 
+                progressMap={progressMap}
+              />
+            </TabsContent>
+          </Tabs>
           
         </CardContent>
       </Card>
