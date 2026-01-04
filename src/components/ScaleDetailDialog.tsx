@@ -1,7 +1,10 @@
 import React from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { ScaleItem, ARTICULATIONS, TEMPO_LEVELS, getPracticeId, Articulation, TempoLevel } from '@/lib/scales';
+import { 
+  ScaleItem, ARTICULATIONS, TEMPO_LEVELS, getPracticeId, Articulation, TempoLevel,
+  DIRECTION_TYPES, HAND_CONFIGURATIONS, RHYTHMIC_PERMUTATIONS, ACCENT_DISTRIBUTIONS
+} from '@/lib/scales';
 import { useScales, ScaleStatus } from '../context/ScalesContext';
 import { cn } from '@/lib/utils';
 import { Check, Clock, X } from 'lucide-react';
@@ -10,6 +13,13 @@ interface ScaleDetailDialogProps {
   scaleItem: ScaleItem;
   children: React.ReactNode;
 }
+
+// Define default permutations for the 2D matrix view
+const DEFAULT_DIRECTION = DIRECTION_TYPES[2]; // "Asc + Desc (standard)"
+const DEFAULT_HAND_CONFIG = HAND_CONFIGURATIONS[0]; // "Hands together"
+const DEFAULT_RHYTHM = RHYTHMIC_PERMUTATIONS[0]; // "Straight"
+const DEFAULT_ACCENT = ACCENT_DISTRIBUTIONS[3]; // "No accent (neutral evenness)"
+
 
 const getStatusIcon = (status: ScaleStatus) => {
   switch (status) {
@@ -39,7 +49,17 @@ const ScaleDetailDialog: React.FC<ScaleDetailDialogProps> = ({ scaleItem, childr
   const { progress, updatePracticeStatus } = useScales();
 
   const handleToggleStatus = (articulation: Articulation, tempo: TempoLevel) => {
-    const practiceId = getPracticeId(scaleItem.id, articulation, tempo);
+    // Use default values for the new dimensions when toggling status in this simplified matrix view
+    const practiceId = getPracticeId(
+      scaleItem.id, 
+      articulation, 
+      tempo,
+      DEFAULT_DIRECTION,
+      DEFAULT_HAND_CONFIG,
+      DEFAULT_RHYTHM,
+      DEFAULT_ACCENT
+    );
+    
     const currentStatus = progress[practiceId] || 'untouched';
     
     // Toggle logic: untouched/practiced -> mastered -> untouched
@@ -60,6 +80,10 @@ const ScaleDetailDialog: React.FC<ScaleDetailDialogProps> = ({ scaleItem, childr
           <DialogTitle>{scaleItem.key} {scaleItem.type} - Detailed Mastery</DialogTitle>
         </DialogHeader>
         
+        <p className="text-sm text-yellow-500 mb-4">
+          Note: This matrix tracks the default permutation: {DEFAULT_DIRECTION}, {DEFAULT_HAND_CONFIG}, {DEFAULT_RHYTHM}, {DEFAULT_ACCENT}.
+        </p>
+
         <div className="overflow-x-auto">
           <table className="w-full divide-y divide-border">
             <thead>
@@ -79,7 +103,16 @@ const ScaleDetailDialog: React.FC<ScaleDetailDialogProps> = ({ scaleItem, childr
                     {articulation}
                   </td>
                   {TEMPO_LEVELS.map(tempo => {
-                    const practiceId = getPracticeId(scaleItem.id, articulation, tempo);
+                    // Calculate practiceId using defaults for new dimensions
+                    const practiceId = getPracticeId(
+                      scaleItem.id, 
+                      articulation, 
+                      tempo,
+                      DEFAULT_DIRECTION,
+                      DEFAULT_HAND_CONFIG,
+                      DEFAULT_RHYTHM,
+                      DEFAULT_ACCENT
+                    );
                     const status = progress[practiceId] || 'untouched';
                     const statusText = status === 'mastered' ? 'Mastered' : status === 'practiced' ? 'Practiced' : 'Untouched';
 
@@ -105,7 +138,7 @@ const ScaleDetailDialog: React.FC<ScaleDetailDialogProps> = ({ scaleItem, childr
           </table>
         </div>
         <p className="text-sm text-muted-foreground mt-4">
-          Click a cell to toggle its status between Mastered and Untouched. Statuses are automatically set to Practiced when logged via the timer.
+          Click a cell to toggle its status between Mastered and Untouched for the default permutation. Statuses are automatically set to Practiced when logged via the timer/snapshot.
         </p>
       </DialogContent>
     </Dialog>

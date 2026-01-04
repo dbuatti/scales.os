@@ -2,14 +2,18 @@ import React, { useMemo } from 'react';
 import { useScales, ScaleStatus } from '../context/ScalesContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import { getPracticeId, ARTICULATIONS, TEMPO_LEVELS, ScaleItem, Articulation, TempoLevel } from '@/lib/scales';
+import { 
+  getPracticeId, ARTICULATIONS, TEMPO_LEVELS, ScaleItem, Articulation, TempoLevel,
+  DIRECTION_TYPES, HAND_CONFIGURATIONS, RHYTHMIC_PERMUTATIONS, ACCENT_DISTRIBUTIONS,
+  DirectionType, HandConfiguration, RhythmicPermutation, AccentDistribution
+} from '@/lib/scales';
 import { Clock, Check, Target } from 'lucide-react';
 
 const PracticeStats = () => {
   const { progress, log, allScales } = useScales();
 
   const stats = useMemo(() => {
-    const totalCombinations = allScales.length * ARTICULATIONS.length * TEMPO_LEVELS.length;
+    const totalCombinations = allScales.length * ARTICULATIONS.length * TEMPO_LEVELS.length * DIRECTION_TYPES.length * HAND_CONFIGURATIONS.length * RHYTHMIC_PERMUTATIONS.length * ACCENT_DISTRIBUTIONS.length;
     let masteredCount = 0;
     let practicedCount = 0;
     let untouchedCount = 0;
@@ -43,15 +47,31 @@ const PracticeStats = () => {
 
   // Logic to suggest the next scale: prioritize untouched scales
   const suggestedScale = useMemo(() => {
-    const untouchedEntries: { scaleId: string, articulation: Articulation, tempo: TempoLevel }[] = [];
+    const untouchedEntries: { 
+        scaleId: string, 
+        articulation: Articulation, 
+        tempo: TempoLevel,
+        direction: DirectionType,
+        handConfig: HandConfiguration,
+        rhythm: RhythmicPermutation,
+        accent: AccentDistribution
+    }[] = [];
 
     allScales.forEach(scale => {
       ARTICULATIONS.forEach(articulation => {
         TEMPO_LEVELS.forEach(tempo => {
-          const practiceId = getPracticeId(scale.id, articulation, tempo);
-          if (progress[practiceId] === 'untouched') {
-            untouchedEntries.push({ scaleId: scale.id, articulation, tempo });
-          }
+          DIRECTION_TYPES.forEach(direction => {
+            HAND_CONFIGURATIONS.forEach(handConfig => {
+              RHYTHMIC_PERMUTATIONS.forEach(rhythm => {
+                ACCENT_DISTRIBUTIONS.forEach(accent => {
+                  const practiceId = getPracticeId(scale.id, articulation, tempo, direction, handConfig, rhythm, accent);
+                  if (progress[practiceId] === 'untouched') {
+                    untouchedEntries.push({ scaleId: scale.id, articulation, tempo, direction, handConfig, rhythm, accent });
+                  }
+                });
+              });
+            });
+          });
         });
       });
     });
@@ -68,35 +88,18 @@ const PracticeStats = () => {
           type: scaleItem.type,
           articulation: suggestion.articulation,
           tempo: suggestion.tempo,
+          direction: suggestion.direction,
+          handConfig: suggestion.handConfig,
+          rhythm: suggestion.rhythm,
+          accent: suggestion.accent,
+          review: false
         };
       }
     }
     
-    // If everything is practiced/mastered, suggest a random practiced one for review
-    if (stats.practicedCount > 0) {
-        const practicedIds = Object.keys(progress).filter(id => progress[id] === 'practiced');
-        const randomId = practicedIds[Math.floor(Math.random() * practicedIds.length)];
-        
-        // Reverse lookup to get details (simplified for brevity, assumes ID structure is reliable)
-        const parts = randomId.split('-');
-        const tempo = parts.pop() as TempoLevel;
-        const articulation = parts.pop() as Articulation;
-        const scaleId = parts.join('-');
-        
-        const scaleItem = allScales.find(s => s.id === scaleId);
-        if (scaleItem) {
-            return {
-                key: scaleItem.key,
-                type: scaleItem.type,
-                articulation: articulation,
-                tempo: tempo,
-                review: true
-            };
-        }
-    }
-
+    // If everything is practiced/mastered, return null
     return null;
-  }, [progress, allScales, stats.practicedCount]);
+  }, [progress, allScales]);
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -138,21 +141,28 @@ const PracticeStats = () => {
         </CardHeader>
         <CardContent className="space-y-3">
           {suggestedScale ? (
-            <div className="space-y-2 font-mono">
+            <div className="space-y-2 font-mono text-sm">
               <p className="text-lg font-semibold text-primary">
                 {suggestedScale.key} {suggestedScale.type}
               </p>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-muted-foreground">
                 Articulation: <span className="font-medium text-foreground">{suggestedScale.articulation}</span>
               </p>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-muted-foreground">
                 Tempo: <span className="font-medium text-foreground">{suggestedScale.tempo}</span>
               </p>
-              {suggestedScale.review && (
-                  <p className="text-xs text-yellow-400">
-                      (Review suggested)
-                  </p>
-              )}
+              <p className="text-muted-foreground">
+                Direction: <span className="font-medium text-foreground">{suggestedScale.direction}</span>
+              </p>
+              <p className="text-muted-foreground">
+                Hands: <span className="font-medium text-foreground">{suggestedScale.handConfig}</span>
+              </p>
+              <p className="text-muted-foreground">
+                Rhythm: <span className="font-medium text-foreground">{suggestedScale.rhythm}</span>
+              </p>
+              <p className="text-muted-foreground">
+                Accent: <span className="font-medium text-foreground">{suggestedScale.accent}</span>
+              </p>
             </div>
           ) : (
             <p className="text-muted-foreground font-mono">

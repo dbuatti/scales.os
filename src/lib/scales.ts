@@ -31,11 +31,48 @@ export const TEMPO_LEVELS = [
   "Professional (120+ BPM)",
 ] as const;
 
+// New Permutations
+export const DIRECTION_TYPES = [
+  "Ascending only",
+  "Descending only",
+  "Asc + Desc (standard)",
+  "Start from top note",
+  "Start from middle of keyboard",
+] as const;
+
+export const HAND_CONFIGURATIONS = [
+  "Hands together",
+  "Hands separately",
+  "Hands in contrary motion",
+  "Hands in similar motion, staggered entry",
+] as const;
+
+export const RHYTHMIC_PERMUTATIONS = [
+  "Straight",
+  "Dotted (long–short)",
+  "Dotted (short–long)",
+  "Grouped 3s",
+  "Grouped 5s",
+] as const;
+
+export const ACCENT_DISTRIBUTIONS = [
+  "Accent every 2",
+  "Accent every 3",
+  "Accent on thumb crossings",
+  "No accent (neutral evenness)",
+] as const;
+
+
 export type Key = typeof KEYS[number];
 export type ScaleType = typeof SCALE_TYPES[number];
 export type ArpeggioType = typeof ARPEGGIO_TYPES[number];
 export type Articulation = typeof ARTICULATIONS[number];
 export type TempoLevel = typeof TEMPO_LEVELS[number];
+export type DirectionType = typeof DIRECTION_TYPES[number];
+export type HandConfiguration = typeof HAND_CONFIGURATIONS[number];
+export type RhythmicPermutation = typeof RHYTHMIC_PERMUTATIONS[number];
+export type AccentDistribution = typeof ACCENT_DISTRIBUTIONS[number];
+
 
 export type ScaleItem = {
   key: Key;
@@ -82,6 +119,15 @@ export const generateScaleItems = (): ScaleItem[] => {
 export const ALL_SCALE_ITEMS = generateScaleItems();
 
 // Utility to generate a unique ID for a specific practice combination
-export const getPracticeId = (scaleId: string, articulation: Articulation, tempo: TempoLevel): string => {
-  return `${scaleId}-${articulation.replace(/\s/g, "")}-${tempo.replace(/\s/g, "")}`;
+export const getPracticeId = (
+  scaleId: string, 
+  articulation: Articulation, 
+  tempo: TempoLevel,
+  direction: DirectionType,
+  handConfig: HandConfiguration,
+  rhythm: RhythmicPermutation,
+  accent: AccentDistribution
+): string => {
+  const cleanString = (s: string) => s.replace(/[\s\/\(\)]/g, "");
+  return `${scaleId}-${cleanString(articulation)}-${cleanString(tempo)}-${cleanString(direction)}-${cleanString(handConfig)}-${cleanString(rhythm)}-${cleanString(accent)}`;
 };

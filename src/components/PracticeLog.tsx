@@ -56,9 +56,17 @@ const PracticeLog = () => {
                 {entry.scalesPracticed.length > 0 ? (
                   <div className="mt-2 flex flex-wrap gap-2">
                     {entry.scalesPracticed.map((item, index) => (
-                      <Badge key={index} variant="secondary" className="flex flex-col items-start p-2 h-auto">
+                      <Badge key={index} variant="secondary" className="flex flex-col items-start p-2 h-auto text-left">
                         <span className="font-bold">{scaleMap[item.scaleId] || item.scaleId}</span>
-                        <span className="text-xs font-normal">{item.articulation} @ {item.tempo}</span>
+                        <span className="text-xs font-normal mt-1">
+                            Art: {item.articulation} | Tempo: {item.tempo.split(' ')[0]}
+                        </span>
+                        <span className="text-xs font-normal">
+                            Dir: {item.direction} | Hands: {item.handConfig}
+                        </span>
+                        <span className="text-xs font-normal">
+                            Rhythm: {item.rhythm} | Accent: {item.accent}
+                        </span>
                       </Badge>
                     ))}
                   </div>

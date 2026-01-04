@@ -1,6 +1,9 @@
 import React from 'react';
 import { useScales, ScaleStatus } from '../context/ScalesContext';
-import { KEYS, SCALE_TYPES, ARPEGGIO_TYPES, ScaleItem, ARTICULATIONS, TEMPO_LEVELS, getPracticeId } from '@/lib/scales';
+import { 
+  KEYS, SCALE_TYPES, ARPEGGIO_TYPES, ScaleItem, ARTICULATIONS, TEMPO_LEVELS, getPracticeId,
+  DIRECTION_TYPES, HAND_CONFIGURATIONS, RHYTHMIC_PERMUTATIONS, ACCENT_DISTRIBUTIONS
+} from '@/lib/scales';
 import { cn } from '@/lib/utils';
 import { Check, X, Clock, Eye } from 'lucide-react';
 import {
@@ -43,17 +46,35 @@ const getOverallStatus = (scaleItem: ScaleItem, progress: Record<string, ScaleSt
 
   ARTICULATIONS.forEach(articulation => {
     TEMPO_LEVELS.forEach(tempo => {
-      const practiceId = getPracticeId(scaleItem.id, articulation, tempo);
-      const status = progress[practiceId] || 'untouched';
-      totalCombinations++;
-      
-      if (status === 'mastered') {
-        masteredCount++;
-      } else if (status === 'practiced') {
-        practicedCount++;
-      }
+      DIRECTION_TYPES.forEach(direction => {
+        HAND_CONFIGURATIONS.forEach(handConfig => {
+          RHYTHMIC_PERMUTATIONS.forEach(rhythm => {
+            ACCENT_DISTRIBUTIONS.forEach(accent => {
+              const practiceId = getPracticeId(
+                scaleItem.id, 
+                articulation, 
+                tempo, 
+                direction, 
+                handConfig, 
+                rhythm, 
+                accent
+              );
+              const status = progress[practiceId] || 'untouched';
+              totalCombinations++;
+              
+              if (status === 'mastered') {
+                masteredCount++;
+              } else if (status === 'practiced') {
+                practicedCount++;
+              }
+            });
+          });
+        });
+      });
     });
   });
+
+  if (totalCombinations === 0) return 'untouched';
 
   if (masteredCount === totalCombinations) {
     return 'mastered'; // Fully mastered

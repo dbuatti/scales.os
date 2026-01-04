@@ -4,96 +4,62 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Slider } from '@/components/ui/slider';
-import { LogIn, Play, Pause, RotateCcw } from 'lucide-react';
-import { KEYS, SCALE_TYPES, ARPEGGIO_TYPES, ARTICULATIONS, TEMPO_LEVELS, getPracticeId, Key, Articulation, TempoLevel, ALL_SCALE_ITEMS } from '@/lib/scales';
+import { LogIn } from 'lucide-react';
+import { 
+  KEYS, SCALE_TYPES, ARPEGGIO_TYPES, ARTICULATIONS, TEMPO_LEVELS, getPracticeId, 
+  Key, Articulation, TempoLevel, ALL_SCALE_ITEMS,
+  DIRECTION_TYPES, HAND_CONFIGURATIONS, RHYTHMIC_PERMUTATIONS, ACCENT_DISTRIBUTIONS,
+  DirectionType, HandConfiguration, RhythmicPermutation, AccentDistribution
+} from '@/lib/scales';
 import { useScales } from '../context/ScalesContext';
 import { showSuccess, showError } from '@/utils/toast';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { cn } from '@/lib/utils';
+import PracticeTimer from './PracticeTimer';
 
 // Helper to combine scale and arpeggio types for selection
 const ALL_TYPES = [...SCALE_TYPES, ...ARPEGGIO_TYPES];
 
-// --- Timer Component Logic (Integrated) ---
-const INITIAL_TIME_SECONDS = 5 * 60; // 5 minutes
-
-const PracticeTimer: React.FC = () => {
-  const [time, setTime] = useState(INITIAL_TIME_SECONDS);
-  const [isRunning, setIsRunning] = useState(false);
-  const [isFinished, setIsFinished] = useState(false);
-
-  const formatTime = (seconds: number) => {
-    const minutes = Math.floor(seconds / 60);
-    const remainingSeconds = seconds % 60;
-    return `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
-  };
-
-  const handleStart = () => {
-    setIsRunning(true);
-    setIsFinished(false);
-  };
-
-  const handlePause = () => {
-    setIsRunning(false);
-  };
-
-  const handleReset = () => {
-    setIsRunning(false);
-    setTime(INITIAL_TIME_SECONDS);
-    setIsFinished(false);
-  };
-
-  React.useEffect(() => {
-    let interval: NodeJS.Timeout | null = null;
-
-    if (isRunning && time > 0) {
-      interval = setInterval(() => {
-        setTime((prevTime) => prevTime - 1);
-      }, 1000);
-    } else if (time === 0 && isRunning) {
-      setIsRunning(false);
-      setIsFinished(true);
-    }
-
-    return () => {
-      if (interval) clearInterval(interval);
-    };
-  }, [isRunning, time]);
-
-  return (
-    <Card className="w-full bg-card/70 border-primary/30 shadow-2xl">
-      <CardHeader className="p-3 border-b border-primary/20">
-        <CardTitle className="text-center text-lg font-mono tracking-widest text-primary">FOCUS TIMER</CardTitle>
-      </CardHeader>
-      <CardContent className="flex flex-col items-center space-y-3 p-4">
-        <div className={cn(
-            "text-6xl font-mono font-extrabold transition-colors",
-            isFinished ? "text-destructive" : "text-primary" // Use primary for neon effect, destructive for finished
-        )}>
-          {formatTime(time)}
-        </div>
-        {isFinished && (
-            <p className="text-sm font-semibold text-destructive">Session Complete</p>
-        )}
-        <div className="flex space-x-4">
-          {isRunning ? (
-            <Button onClick={handlePause} variant="secondary" size="sm" className="bg-destructive hover:bg-destructive/90 text-destructive-foreground">
-              <Pause className="w-4 h-4 mr-1" /> PAUSE
-            </Button>
-          ) : (
-            <Button onClick={handleStart} size="sm" disabled={isFinished} className="bg-primary hover:bg-primary/90 text-primary-foreground">
-              <Play className="w-4 h-4 mr-1" /> START
-            </Button>
-          )}
-          <Button onClick={handleReset} variant="outline" size="sm" className="border-muted-foreground text-muted-foreground hover:bg-accent">
-            <RotateCcw className="w-4 h-4 mr-1" /> RESET
-          </Button>
-        </div>
-      </CardContent>
-    </Card>
-  );
+const TEMPO_BPM_MAP: Record<TempoLevel, number> = {
+  "Slow (Under 80 BPM)": 70,
+  "Moderate (80-100 BPM)": 90,
+  "Fast (100-120 BPM)": 110,
+  "Professional (120+ BPM)": 130,
 };
-// --- End Timer Component Logic ---
+
+interface PermutationSectionProps<T extends string> {
+    title: string;
+    description: string;
+    options: readonly T[];
+    selectedValue: T;
+    onValueChange: (value: T) => void;
+}
+
+const PermutationSection = <T extends string>({ title, description, options, selectedValue, onValueChange }: PermutationSectionProps<T>) => (
+    <div className="space-y-3 border p-4 rounded-lg border-primary/30 bg-secondary/50">
+        <Label className="text-lg font-semibold text-primary block mb-2 font-mono">{title}</Label>
+        <p className="text-xs text-muted-foreground italic">{description}</p>
+        <div className="space-y-2">
+            {options.map(option => (
+                <div key={option} className={cn(
+                    "flex items-center space-x-3 p-3 rounded-md transition-colors cursor-pointer",
+                    selectedValue === option ? "bg-primary/20 border border-primary" : "hover:bg-accent"
+                )}
+                onClick={() => onValueChange(option)}>
+                    <Checkbox 
+                        id={`perm-${title}-${option}`} 
+                        checked={selectedValue === option}
+                        onCheckedChange={() => onValueChange(option)}
+                        className="border-primary data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground"
+                    />
+                    <Label htmlFor={`perm-${title}-${option}`} className="text-sm font-medium leading-none cursor-pointer text-foreground font-mono">
+                        {option}
+                    </Label>
+                </div>
+            ))}
+        </div>
+    </div>
+);
 
 
 const PracticeCommandCenter: React.FC = () => {
@@ -101,19 +67,24 @@ const PracticeCommandCenter: React.FC = () => {
   
   // State for selected parameters
   const [selectedKey, setSelectedKey] = useState<Key>(KEYS[0]);
-  const [selectedType, setSelectedType] = useState<string>(ALL_TYPES[0]); // Can be ScaleType or ArpeggioType
+  const [selectedType, setSelectedType] = useState<string>(ALL_TYPES[0]); 
   const [selectedArticulation, setSelectedArticulation] = useState<Articulation>(ARTICULATIONS[0]);
-  const [selectedTempoIndex, setSelectedTempoIndex] = useState<number>(0); // Index 0-3 for TEMPO_LEVELS
+  const [selectedTempoIndex, setSelectedTempoIndex] = useState<number>(0); 
+
+  // New states
+  const [selectedDirection, setSelectedDirection] = useState<DirectionType>(DIRECTION_TYPES[2]);
+  const [selectedHandConfig, setSelectedHandConfig] = useState<HandConfiguration>(HAND_CONFIGURATIONS[0]);
+  const [selectedRhythm, setSelectedRhythm] = useState<RhythmicPermutation>(RHYTHMIC_PERMUTATIONS[0]);
+  const [selectedAccent, setSelectedAccent] = useState<AccentDistribution>(ACCENT_DISTRIBUTIONS[3]);
 
   const selectedTempo = TEMPO_LEVELS[selectedTempoIndex];
+  const currentBPM = TEMPO_BPM_MAP[selectedTempo];
 
-  const handleSaveSnapshot = () => {
-    // 1. Find the corresponding ScaleItem ID
+  const getScaleItemAndPracticeId = () => {
     let scaleItem;
     const isChromatic = selectedType === "Chromatic";
 
     if (isChromatic) {
-        // Chromatic scale ID is always based on 'C' in our data structure
         scaleItem = allScales.find(s => s.type === "Chromatic");
     } else {
         scaleItem = allScales.find(s => s.key === selectedKey && s.type === selectedType);
@@ -121,10 +92,26 @@ const PracticeCommandCenter: React.FC = () => {
 
     if (!scaleItem) {
       showError("Could not identify the scale/arpeggio combination.");
-      return;
+      return null;
     }
 
-    const practiceId = getPracticeId(scaleItem.id, selectedArticulation, selectedTempo);
+    const practiceId = getPracticeId(
+      scaleItem.id, 
+      selectedArticulation, 
+      selectedTempo,
+      selectedDirection, 
+      selectedHandConfig, 
+      selectedRhythm, 
+      selectedAccent
+    );
+    
+    return { scaleItem, practiceId };
+  }
+
+  const handleSaveSnapshot = () => {
+    const result = getScaleItemAndPracticeId();
+    if (!result) return;
+    const { scaleItem, practiceId } = result;
 
     // 2. Log the snapshot (durationMinutes: 0 indicates a snapshot log)
     addLogEntry({
@@ -133,15 +120,44 @@ const PracticeCommandCenter: React.FC = () => {
         scaleId: scaleItem.id,
         articulation: selectedArticulation,
         tempo: selectedTempo,
+        direction: selectedDirection,
+        handConfig: selectedHandConfig,
+        rhythm: selectedRhythm,
+        accent: selectedAccent,
       }],
-      notes: `Snapshot: ${scaleItem.key} ${scaleItem.type}, ${selectedArticulation}, ${selectedTempo}`,
+      notes: `Snapshot: ${scaleItem.key} ${scaleItem.type} (${selectedArticulation}, ${selectedTempo}, ${selectedDirection}, ${selectedHandConfig}, ${selectedRhythm}, ${selectedAccent})`,
     });
 
     // 3. Update the status to 'practiced'
     updatePracticeStatus(practiceId, 'practiced');
 
-    showSuccess(`Snapshot saved! ${scaleItem.key} ${scaleItem.type} marked as practiced.`);
+    showSuccess(`Snapshot saved! Combination marked as practiced.`);
   };
+  
+  const handleLogSession = (durationMinutes: number) => {
+    const result = getScaleItemAndPracticeId();
+    if (!result) return;
+    const { scaleItem, practiceId } = result;
+
+    // 2. Log the session duration
+    addLogEntry({
+      durationMinutes: durationMinutes, 
+      scalesPracticed: [{
+        scaleId: scaleItem.id,
+        articulation: selectedArticulation,
+        tempo: selectedTempo,
+        direction: selectedDirection,
+        handConfig: selectedHandConfig,
+        rhythm: selectedRhythm,
+        accent: selectedAccent,
+      }],
+      notes: `Timed session focused on: ${scaleItem.key} ${scaleItem.type} (${selectedArticulation}, ${selectedTempo})`,
+    });
+
+    // 3. Update the status to 'practiced'
+    updatePracticeStatus(practiceId, 'practiced');
+  };
+
 
   // Determine available keys based on selected type
   const isChromatic = selectedType === "Chromatic";
@@ -156,125 +172,176 @@ const PracticeCommandCenter: React.FC = () => {
             PRACTICE CONTROL PANEL
           </CardTitle>
         </CardHeader>
-        <CardContent className="p-6 space-y-6 lg:space-y-0 lg:grid lg:grid-cols-3 lg:gap-8">
+        <CardContent className="p-6 space-y-6">
           
-          {/* Column 1: Key and Type Selection */}
-          <div className="space-y-6 lg:col-span-2">
+          {/* Top Row: BPM and Timer */}
+          <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center space-y-4 lg:space-y-0 lg:space-x-8">
             
-            {/* Key Selection */}
-            <div className="space-y-3 border p-4 rounded-lg border-primary/30 bg-secondary/50">
-              <Label className="text-lg font-semibold text-primary block mb-2 font-mono">KEY SELECTION</Label>
-              <ToggleGroup 
-                type="single" 
-                value={selectedKey} 
-                onValueChange={(value) => value && setSelectedKey(value as Key)}
-                className="flex flex-wrap justify-start gap-2"
-                disabled={isChromatic}
-              >
-                {availableKeys.map(key => (
-                  <ToggleGroupItem 
-                    key={key} 
-                    value={key} 
-                    aria-label={`Select key ${key}`}
-                    className="data-[state=on]:bg-primary data-[state=on]:text-primary-foreground data-[state=on]:shadow-md data-[state=on]:border-primary/80 border border-border text-sm px-3 py-1 h-auto font-mono"
-                  >
-                    {key}
-                  </ToggleGroupItem>
-                ))}
-              </ToggleGroup>
-              {isChromatic && <p className="text-xs text-yellow-400 mt-2">Chromatic scale is key-independent.</p>}
+            {/* Tempo Display */}
+            <div className="flex-1 space-y-2">
+                <Label className="text-lg font-semibold text-primary block font-mono">
+                    TARGET TEMPO (BPM)
+                </Label>
+                <div className="text-7xl font-mono font-extrabold text-primary tracking-tighter">
+                    {currentBPM}
+                </div>
+                <p className="text-sm text-muted-foreground font-mono">{selectedTempo}</p>
             </div>
 
-            {/* Scale/Arpeggio Type Selection */}
-            <div className="space-y-3 border p-4 rounded-lg border-primary/30 bg-secondary/50">
-              <Label className="text-lg font-semibold text-primary block mb-2 font-mono">SCALE/ARPEGGIO TYPE</Label>
-              <ToggleGroup 
-                type="single" 
-                value={selectedType} 
-                onValueChange={(value) => {
-                  if (value) {
-                    setSelectedType(value);
-                    if (value === "Chromatic") {
-                        setSelectedKey("C");
-                    }
-                  }
-                }}
-                className="flex flex-wrap justify-start gap-2"
-              >
-                {ALL_TYPES.map(type => (
-                  <ToggleGroupItem 
-                    key={type} 
-                    value={type} 
-                    aria-label={`Select type ${type}`}
-                    className="data-[state=on]:bg-primary data-[state=on]:text-primary-foreground data-[state=on]:shadow-md data-[state=on]:border-primary/80 border border-border text-sm px-4 py-2 h-auto font-mono"
-                  >
-                    {type}
-                  </ToggleGroupItem>
-                ))}
-              </ToggleGroup>
+            {/* Timer Integration (Top Right) */}
+            <div className="w-full lg:w-1/3">
+                <PracticeTimer onLogSession={handleLogSession} />
+            </div>
+          </div>
+          
+          {/* Tempo Slider */}
+          <div className="space-y-4 pt-4 border-t border-border">
+            <Slider
+              min={0}
+              max={TEMPO_LEVELS.length - 1}
+              step={1}
+              value={[selectedTempoIndex]}
+              onValueChange={(value) => setSelectedTempoIndex(value[0])}
+              className="w-full [&>span:first-child]:bg-primary [&>span:first-child]:h-2 [&>span:first-child]:rounded-full [&>span:nth-child(2)]:bg-primary [&>span:nth-child(2)]:border-2 [&>span:nth-child(2)]:border-primary-foreground [&>span:nth-child(2)]:w-5 [&>span:nth-child(2)]:h-5"
+            />
+            <div className="flex justify-between text-xs text-muted-foreground font-mono">
+              <span>{TEMPO_LEVELS[0].split(' ')[0]}</span>
+              <span>{TEMPO_LEVELS[TEMPO_LEVELS.length - 1].split(' ')[0]}</span>
             </div>
           </div>
 
-          {/* Column 2: Articulation, Tempo, and Timer */}
-          <div className="space-y-6 lg:col-span-1">
-            
-            {/* Articulation Selection */}
-            <div className="space-y-3 border p-4 rounded-lg border-primary/30 bg-secondary/50">
-              <Label className="text-lg font-semibold text-primary block mb-2 font-mono">ARTICULATION MODE</Label>
-              <div className="space-y-2">
-                {ARTICULATIONS.map(articulation => (
-                  <div key={articulation} className={cn(
-                    "flex items-center space-x-3 p-3 rounded-md transition-colors cursor-pointer",
-                    selectedArticulation === articulation ? "bg-primary/20 border border-primary" : "hover:bg-accent"
-                  )}
-                   onClick={() => setSelectedArticulation(articulation)}>
-                    <Checkbox 
-                      id={`art-${articulation}`} 
-                      checked={selectedArticulation === articulation}
-                      onCheckedChange={() => setSelectedArticulation(articulation)}
-                      className="border-primary data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground"
-                    />
-                    <Label htmlFor={`art-${articulation}`} className="text-sm font-medium leading-none cursor-pointer text-foreground font-mono">
-                      {articulation}
-                    </Label>
-                  </div>
-                ))}
-              </div>
-            </div>
-            
-            {/* Timer Integration */}
-            <PracticeTimer />
-          </div>
-        </CardContent>
-        
-        {/* Footer: Tempo Slider and Save Button */}
-        <div className="p-6 pt-0 space-y-6 border-t border-primary/50">
-            {/* Tempo Slider */}
-            <div className="space-y-4 pt-4 border-t border-border">
-              <Label className="text-lg font-semibold text-primary block font-mono">
-                TEMPO LEVEL: <span className="font-mono text-xl text-primary">{selectedTempo}</span>
-              </Label>
-              <Slider
-                min={0}
-                max={TEMPO_LEVELS.length - 1}
-                step={1}
-                value={[selectedTempoIndex]}
-                onValueChange={(value) => setSelectedTempoIndex(value[0])}
-                className="w-full [&>span:first-child]:bg-primary [&>span:first-child]:h-2 [&>span:first-child]:rounded-full [&>span:nth-child(2)]:bg-primary [&>span:nth-child(2)]:border-2 [&>span:nth-child(2)]:border-primary-foreground [&>span:nth-child(2)]:w-5 [&>span:nth-child(2)]:h-5"
-              />
-              <div className="flex justify-between text-xs text-muted-foreground font-mono">
-                <span>{TEMPO_LEVELS[0].split(' ')[0]}</span>
-                <span>{TEMPO_LEVELS[TEMPO_LEVELS.length - 1].split(' ')[0]}</span>
-              </div>
-            </div>
-
-            <Button 
-              onClick={handleSaveSnapshot} 
-              className="w-full text-xl py-6 bg-primary hover:bg-primary/90 transition-all duration-300 shadow-lg shadow-primary/50 text-primary-foreground"
+          {/* Key Selection (Full Width, Circular) */}
+          <div className="space-y-3 border p-4 rounded-lg border-primary/30 bg-secondary/50">
+            <Label className="text-lg font-semibold text-primary block mb-2 font-mono">KEY SELECTION</Label>
+            <ToggleGroup 
+              type="single" 
+              value={selectedKey} 
+              onValueChange={(value) => value && setSelectedKey(value as Key)}
+              className="flex flex-wrap justify-center gap-3 w-full"
+              disabled={isChromatic}
             >
-              <LogIn className="w-6 h-6 mr-3" /> LOG PRACTICE SNAPSHOT
-            </Button>
-        </div>
+              {availableKeys.map(key => (
+                <ToggleGroupItem 
+                  key={key} 
+                  value={key} 
+                  aria-label={`Select key ${key}`}
+                  className={cn(
+                    "data-[state=on]:bg-primary data-[state=on]:text-primary-foreground data-[state=on]:shadow-md data-[state=on]:border-primary/80 border border-border text-sm px-3 py-3 h-12 w-12 rounded-full font-mono flex items-center justify-center",
+                    isChromatic && "opacity-50 cursor-not-allowed"
+                  )}
+                >
+                  {key.replace(/\/.*/, '')} {/* Display C instead of C/Db for brevity */}
+                </ToggleGroupItem>
+              ))}
+            </ToggleGroup>
+            {isChromatic && <p className="text-xs text-yellow-400 mt-2 text-center">Chromatic scale is key-independent (C selected by default).</p>}
+          </div>
+
+          {/* Scale/Arpeggio Type Selection (Horizontal Full Row) */}
+          <div className="space-y-3 border p-4 rounded-lg border-primary/30 bg-secondary/50">
+            <Label className="text-lg font-semibold text-primary block mb-2 font-mono">SCALE/ARPEGGIO TYPE</Label>
+            <ToggleGroup 
+              type="single" 
+              value={selectedType} 
+              onValueChange={(value) => {
+                if (value) {
+                  setSelectedType(value);
+                  if (value === "Chromatic") {
+                      setSelectedKey("C");
+                  }
+                }
+              }}
+              className="flex flex-wrap justify-center gap-2 w-full"
+            >
+              {ALL_TYPES.map(type => (
+                <ToggleGroupItem 
+                  key={type} 
+                  value={type} 
+                  aria-label={`Select type ${type}`}
+                  className="data-[state=on]:bg-primary data-[state=on]:text-primary-foreground data-[state=on]:shadow-md data-[state=on]:border-primary/80 border border-border text-sm px-4 py-2 h-auto font-mono flex-1 min-w-[100px]"
+                >
+                  {type}
+                </ToggleGroupItem>
+              ))}
+            </ToggleGroup>
+          </div>
+          
+          {/* Articulation Selection (Horizontal Full Row) */}
+          <div className="space-y-3 border p-4 rounded-lg border-primary/30 bg-secondary/50">
+            <Label className="text-lg font-semibold text-primary block mb-2 font-mono">ARTICULATION MODE</Label>
+            <ToggleGroup 
+              type="single" 
+              value={selectedArticulation} 
+              onValueChange={(value) => value && setSelectedArticulation(value as Articulation)}
+              className="flex flex-wrap justify-center gap-2 w-full"
+            >
+              {ARTICULATIONS.map(articulation => (
+                <ToggleGroupItem 
+                  key={articulation} 
+                  value={articulation} 
+                  aria-label={`Select articulation ${articulation}`}
+                  className="data-[state=on]:bg-primary data-[state=on]:text-primary-foreground data-[state=on]:shadow-md data-[state=on]:border-primary/80 border border-border text-sm px-4 py-2 h-auto font-mono flex-1 min-w-[100px]"
+                >
+                  {articulation.split(' ')[0]}
+                </ToggleGroupItem>
+              ))}
+            </ToggleGroup>
+          </div>
+
+          {/* Log Snapshot Button */}
+          <Button 
+            onClick={handleSaveSnapshot} 
+            className="w-full text-xl py-6 bg-primary hover:bg-primary/90 transition-all duration-300 shadow-lg shadow-primary/50 text-primary-foreground"
+          >
+            <LogIn className="w-6 h-6 mr-3" /> LOG PRACTICE SNAPSHOT
+          </Button>
+          
+          {/* Extra Special Edition Permutations */}
+          <div className="pt-8 space-y-6">
+            <div className="flex items-center">
+                <div className="flex-grow border-t border-dashed border-primary/50"></div>
+                <span className="flex-shrink mx-4 text-xl font-mono font-bold text-primary">
+                    EXTRA SPECIAL EDITION PERMUTATIONS
+                </span>
+                <div className="flex-grow border-t border-dashed border-primary/50"></div>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <PermutationSection
+                    title="1. DIRECTION & STARTING POINT"
+                    description="Removes 'muscle-memory autopilot' and tests mental mapping."
+                    options={DIRECTION_TYPES}
+                    selectedValue={selectedDirection}
+                    onValueChange={(value) => setSelectedDirection(value)}
+                />
+                <PermutationSection
+                    title="2. HAND CONFIGURATION"
+                    description="Professional expectation: tests coordination and integration."
+                    options={HAND_CONFIGURATIONS}
+                    selectedValue={selectedHandConfig}
+                    onValueChange={(value) => setSelectedHandConfig(value)}
+                />
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <PermutationSection
+                    title="3. RHYTHMIC PERMUTATIONS"
+                    description="High value, low time: reveals weak fingers and hidden tension."
+                    options={RHYTHMIC_PERMUTATIONS}
+                    selectedValue={selectedRhythm}
+                    onValueChange={(value) => setSelectedRhythm(value)}
+                />
+                <PermutationSection
+                    title="4. ACCENT & WEIGHT DISTRIBUTION"
+                    description="Quietly professional: ensures neutral evenness and control."
+                    options={ACCENT_DISTRIBUTIONS}
+                    selectedValue={selectedAccent}
+                    onValueChange={(value) => setSelectedAccent(value)}
+                />
+            </div>
+          </div>
+          
+        </CardContent>
       </Card>
     </div>
   );

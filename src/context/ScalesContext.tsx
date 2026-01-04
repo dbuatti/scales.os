@@ -1,11 +1,15 @@
 import React, { createContext, useContext, useState, useMemo, useEffect } from 'react';
-import { ALL_SCALE_ITEMS, ScaleItem, ARTICULATIONS, TEMPO_LEVELS, Articulation, TempoLevel, getPracticeId } from '@/lib/scales';
+import { 
+  ALL_SCALE_ITEMS, ScaleItem, ARTICULATIONS, TEMPO_LEVELS, Articulation, TempoLevel, getPracticeId,
+  DIRECTION_TYPES, HAND_CONFIGURATIONS, RHYTHMIC_PERMUTATIONS, ACCENT_DISTRIBUTIONS,
+  DirectionType, HandConfiguration, RhythmicPermutation, AccentDistribution
+} from '@/lib/scales';
 
 // --- Types ---
 
 export type ScaleStatus = 'untouched' | 'practiced' | 'mastered';
 
-// Progress is now keyed by a combination ID (scaleId-Articulation-Tempo)
+// Progress is now keyed by a combination ID (scaleId-Articulation-Tempo-Direction-HandConfig-Rhythm-Accent)
 export interface ScaleProgress {
   [practiceId: string]: ScaleStatus;
 }
@@ -18,6 +22,10 @@ export interface PracticeLogEntry {
     scaleId: string;
     articulation: Articulation;
     tempo: TempoLevel;
+    direction: DirectionType;
+    handConfig: HandConfiguration;
+    rhythm: RhythmicPermutation;
+    accent: AccentDistribution;
   }[];
   notes: string;
 }
@@ -52,8 +60,16 @@ const getInitialProgress = (): ScaleProgress => {
   return ALL_SCALE_ITEMS.reduce((acc, item) => {
     ARTICULATIONS.forEach(articulation => {
       TEMPO_LEVELS.forEach(tempo => {
-        const practiceId = getPracticeId(item.id, articulation, tempo);
-        acc[practiceId] = 'untouched';
+        DIRECTION_TYPES.forEach(direction => {
+          HAND_CONFIGURATIONS.forEach(handConfig => {
+            RHYTHMIC_PERMUTATIONS.forEach(rhythm => {
+              ACCENT_DISTRIBUTIONS.forEach(accent => {
+                const practiceId = getPracticeId(item.id, articulation, tempo, direction, handConfig, rhythm, accent);
+                acc[practiceId] = 'untouched';
+              });
+            });
+          });
+        });
       });
     });
     return acc;
