@@ -86,32 +86,27 @@ const getOverallStatus = (scaleItem: ScaleItem, progressMap: Record<string, 'pra
 };
 
 
-const ScaleCell: React.FC<{ item: ScaleItem; status: ScaleStatus }> = ({ item, status }) => {
+const ScaleCell = React.forwardRef<HTMLButtonElement, { item: ScaleItem; status: ScaleStatus }>(({ item, status }, ref) => {
   const statusText = status === 'mastered' ? 'Fully Mastered' : status === 'practiced' ? 'In Progress' : 'Untouched';
 
   return (
-    <Tooltip>
-      <TooltipTrigger asChild>
-        <Button
-          variant="outline"
-          className={cn(
-            "w-full h-10 flex items-center justify-center rounded-md transition-colors duration-150",
-            getStatusClasses(status)
-          )}
-          aria-label={`${item.key} ${item.type} status: ${statusText}. Click for details.`}
-        >
-          <Eye className="w-4 h-4 mr-2 text-white" />
-          <span className="text-xs font-medium text-white hidden sm:inline">{statusText.split(' ')[0]}</span>
-        </Button>
-      </TooltipTrigger>
-      <TooltipContent>
-        <p>{item.key} {item.type}</p>
-        <p>Overall Status: {statusText}</p>
-        <p className="text-xs text-muted-foreground">Click to view/edit Articulation & Tempo details.</p>
-      </TooltipContent>
-    </Tooltip>
+    <Button
+      ref={ref}
+      variant="outline"
+      className={cn(
+        "w-full h-10 flex items-center justify-center rounded-md transition-colors duration-150",
+        getStatusClasses(status)
+      )}
+      aria-label={`${item.key} ${item.type} status: ${statusText}. Click for details.`}
+    >
+      <Eye className="w-4 h-4 mr-2 text-white" />
+      <span className="text-xs font-medium text-white hidden sm:inline">{statusText.split(' ')[0]}</span>
+    </Button>
   );
-};
+});
+
+ScaleCell.displayName = "ScaleCell";
+
 
 const ScaleGrid = () => {
   const { allScales, progressMap } = useScales();
@@ -158,14 +153,24 @@ const ScaleGrid = () => {
                 if (!item) return <td key={type} className="px-4 py-2"></td>;
 
                 const status = getOverallStatus(item, progressMap);
+                const statusText = status === 'mastered' ? 'Fully Mastered' : status === 'practiced' ? 'In Progress' : 'Untouched';
 
                 return (
                   <td key={type} className="px-4 py-2">
                     <ScaleDetailDialog scaleItem={item}>
-                      <ScaleCell
-                        item={item}
-                        status={status}
-                      />
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <ScaleCell
+                            item={item}
+                            status={status}
+                          />
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>{item.key} {item.type}</p>
+                          <p>Overall Status: {statusText}</p>
+                          <p className="text-xs text-muted-foreground">Click to view/edit Articulation & Tempo details.</p>
+                        </TooltipContent>
+                      </Tooltip>
                     </ScaleDetailDialog>
                   </td>
                 );
