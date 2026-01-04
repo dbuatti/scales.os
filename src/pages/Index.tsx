@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { ScalesProvider } from '../context/ScalesContext';
 import PracticeLog from '@/components/PracticeLog';
+import PracticeStats from '@/components/PracticeStats';
 
 const IndexContent = () => {
   const [sessionDuration, setSessionDuration] = useState<number | null>(null);
@@ -27,6 +28,8 @@ const IndexContent = () => {
       <p className="text-center text-lg text-muted-foreground max-w-3xl mx-auto">
         Focus on deployment, reliability, and consistency. Use the 5-minute timer for focused, high-quality practice.
       </p>
+
+      <PracticeStats />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-1">

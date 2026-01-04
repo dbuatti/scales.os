@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useMemo } from 'react';
+import React, { createContext, useContext, useState, useMemo, useEffect } from 'react';
 import { ALL_SCALE_ITEMS, ScaleItem, ARTICULATIONS, TEMPO_LEVELS, Articulation, TempoLevel, getPracticeId } from '@/lib/scales';
 
 // --- Types ---
@@ -34,20 +34,59 @@ interface ScalesContextType {
 
 const ScalesContext = createContext<ScalesContextType | undefined>(undefined);
 
+const PROGRESS_STORAGE_KEY = 'professional_scales_progress';
+const LOG_STORAGE_KEY = 'professional_scales_log';
+
 // Initialize progress for ALL combinations
-const initialProgress: ScaleProgress = ALL_SCALE_ITEMS.reduce((acc, item) => {
-  ARTICULATIONS.forEach(articulation => {
-    TEMPO_LEVELS.forEach(tempo => {
-      const practiceId = getPracticeId(item.id, articulation, tempo);
-      acc[practiceId] = 'untouched';
+const getInitialProgress = (): ScaleProgress => {
+  try {
+    const storedProgress = localStorage.getItem(PROGRESS_STORAGE_KEY);
+    if (storedProgress) {
+      return JSON.parse(storedProgress);
+    }
+  } catch (error) {
+    console.error("Error loading progress from local storage:", error);
+  }
+  
+  // Default initialization if storage fails or is empty
+  return ALL_SCALE_ITEMS.reduce((acc, item) => {
+    ARTICULATIONS.forEach(articulation => {
+      TEMPO_LEVELS.forEach(tempo => {
+        const practiceId = getPracticeId(item.id, articulation, tempo);
+        acc[practiceId] = 'untouched';
+      });
     });
-  });
-  return acc;
-}, {} as ScaleProgress);
+    return acc;
+  }, {} as ScaleProgress);
+};
+
+const getInitialLog = (): PracticeLogEntry[] => {
+  try {
+    const storedLog = localStorage.getItem(LOG_STORAGE_KEY);
+    if (storedLog) {
+      return JSON.parse(storedLog);
+    }
+  } catch (error) {
+    console.error("Error loading log from local storage:", error);
+  }
+  return [];
+};
+
 
 export const ScalesProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [progress, setProgress] = useState<ScaleProgress>(initialProgress);
-  const [log, setLog] = useState<PracticeLogEntry[]>([]);
+  const [progress, setProgress] = useState<ScaleProgress>(getInitialProgress);
+  const [log, setLog] = useState<PracticeLogEntry[]>(getInitialLog);
+
+  // Effect to save progress to local storage
+  useEffect(() => {
+    localStorage.setItem(PROGRESS_STORAGE_KEY, JSON.stringify(progress));
+  }, [progress]);
+
+  // Effect to save log to local storage
+  useEffect(() => {
+    localStorage.setItem(LOG_STORAGE_KEY, JSON.stringify(log));
+  }, [log]);
+
 
   const updatePracticeStatus = (practiceId: string, status: ScaleStatus) => {
     setProgress(prev => ({
