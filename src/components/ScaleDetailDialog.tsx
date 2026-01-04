@@ -46,7 +46,7 @@ const getStatusClasses = (status: ScaleStatus) => {
 };
 
 const ScaleDetailDialog: React.FC<ScaleDetailDialogProps> = ({ scaleItem, children }) => {
-  const { progress, updatePracticeStatus } = useScales();
+  const { progressMap, updatePracticeStatus } = useScales();
 
   const handleToggleStatus = (articulation: Articulation, tempo: TempoLevel) => {
     // Use default values for the new dimensions when toggling status in this simplified matrix view
@@ -60,7 +60,7 @@ const ScaleDetailDialog: React.FC<ScaleDetailDialogProps> = ({ scaleItem, childr
       DEFAULT_ACCENT
     );
     
-    const currentStatus = progress[practiceId] || 'untouched';
+    const currentStatus: ScaleStatus = progressMap[practiceId] || 'untouched';
     
     // Toggle logic: untouched/practiced -> mastered -> untouched
     const nextStatus: ScaleStatus = (currentStatus === 'untouched' || currentStatus === 'practiced') 
@@ -113,7 +113,7 @@ const ScaleDetailDialog: React.FC<ScaleDetailDialogProps> = ({ scaleItem, childr
                       DEFAULT_RHYTHM,
                       DEFAULT_ACCENT
                     );
-                    const status = progress[practiceId] || 'untouched';
+                    const status: ScaleStatus = progressMap[practiceId] || 'untouched';
                     const statusText = status === 'mastered' ? 'Mastered' : status === 'practiced' ? 'Practiced' : 'Untouched';
 
                     return (

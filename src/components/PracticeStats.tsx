@@ -10,25 +10,25 @@ import {
 import { Clock, Check, Target } from 'lucide-react';
 
 const PracticeStats = () => {
-  const { progress, log, allScales } = useScales();
+  const { progressMap, log, allScales } = useScales();
 
   const stats = useMemo(() => {
     const totalCombinations = allScales.length * ARTICULATIONS.length * TEMPO_LEVELS.length * DIRECTION_TYPES.length * HAND_CONFIGURATIONS.length * RHYTHMIC_PERMUTATIONS.length * ACCENT_DISTRIBUTIONS.length;
     let masteredCount = 0;
     let practicedCount = 0;
-    let untouchedCount = 0;
     let totalDurationMinutes = 0;
 
-    // Calculate progress counts
-    Object.values(progress).forEach(status => {
+    // Calculate progress counts by iterating over the sparse map
+    Object.values(progressMap).forEach(status => {
       if (status === 'mastered') {
         masteredCount++;
       } else if (status === 'practiced') {
         practicedCount++;
-      } else {
-        untouchedCount++;
       }
     });
+    
+    // Calculate untouched count based on total combinations
+    const untouchedCount = totalCombinations - masteredCount - practicedCount;
 
     // Calculate total practice time
     totalDurationMinutes = log.reduce((sum, entry) => sum + entry.durationMinutes, 0);
@@ -43,7 +43,7 @@ const PracticeStats = () => {
       completionPercentage,
       totalDurationMinutes,
     };
-  }, [progress, log, allScales]);
+  }, [progressMap, log, allScales]);
 
   // Logic to suggest the next scale: prioritize untouched scales
   const suggestedScale = useMemo(() => {
@@ -57,6 +57,7 @@ const PracticeStats = () => {
         accent: AccentDistribution
     }[] = [];
 
+    // Iterate over all possible combinations to find untouched ones
     allScales.forEach(scale => {
       ARTICULATIONS.forEach(articulation => {
         TEMPO_LEVELS.forEach(tempo => {
@@ -65,7 +66,8 @@ const PracticeStats = () => {
               RHYTHMIC_PERMUTATIONS.forEach(rhythm => {
                 ACCENT_DISTRIBUTIONS.forEach(accent => {
                   const practiceId = getPracticeId(scale.id, articulation, tempo, direction, handConfig, rhythm, accent);
-                  if (progress[practiceId] === 'untouched') {
+                  // If the practiceId is NOT in progressMap, it is 'untouched'
+                  if (!progressMap[practiceId]) {
                     untouchedEntries.push({ scaleId: scale.id, articulation, tempo, direction, handConfig, rhythm, accent });
                   }
                 });
@@ -99,7 +101,7 @@ const PracticeStats = () => {
     
     // If everything is practiced/mastered, return null
     return null;
-  }, [progress, allScales]);
+  }, [progressMap, allScales]);
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">

@@ -39,7 +39,7 @@ const getStatusClasses = (status: ScaleStatus) => {
 };
 
 // Helper function to determine the overall status of a scale item
-const getOverallStatus = (scaleItem: ScaleItem, progress: Record<string, ScaleStatus>): ScaleStatus => {
+const getOverallStatus = (scaleItem: ScaleItem, progressMap: Record<string, 'practiced' | 'mastered'>): ScaleStatus => {
   let masteredCount = 0;
   let practicedCount = 0;
   let totalCombinations = 0;
@@ -59,7 +59,7 @@ const getOverallStatus = (scaleItem: ScaleItem, progress: Record<string, ScaleSt
                 rhythm, 
                 accent
               );
-              const status = progress[practiceId] || 'untouched';
+              const status: ScaleStatus = progressMap[practiceId] || 'untouched';
               totalCombinations++;
               
               if (status === 'mastered') {
@@ -114,7 +114,7 @@ const ScaleCell: React.FC<{ item: ScaleItem; status: ScaleStatus }> = ({ item, s
 };
 
 const ScaleGrid = () => {
-  const { allScales, progress } = useScales();
+  const { allScales, progressMap } = useScales();
 
   // Include all scale types for the header row
   const scaleTypes = [...SCALE_TYPES, ...ARPEGGIO_TYPES];
@@ -157,7 +157,7 @@ const ScaleGrid = () => {
                 // If item is not found (e.g., Chromatic in non-C key), render empty cell
                 if (!item) return <td key={type} className="px-4 py-2"></td>;
 
-                const status = getOverallStatus(item, progress);
+                const status = getOverallStatus(item, progressMap);
 
                 return (
                   <td key={type} className="px-4 py-2">

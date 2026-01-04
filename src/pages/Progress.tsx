@@ -4,8 +4,25 @@ import ScaleGrid from '@/components/ScaleGrid';
 import PracticeLog from '@/components/PracticeLog';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
+import { useScales } from '@/context/ScalesContext';
+import { Skeleton } from '@/components/ui/skeleton';
 
 const ProgressPage: React.FC = () => {
+  const { isLoading } = useScales();
+
+  if (isLoading) {
+    return (
+      <div className="container mx-auto p-4 md:p-8 space-y-10">
+        <h1 className="text-4xl font-extrabold tracking-tight text-center lg:text-5xl font-mono text-primary">
+          MASTER Y O U R SCALES
+        </h1>
+        <Skeleton className="h-40 w-full bg-card/50" />
+        <Skeleton className="h-[500px] w-full bg-card/50" />
+        <Skeleton className="h-[400px] w-full bg-card/50" />
+      </div>
+    );
+  }
+
   return (
     <div className="container mx-auto p-4 md:p-8 space-y-10">
       <h1 className="text-4xl font-extrabold tracking-tight text-center lg:text-5xl font-mono text-primary">

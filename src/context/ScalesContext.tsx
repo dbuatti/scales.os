@@ -1,17 +1,22 @@
-import React, { createContext, useContext, useState, useMemo, useEffect } from 'react';
+import React, { createContext, useContext, useState, useMemo, useEffect, useCallback } from 'react';
 import { 
   ALL_SCALE_ITEMS, ScaleItem, ARTICULATIONS, TEMPO_LEVELS, Articulation, TempoLevel, getPracticeId,
   DIRECTION_TYPES, HAND_CONFIGURATIONS, RHYTHMIC_PERMUTATIONS, ACCENT_DISTRIBUTIONS,
   DirectionType, HandConfiguration, RhythmicPermutation, AccentDistribution
 } from '@/lib/scales';
+import { useSupabaseSession } from '@/hooks/use-supabase-session';
+import { supabase } from '@/integrations/supabase/client';
+import { showSuccess, showError } from '@/utils/toast';
 
 // --- Types ---
 
 export type ScaleStatus = 'untouched' | 'practiced' | 'mastered';
 
 // Progress is now keyed by a combination ID (scaleId-Articulation-Tempo-Direction-HandConfig-Rhythm-Accent)
-export interface ScaleProgress {
-  [practiceId: string]: ScaleStatus;
+// We only store 'practiced' or 'mastered' entries in the database/state. 'untouched' is the default.
+export interface StoredProgressEntry {
+  practice_id: string;
+  status: 'practiced' | 'mastered';
 }
 
 export interface PracticeLogEntry {
@@ -31,8 +36,9 @@ export interface PracticeLogEntry {
 }
 
 interface ScalesContextType {
-  progress: ScaleProgress;
+  progressMap: Record<string, 'practiced' | 'mastered'>;
   log: PracticeLogEntry[];
+  isLoading: boolean;
   updatePracticeStatus: (practiceId: string, status: ScaleStatus) => void;
   addLogEntry: (entry: Omit<PracticeLogEntry, 'id' | 'timestamp'>) => void;
   allScales: ScaleItem[];
@@ -42,93 +48,176 @@ interface ScalesContextType {
 
 const ScalesContext = createContext<ScalesContextType | undefined>(undefined);
 
-const PROGRESS_STORAGE_KEY = 'professional_scales_progress';
-const LOG_STORAGE_KEY = 'professional_scales_log';
-
-// Initialize progress for ALL combinations
-const getInitialProgress = (): ScaleProgress => {
-  try {
-    const storedProgress = localStorage.getItem(PROGRESS_STORAGE_KEY);
-    if (storedProgress) {
-      return JSON.parse(storedProgress);
-    }
-  } catch (error) {
-    console.error("Error loading progress from local storage:", error);
-  }
-  
-  // Default initialization if storage fails or is empty
-  return ALL_SCALE_ITEMS.reduce((acc, item) => {
-    ARTICULATIONS.forEach(articulation => {
-      TEMPO_LEVELS.forEach(tempo => {
-        DIRECTION_TYPES.forEach(direction => {
-          HAND_CONFIGURATIONS.forEach(handConfig => {
-            RHYTHMIC_PERMUTATIONS.forEach(rhythm => {
-              ACCENT_DISTRIBUTIONS.forEach(accent => {
-                const practiceId = getPracticeId(item.id, articulation, tempo, direction, handConfig, rhythm, accent);
-                acc[practiceId] = 'untouched';
-              });
-            });
-          });
-        });
-      });
-    });
+// Helper to convert DB array to map
+const progressArrayToMap = (arr: StoredProgressEntry[]): Record<string, 'practiced' | 'mastered'> => {
+  return arr.reduce((acc, item) => {
+    acc[item.practice_id] = item.status;
     return acc;
-  }, {} as ScaleProgress);
+  }, {} as Record<string, 'practiced' | 'mastered'>);
 };
-
-const getInitialLog = (): PracticeLogEntry[] => {
-  try {
-    const storedLog = localStorage.getItem(LOG_STORAGE_KEY);
-    if (storedLog) {
-      return JSON.parse(storedLog);
-    }
-  } catch (error) {
-    console.error("Error loading log from local storage:", error);
-  }
-  return [];
-};
-
 
 export const ScalesProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [progress, setProgress] = useState<ScaleProgress>(getInitialProgress);
-  const [log, setLog] = useState<PracticeLogEntry[]>(getInitialLog);
+  const { userId, isLoading: isSessionLoading } = useSupabaseSession();
+  const [progressMap, setProgressMap] = useState<Record<string, 'practiced' | 'mastered'>>({});
+  const [log, setLog] = useState<PracticeLogEntry[]>([]);
+  const [isDataLoading, setIsDataLoading] = useState(true);
 
-  // Effect to save progress to local storage
+  const isLoading = isSessionLoading || isDataLoading;
+
+  // 1. Fetch data from Supabase
+  const fetchData = useCallback(async (id: string) => {
+    setIsDataLoading(true);
+    
+    // Fetch Progress
+    const { data: progressData, error: progressError } = await supabase
+      .from('user_progress')
+      .select('practice_id, status')
+      .eq('user_id', id);
+
+    if (progressError) {
+      console.error("[ScalesContext] Error fetching progress:", progressError);
+      showError("Failed to load practice progress.");
+    } else if (progressData) {
+      setProgressMap(progressArrayToMap(progressData as StoredProgressEntry[]));
+    }
+
+    // Fetch Logs
+    const { data: logData, error: logError } = await supabase
+      .from('practice_logs')
+      .select('id, duration_minutes, scales_practiced, notes, created_at')
+      .eq('user_id', id)
+      .order('created_at', { ascending: false });
+
+    if (logError) {
+      console.error("[ScalesContext] Error fetching logs:", logError);
+      showError("Failed to load practice logs.");
+    } else if (logData) {
+      const formattedLog: PracticeLogEntry[] = logData.map(item => ({
+        id: item.id,
+        timestamp: new Date(item.created_at).getTime(),
+        durationMinutes: item.duration_minutes,
+        scalesPracticed: item.scales_practiced || [],
+        notes: item.notes || '',
+      }));
+      setLog(formattedLog);
+    }
+
+    setIsDataLoading(false);
+  }, []);
+
   useEffect(() => {
-    localStorage.setItem(PROGRESS_STORAGE_KEY, JSON.stringify(progress));
-  }, [progress]);
+    if (userId) {
+      fetchData(userId);
+    } else if (!isSessionLoading) {
+      // If not logged in, clear state and stop loading
+      setProgressMap({});
+      setLog([]);
+      setIsDataLoading(false);
+    }
+  }, [userId, isSessionLoading, fetchData]);
 
-  // Effect to save log to local storage
-  useEffect(() => {
-    localStorage.setItem(LOG_STORAGE_KEY, JSON.stringify(log));
-  }, [log]);
 
+  // 2. Update Practice Status (Upsert to Supabase)
+  const updatePracticeStatus = useCallback(async (practiceId: string, status: ScaleStatus) => {
+    if (!userId) {
+      showError("You must be logged in to save progress.");
+      return;
+    }
 
-  const updatePracticeStatus = (practiceId: string, status: ScaleStatus) => {
-    setProgress(prev => ({
-      ...prev,
-      [practiceId]: status,
-    }));
-  };
+    if (status === 'untouched') {
+      // Delete entry if status is untouched
+      const { error } = await supabase
+        .from('user_progress')
+        .delete()
+        .eq('user_id', userId)
+        .eq('practice_id', practiceId);
 
-  const addLogEntry = (entry: Omit<PracticeLogEntry, 'id' | 'timestamp'>) => {
+      if (error) {
+        console.error("[ScalesContext] Error deleting progress:", error);
+        showError("Failed to reset practice status.");
+        return;
+      }
+      
+      // Update local state
+      setProgressMap(prev => {
+        const newState = { ...prev };
+        delete newState[practiceId];
+        return newState;
+      });
+
+    } else {
+      // Upsert entry if status is practiced or mastered
+      const { error } = await supabase
+        .from('user_progress')
+        .upsert({
+          user_id: userId,
+          practice_id: practiceId,
+          status: status,
+        }, { onConflict: 'user_id, practice_id' });
+
+      if (error) {
+        console.error("[ScalesContext] Error upserting progress:", error);
+        showError("Failed to save practice status.");
+        return;
+      }
+      
+      // Update local state
+      setProgressMap(prev => ({
+        ...prev,
+        [practiceId]: status,
+      }));
+    }
+  }, [userId]);
+
+  // 3. Add Log Entry (Insert to Supabase)
+  const addLogEntry = useCallback(async (entry: Omit<PracticeLogEntry, 'id' | 'timestamp'>) => {
+    if (!userId) {
+      showError("You must be logged in to log practice sessions.");
+      return;
+    }
+
     const newEntry: PracticeLogEntry = {
       ...entry,
-      id: Date.now().toString(),
+      id: Date.now().toString(), // Temporary ID for local state update
       timestamp: Date.now(),
     };
-    setLog(prev => [newEntry, ...prev]);
 
-    // NOTE: Removed automatic status update. Status is now controlled manually via the grid.
-  };
+    const { data, error } = await supabase
+      .from('practice_logs')
+      .insert({
+        user_id: userId,
+        duration_minutes: entry.durationMinutes,
+        scales_practiced: entry.scalesPracticed,
+        notes: entry.notes,
+      })
+      .select('id, created_at')
+      .single();
+
+    if (error) {
+      console.error("[ScalesContext] Error inserting log entry:", error);
+      showError("Failed to log practice session.");
+      return;
+    }
+    
+    // Update local state with the actual ID and timestamp from DB
+    const finalEntry: PracticeLogEntry = {
+        ...newEntry,
+        id: data.id,
+        timestamp: new Date(data.created_at).getTime(),
+    };
+
+    setLog(prev => [finalEntry, ...prev]);
+  }, [userId]);
+
 
   const contextValue = useMemo(() => ({
-    progress,
+    progressMap,
     log,
+    isLoading,
     updatePracticeStatus,
     addLogEntry,
     allScales: ALL_SCALE_ITEMS,
-  }), [progress, log]);
+  }), [progressMap, log, isLoading, updatePracticeStatus, addLogEntry]);
 
   return (
     <ScalesContext.Provider value={contextValue}>
