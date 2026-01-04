@@ -7,6 +7,8 @@ import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import AppLayout from "./components/AppLayout";
 import ProgressPage from "./pages/Progress";
+import Login from "./pages/Login";
+import AuthGuard from "./components/AuthGuard";
 
 const queryClient = new QueryClient();
 
@@ -18,8 +20,17 @@ const App = () => (
       <BrowserRouter>
         <AppLayout>
           <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/progress" element={<ProgressPage />} />
+            {/* Public Routes */}
+            <Route path="/login" element={<AuthGuard isPublic={true} />}>
+              <Route index element={<Login />} />
+            </Route>
+
+            {/* Protected Routes */}
+            <Route element={<AuthGuard />}>
+              <Route path="/" element={<Index />} />
+              <Route path="/progress" element={<ProgressPage />} />
+            </Route>
+            
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
