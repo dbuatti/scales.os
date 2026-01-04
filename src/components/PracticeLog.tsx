@@ -15,7 +15,7 @@ const PracticeLog = () => {
           <CardTitle>Practice History</CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-muted-foreground">No sessions logged yet. Start the timer!</p>
+          <p className="text-muted-foreground">No sessions logged yet. Start the timer or save a snapshot!</p>
         </CardContent>
       </Card>
     );
@@ -38,7 +38,9 @@ const PracticeLog = () => {
               <div key={entry.id} className="border-b pb-4 last:border-b-0 last:pb-0">
                 <div className="flex justify-between items-start">
                   <p className="font-semibold text-lg">
-                    {entry.durationMinutes} minutes of focused practice
+                    {entry.durationMinutes > 0 
+                        ? `${entry.durationMinutes} minutes of focused practice`
+                        : 'Practice Snapshot Log'}
                   </p>
                   <span className="text-sm text-muted-foreground">
                     {format(entry.timestamp, 'MMM dd, yyyy HH:mm')}
