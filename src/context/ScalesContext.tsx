@@ -1,26 +1,31 @@
 import React, { createContext, useContext, useState, useMemo } from 'react';
-import { ALL_SCALE_ITEMS, ScaleItem } from '@/lib/scales';
+import { ALL_SCALE_ITEMS, ScaleItem, ARTICULATIONS, TEMPO_LEVELS, Articulation, TempoLevel, getPracticeId } from '@/lib/scales';
 
 // --- Types ---
 
 export type ScaleStatus = 'untouched' | 'practiced' | 'mastered';
 
+// Progress is now keyed by a combination ID (scaleId-Articulation-Tempo)
 export interface ScaleProgress {
-  [scaleId: string]: ScaleStatus;
+  [practiceId: string]: ScaleStatus;
 }
 
 export interface PracticeLogEntry {
   id: string;
   timestamp: number;
   durationMinutes: number;
-  scalesPracticed: string[]; // IDs of scales practiced
+  scalesPracticed: {
+    scaleId: string;
+    articulation: Articulation;
+    tempo: TempoLevel;
+  }[];
   notes: string;
 }
 
 interface ScalesContextType {
   progress: ScaleProgress;
   log: PracticeLogEntry[];
-  updateScaleStatus: (scaleId: string, status: ScaleStatus) => void;
+  updatePracticeStatus: (practiceId: string, status: ScaleStatus) => void;
   addLogEntry: (entry: Omit<PracticeLogEntry, 'id' | 'timestamp'>) => void;
   allScales: ScaleItem[];
 }
@@ -29,8 +34,14 @@ interface ScalesContextType {
 
 const ScalesContext = createContext<ScalesContextType | undefined>(undefined);
 
+// Initialize progress for ALL combinations
 const initialProgress: ScaleProgress = ALL_SCALE_ITEMS.reduce((acc, item) => {
-  acc[item.id] = 'untouched';
+  ARTICULATIONS.forEach(articulation => {
+    TEMPO_LEVELS.forEach(tempo => {
+      const practiceId = getPracticeId(item.id, articulation, tempo);
+      acc[practiceId] = 'untouched';
+    });
+  });
   return acc;
 }, {} as ScaleProgress);
 
@@ -38,10 +49,10 @@ export const ScalesProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const [progress, setProgress] = useState<ScaleProgress>(initialProgress);
   const [log, setLog] = useState<PracticeLogEntry[]>([]);
 
-  const updateScaleStatus = (scaleId: string, status: ScaleStatus) => {
+  const updatePracticeStatus = (practiceId: string, status: ScaleStatus) => {
     setProgress(prev => ({
       ...prev,
-      [scaleId]: status,
+      [practiceId]: status,
     }));
   };
 
@@ -53,10 +64,13 @@ export const ScalesProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     };
     setLog(prev => [newEntry, ...prev]);
 
-    // Automatically mark practiced scales as 'practiced' if they were 'untouched'
-    entry.scalesPracticed.forEach(scaleId => {
-      if (progress[scaleId] === 'untouched') {
-        updateScaleStatus(scaleId, 'practiced');
+    // Update status for all practiced combinations
+    entry.scalesPracticed.forEach(({ scaleId, articulation, tempo }) => {
+      const practiceId = getPracticeId(scaleId, articulation, tempo);
+      
+      // Automatically mark practiced combinations as 'practiced' if they were 'untouched'
+      if (progress[practiceId] === 'untouched') {
+        updatePracticeStatus(practiceId, 'practiced');
       }
     });
   };
@@ -64,7 +78,7 @@ export const ScalesProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const contextValue = useMemo(() => ({
     progress,
     log,
-    updateScaleStatus,
+    updatePracticeStatus,
     addLogEntry,
     allScales: ALL_SCALE_ITEMS,
   }), [progress, log]);

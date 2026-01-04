@@ -1,13 +1,15 @@
 import React from 'react';
 import { useScales, ScaleStatus } from '../context/ScalesContext';
-import { KEYS, SCALE_TYPES, ARPEGGIO_TYPES, ScaleItem } from '@/lib/scales';
+import { KEYS, SCALE_TYPES, ARPEGGIO_TYPES, ScaleItem, ARTICULATIONS, TEMPO_LEVELS, getPracticeId } from '@/lib/scales';
 import { cn } from '@/lib/utils';
-import { Check, X, Clock } from 'lucide-react';
+import { Check, X, Clock, Eye } from 'lucide-react';
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { Button } from '@/components/ui/button';
+import ScaleDetailDialog from './ScaleDetailDialog';
 
 const getStatusIcon = (status: ScaleStatus) => {
   switch (status) {
@@ -33,43 +35,65 @@ const getStatusClasses = (status: ScaleStatus) => {
   }
 };
 
-const ScaleCell: React.FC<{ item: ScaleItem; status: ScaleStatus; updateStatus: (status: ScaleStatus) => void }> = ({ item, status, updateStatus }) => {
-  const nextStatus = (current: ScaleStatus): ScaleStatus => {
-    if (current === 'untouched' || current === 'practiced') return 'mastered';
-    return 'untouched';
-  };
+// Helper function to determine the overall status of a scale item
+const getOverallStatus = (scaleItem: ScaleItem, progress: Record<string, ScaleStatus>): ScaleStatus => {
+  let masteredCount = 0;
+  let practicedCount = 0;
+  let totalCombinations = 0;
 
-  const handleClick = () => {
-    updateStatus(nextStatus(status));
-  };
+  ARTICULATIONS.forEach(articulation => {
+    TEMPO_LEVELS.forEach(tempo => {
+      const practiceId = getPracticeId(scaleItem.id, articulation, tempo);
+      const status = progress[practiceId] || 'untouched';
+      totalCombinations++;
+      
+      if (status === 'mastered') {
+        masteredCount++;
+      } else if (status === 'practiced') {
+        practicedCount++;
+      }
+    });
+  });
 
-  const statusText = status === 'mastered' ? 'Mastered' : status === 'practiced' ? 'Practiced' : 'Untouched';
+  if (masteredCount === totalCombinations) {
+    return 'mastered'; // Fully mastered
+  }
+  if (masteredCount > 0 || practicedCount > 0) {
+    return 'practiced'; // Partially mastered or practiced
+  }
+  return 'untouched';
+};
+
+
+const ScaleCell: React.FC<{ item: ScaleItem; status: ScaleStatus }> = ({ item, status }) => {
+  const statusText = status === 'mastered' ? 'Fully Mastered' : status === 'practiced' ? 'In Progress' : 'Untouched';
 
   return (
     <Tooltip>
       <TooltipTrigger asChild>
-        <button
-          onClick={handleClick}
+        <Button
+          variant="outline"
           className={cn(
             "w-full h-10 flex items-center justify-center rounded-md transition-colors duration-150",
             getStatusClasses(status)
           )}
-          aria-label={`${item.key} ${item.type} status: ${statusText}. Click to toggle.`}
+          aria-label={`${item.key} ${item.type} status: ${statusText}. Click for details.`}
         >
-          {getStatusIcon(status)}
-        </button>
+          <Eye className="w-4 h-4 mr-2 text-white" />
+          <span className="text-xs font-medium text-white hidden sm:inline">{statusText.split(' ')[0]}</span>
+        </Button>
       </TooltipTrigger>
       <TooltipContent>
         <p>{item.key} {item.type}</p>
-        <p>Status: {statusText}</p>
-        <p className="text-xs text-muted-foreground">Click to toggle Mastered/Untouched</p>
+        <p>Overall Status: {statusText}</p>
+        <p className="text-xs text-muted-foreground">Click to view/edit Articulation & Tempo details.</p>
       </TooltipContent>
     </Tooltip>
   );
 };
 
 const ScaleGrid = () => {
-  const { allScales, progress, updateScaleStatus } = useScales();
+  const { allScales, progress } = useScales();
 
   // Include all scale types for the header row
   const scaleTypes = [...SCALE_TYPES, ...ARPEGGIO_TYPES];
@@ -112,15 +136,16 @@ const ScaleGrid = () => {
                 // If item is not found (e.g., Chromatic in non-C key), render empty cell
                 if (!item) return <td key={type} className="px-4 py-2"></td>;
 
-                const status = progress[item.id] || 'untouched';
+                const status = getOverallStatus(item, progress);
 
                 return (
                   <td key={type} className="px-4 py-2">
-                    <ScaleCell
-                      item={item}
-                      status={status}
-                      updateStatus={(newStatus) => updateScaleStatus(item.id, newStatus)}
-                    />
+                    <ScaleDetailDialog scaleItem={item}>
+                      <ScaleCell
+                        item={item}
+                        status={status}
+                      />
+                    </ScaleDetailDialog>
                   </td>
                 );
               })}

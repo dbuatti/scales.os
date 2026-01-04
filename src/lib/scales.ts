@@ -16,9 +16,26 @@ export const ARPEGGIO_TYPES = [
   "Diminished 7th",
 ] as const;
 
+export const ARTICULATIONS = [
+  "Legato",
+  "Staccato",
+  "Portato",
+  "Voiced Hands (RH Project)",
+  "Voiced Hands (LH Project)",
+] as const;
+
+export const TEMPO_LEVELS = [
+  "Slow (Under 80 BPM)",
+  "Moderate (80-100 BPM)",
+  "Fast (100-120 BPM)",
+  "Professional (120+ BPM)",
+] as const;
+
 export type Key = typeof KEYS[number];
 export type ScaleType = typeof SCALE_TYPES[number];
 export type ArpeggioType = typeof ARPEGGIO_TYPES[number];
+export type Articulation = typeof ARTICULATIONS[number];
+export type TempoLevel = typeof TEMPO_LEVELS[number];
 
 export type ScaleItem = {
   key: Key;
@@ -63,3 +80,8 @@ export const generateScaleItems = (): ScaleItem[] => {
 };
 
 export const ALL_SCALE_ITEMS = generateScaleItems();
+
+// Utility to generate a unique ID for a specific practice combination
+export const getPracticeId = (scaleId: string, articulation: Articulation, tempo: TempoLevel): string => {
+  return `${scaleId}-${articulation.replace(/\s/g, "")}-${tempo.replace(/\s/g, "")}`;
+};
