@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
-import { Checkbox } from '@/components/ui/checkbox';
 import { Slider } from '@/components/ui/slider';
 import { LogIn } from 'lucide-react';
 import { 
@@ -35,29 +34,32 @@ interface PermutationSectionProps<T extends string> {
     onValueChange: (value: T) => void;
 }
 
+// Refined PermutationSection component using vertical ToggleGroup
 const PermutationSection = <T extends string>({ title, description, options, selectedValue, onValueChange }: PermutationSectionProps<T>) => (
     <div className="space-y-3 border p-4 rounded-lg border-primary/30 bg-secondary/50">
         <Label className="text-lg font-semibold text-primary block mb-2 font-mono">{title}</Label>
-        <p className="text-xs text-muted-foreground italic">{description}</p>
-        <div className="space-y-2">
+        <p className="text-xs text-muted-foreground italic mb-4">{description}</p>
+        <ToggleGroup 
+            type="single" 
+            value={selectedValue} 
+            onValueChange={(value) => value && onValueChange(value as T)}
+            className="flex flex-col space-y-2 w-full"
+        >
             {options.map(option => (
-                <div key={option} className={cn(
-                    "flex items-center space-x-3 p-3 rounded-md transition-colors cursor-pointer",
-                    selectedValue === option ? "bg-primary/20 border border-primary" : "hover:bg-accent"
-                )}
-                onClick={() => onValueChange(option)}>
-                    <Checkbox 
-                        id={`perm-${title}-${option}`} 
-                        checked={selectedValue === option}
-                        onCheckedChange={() => onValueChange(option)}
-                        className="border-primary data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground"
-                    />
-                    <Label htmlFor={`perm-${title}-${option}`} className="text-sm font-medium leading-none cursor-pointer text-foreground font-mono">
-                        {option}
-                    </Label>
-                </div>
+                <ToggleGroupItem 
+                    key={option} 
+                    value={option} 
+                    aria-label={`Select ${option}`}
+                    className={cn(
+                        "w-full justify-start data-[state=on]:bg-primary data-[state=on]:text-primary-foreground data-[state=on]:shadow-md data-[state=on]:border-primary/80 border border-border text-sm px-4 py-2 h-auto font-mono transition-all duration-150",
+                        "hover:bg-accent/50",
+                        selectedValue === option ? "bg-primary text-primary-foreground" : "bg-card text-foreground"
+                    )}
+                >
+                    {option}
+                </ToggleGroupItem>
             ))}
-        </div>
+        </ToggleGroup>
     </div>
 );
 
@@ -244,82 +246,86 @@ const PracticeCommandCenter: React.FC = () => {
             </div>
           </div>
 
-          {/* Key Selection (Full Width, Circular) */}
-          <div className="space-y-3 border p-4 rounded-lg border-primary/30 bg-secondary/50">
-            <Label className="text-lg font-semibold text-primary block mb-2 font-mono">KEY SELECTION</Label>
-            <ToggleGroup 
-              type="single" 
-              value={selectedKey} 
-              onValueChange={(value) => value && setSelectedKey(value as Key)}
-              className="flex flex-wrap justify-center gap-3 w-full"
-              disabled={isChromatic}
-            >
-              {availableKeys.map(key => (
-                <ToggleGroupItem 
-                  key={key} 
-                  value={key} 
-                  aria-label={`Select key ${key}`}
-                  className={cn(
-                    "data-[state=on]:bg-primary data-[state=on]:text-primary-foreground data-[state=on]:shadow-md data-[state=on]:border-primary/80 border border-border text-sm px-3 py-3 h-12 w-12 rounded-full font-mono flex items-center justify-center",
-                    isChromatic && "opacity-50 cursor-not-allowed"
-                  )}
-                >
-                  {key.replace(/\/.*/, '')} {/* Display C instead of C/Db for brevity */}
-                </ToggleGroupItem>
-              ))}
-            </ToggleGroup>
-            {isChromatic && <p className="text-xs text-yellow-400 mt-2 text-center">Chromatic scale is key-independent (C selected by default).</p>}
-          </div>
+          {/* Primary Selections: Key, Type, Articulation (New Grid Layout) */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-4 border-t border-border">
+            
+            {/* Key Selection */}
+            <div className="space-y-3 border p-4 rounded-lg border-primary/30 bg-secondary/50 md:col-span-1">
+              <Label className="text-lg font-semibold text-primary block mb-2 font-mono">KEY</Label>
+              <ToggleGroup 
+                type="single" 
+                value={selectedKey} 
+                onValueChange={(value) => value && setSelectedKey(value as Key)}
+                className="flex flex-wrap justify-center gap-2 w-full"
+                disabled={isChromatic}
+              >
+                {availableKeys.map(key => (
+                  <ToggleGroupItem 
+                    key={key} 
+                    value={key} 
+                    aria-label={`Select key ${key}`}
+                    className={cn(
+                      "data-[state=on]:bg-primary data-[state=on]:text-primary-foreground data-[state=on]:shadow-md data-[state=on]:border-primary/80 border border-border text-sm px-3 py-3 h-10 w-10 rounded-full font-mono flex items-center justify-center",
+                      isChromatic && "opacity-50 cursor-not-allowed"
+                    )}
+                  >
+                    {key.replace(/\/.*/, '')}
+                  </ToggleGroupItem>
+                ))}
+              </ToggleGroup>
+              {isChromatic && <p className="text-xs text-yellow-400 mt-2 text-center">Chromatic scale is key-independent (C selected).</p>}
+            </div>
 
-          {/* Scale/Arpeggio Type Selection (Horizontal Full Row) */}
-          <div className="space-y-3 border p-4 rounded-lg border-primary/30 bg-secondary/50">
-            <Label className="text-lg font-semibold text-primary block mb-2 font-mono">SCALE/ARPEGGIO TYPE</Label>
-            <ToggleGroup 
-              type="single" 
-              value={selectedType} 
-              onValueChange={(value) => {
-                if (value) {
-                  setSelectedType(value);
-                  if (value === "Chromatic") {
-                      setSelectedKey("C");
+            {/* Scale/Arpeggio Type Selection */}
+            <div className="space-y-3 border p-4 rounded-lg border-primary/30 bg-secondary/50 md:col-span-1">
+              <Label className="text-lg font-semibold text-primary block mb-2 font-mono">TYPE</Label>
+              <ToggleGroup 
+                type="single" 
+                value={selectedType} 
+                onValueChange={(value) => {
+                  if (value) {
+                    setSelectedType(value);
+                    if (value === "Chromatic") {
+                        setSelectedKey("C");
+                    }
                   }
-                }
-              }}
-              className="flex flex-wrap justify-center gap-2 w-full"
-            >
-              {ALL_TYPES.map(type => (
-                <ToggleGroupItem 
-                  key={type} 
-                  value={type} 
-                  aria-label={`Select type ${type}`}
-                  className="data-[state=on]:bg-primary data-[state=on]:text-primary-foreground data-[state=on]:shadow-md data-[state=on]:border-primary/80 border border-border text-sm px-4 py-2 h-auto font-mono flex-1 min-w-[100px]"
-                >
-                  {type}
-                </ToggleGroupItem>
-              ))}
-            </ToggleGroup>
-          </div>
-          
-          {/* Articulation Selection (Horizontal Full Row) */}
-          <div className="space-y-3 border p-4 rounded-lg border-primary/30 bg-secondary/50">
-            <Label className="text-lg font-semibold text-primary block mb-2 font-mono">ARTICULATION MODE</Label>
-            <ToggleGroup 
-              type="single" 
-              value={selectedArticulation} 
-              onValueChange={(value) => value && setSelectedArticulation(value as Articulation)}
-              className="flex flex-wrap justify-center gap-2 w-full"
-            >
-              {ARTICULATIONS.map(articulation => (
-                <ToggleGroupItem 
-                  key={articulation} 
-                  value={articulation} 
-                  aria-label={`Select articulation ${articulation}`}
-                  className="data-[state=on]:bg-primary data-[state=on]:text-primary-foreground data-[state=on]:shadow-md data-[state=on]:border-primary/80 border border-border text-sm px-4 py-2 h-auto font-mono flex-1 min-w-[100px]"
-                >
-                  {articulation.split(' ')[0]}
-                </ToggleGroupItem>
-              ))}
-            </ToggleGroup>
+                }}
+                className="flex flex-wrap justify-center gap-2 w-full"
+              >
+                {ALL_TYPES.map(type => (
+                  <ToggleGroupItem 
+                    key={type} 
+                    value={type} 
+                    aria-label={`Select type ${type}`}
+                    className="data-[state=on]:bg-primary data-[state=on]:text-primary-foreground data-[state=on]:shadow-md data-[state=on]:border-primary/80 border border-border text-xs px-2 py-1 h-auto font-mono flex-1 min-w-[80px]"
+                  >
+                    {type.replace(' Arpeggio', '').replace(' Minor', ' Min').replace(' Major', ' Maj')}
+                  </ToggleGroupItem>
+                ))}
+              </ToggleGroup>
+            </div>
+            
+            {/* Articulation Selection */}
+            <div className="space-y-3 border p-4 rounded-lg border-primary/30 bg-secondary/50 md:col-span-1">
+              <Label className="text-lg font-semibold text-primary block mb-2 font-mono">ARTICULATION</Label>
+              <ToggleGroup 
+                type="single" 
+                value={selectedArticulation} 
+                onValueChange={(value) => value && setSelectedArticulation(value as Articulation)}
+                className="flex flex-wrap justify-center gap-2 w-full"
+              >
+                {ARTICULATIONS.map(articulation => (
+                  <ToggleGroupItem 
+                    key={articulation} 
+                    value={articulation} 
+                    aria-label={`Select articulation ${articulation}`}
+                    className="data-[state=on]:bg-primary data-[state=on]:text-primary-foreground data-[state=on]:shadow-md data-[state=on]:border-primary/80 border border-border text-xs px-2 py-1 h-auto font-mono flex-1 min-w-[80px]"
+                  >
+                    {articulation.split(' ')[0]}
+                  </ToggleGroupItem>
+                ))}
+              </ToggleGroup>
+            </div>
           </div>
 
           {/* Log Snapshot Button */}
