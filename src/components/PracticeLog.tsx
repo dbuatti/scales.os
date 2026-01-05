@@ -67,11 +67,6 @@ const PracticeLog = () => {
                 {entry.itemsPracticed.length > 0 ? (
                   <div className="mt-2 flex flex-wrap gap-2">
                     {entry.itemsPracticed.map((item, index) => {
-                      if (item.type === 'dohnanyi' && item.dohnanyiName) {
-                        console.log("[PracticeLog] Displaying Dohnányi item:", { name: item.dohnanyiName, bpmTarget: item.bpmTarget });
-                      } else if (item.type === 'hanon' && item.hanonName) {
-                        console.log("[PracticeLog] Displaying Hanon item:", { name: item.hanonName, hanonBpmTarget: item.hanonBpmTarget });
-                      }
                       return (
                       <Badge key={index} variant="secondary" className="flex flex-col items-start p-2 h-auto text-left">
                         {item.type === 'scale' && item.scaleId && (
@@ -92,7 +87,7 @@ const PracticeLog = () => {
                             <>
                                 <span className="font-bold text-primary">{item.dohnanyiName}</span>
                                 <span className="text-xs font-normal mt-1">
-                                    Logged BPM: {item.bpmTarget}
+                                    Logged BPM: {item.bpmTarget || 'N/A'}
                                 </span>
                             </>
                         )}
@@ -100,7 +95,7 @@ const PracticeLog = () => {
                             <>
                                 <span className="font-bold text-primary">{item.hanonName}</span>
                                 <span className="text-xs font-normal mt-1">
-                                    Logged BPM: {item.hanonBpmTarget}
+                                    Logged BPM: {item.hanonBpmTarget || 'N/A'}
                                 </span>
                             </>
                         )}

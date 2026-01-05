@@ -3,9 +3,9 @@ import { CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { LogIn, Check } from 'lucide-react';
 import { 
-  DOHNANYI_EXERCISES, DohnanyiExercise, DOHNANYI_BPM_TARGETS, DohnanyiBPMTarget, getDohnanyiPracticeId
+  DOHNANYI_EXERCISES, DohnanyiExercise, DOHNANYI_BPM_TARGETS, DohnanyiBPMTarget, getDohnanyiPracticeId, getDohnanyiExerciseBaseId
 } from '@/lib/scales';
-import { useScales, NextFocus } from '../context/ScalesContext';
+import { useScales, NextFocus, ScaleStatus } from '../context/ScalesContext';
 import { showSuccess, showError } from '@/utils/toast';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { cn, shallowEqual } from '@/lib/utils';
@@ -15,8 +15,8 @@ import { useGlobalBPM, SNAPSHOT_DEBOUNCE_MS, ActivePracticeItem } from '@/contex
 interface DohnanyiPracticePanelProps {
     currentBPM: number;
     addLogEntry: ReturnType<typeof useScales>['addLogEntry'];
-    updatePracticeStatus: ReturnType<typeof useScales>['updatePracticeStatus'];
-    progressMap: ReturnType<typeof useScales>['progressMap'];
+    updatePracticeStatus: (practiceId: string, status: ScaleStatus) => void; // Re-added
+    progressMap: ReturnType<typeof useScales>['progressMap']; // Re-added
     activeTab: 'scales' | 'dohnanyi' | 'hanon';
     suggestedDohnanyi: (NextFocus & { type: 'dohnanyi' }) | undefined;
 }
@@ -32,6 +32,8 @@ const DohnanyiPracticePanel: React.FC<DohnanyiPracticePanelProps> = ({
     setActiveLogSnapshotFunction,
     activePracticeItem: globalActivePracticeItem
   } = useGlobalBPM();
+
+  const { exerciseMasteryBPMMap, updateExerciseMasteryBPM } = useScales();
   
   const [selectedExercise, setSelectedExercise] = useState<DohnanyiExercise>(DOHNANYI_EXERCISES[0]);
   
@@ -49,23 +51,13 @@ const DohnanyiPracticePanel: React.FC<DohnanyiPracticePanelProps> = ({
   }, [suggestedDohnanyi, activeTab, selectedExercise]);
 
   useEffect(() => {
-    setActivePermutationHighestBPM(0);
+    setActivePermutationHighestBPM(0); // Reset for Dohnanyi/Hanon
   }, [setActivePermutationHighestBPM]);
   
-  const nextBPMTarget = useMemo(() => {
-    for (const target of DOHNANYI_BPM_TARGETS) {
-      const practiceId = getDohnanyiPracticeId(selectedExercise, target);
-      if (progressMap[practiceId] !== 'mastered') {
-        return target;
-      }
-    }
-    return DOHNANYI_BPM_TARGETS[DOHNANYI_BPM_TARGETS.length - 1];
-  }, [selectedExercise, progressMap]);
-  
-  const isFullyMastered = useMemo(() => {
-      const maxTargetId = getDohnanyiPracticeId(selectedExercise, DOHNANYI_BPM_TARGETS[DOHNANYI_BPM_TARGETS.length - 1]);
-      return progressMap[maxTargetId] === 'mastered';
-  }, [selectedExercise, progressMap]);
+  // Use the new base ID function for currentExerciseId
+  const currentExerciseBaseId = useMemo(() => getDohnanyiExerciseBaseId(selectedExercise), [selectedExercise]);
+  const highestMasteredBPM = exerciseMasteryBPMMap[currentExerciseBaseId] || 0;
+  const nextBPMGoal = highestMasteredBPM > 0 ? highestMasteredBPM + 3 : 40; // Incremental goal
 
   const handleLogSnapshot = useCallback(() => {
     const now = Date.now();
@@ -74,7 +66,7 @@ const DohnanyiPracticePanel: React.FC<DohnanyiPracticePanelProps> = ({
       return;
     }
 
-    console.log("[DohnanyiPracticePanel] Current BPM at snapshot:", currentBPM); // Added log
+    console.log("[DohnanyiPracticePanel] Current BPM at snapshot:", currentBPM);
 
     const currentCallKey = `${selectedExercise}-${currentBPM}`;
     if (lastSuccessfulCallKeyRef.current === currentCallKey) {
@@ -85,8 +77,17 @@ const DohnanyiPracticePanel: React.FC<DohnanyiPracticePanelProps> = ({
     lastSnapshotTimestampRef.current = now;
     lastSuccessfulCallKeyRef.current = currentCallKey;
 
+    let message = `Snapshot logged at ${currentBPM} BPM.`;
+
+    if (currentBPM > highestMasteredBPM) {
+        updateExerciseMasteryBPM(currentExerciseBaseId, currentBPM); // Use base ID here
+        message = `Mastery updated! Highest BPM for ${selectedExercise} is now ${currentBPM}. Next goal: ${currentBPM + 3} BPM.`;
+    } else {
+        message = `Snapshot logged at ${currentBPM} BPM. Highest mastered BPM remains ${highestMasteredBPM}.`;
+    }
+
     const itemToLog = {
-        type: 'dohnanyi' as const, // Explicitly type as 'dohnanyi'
+        type: 'dohnanyi' as const,
         dohnanyiName: selectedExercise,
         bpmTarget: currentBPM,
     };
@@ -98,37 +99,34 @@ const DohnanyiPracticePanel: React.FC<DohnanyiPracticePanelProps> = ({
       notes: `Dohnányi Snapshot: ${selectedExercise} practiced at ${currentBPM} BPM.`,
     });
 
-    showSuccess(`Dohnányi practice session logged at ${currentBPM} BPM.`);
-  }, [addLogEntry, selectedExercise, currentBPM]);
+    showSuccess(message);
+  }, [addLogEntry, selectedExercise, currentBPM, highestMasteredBPM, updateExerciseMasteryBPM, currentExerciseBaseId]);
 
-  const latestHandleLogSnapshotRef = useRef(handleLogSnapshot);
+  // Fix stale closure: Ensure setActiveLogSnapshotFunction is called with the latest handleLogSnapshot
   useEffect(() => {
-    latestHandleLogSnapshotRef.current = handleLogSnapshot;
-  }, [handleLogSnapshot]);
+    setActiveLogSnapshotFunction(() => handleLogSnapshot);
+    
+    return () => {
+        setActiveLogSnapshotFunction(null);
+    };
+  }, [setActiveLogSnapshotFunction, handleLogSnapshot]);
+
 
   useEffect(() => {
       const newActivePracticeItem: ActivePracticeItem = {
           type: 'dohnanyi',
           name: selectedExercise,
-          nextTargetBPM: nextBPMTarget,
-          isMastered: isFullyMastered,
+          nextTargetBPM: nextBPMGoal,
+          isMastered: highestMasteredBPM >= DOHNANYI_BPM_TARGETS[DOHNANYI_BPM_TARGETS.length - 1], // Check against max target
       };
       if (!shallowEqual(globalActivePracticeItem, newActivePracticeItem)) {
         setActivePracticeItem(newActivePracticeItem);
       }
-  }, [selectedExercise, nextBPMTarget, isFullyMastered, setActivePracticeItem, globalActivePracticeItem]);
-
-  useEffect(() => {
-    setActiveLogSnapshotFunction(() => latestHandleLogSnapshotRef.current);
-    
-    return () => {
-        setActiveLogSnapshotFunction(null);
-    };
-  }, [setActiveLogSnapshotFunction]);
+  }, [selectedExercise, nextBPMGoal, highestMasteredBPM, setActivePracticeItem, globalActivePracticeItem]);
 
 
   const handleToggleMastery = (targetBPM: DohnanyiBPMTarget) => {
-    const practiceId = getDohnanyiPracticeId(selectedExercise, targetBPM);
+    const practiceId = getDohnanyiPracticeId(selectedExercise, targetBPM); // This ID includes BPM
     const currentStatus = progressMap[practiceId] || 'untouched';
     
     const nextStatus = currentStatus === 'mastered' ? 'untouched' : 'mastered';
@@ -143,7 +141,7 @@ const DohnanyiPracticePanel: React.FC<DohnanyiPracticePanelProps> = ({
         <div className="space-y-3 border p-4 rounded-lg border-primary/30 bg-secondary/50">
             <Label className="text-lg font-semibold text-primary block mb-2 font-mono">DOHNÁNYI EXERCISES</Label>
             <p className="text-xs text-muted-foreground italic mb-4">
-                Select the exercise you are currently practicing. Mastery is tracked by BPM targets.
+                Select the exercise you are currently practicing. Your highest mastered BPM will be tracked.
             </p>
             <ToggleGroup 
                 type="single" 
@@ -165,35 +163,20 @@ const DohnanyiPracticePanel: React.FC<DohnanyiPracticePanelProps> = ({
         </div>
 
         <div className="space-y-4 p-4 rounded-lg border border-primary/30 bg-secondary/50">
-            <Label className="text-lg font-semibold text-primary block mb-2 font-mono">MASTERY TARGETS (Click to Toggle Mastery)</Label>
-            <div className="flex flex-wrap gap-3 justify-center">
-                {DOHNANYI_BPM_TARGETS.map(targetBPM => {
-                    const practiceId = getDohnanyiPracticeId(selectedExercise, targetBPM);
-                    const status = progressMap[practiceId] === 'mastered';
-                    
-                    return (
-                        <div 
-                            key={targetBPM} 
-                            className="flex flex-col items-center cursor-pointer group"
-                            onClick={() => handleToggleMastery(targetBPM)}
-                        >
-                            <div className={cn(
-                                "w-16 h-16 rounded-full flex items-center justify-center text-lg font-bold font-mono transition-colors duration-200 border-2",
-                                status 
-                                    ? "bg-green-600 text-white shadow-lg border-green-400" 
-                                    : "bg-card text-primary border-primary/50 group-hover:bg-primary/20"
-                            )}>
-                                {targetBPM}
-                            </div>
-                            <p className="text-xs mt-1 text-muted-foreground">BPM</p>
-                            {status && <Check className="w-4 h-4 text-green-400 mt-1" />}
-                        </div>
-                    );
-                })}
+            <Label className="text-lg font-semibold text-primary block mb-2 font-mono">MASTERY PROGRESS</Label>
+            <div className="flex flex-col items-center justify-center space-y-2">
+                <p className="text-sm text-muted-foreground font-mono">
+                    Highest Mastered BPM: <span className="font-bold text-primary">{highestMasteredBPM}</span>
+                </p>
+                <p className="text-sm text-yellow-400 font-mono">
+                    Next Goal: <span className="font-bold">{nextBPMGoal} BPM</span>
+                </p>
+                {highestMasteredBPM >= DOHNANYI_BPM_TARGETS[DOHNANYI_BPM_TARGETS.length - 1] && (
+                    <div className="flex items-center text-green-400 font-mono text-sm mt-2">
+                        <Check className="w-4 h-4 mr-1" /> FULLY MASTERED!
+                    </div>
+                )}
             </div>
-            <p className="text-sm text-yellow-400 font-mono text-center pt-2 border-t border-border">
-                Next Mastery Goal: <span className="font-bold">{nextBPMTarget} BPM</span>
-            </p>
         </div>
     </CardContent>
   );

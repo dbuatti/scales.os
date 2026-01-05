@@ -188,12 +188,11 @@ export const getDohnanyiPracticeId = (
   return `Dohnanyi-${cleanString(exercise)}-${bpm}BPM`;
 };
 
-// Utility to generate a unique ID for a specific Hanon exercise at a BPM target
-export const getHanonPracticeId = (
-  exercise: HanonExercise, 
-  bpm: HanonBPMTarget
+// NEW: Utility to generate a base ID for a Dohnanyi exercise (without BPM)
+export const getDohnanyiExerciseBaseId = (
+  exercise: DohnanyiExercise
 ): string => {
-  return `Hanon-${cleanString(exercise)}-${bpm}BPM`;
+  return `Dohnanyi-${cleanString(exercise)}`;
 };
 
 
@@ -215,7 +214,7 @@ export type DohnanyiItem = {
 export const ALL_DOHNANYI_ITEMS: DohnanyiItem[] = DOHNANYI_EXERCISES.map(name => ({
     type: 'Dohnanyi',
     name,
-    id: `Dohnanyi-${name.replace(/\s/g, "")}`,
+    id: getDohnanyiExerciseBaseId(name), // Use the new base ID function
 }));
 
 export const DOHNANYI_BPM_TARGETS = [60, 80, 100, 120, 140, 160] as const;
@@ -248,7 +247,7 @@ export type HanonItem = {
 export const ALL_HANON_ITEMS: HanonItem[] = HANON_EXERCISES.map(name => ({
     type: 'Hanon',
     name,
-    id: `Hanon-${name.replace(/\s/g, "")}`,
+    id: getHanonExerciseBaseId(name), // Use the new base ID function
 }));
 
 export const HANON_BPM_TARGETS = [60, 80, 100, 120, 140, 160] as const;
@@ -264,6 +263,21 @@ HANON_EXERCISES.forEach(name => {
         });
     });
 });
+
+// NEW: Utility to generate a base ID for a Hanon exercise (without BPM)
+export const getHanonExerciseBaseId = (
+  exercise: HanonExercise
+): string => {
+  return `Hanon-${cleanString(exercise)}`;
+};
+
+// Utility to generate a unique ID for a specific Hanon exercise at a BPM target
+export const getHanonPracticeId = (
+  exercise: HanonExercise,
+  bpm: HanonBPMTarget
+): string => {
+  return `Hanon-${cleanString(exercise)}-${bpm}BPM`;
+};
 
 
 // --- Grading System ---
@@ -291,7 +305,8 @@ export type ScaleRequirement = {
 
 export type ExerciseRequirement = {
     type: 'dohnanyi' | 'hanon';
-    practiceId: string;
+    practiceId: string; // This is the ID for a specific BPM target (e.g., Dohnanyi-ExerciseI-60BPM)
+    exerciseId: string; // NEW: This is the base ID for the exercise (e.g., Dohnanyi-ExerciseI)
     requiredBPM: number;
     description: string;
 };
@@ -444,7 +459,8 @@ export const getGradeRequirements = (gradeId: number): GradeRequirement[] => {
             DOHNANYI_BPM_TARGETS.forEach(bpm => {
                 requirements.push({
                     type: 'dohnanyi',
-                    practiceId: getDohnanyiPracticeId(exercise, bpm),
+                    practiceId: getDohnanyiPracticeId(exercise, bpm), // Specific BPM target ID
+                    exerciseId: getDohnanyiExerciseBaseId(exercise), // Base exercise ID
                     requiredBPM: bpm,
                     description: `${exercise} @ ${bpm} BPM`,
                 });
@@ -455,7 +471,8 @@ export const getGradeRequirements = (gradeId: number): GradeRequirement[] => {
             HANON_BPM_TARGETS.forEach(bpm => {
                 requirements.push({
                     type: 'hanon',
-                    practiceId: getHanonPracticeId(exercise, bpm),
+                    practiceId: getHanonPracticeId(exercise, bpm), // Specific BPM target ID
+                    exerciseId: getHanonExerciseBaseId(exercise), // Base exercise ID
                     requiredBPM: bpm,
                     description: `${exercise} @ ${bpm} BPM`,
                 });

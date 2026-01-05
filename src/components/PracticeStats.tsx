@@ -9,7 +9,7 @@ import {
 import { Clock, Check, Target } from 'lucide-react';
 
 const PracticeStats = () => {
-  const { progressMap, log, allScales, allDohnanyiCombinations, allHanonCombinations, scaleMasteryBPMMap } = useScales();
+  const { progressMap, log, allScales, allDohnanyiCombinations, allHanonCombinations, scaleMasteryBPMMap, exerciseMasteryBPMMap } = useScales();
 
   const stats = useMemo(() => {
     
@@ -32,10 +32,10 @@ const PracticeStats = () => {
                 isPracticed = true;
             }
         } else { // Dohnanyi or Hanon
-            const status = progressMap[req.practiceId] || 'untouched';
-            if (status === 'mastered') {
+            const highestBPM = exerciseMasteryBPMMap[req.practiceId] || 0; // Use exerciseMasteryBPMMap
+            if (highestBPM >= req.requiredBPM) {
                 isMastered = true;
-            } else if (status === 'practiced') {
+            } else if (highestBPM > 0) {
                 isPracticed = true;
             }
         }
@@ -62,7 +62,7 @@ const PracticeStats = () => {
       completionPercentage,
       totalDurationMinutes,
     };
-  }, [progressMap, log, scaleMasteryBPMMap]);
+  }, [progressMap, log, scaleMasteryBPMMap, exerciseMasteryBPMMap]);
 
   // Logic to suggest the next focus based on the lowest incomplete grade
   const nextFocus = useMemo(() => {
@@ -74,7 +74,8 @@ const PracticeStats = () => {
                 const highestBPM = scaleMasteryBPMMap[req.scalePermutationId] || 0;
                 return highestBPM < req.requiredBPM;
             } else {
-                return progressMap[req.practiceId] !== 'mastered';
+                const highestBPM = exerciseMasteryBPMMap[req.practiceId] || 0; // Use exerciseMasteryBPMMap
+                return highestBPM < req.requiredBPM;
             }
         });
     });
@@ -91,7 +92,8 @@ const PracticeStats = () => {
             const highestBPM = scaleMasteryBPMMap[req.scalePermutationId] || 0;
             return highestBPM < req.requiredBPM;
         } else {
-            return progressMap[req.practiceId] !== 'mastered';
+            const highestBPM = exerciseMasteryBPMMap[req.practiceId] || 0; // Use exerciseMasteryBPMMap
+            return highestBPM < req.requiredBPM;
         }
     });
     
@@ -119,10 +121,12 @@ const PracticeStats = () => {
     } else if (nextRequirement.type === 'dohnanyi') {
         const dohItem = allDohnanyiCombinations.find(c => c.id === nextRequirement.practiceId);
         if (dohItem) {
+            const highestBPM = exerciseMasteryBPMMap[nextRequirement.practiceId] || 0; // Use exerciseMasteryBPMMap
+            const nextBPMGoal = highestBPM > 0 ? highestBPM + 3 : 40;
             return {
                 type: 'Dohnanyi',
                 name: dohItem.name,
-                goal: `Master ${dohItem.name} at ${dohItem.bpm} BPM.`,
+                goal: `Achieve ${nextRequirement.requiredBPM} BPM for ${dohItem.name}. Current highest: ${highestBPM} BPM. Next suggested practice: ${nextBPMGoal} BPM.`,
                 grade: nextGrade.id,
                 description: nextRequirement.description,
             };
@@ -130,10 +134,12 @@ const PracticeStats = () => {
     } else if (nextRequirement.type === 'hanon') {
         const hanonItem = allHanonCombinations.find(c => c.id === nextRequirement.practiceId);
         if (hanonItem) {
+            const highestBPM = exerciseMasteryBPMMap[nextRequirement.practiceId] || 0; // Use exerciseMasteryBPMMap
+            const nextBPMGoal = highestBPM > 0 ? highestBPM + 3 : 40;
             return {
                 type: 'Hanon',
                 name: hanonItem.name,
-                goal: `Master ${hanonItem.name} at ${hanonItem.bpm} BPM.`,
+                goal: `Achieve ${nextRequirement.requiredBPM} BPM for ${hanonItem.name}. Current highest: ${highestBPM} BPM. Next suggested practice: ${nextBPMGoal} BPM.`,
                 grade: nextGrade.id,
                 description: nextRequirement.description,
             };
@@ -142,7 +148,7 @@ const PracticeStats = () => {
     
     return { type: 'General', goal: `Continue working on Grade ${nextGrade.id}: ${nextGrade.description}`, grade: nextGrade.id };
 
-  }, [progressMap, allScales, allDohnanyiCombinations, allHanonCombinations, scaleMasteryBPMMap]);
+  }, [progressMap, log, allScales, allDohnanyiCombinations, allHanonCombinations, scaleMasteryBPMMap, exerciseMasteryBPMMap]);
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">

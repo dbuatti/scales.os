@@ -11,7 +11,7 @@ import { Button } from '@/components/ui/button';
 import { ChevronDown } from 'lucide-react';
 
 const GradeTracker: React.FC = () => {
-    const { progressMap, scaleMasteryBPMMap } = useScales();
+    const { progressMap, scaleMasteryBPMMap, exerciseMasteryBPMMap } = useScales();
 
     const gradeStats = useMemo(() => {
         const stats = PRACTICE_GRADES.map(grade => {
@@ -33,7 +33,8 @@ const GradeTracker: React.FC = () => {
                         isMastered = true;
                     }
                 } else { // Dohnanyi or Hanon
-                    if (progressMap[req.practiceId] === 'mastered') {
+                    const highestBPM = exerciseMasteryBPMMap[req.practiceId] || 0; // Use exerciseMasteryBPMMap
+                    if (highestBPM >= req.requiredBPM) {
                         isMastered = true;
                     }
                 }
@@ -54,7 +55,7 @@ const GradeTracker: React.FC = () => {
         });
         
         return stats;
-    }, [progressMap, scaleMasteryBPMMap]);
+    }, [progressMap, scaleMasteryBPMMap, exerciseMasteryBPMMap]);
     
     const currentGradeInfo = useMemo(() => {
         // Find the highest grade where completion is 100%

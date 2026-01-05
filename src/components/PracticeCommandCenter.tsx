@@ -227,8 +227,8 @@ const PracticeCommandCenter: React.FC = () => {
                 suggestedDohnanyi={nextFocus?.type === 'dohnanyi' ? nextFocus : undefined}
                 currentBPM={currentBPM} 
                 addLogEntry={addLogEntry} 
-                updatePracticeStatus={updatePracticeStatus} 
-                progressMap={progressMap}
+                updatePracticeStatus={updatePracticeStatus} // Passed down
+                progressMap={progressMap} // Passed down
                 activeTab={activeTab}
               />
             </TabsContent>
@@ -237,8 +237,8 @@ const PracticeCommandCenter: React.FC = () => {
                 suggestedHanon={nextFocus?.type === 'hanon' ? nextFocus : undefined}
                 currentBPM={currentBPM} 
                 addLogEntry={addLogEntry} 
-                updatePracticeStatus={updatePracticeStatus} 
-                progressMap={progressMap}
+                updatePracticeStatus={updatePracticeStatus} // Passed down
+                progressMap={progressMap} // Passed down
                 activeTab={activeTab}
               />
             </TabsContent>
