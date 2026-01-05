@@ -1,8 +1,9 @@
 import React from 'react';
 import { useScales, ScaleStatus } from '../context/ScalesContext';
 import { 
-  KEYS, SCALE_TYPES, ARPEGGIO_TYPES, ScaleItem, ARTICULATIONS, TEMPO_LEVELS, getPracticeId,
-  DIRECTION_TYPES, HAND_CONFIGURATIONS, RHYTHMIC_PERMUTATIONS, ACCENT_DISTRIBUTIONS, OCTAVE_CONFIGURATIONS
+  KEYS, SCALE_TYPES, ARPEGGIO_TYPES, ScaleItem, ARTICULATIONS, TEMPO_LEVELS, 
+  DIRECTION_TYPES, HAND_CONFIGURATIONS, RHYTHMIC_PERMUTATIONS, ACCENT_DISTRIBUTIONS, OCTAVE_CONFIGURATIONS,
+  getScalePermutationId, getTempoLevelBPMThreshold
 } from '@/lib/scales';
 import { cn } from '@/lib/utils';
 import { Check, X, Clock, Eye } from 'lucide-react';
@@ -38,38 +39,41 @@ const getStatusClasses = (status: ScaleStatus) => {
   }
 };
 
-// Helper function to determine the overall status of a scale item
-const getOverallStatus = (scaleItem: ScaleItem, progressMap: Record<string, 'practiced' | 'mastered'>): ScaleStatus => {
+// Helper function to determine the overall status of a scale item based on BPM mastery
+const getOverallStatus = (scaleItem: ScaleItem, scaleMasteryBPMMap: Record<string, number>): ScaleStatus => {
   let masteredCount = 0;
   let practicedCount = 0;
   let totalCombinations = 0;
+  
+  // We check mastery against the highest required grade level (Grade 9/10 equivalent) 
+  // which requires mastering all permutations at the Professional Tempo Level (130 BPM threshold).
+  const PROFESSIONAL_TEMPO = TEMPO_LEVELS[3];
+  const REQUIRED_BPM_FOR_FULL_MASTERY = getTempoLevelBPMThreshold(PROFESSIONAL_TEMPO);
 
   ARTICULATIONS.forEach(articulation => {
-    TEMPO_LEVELS.forEach(tempo => {
-      DIRECTION_TYPES.forEach(direction => {
-        HAND_CONFIGURATIONS.forEach(handConfig => {
-          RHYTHMIC_PERMUTATIONS.forEach(rhythm => {
-            ACCENT_DISTRIBUTIONS.forEach(accent => {
-              OCTAVE_CONFIGURATIONS.forEach(octaves => {
-                const practiceId = getPracticeId(
-                  scaleItem.id, 
-                  articulation, 
-                  tempo, 
-                  direction, 
-                  handConfig, 
-                  rhythm, 
-                  accent,
-                  octaves
-                );
-                const status: ScaleStatus = progressMap[practiceId] || 'untouched';
-                totalCombinations++;
-                
-                if (status === 'mastered') {
-                  masteredCount++;
-                } else if (status === 'practiced') {
-                  practicedCount++;
-                }
-              });
+    DIRECTION_TYPES.forEach(direction => {
+      HAND_CONFIGURATIONS.forEach(handConfig => {
+        RHYTHMIC_PERMUTATIONS.forEach(rhythm => {
+          ACCENT_DISTRIBUTIONS.forEach(accent => {
+            OCTAVE_CONFIGURATIONS.forEach(octaves => {
+              const permutationId = getScalePermutationId(
+                scaleItem.id, 
+                articulation, 
+                direction, 
+                handConfig, 
+                rhythm, 
+                accent,
+                octaves
+              );
+              
+              const highestBPM = scaleMasteryBPMMap[permutationId] || 0;
+              totalCombinations++;
+              
+              if (highestBPM >= REQUIRED_BPM_FOR_FULL_MASTERY) {
+                masteredCount++;
+              } else if (highestBPM > 0) {
+                practicedCount++;
+              }
             });
           });
         });
@@ -80,7 +84,7 @@ const getOverallStatus = (scaleItem: ScaleItem, progressMap: Record<string, 'pra
   if (totalCombinations === 0) return 'untouched';
 
   if (masteredCount === totalCombinations) {
-    return 'mastered'; // Fully mastered
+    return 'mastered'; // Fully mastered at professional level
   }
   if (masteredCount > 0 || practicedCount > 0) {
     return 'practiced'; // Partially mastered or practiced
@@ -112,7 +116,7 @@ ScaleCell.displayName = "ScaleCell";
 
 
 const ScaleGrid = () => {
-  const { allScales, progressMap } = useScales();
+  const { allScales, scaleMasteryBPMMap } = useScales();
 
   // Include all scale types for the header row
   const scaleTypes = [...SCALE_TYPES, ...ARPEGGIO_TYPES];
@@ -155,7 +159,7 @@ const ScaleGrid = () => {
                 // If item is not found (e.g., Chromatic in non-C key), render empty cell
                 if (!item) return <td key={type} className="px-4 py-2"></td>;
 
-                const status = getOverallStatus(item, progressMap);
+                const status = getOverallStatus(item, scaleMasteryBPMMap);
                 const statusText = status === 'mastered' ? 'Fully Mastered' : status === 'practiced' ? 'In Progress' : 'Untouched';
 
                 return (

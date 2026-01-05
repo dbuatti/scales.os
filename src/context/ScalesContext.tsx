@@ -4,7 +4,7 @@ import {
   DIRECTION_TYPES, HAND_CONFIGURATIONS, RHYTHMIC_PERMUTATIONS, ACCENT_DISTRIBUTIONS, OCTAVE_CONFIGURATIONS,
   DirectionType, HandConfiguration, RhythmicPermutation, AccentDistribution, OctaveConfiguration,
   DohnanyiExercise, DohnanyiItem, ALL_DOHNANYI_ITEMS, DOHNANYI_BPM_TARGETS, getDohnanyiPracticeId, ALL_DOHNANYI_COMBINATIONS,
-  HanonExercise, HanonItem, ALL_HANON_ITEMS, ALL_HANON_COMBINATIONS
+  HanonExercise, HanonItem, ALL_HANON_ITEMS, ALL_HANON_COMBINATIONS, getScalePermutationId
 } from '@/lib/scales';
 import { useSupabaseSession } from '@/hooks/use-supabase-session';
 import { supabase } from '@/integrations/supabase/client';
@@ -14,10 +14,15 @@ import { showSuccess, showError } from '@/utils/toast';
 
 export type ScaleStatus = 'untouched' | 'practiced' | 'mastered';
 
-// Progress is now keyed by a combination ID (scaleId-Articulation-Tempo-Direction-HandConfig-Rhythm-Accent-Octaves OR DOHNANYI-Exercise-BPM)
+// Progress is now keyed by a combination ID (Dohnanyi/Hanon/Grade Tracker specific)
 export interface StoredProgressEntry {
   practice_id: string;
   status: 'practiced' | 'mastered';
+}
+
+export interface ScaleMasteryEntry {
+  scale_permutation_id: string;
+  highest_mastered_bpm: number;
 }
 
 export interface PracticeLogItem {
@@ -25,12 +30,15 @@ export interface PracticeLogItem {
   // Scale specific fields
   scaleId?: string;
   articulation?: Articulation;
-  tempo?: TempoLevel;
+  tempo?: TempoLevel; // Kept for old logs/display
   direction?: DirectionType;
   handConfig?: HandConfiguration;
   rhythm?: RhythmicPermutation;
   accent?: AccentDistribution;
   octaves?: OctaveConfiguration;
+  // New fields for granular scale tracking
+  practicedBPM?: number; 
+  scalePermutationId?: string;
   // Dohnanyi specific fields
   dohnanyiName?: DohnanyiExercise;
   bpmTarget?: number; // The target BPM for Dohnanyi mastery step
@@ -48,10 +56,12 @@ export interface PracticeLogEntry {
 }
 
 interface ScalesContextType {
-  progressMap: Record<string, 'practiced' | 'mastered'>;
+  progressMap: Record<string, 'practiced' | 'mastered'>; // Used for Dohnanyi/Hanon/Old Grade Tracking
+  scaleMasteryBPMMap: Record<string, number>; // Used for granular scale BPM tracking
   log: PracticeLogEntry[];
   isLoading: boolean;
   updatePracticeStatus: (practiceId: string, status: ScaleStatus) => void;
+  updateScaleMasteryBPM: (scalePermutationId: string, newBPM: number) => void;
   addLogEntry: (entry: Omit<PracticeLogEntry, 'id' | 'timestamp'>) => void;
   allScales: ScaleItem[];
   allDohnanyi: DohnanyiItem[];
@@ -75,6 +85,7 @@ const progressArrayToMap = (arr: StoredProgressEntry[]): Record<string, 'practic
 export const ScalesProvider: React.FC<React.PropsWithChildren> = ({ children }) => {
   const { userId, isLoading: isSessionLoading } = useSupabaseSession();
   const [progressMap, setProgressMap] = useState<Record<string, 'practiced' | 'mastered'>>({});
+  const [scaleMasteryBPMMap, setScaleMasteryBPMMap] = useState<Record<string, number>>({});
   const [log, setLog] = useState<PracticeLogEntry[]>([]);
   const [isDataLoading, setIsDataLoading] = useState(true);
 
@@ -84,7 +95,7 @@ export const ScalesProvider: React.FC<React.PropsWithChildren> = ({ children }) 
   const fetchData = useCallback(async (id: string) => {
     setIsDataLoading(true);
     
-    // Fetch Progress
+    // Fetch Progress (Dohnanyi/Hanon/Old Grade Tracking)
     const { data: progressData, error: progressError } = await supabase
       .from('user_progress')
       .select('practice_id, status')
@@ -96,6 +107,24 @@ export const ScalesProvider: React.FC<React.PropsWithChildren> = ({ children }) 
     } else if (progressData) {
       setProgressMap(progressArrayToMap(progressData as StoredProgressEntry[]));
     }
+    
+    // Fetch Scale BPM Mastery
+    const { data: scaleMasteryData, error: scaleMasteryError } = await supabase
+      .from('scale_permutations_mastery')
+      .select('scale_permutation_id, highest_mastered_bpm')
+      .eq('user_id', id);
+
+    if (scaleMasteryError) {
+      console.error("[ScalesContext] Error fetching scale mastery BPM:", scaleMasteryError);
+      showError("Failed to load scale BPM progress.");
+    } else if (scaleMasteryData) {
+      const bpmMap = scaleMasteryData.reduce((acc, item) => {
+        acc[item.scale_permutation_id] = item.highest_mastered_bpm;
+        return acc;
+      }, {} as Record<string, number>);
+      setScaleMasteryBPMMap(bpmMap);
+    }
+
 
     // Fetch Logs
     const { data: logData, error: logError } = await supabase
@@ -128,13 +157,14 @@ export const ScalesProvider: React.FC<React.PropsWithChildren> = ({ children }) 
     } else if (!isSessionLoading) {
       // If not logged in, clear state and stop loading
       setProgressMap({});
+      setScaleMasteryBPMMap({});
       setLog([]);
       setIsDataLoading(false);
     }
   }, [userId, isSessionLoading, fetchData]);
 
 
-  // 2. Update Practice Status (Upsert to Supabase)
+  // 2. Update Practice Status (Upsert to Supabase - used for Dohnanyi/Hanon/Grade categories)
   const updatePracticeStatus = useCallback(async (practiceId: string, status: ScaleStatus) => {
     if (!userId) {
       showError("You must be logged in to save progress.");
@@ -185,8 +215,40 @@ export const ScalesProvider: React.FC<React.PropsWithChildren> = ({ children }) 
       }));
     }
   }, [userId]);
+  
+  // 3. Update Scale Mastery BPM (Upsert to Supabase - used for granular scale tracking)
+  const updateScaleMasteryBPM = useCallback(async (scalePermutationId: string, newBPM: number) => {
+    if (!userId) {
+      showError("You must be logged in to save scale BPM progress.");
+      return;
+    }
 
-  // 3. Add Log Entry (Insert to Supabase)
+    // 1. Upsert the highest BPM
+    const { error } = await supabase
+        .from('scale_permutations_mastery')
+        .upsert({
+            user_id: userId,
+            scale_permutation_id: scalePermutationId,
+            highest_mastered_bpm: newBPM,
+            last_practiced_at: new Date().toISOString(),
+        }, { onConflict: 'user_id, scale_permutation_id' });
+
+    if (error) {
+        console.error("[ScalesContext] Error upserting scale BPM mastery:", error);
+        showError("Failed to save scale BPM progress.");
+        return;
+    }
+
+    // 2. Update local state
+    setScaleMasteryBPMMap(prev => ({
+        ...prev,
+        [scalePermutationId]: newBPM,
+    }));
+    
+  }, [userId]);
+
+
+  // 4. Add Log Entry (Insert to Supabase)
   const addLogEntry = useCallback(async (entry: Omit<PracticeLogEntry, 'id' | 'timestamp'>) => {
     if (!userId) {
       showError("You must be logged in to log practice sessions.");
@@ -230,16 +292,18 @@ export const ScalesProvider: React.FC<React.PropsWithChildren> = ({ children }) 
 
   const contextValue = useMemo(() => ({
     progressMap,
+    scaleMasteryBPMMap,
     log,
     isLoading,
     updatePracticeStatus,
+    updateScaleMasteryBPM,
     addLogEntry,
     allScales: ALL_SCALE_ITEMS,
     allDohnanyi: ALL_DOHNANYI_ITEMS,
     allDohnanyiCombinations: ALL_DOHNANYI_COMBINATIONS,
     allHanon: ALL_HANON_ITEMS,
     allHanonCombinations: ALL_HANON_COMBINATIONS,
-  }), [progressMap, log, isLoading, updatePracticeStatus, addLogEntry]);
+  }), [progressMap, scaleMasteryBPMMap, log, isLoading, updatePracticeStatus, updateScaleMasteryBPM, addLogEntry]);
 
   return (
     <ScalesContext.Provider value={contextValue}>

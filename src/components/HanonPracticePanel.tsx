@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { LogIn, Check } from 'lucide-react';
@@ -17,11 +17,17 @@ interface HanonPracticePanelProps {
     addLogEntry: ReturnType<typeof useScales>['addLogEntry'];
     updatePracticeStatus: ReturnType<typeof useScales>['updatePracticeStatus'];
     progressMap: ReturnType<typeof useScales>['progressMap'];
+    setActivePermutationHighestBPM: (bpm: number) => void; // New prop
 }
 
-const HanonPracticePanel: React.FC<HanonPracticePanelProps> = ({ currentBPM, addLogEntry, updatePracticeStatus, progressMap }) => {
+const HanonPracticePanel: React.FC<HanonPracticePanelProps> = ({ currentBPM, addLogEntry, updatePracticeStatus, progressMap, setActivePermutationHighestBPM }) => {
   
   const [selectedExercise, setSelectedExercise] = useState<HanonExercise>(HANON_EXERCISES[0]);
+  
+  // Reset BPM visualization when this panel is active
+  useEffect(() => {
+    setActivePermutationHighestBPM(0);
+  }, [setActivePermutationHighestBPM]);
   
   // Determine the next BPM target for the selected exercise
   const nextBPMTarget = useMemo(() => {

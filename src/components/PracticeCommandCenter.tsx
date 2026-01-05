@@ -10,17 +10,21 @@ import { formatDistanceToNow } from 'date-fns';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import ScalePracticePanel from './ScalePracticePanel';
 import DohnanyiPracticePanel from './DohnanyiPracticePanel';
-import HanonPracticePanel from './HanonPracticePanel'; // New import
-import GradeTracker from './GradeTracker'; // New component for grading
+import HanonPracticePanel from './HanonPracticePanel';
+import GradeTracker from './GradeTracker';
+import { cn } from '@/lib/utils';
 
 const MIN_BPM = 40;
 const MAX_BPM = 250;
 
 const PracticeCommandCenter: React.FC = () => {
-  const { addLogEntry, allScales, log, progressMap, updatePracticeStatus } = useScales();
+  const { addLogEntry, allScales, log, progressMap, updatePracticeStatus, updateScaleMasteryBPM, scaleMasteryBPMMap } = useScales();
   
   // State for fine-tuned BPM (Metronome feature)
   const [currentBPM, setCurrentBPM] = useState(100); // Default starting BPM
+  
+  // State to track the highest mastered BPM for the currently selected permutation in the active tab
+  const [activePermutationHighestBPM, setActivePermutationHighestBPM] = useState(0); 
 
   // Handler for +/- 1 BPM adjustment
   const handleBpmChange = (delta: number) => {
@@ -55,6 +59,15 @@ const PracticeCommandCenter: React.FC = () => {
     }
     return null;
   }, [log]);
+  
+  // Calculate the percentage for the mastered range visualization
+  const masteredRangePercentage = useMemo(() => {
+    if (activePermutationHighestBPM === 0) return 0;
+    // Map the highest mastered BPM to a percentage of the MAX_BPM range (40 to 250)
+    const range = MAX_BPM - MIN_BPM;
+    const masteredBPMAdjusted = activePermutationHighestBPM - MIN_BPM;
+    return Math.min(100, (masteredBPMAdjusted / range) * 100);
+  }, [activePermutationHighestBPM]);
 
 
   return (
@@ -132,7 +145,15 @@ const PracticeCommandCenter: React.FC = () => {
             <Label className="text-sm font-semibold text-muted-foreground block font-mono">BPM Fine Control</Label>
             <div className="flex items-center space-x-4">
                 <span className="text-sm text-muted-foreground font-mono">{MIN_BPM}</span>
-                <div className="flex-1">
+                <div className="flex-1 relative">
+                    {/* Visual indicator for mastered range */}
+                    <div 
+                        className={cn(
+                            "absolute top-1/2 -translate-y-1/2 h-2 rounded-lg bg-green-600/50 transition-all duration-300 pointer-events-none",
+                            activePermutationHighestBPM > 0 ? "opacity-100" : "opacity-0"
+                        )}
+                        style={{ width: `${masteredRangePercentage}%` }}
+                    />
                     <input
                         type="range"
                         min={MIN_BPM}
@@ -140,11 +161,16 @@ const PracticeCommandCenter: React.FC = () => {
                         step={1}
                         value={currentBPM}
                         onChange={(e) => setCurrentBPM(parseInt(e.target.value))}
-                        className="w-full h-2 bg-secondary rounded-lg appearance-none cursor-pointer range-lg dark:bg-muted"
+                        className="w-full h-2 bg-secondary rounded-lg appearance-none cursor-pointer range-lg dark:bg-muted relative z-10"
                     />
                 </div>
                 <span className="text-sm text-muted-foreground font-mono">{MAX_BPM}</span>
             </div>
+            {activePermutationHighestBPM > 0 && (
+                <p className="text-xs text-green-400 font-mono text-center">
+                    Mastered up to {activePermutationHighestBPM} BPM for the current selection.
+                </p>
+            )}
           </div>
 
           {/* Grade Tracker */}
@@ -153,13 +179,25 @@ const PracticeCommandCenter: React.FC = () => {
           {/* Tabbed Practice Panels */}
           <Tabs defaultValue="scales" className="w-full pt-4">
             <TabsList className="grid w-full grid-cols-3 bg-secondary/50 border border-primary/30">
-              <TabsTrigger value="scales" className="font-mono text-primary data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+              <TabsTrigger 
+                value="scales" 
+                className="font-mono text-primary data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+                onClick={() => setActivePermutationHighestBPM(0)} // Reset when switching tabs, ScalePanel will update it
+              >
                 Scales
               </TabsTrigger>
-              <TabsTrigger value="dohnanyi" className="font-mono text-primary data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+              <TabsTrigger 
+                value="dohnanyi" 
+                className="font-mono text-primary data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+                onClick={() => setActivePermutationHighestBPM(0)}
+              >
                 Dohnányi
               </TabsTrigger>
-              <TabsTrigger value="hanon" className="font-mono text-primary data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+              <TabsTrigger 
+                value="hanon" 
+                className="font-mono text-primary data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+                onClick={() => setActivePermutationHighestBPM(0)}
+              >
                 Hanon
               </TabsTrigger>
             </TabsList>
@@ -168,7 +206,10 @@ const PracticeCommandCenter: React.FC = () => {
                 currentBPM={currentBPM} 
                 addLogEntry={addLogEntry} 
                 updatePracticeStatus={updatePracticeStatus} 
+                updateScaleMasteryBPM={updateScaleMasteryBPM}
+                scaleMasteryBPMMap={scaleMasteryBPMMap}
                 allScales={allScales} 
+                setActivePermutationHighestBPM={setActivePermutationHighestBPM}
               />
             </TabsContent>
             <TabsContent value="dohnanyi" className="mt-4">
@@ -177,6 +218,7 @@ const PracticeCommandCenter: React.FC = () => {
                 addLogEntry={addLogEntry} 
                 updatePracticeStatus={updatePracticeStatus} 
                 progressMap={progressMap}
+                setActivePermutationHighestBPM={setActivePermutationHighestBPM}
               />
             </TabsContent>
             <TabsContent value="hanon" className="mt-4">
@@ -185,6 +227,7 @@ const PracticeCommandCenter: React.FC = () => {
                 addLogEntry={addLogEntry} 
                 updatePracticeStatus={updatePracticeStatus} 
                 progressMap={progressMap}
+                setActivePermutationHighestBPM={setActivePermutationHighestBPM}
               />
             </TabsContent>
           </Tabs>

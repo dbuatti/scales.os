@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { LogIn, Check } from 'lucide-react';
@@ -16,11 +16,17 @@ interface DohnanyiPracticePanelProps {
     addLogEntry: ReturnType<typeof useScales>['addLogEntry'];
     updatePracticeStatus: ReturnType<typeof useScales>['updatePracticeStatus'];
     progressMap: ReturnType<typeof useScales>['progressMap'];
+    setActivePermutationHighestBPM: (bpm: number) => void; // New prop
 }
 
-const DohnanyiPracticePanel: React.FC<DohnanyiPracticePanelProps> = ({ currentBPM, addLogEntry, updatePracticeStatus, progressMap }) => {
+const DohnanyiPracticePanel: React.FC<DohnanyiPracticePanelProps> = ({ currentBPM, addLogEntry, updatePracticeStatus, progressMap, setActivePermutationHighestBPM }) => {
   
   const [selectedExercise, setSelectedExercise] = useState<DohnanyiExercise>(DOHNANYI_EXERCISES[0]);
+  
+  // Reset BPM visualization when this panel is active
+  useEffect(() => {
+    setActivePermutationHighestBPM(0);
+  }, [setActivePermutationHighestBPM]);
   
   // Determine the next BPM target for the selected exercise
   const nextBPMTarget = useMemo(() => {

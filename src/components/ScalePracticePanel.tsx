@@ -1,18 +1,27 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { LogIn } from 'lucide-react';
 import { 
-  KEYS, SCALE_TYPES, ARPEGGIO_TYPES, ARTICULATIONS, getPracticeId, 
-  Key, Articulation, TempoLevel, ALL_SCALE_ITEMS,
+  KEYS, SCALE_TYPES, ARPEGGIO_TYPES, ARTICULATIONS, 
+  Key, Articulation, TempoLevel,
   DIRECTION_TYPES, HAND_CONFIGURATIONS, RHYTHMIC_PERMUTATIONS, ACCENT_DISTRIBUTIONS, OCTAVE_CONFIGURATIONS,
-  DirectionType, HandConfiguration, RhythmicPermutation, AccentDistribution, OctaveConfiguration, TEMPO_LEVELS
+  DirectionType, HandConfiguration, RhythmicPermutation, AccentDistribution, OctaveConfiguration, TEMPO_LEVELS,
+  getScalePermutationId
 } from '@/lib/scales';
 import { useScales } from '../context/ScalesContext';
 import { showSuccess, showError } from '@/utils/toast';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { cn } from '@/lib/utils';
 import { Label } from '@/components/ui/label';
+
+// Helper function to map BPM to TempoLevel string for progress ID compatibility (kept for logging)
+const mapBPMToTempoLevel = (bpm: number): TempoLevel => {
+  if (bpm < 80) return TEMPO_LEVELS[0]; // Slow
+  if (bpm <= 100) return TEMPO_LEVELS[1]; // Moderate
+  if (bpm <= 120) return TEMPO_LEVELS[2]; // Fast
+  return TEMPO_LEVELS[3]; // Professional
+};
 
 interface PermutationSectionProps<T extends string> {
     title: string;
@@ -50,24 +59,20 @@ const PermutationSection = <T extends string>({ title, description, options, sel
     </div>
 );
 
-// Helper function to map BPM to TempoLevel string for progress ID compatibility
-const mapBPMToTempoLevel = (bpm: number): TempoLevel => {
-  if (bpm < 80) return TEMPO_LEVELS[0]; // Slow
-  if (bpm <= 100) return TEMPO_LEVELS[1]; // Moderate
-  if (bpm <= 120) return TEMPO_LEVELS[2]; // Fast
-  return TEMPO_LEVELS[3]; // Professional
-};
 
 interface ScalePracticePanelProps {
     currentBPM: number;
     addLogEntry: ReturnType<typeof useScales>['addLogEntry'];
-    updatePracticeStatus: ReturnType<typeof useScales>['updatePracticeStatus'];
+    updatePracticeStatus: ReturnType<typeof useScales>['updatePracticeStatus']; 
+    updateScaleMasteryBPM: ReturnType<typeof useScales>['updateScaleMasteryBPM']; 
+    scaleMasteryBPMMap: ReturnType<typeof useScales>['scaleMasteryBPMMap']; 
     allScales: ReturnType<typeof useScales>['allScales'];
+    setActivePermutationHighestBPM: (bpm: number) => void;
 }
 
 const ALL_TYPES = [...SCALE_TYPES, ...ARPEGGIO_TYPES];
 
-const ScalePracticePanel: React.FC<ScalePracticePanelProps> = ({ currentBPM, addLogEntry, updatePracticeStatus, allScales }) => {
+const ScalePracticePanel: React.FC<ScalePracticePanelProps> = ({ currentBPM, addLogEntry, updatePracticeStatus, updateScaleMasteryBPM, scaleMasteryBPMMap, allScales, setActivePermutationHighestBPM }) => {
   
   // State for selected parameters
   const [selectedKey, setSelectedKey] = useState<Key>(KEYS[0]);
@@ -83,7 +88,7 @@ const ScalePracticePanel: React.FC<ScalePracticePanelProps> = ({ currentBPM, add
 
   const selectedTempoLevel = useMemo(() => mapBPMToTempoLevel(currentBPM), [currentBPM]);
 
-  const getScaleItemAndPracticeId = () => {
+  const getScaleItemAndPermutationId = () => {
     let scaleItem;
     const isChromatic = selectedType === "Chromatic";
 
@@ -98,10 +103,10 @@ const ScalePracticePanel: React.FC<ScalePracticePanelProps> = ({ currentBPM, add
       return null;
     }
 
-    const practiceId = getPracticeId(
+    // Calculate the permutation ID (excluding BPM/Tempo)
+    const scalePermutationId = getScalePermutationId(
       scaleItem.id, 
       selectedArticulation, 
-      selectedTempoLevel, // Use mapped tempo level for ID
       selectedDirection, 
       selectedHandConfig, 
       selectedRhythm, 
@@ -109,38 +114,58 @@ const ScalePracticePanel: React.FC<ScalePracticePanelProps> = ({ currentBPM, add
       selectedOctaves
     );
     
-    return { scaleItem, practiceId };
+    return { scaleItem, scalePermutationId };
   }
   
+  const result = getScaleItemAndPermutationId();
+  const currentPermutationId = result?.scalePermutationId;
+  
+  // Determine highest mastered BPM and next goal
+  const highestMasteredBPM = currentPermutationId ? scaleMasteryBPMMap[currentPermutationId] || 0 : 0;
+  const nextBPMGoal = highestMasteredBPM > 0 ? highestMasteredBPM + 3 : 40; // Start at 40 BPM if untouched
+
+  // Notify parent component whenever the selected permutation changes
+  useEffect(() => {
+    setActivePermutationHighestBPM(highestMasteredBPM);
+  }, [highestMasteredBPM, setActivePermutationHighestBPM, currentPermutationId]);
+
+
   const handleSaveSnapshot = () => {
-    const result = getScaleItemAndPracticeId();
     if (!result) {
         showError("Please select a valid scale/arpeggio combination.");
         return;
     }
-    const { scaleItem, practiceId } = result;
+    const { scaleItem, scalePermutationId } = result;
 
-    // 1. Log the snapshot (durationMinutes: 0 indicates a snapshot log)
+    let message = `Snapshot logged at ${currentBPM} BPM.`;
+    
+    // 1. Check and update the highest mastered BPM
+    if (currentBPM > highestMasteredBPM) {
+        updateScaleMasteryBPM(scalePermutationId, currentBPM);
+        message = `Mastery updated! Highest BPM for this permutation is now ${currentBPM}. Next goal: ${currentBPM + 3} BPM.`;
+    } else {
+        message = `Snapshot logged at ${currentBPM} BPM. Highest mastered BPM remains ${highestMasteredBPM}.`;
+    }
+
+    // 2. Log the snapshot (durationMinutes: 0 indicates a snapshot log)
     addLogEntry({
       durationMinutes: 0, 
       itemsPracticed: [{
         type: 'scale',
         scaleId: scaleItem.id,
         articulation: selectedArticulation,
-        tempo: selectedTempoLevel,
         direction: selectedDirection,
         handConfig: selectedHandConfig,
         rhythm: selectedRhythm,
         accent: selectedAccent,
         octaves: selectedOctaves,
+        practicedBPM: currentBPM, // Log the specific BPM
+        scalePermutationId: scalePermutationId,
       }],
-      notes: `Snapshot: ${scaleItem.key} ${scaleItem.type} (${selectedArticulation}, ${selectedTempoLevel}, ${selectedDirection}, ${selectedHandConfig}, ${selectedRhythm}, ${selectedAccent}, ${selectedOctaves}). Target BPM: ${currentBPM}`,
+      notes: `Snapshot: ${scaleItem.key} ${scaleItem.type} (${selectedArticulation}, ${selectedDirection}, ${selectedHandConfig}, ${selectedRhythm}, ${selectedAccent}, ${selectedOctaves}). Logged BPM: ${currentBPM}`,
     });
 
-    // 2. Update the status to 'practiced' (Snapshot signifies completion/practice step)
-    updatePracticeStatus(practiceId, 'practiced');
-
-    showSuccess(`Snapshot saved! Combination marked as practiced at ${currentBPM} BPM.`);
+    showSuccess(message);
   };
   
   // Determine available keys based on selected type
@@ -233,6 +258,17 @@ const ScalePracticePanel: React.FC<ScalePracticePanelProps> = ({ currentBPM, add
               </ToggleGroup>
             </div>
         </div>
+        
+        {/* Next Goal Display */}
+        <div className="text-center p-2 border border-dashed border-yellow-500/50 rounded-lg bg-secondary/30">
+            <p className="text-sm text-yellow-400 font-mono">
+                Highest Mastered BPM for this permutation: <span className="font-bold text-lg text-primary">{highestMasteredBPM}</span>
+            </p>
+            <p className="text-md text-yellow-400 font-mono">
+                Next Suggested Goal: <span className="font-bold text-lg text-primary">{nextBPMGoal} BPM</span>
+            </p>
+        </div>
+
 
         {/* Log Snapshot Button */}
         <Button 

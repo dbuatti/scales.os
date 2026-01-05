@@ -87,7 +87,24 @@ export type ScaleItem = {
   id: string;
 };
 
-// Utility to generate a unique ID for a specific practice combination
+// Utility to clean strings for ID generation
+const cleanString = (s: string) => s.replace(/[\s\/\(\)]/g, "");
+
+// Utility to generate a unique ID for a specific scale permutation (excluding BPM/Tempo)
+export const getScalePermutationId = (
+  scaleId: string, 
+  articulation: Articulation, 
+  direction: DirectionType,
+  handConfig: HandConfiguration,
+  rhythm: RhythmicPermutation,
+  accent: AccentDistribution,
+  octaves: OctaveConfiguration
+): string => {
+  return `${scaleId}-${cleanString(articulation)}-${cleanString(direction)}-${cleanString(handConfig)}-${cleanString(rhythm)}-${cleanString(accent)}-${cleanString(octaves)}`;
+};
+
+
+// Utility to generate a unique ID for a specific practice combination (used for Grade Tracker based on TempoLevel categories)
 export const getPracticeId = (
   scaleId: string, 
   articulation: Articulation, 
@@ -98,19 +115,26 @@ export const getPracticeId = (
   accent: AccentDistribution,
   octaves: OctaveConfiguration
 ): string => {
-  const cleanString = (s: string) => s.replace(/[\s\/\(\)]/g, "");
   return `${scaleId}-${cleanString(articulation)}-${cleanString(tempo)}-${cleanString(direction)}-${cleanString(handConfig)}-${cleanString(rhythm)}-${cleanString(accent)}-${cleanString(octaves)}`;
 };
 
+// Utility to map TempoLevel to the required BPM threshold for Grade Tracking
+export const getTempoLevelBPMThreshold = (tempo: TempoLevel): number => {
+    if (tempo === TEMPO_LEVELS[0]) return 70; // Slow (Under 80 BPM)
+    if (tempo === TEMPO_LEVELS[1]) return 90; // Moderate (80-100 BPM)
+    if (tempo === TEMPO_LEVELS[2]) return 110; // Fast (100-120 BPM)
+    if (tempo === TEMPO_LEVELS[3]) return 130; // Professional (120+ BPM)
+    return 0;
+};
+
+
 // Utility to generate a unique ID for Dohnanyi practice based on target BPM
 export const getDohnanyiPracticeId = (exercise: DohnanyiExercise, bpmTarget: DohnanyiBPMTarget): string => {
-    const cleanString = (s: string) => s.replace(/[\s\/\(\)]/g, "");
     return `DOHNANYI-${cleanString(exercise)}-${bpmTarget}BPM`;
 };
 
 // Utility to generate a unique ID for Hanon practice based on target BPM
 export const getHanonPracticeId = (exercise: HanonExercise, bpmTarget: HanonBPMTarget): string => {
-    const cleanString = (s: string) => s.replace(/[\s\/\(\)]/g, "");
     return `HANON-${cleanString(exercise)}-${bpmTarget}BPM`;
 };
 
@@ -200,6 +224,201 @@ export const PRACTICE_GRADES = [
 
 export type PracticeGrade = typeof PRACTICE_GRADES[number];
 
+export type ScaleRequirement = {
+    type: 'scale';
+    scalePermutationId: string;
+    requiredBPM: number;
+    description: string;
+};
+
+export type ExerciseRequirement = {
+    type: 'dohnanyi' | 'hanon';
+    practiceId: string;
+    requiredBPM: number;
+    description: string;
+};
+
+export type GradeRequirement = ScaleRequirement | ExerciseRequirement;
+
+
+// Function to generate all requirements for a specific grade
+export const getGradeRequirements = (gradeId: number): GradeRequirement[] => {
+    const requirements: GradeRequirement[] = [];
+    
+    // Helper to generate scale requirements
+    const generateScaleRequirements = (
+        keys: readonly Key[], 
+        types: readonly (ScaleType | ArpeggioType)[], 
+        articulations: readonly Articulation[], 
+        tempoLevel: TempoLevel, 
+        octaves: OctaveConfiguration,
+        direction: DirectionType,
+        handConfig: HandConfiguration,
+        rhythm: RhythmicPermutation,
+        accent: AccentDistribution,
+        description: string
+    ) => {
+        const requiredBPM = getTempoLevelBPMThreshold(tempoLevel);
+        
+        keys.forEach(key => {
+            types.forEach(type => {
+                // Handle Chromatic scale exception (only C key)
+                if (type === "Chromatic" && key !== "C") return;
+                
+                const scaleId = `${key}-${type.replace(/\s/g, "")}`;
+                
+                articulations.forEach(articulation => {
+                    const scalePermutationId = getScalePermutationId(
+                        scaleId, 
+                        articulation, 
+                        direction,
+                        handConfig,
+                        rhythm,
+                        accent,
+                        octaves
+                    );
+                    requirements.push({
+                        type: 'scale',
+                        scalePermutationId,
+                        requiredBPM,
+                        description: `${key} ${type} (${articulation}, ${octaves}, ${direction}, ${handConfig}) @ ${requiredBPM} BPM`,
+                    });
+                });
+            });
+        });
+    };
+
+    const ALL_KEYS = KEYS;
+    const MAJOR_MINOR_ARP = [ARPEGGIO_TYPES[0], ARPEGGIO_TYPES[1]] as const; // Major Arpeggio, Minor Arpeggio
+    const MAJOR_MINOR_SCALES = [SCALE_TYPES[0], SCALE_TYPES[1]] as const; // Major, Harmonic Minor
+    const ALL_TYPES = [...SCALE_TYPES, ...ARPEGGIO_TYPES] as const;
+    
+    // Grade 1 requirements (C Major/Minor Arpeggios, 1 Octave, Legato, Hands Separately. Target BPM: 70)
+    if (gradeId >= 1) {
+        generateScaleRequirements(
+            ["C"] as readonly Key[], 
+            MAJOR_MINOR_ARP as readonly (ScaleType | ArpeggioType)[], 
+            [ARTICULATIONS[0]] as readonly Articulation[], 
+            TEMPO_LEVELS[0], OCTAVE_CONFIGURATIONS[0],
+            DIRECTION_TYPES[2], HAND_CONFIGURATIONS[1], RHYTHMIC_PERMUTATIONS[0], ACCENT_DISTRIBUTIONS[3],
+            PRACTICE_GRADES[0].description
+        );
+    }
+    
+    // Grade 2 requirements (All Keys Major/Minor Arpeggios, 2 Octaves, Legato, Hands Separately. Target BPM: 70)
+    if (gradeId >= 2) {
+        generateScaleRequirements(
+            ALL_KEYS, MAJOR_MINOR_ARP as readonly (ScaleType | ArpeggioType)[], [ARTICULATIONS[0]] as readonly Articulation[], TEMPO_LEVELS[0], OCTAVE_CONFIGURATIONS[1],
+            DIRECTION_TYPES[2], HAND_CONFIGURATIONS[1], RHYTHMIC_PERMUTATIONS[0], ACCENT_DISTRIBUTIONS[3],
+            PRACTICE_GRADES[1].description
+        );
+    }
+
+    // Grade 3 requirements (Hands Together, Moderate Tempo. Target BPM: 90)
+    if (gradeId >= 3) {
+        generateScaleRequirements(
+            ALL_KEYS, MAJOR_MINOR_ARP as readonly (ScaleType | ArpeggioType)[], [ARTICULATIONS[0]] as readonly Articulation[], TEMPO_LEVELS[1], OCTAVE_CONFIGURATIONS[1],
+            DIRECTION_TYPES[2], HAND_CONFIGURATIONS[0], RHYTHMIC_PERMUTATIONS[0], ACCENT_DISTRIBUTIONS[3],
+            PRACTICE_GRADES[2].description
+        );
+    }
+
+    // Grade 4 requirements (Introducing Scales. Target BPM: 90)
+    if (gradeId >= 4) {
+        generateScaleRequirements(
+            ALL_KEYS, MAJOR_MINOR_SCALES as readonly (ScaleType | ArpeggioType)[], [ARTICULATIONS[0]] as readonly Articulation[], TEMPO_LEVELS[1], OCTAVE_CONFIGURATIONS[1],
+            DIRECTION_TYPES[2], HAND_CONFIGURATIONS[0], RHYTHMIC_PERMUTATIONS[0], ACCENT_DISTRIBUTIONS[3],
+            PRACTICE_GRADES[3].description
+        );
+    }
+
+    // Grade 5 requirements (Articulation Focus: Staccato/Portato. Target BPM: 90)
+    if (gradeId >= 5) {
+        generateScaleRequirements(
+            ALL_KEYS, MAJOR_MINOR_SCALES as readonly (ScaleType | ArpeggioType)[], [ARTICULATIONS[1], ARTICULATIONS[2]] as readonly Articulation[], 
+            TEMPO_LEVELS[1], OCTAVE_CONFIGURATIONS[1],
+            DIRECTION_TYPES[2], HAND_CONFIGURATIONS[0], RHYTHMIC_PERMUTATIONS[0], ACCENT_DISTRIBUTIONS[3],
+            PRACTICE_GRADES[4].description
+        );
+    }
+
+    // Grade 6 requirements (Tempo & Range: Fast, 3 Octaves. Target BPM: 110)
+    if (gradeId >= 6) {
+        generateScaleRequirements(
+            ALL_KEYS, MAJOR_MINOR_SCALES as readonly (ScaleType | ArpeggioType)[], [ARTICULATIONS[0]] as readonly Articulation[], TEMPO_LEVELS[2], OCTAVE_CONFIGURATIONS[2],
+            DIRECTION_TYPES[2], HAND_CONFIGURATIONS[0], RHYTHMIC_PERMUTATIONS[0], ACCENT_DISTRIBUTIONS[3],
+            PRACTICE_GRADES[5].description
+        );
+    }
+
+    // Grade 7 requirements (Rhythmic Complexity: Dotted/Grouped 3s. Target BPM: 90)
+    if (gradeId >= 7) {
+        [RHYTHMIC_PERMUTATIONS[1], RHYTHMIC_PERMUTATIONS[3]].forEach(rhythm => {
+            generateScaleRequirements(
+                ALL_KEYS, MAJOR_MINOR_SCALES as readonly (ScaleType | ArpeggioType)[], [ARTICULATIONS[0]] as readonly Articulation[], TEMPO_LEVELS[1], OCTAVE_CONFIGURATIONS[1],
+                DIRECTION_TYPES[2], HAND_CONFIGURATIONS[0], rhythm, ACCENT_DISTRIBUTIONS[3],
+                PRACTICE_GRADES[6].description
+            );
+        });
+    }
+
+    // Grade 8 requirements (Advanced Permutations: Contrary Motion, Accent every 3, 4 Octaves. Target BPM: 110)
+    if (gradeId >= 8) {
+        generateScaleRequirements(
+            ALL_KEYS, ALL_TYPES as readonly (ScaleType | ArpeggioType)[], [ARTICULATIONS[0]] as readonly Articulation[], TEMPO_LEVELS[2], OCTAVE_CONFIGURATIONS[3],
+            DIRECTION_TYPES[3], HAND_CONFIGURATIONS[2], RHYTHMIC_PERMUTATIONS[0], ACCENT_DISTRIBUTIONS[1],
+            PRACTICE_GRADES[7].description
+        );
+    }
+
+    // Grade 9 requirements (Professional Speed: 130 BPM equivalent)
+    if (gradeId >= 9) {
+        generateScaleRequirements(
+            ALL_KEYS, ALL_TYPES as readonly (ScaleType | ArpeggioType)[], [ARTICULATIONS[0]] as readonly Articulation[], TEMPO_LEVELS[3], OCTAVE_CONFIGURATIONS[3],
+            DIRECTION_TYPES[2], HAND_CONFIGURATIONS[0], RHYTHMIC_PERMUTATIONS[0], ACCENT_DISTRIBUTIONS[3],
+            PRACTICE_GRADES[8].description
+        );
+    }
+    
+    // Grade 10 includes all Dohnányi and Hanon mastery steps
+    if (gradeId >= 10) {
+        DOHNANYI_EXERCISES.forEach(exercise => {
+            DOHNANYI_BPM_TARGETS.forEach(bpm => {
+                requirements.push({
+                    type: 'dohnanyi',
+                    practiceId: getDohnanyiPracticeId(exercise, bpm),
+                    requiredBPM: bpm,
+                    description: `${exercise} @ ${bpm} BPM`,
+                });
+            });
+        });
+        
+        HANON_EXERCISES.forEach(exercise => {
+            HANON_BPM_TARGETS.forEach(bpm => {
+                requirements.push({
+                    type: 'hanon',
+                    practiceId: getHanonPracticeId(exercise, bpm),
+                    requiredBPM: bpm,
+                    description: `${exercise} @ ${bpm} BPM`,
+                });
+            });
+        });
+    }
+
+    // Filter out duplicates (important for scale requirements)
+    const uniqueRequirements: GradeRequirement[] = [];
+    const seenIds = new Set<string>();
+    
+    requirements.forEach(req => {
+        const id = req.type === 'scale' ? req.scalePermutationId : req.practiceId;
+        if (!seenIds.has(id)) {
+            seenIds.add(id);
+            uniqueRequirements.push(req);
+        }
+    });
+
+    return uniqueRequirements;
+};
 
 // Function to generate all scale items
 export const generateScaleItems = (): ScaleItem[] => {
