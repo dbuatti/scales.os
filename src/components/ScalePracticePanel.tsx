@@ -78,7 +78,8 @@ const ScalePracticePanel: React.FC<ScalePracticePanelProps> = ({ currentBPM, add
     setActivePracticeItem, 
     setActiveLogSnapshotFunction,
     activePermutationHighestBPM: globalActivePermutationHighestBPM, // Get current global BPM
-    activePracticeItem: globalActivePracticeItem // Get current global active item
+    activePracticeItem: globalActivePracticeItem, // Get current global active item
+    setCurrentBPM // <-- Import setCurrentBPM
   } = useGlobalBPM();
   
   // Add refs for debounce logic
@@ -190,6 +191,15 @@ const ScalePracticePanel: React.FC<ScalePracticePanelProps> = ({ currentBPM, add
   // Determine highest mastered BPM and next goal
   const highestMasteredBPM = currentPermutationId ? scaleMasteryBPMMap[currentPermutationId] || 0 : 0;
   const nextBPMGoal = highestMasteredBPM > 0 ? highestMasteredBPM + 3 : 40; // Start at 40 BPM if untouched
+
+  // NEW useEffect to update global currentBPM when the selected permutation's next goal changes
+  useEffect(() => {
+    // Only update if the currentBPM is not already the nextBPMGoal
+    if (nextBPMGoal !== currentBPM) {
+      console.log(`[ScalePracticePanel] Updating global currentBPM from ${currentBPM} to nextBPMGoal: ${nextBPMGoal}`);
+      setCurrentBPM(nextBPMGoal);
+    }
+  }, [nextBPMGoal, currentBPM, setCurrentBPM]); // Dependencies: nextBPMGoal (for the selected permutation), currentBPM (to check if update is needed), setCurrentBPM (to update global state)
 
   // Define the snapshot function using useCallback
   const handleSaveSnapshot = useCallback(() => {
