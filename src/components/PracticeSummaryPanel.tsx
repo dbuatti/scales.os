@@ -8,15 +8,6 @@ import { Button } from '@/components/ui/button';
 const PracticeSummaryPanel: React.FC = () => {
   const { activePracticeItem, currentBPM, activeLogSnapshotFunction } = useGlobalBPM();
 
-  // Add logging when component renders
-  // React.useEffect(() => { // Removed log
-  //   console.log('[PracticeSummaryPanel] Rendered with:', {
-  //     activePracticeItem,
-  //     currentBPM,
-  //     hasSnapshotFunction: !!activeLogSnapshotFunction
-  //   });
-  // }, [activePracticeItem, currentBPM, activeLogSnapshotFunction]);
-
   if (!activePracticeItem) {
     return (
       <Card className="w-full bg-card/70 border-primary/30 shadow-lg">
@@ -111,7 +102,6 @@ const PracticeSummaryPanel: React.FC = () => {
         <div className="pt-4 border-t border-border mt-4">
             <Button 
                 onClick={() => {
-                    // console.log('[PracticeSummaryPanel] Snapshot button clicked'); // Removed log
                     if (activeLogSnapshotFunction) {
                         activeLogSnapshotFunction();
                     } else {

@@ -316,6 +316,7 @@ const ScalePracticePanel: React.FC<ScalePracticePanelProps> = ({
                     type="single" 
                     value={selectedType} 
                     onValueChange={(value) => {
+                      console.log("[ScalePracticePanel] ToggleGroup onValueChange:", value); // Added log
                       if (value) {
                         setSelectedType(value);
                         if (value === "Chromatic") {
@@ -345,6 +346,7 @@ const ScalePracticePanel: React.FC<ScalePracticePanelProps> = ({
                     type="single" 
                     value={selectedType} 
                     onValueChange={(value) => {
+                      console.log("[ScalePracticePanel] ToggleGroup onValueChange (Arpeggios):", value); // Added log
                       if (value) setSelectedType(value);
                     }}
                     className="flex flex-wrap justify-center gap-2 w-full"
