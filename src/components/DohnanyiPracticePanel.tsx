@@ -74,6 +74,8 @@ const DohnanyiPracticePanel: React.FC<DohnanyiPracticePanelProps> = ({
       return;
     }
 
+    console.log("[DohnanyiPracticePanel] Current BPM at snapshot:", currentBPM); // Added log
+
     const currentCallKey = `${selectedExercise}-${currentBPM}`;
     if (lastSuccessfulCallKeyRef.current === currentCallKey) {
         console.log("[DohnanyiPracticePanel] Duplicate snapshot call prevented.");
