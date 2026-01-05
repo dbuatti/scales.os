@@ -225,9 +225,9 @@ const ScalePracticePanel: React.FC<ScalePracticePanelProps> = ({ currentBPM, add
   }, [currentBPM, result, highestMasteredBPM, updateScaleMasteryBPM, addLogEntry, selectedArticulation, selectedDirection, selectedHandConfig, selectedRhythm, selectedAccent, selectedOctaves]);
 
   // Use a ref to hold the latest handleSaveSnapshot function
-  const latestHandleSaveSnapshot = useRef(handleSaveSnapshot);
+  const latestHandleSaveSnapshotRef = useRef(handleSaveSnapshot);
   useEffect(() => {
-    latestHandleSaveSnapshot.current = handleSaveSnapshot;
+    latestHandleSaveSnapshotRef.current = handleSaveSnapshot;
   }, [handleSaveSnapshot]);
 
   // Effect to update global context for BPM visualization and Summary Panel
@@ -249,10 +249,27 @@ const ScalePracticePanel: React.FC<ScalePracticePanelProps> = ({ currentBPM, add
     }
     
     // Set the snapshot function using the ref to ensure a stable reference
-    setActiveLogSnapshotFunction(() => latestHandleSaveSnapshot.current);
+    // The function passed to setActiveLogSnapshotFunction is stable,
+    // and it reads the latest value from the ref.
+    const stableSnapshotFunction = () => latestHandleSaveSnapshotRef.current();
+    setActiveLogSnapshotFunction(stableSnapshotFunction);
     
     return () => setActiveLogSnapshotFunction(null);
-  }, [highestMasteredBPM, setActivePermutationHighestBPM, setActivePracticeItem, currentPermutationId, selectedKey, selectedType, selectedArticulation, selectedOctaves, nextBPMGoal, result, setActiveLogSnapshotFunction]);
+  }, [
+    highestMasteredBPM, 
+    setActivePermutationHighestBPM, 
+    setActivePracticeItem, 
+    currentPermutationId, 
+    selectedKey, 
+    selectedType, 
+    selectedArticulation, 
+    selectedOctaves, 
+    nextBPMGoal, 
+    result, 
+    setActiveLogSnapshotFunction,
+    // Removed handleSaveSnapshot from dependencies to prevent re-renders
+    // The stableSnapshotFunction now ensures we always call the latest handleSaveSnapshot
+  ]);
 
 
   // Determine available keys based on selected type
