@@ -44,7 +44,7 @@ const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const handleLogout = async () => {
         const { error } = await supabase.auth.signOut();
         if (error) {
-            console.error("Logout error:", error);
+            // console.error("Logout error:", error); // Removed log
             showError("Failed to log out.");
         } else {
             showSuccess("Successfully logged out.");

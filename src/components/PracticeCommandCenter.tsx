@@ -60,7 +60,7 @@ const PracticeCommandCenter: React.FC = () => {
   }, [activePermutationHighestBPM]);
 
   // Log the current BPM for debugging purposes
-  console.log(`[PracticeCommandCenter:Render] Displaying currentBPM: ${currentBPM}`);
+  // console.log(`[PracticeCommandCenter:Render] Displaying currentBPM: ${currentBPM}`); // Removed log
 
   return (
     <div className="p-4 md:p-8 min-h-[calc(100vh-64px)] flex flex-col items-center justify-start bg-background">
@@ -155,7 +155,7 @@ const PracticeCommandCenter: React.FC = () => {
             defaultValue="scales" 
             value={activeTab} 
             onValueChange={(v) => {
-                console.log(`[PracticeCommandCenter] Tab changed to: ${v}`);
+                // console.log(`[PracticeCommandCenter] Tab changed to: ${v}`); // Removed log
                 setActiveTab(v as 'scales' | 'dohnanyi' | 'hanon');
                 setActivePermutationHighestBPM(0); // Reset BPM visualization when switching tabs
             }} 

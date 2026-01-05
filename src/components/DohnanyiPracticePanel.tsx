@@ -76,13 +76,13 @@ const DohnanyiPracticePanel: React.FC<DohnanyiPracticePanelProps> = ({ currentBP
   const handleLogSnapshot = useCallback(() => {
     const now = Date.now();
     if (now - lastSnapshotTimestampRef.current < SNAPSHOT_DEBOUNCE_MS) {
-      console.log(`[DohnanyiPracticePanel] Snapshot debounced - too soon since last call (${now - lastSnapshotTimestampRef.current}ms since last snapshot).`);
+      // console.log(`[DohnanyiPracticePanel] Snapshot debounced - too soon since last call (${now - lastSnapshotTimestampRef.current}ms since last snapshot).`); // Removed log
       return;
     }
 
     const currentCallKey = `${selectedExercise}-${currentBPM}`;
     if (lastSuccessfulCallKeyRef.current === currentCallKey) {
-        console.log(`[DohnanyiPracticePanel] Duplicate call detected for ${currentCallKey}, skipping.`);
+        // console.log(`[DohnanyiPracticePanel] Duplicate call detected for ${currentCallKey}, skipping.`); // Removed log
         return;
     }
 
@@ -124,11 +124,11 @@ const DohnanyiPracticePanel: React.FC<DohnanyiPracticePanelProps> = ({ currentBP
 
   // Effect to set and cleanup the activeLogSnapshotFunction in global context
   useEffect(() => {
-    console.log('[DohnanyiPracticePanel] Setting activeLogSnapshotFunction in GlobalBPMContext.');
+    // console.log('[DohnanyiPracticePanel] Setting activeLogSnapshotFunction in GlobalBPMContext.'); // Removed log
     setActiveLogSnapshotFunction(() => latestHandleLogSnapshotRef.current);
     
     return () => {
-        console.log('[DohnanyiPracticePanel] Cleaning up activeLogSnapshotFunction in GlobalBPMContext.');
+        // console.log('[DohnanyiPracticePanel] Cleaning up activeLogSnapshotFunction in GlobalBPMContext.'); // Removed log
         setActiveLogSnapshotFunction(null);
     };
   }, [setActiveLogSnapshotFunction]);

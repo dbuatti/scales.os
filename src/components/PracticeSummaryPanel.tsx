@@ -9,13 +9,13 @@ const PracticeSummaryPanel: React.FC = () => {
   const { activePracticeItem, currentBPM, activeLogSnapshotFunction } = useGlobalBPM();
 
   // Add logging when component renders
-  React.useEffect(() => {
-    console.log('[PracticeSummaryPanel] Rendered with:', {
-      activePracticeItem,
-      currentBPM,
-      hasSnapshotFunction: !!activeLogSnapshotFunction
-    });
-  }, [activePracticeItem, currentBPM, activeLogSnapshotFunction]);
+  // React.useEffect(() => { // Removed log
+  //   console.log('[PracticeSummaryPanel] Rendered with:', {
+  //     activePracticeItem,
+  //     currentBPM,
+  //     hasSnapshotFunction: !!activeLogSnapshotFunction
+  //   });
+  // }, [activePracticeItem, currentBPM, activeLogSnapshotFunction]);
 
   if (!activePracticeItem) {
     return (
@@ -111,11 +111,11 @@ const PracticeSummaryPanel: React.FC = () => {
         <div className="pt-4 border-t border-border mt-4">
             <Button 
                 onClick={() => {
-                    console.log('[PracticeSummaryPanel] Snapshot button clicked');
+                    // console.log('[PracticeSummaryPanel] Snapshot button clicked'); // Removed log
                     if (activeLogSnapshotFunction) {
                         activeLogSnapshotFunction();
                     } else {
-                        console.log('[PracticeSummaryPanel] No snapshot function available');
+                        // console.log('[PracticeSummaryPanel] No snapshot function available'); // Removed log
                     }
                 }} 
                 disabled={!activeLogSnapshotFunction}

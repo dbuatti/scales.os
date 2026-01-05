@@ -77,13 +77,13 @@ const HanonPracticePanel: React.FC<HanonPracticePanelProps> = ({ currentBPM, add
   const handleLogSnapshot = useCallback(() => {
     const now = Date.now();
     if (now - lastSnapshotTimestampRef.current < SNAPSHOT_DEBOUNCE_MS) {
-      console.log(`[HanonPracticePanel] Snapshot debounced - too soon since last call (${now - lastSnapshotTimestampRef.current}ms since last snapshot).`);
+      // console.log(`[HanonPracticePanel] Snapshot debounced - too soon since last call (${now - lastSnapshotTimestampRef.current}ms since last snapshot).`); // Removed log
       return;
     }
 
     const currentCallKey = `${selectedExercise}-${currentBPM}`;
     if (lastSuccessfulCallKeyRef.current === currentCallKey) {
-        console.log(`[HanonPracticePanel] Duplicate call detected for ${currentCallKey}, skipping.`);
+        // console.log(`[HanonPracticePanel] Duplicate call detected for ${currentCallKey}, skipping.`); // Removed log
         return;
     }
 
@@ -125,11 +125,11 @@ const HanonPracticePanel: React.FC<HanonPracticePanelProps> = ({ currentBPM, add
 
   // Effect to set and cleanup the activeLogSnapshotFunction in global context
   useEffect(() => {
-    console.log('[HanonPracticePanel] Setting activeLogSnapshotFunction in GlobalBPMContext.');
+    // console.log('[HanonPracticePanel] Setting activeLogSnapshotFunction in GlobalBPMContext.'); // Removed log
     setActiveLogSnapshotFunction(() => latestHandleLogSnapshotRef.current);
     
     return () => {
-        console.log('[HanonPracticePanel] Cleaning up activeLogSnapshotFunction in GlobalBPMContext.');
+        // console.log('[HanonPracticePanel] Cleaning up activeLogSnapshotFunction in GlobalBPMContext.'); // Removed log
         setActiveLogSnapshotFunction(null);
     };
   }, [setActiveLogSnapshotFunction]);

@@ -61,13 +61,13 @@ export const GlobalBPMProvider: React.FC<React.PropsWithChildren> = ({ children 
 
       // Only update currentBPM if it's different from the targetBPM
       if (currentBPM !== targetBPM) {
-        console.log(`[GlobalBPMContext] Setting currentBPM to ${targetBPM} based on activePracticeItem.`);
+        // console.log(`[GlobalBPMContext] Setting currentBPM to ${targetBPM} based on activePracticeItem.`); // Removed log
         setCurrentBPMState(targetBPM); // Use internal state setter to avoid marking as manual
       }
     } else if (!activePracticeItem && !isBpmManuallyAdjusted) {
       // If no active practice item and not manually adjusted, reset to a default BPM (e.g., 100)
       if (currentBPM !== 100) {
-        console.log(`[GlobalBPMContext] No active practice item. Resetting currentBPM to 100.`);
+        // console.log(`[GlobalBPMContext] No active practice item. Resetting currentBPM to 100.`); // Removed log
         setCurrentBPMState(100); // Use internal state setter
       }
     }

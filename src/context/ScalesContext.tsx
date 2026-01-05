@@ -125,7 +125,7 @@ export const ScalesProvider: React.FC<React.PropsWithChildren> = ({ children }) 
   // 1. Fetch data from Supabase
   const fetchData = useCallback(async (id: string) => {
     setIsDataLoading(true);
-    console.log(`[ScalesContext] Fetching data for user: ${id}`);
+    // console.log(`[ScalesContext] Fetching data for user: ${id}`); // Removed log
     
     // Fetch Progress (Dohnanyi/Hanon/Old Grade Tracking)
     const { data: progressData, error: progressError } = await supabase
@@ -134,10 +134,10 @@ export const ScalesProvider: React.FC<React.PropsWithChildren> = ({ children }) 
       .eq('user_id', id);
 
     if (progressError) {
-      console.error("[ScalesContext] Error fetching progress:", progressError);
+      // console.error("[ScalesContext] Error fetching progress:", progressError); // Removed log
       showError("Failed to load practice progress.");
     } else if (progressData) {
-      console.log(`[ScalesContext] Fetched ${progressData.length} progress entries`);
+      // console.log(`[ScalesContext] Fetched ${progressData.length} progress entries`); // Removed log
       setProgressMap(progressArrayToMap(progressData as StoredProgressEntry[]));
     }
     
@@ -148,10 +148,10 @@ export const ScalesProvider: React.FC<React.PropsWithChildren> = ({ children }) 
       .eq('user_id', id);
 
     if (scaleMasteryError) {
-      console.error("[ScalesContext] Error fetching scale mastery BPM:", scaleMasteryError);
+      // console.error("[ScalesContext] Error fetching scale mastery BPM:", scaleMasteryError); // Removed log
       showError("Failed to load scale BPM progress.");
     } else if (scaleMasteryData) {
-      console.log(`[ScalesContext] Fetched ${scaleMasteryData.length} scale mastery entries`);
+      // console.log(`[ScalesContext] Fetched ${scaleMasteryData.length} scale mastery entries`); // Removed log
       const bpmMap = scaleMasteryData.reduce((acc, item) => {
         acc[item.scale_permutation_id] = item.highest_mastered_bpm;
         return acc;
@@ -168,10 +168,10 @@ export const ScalesProvider: React.FC<React.PropsWithChildren> = ({ children }) 
       .order('created_at', { ascending: false });
 
     if (logError) {
-      console.error("[ScalesContext] Error fetching logs:", logError);
+      // console.error("[ScalesContext] Error fetching logs:", logError); // Removed log
       showError("Failed to load practice logs.");
     } else if (logData) {
-      console.log(`[ScalesContext] Fetched ${logData.length} log entries`);
+      // console.log(`[ScalesContext] Fetched ${logData.length} log entries`); // Removed log
       // Note: DB column is still named 'scales_practiced' but stores PracticeLogItem[]
       const formattedLog: PracticeLogEntry[] = logData.map(item => ({
         id: item.id,
@@ -289,7 +289,7 @@ export const ScalesProvider: React.FC<React.PropsWithChildren> = ({ children }) 
       return;
     }
 
-    console.log(`[ScalesContext] updatePracticeStatus called: ${practiceId} -> ${status}`);
+    // console.log(`[ScalesContext] updatePracticeStatus called: ${practiceId} -> ${status}`); // Removed log
 
     if (status === 'untouched') {
       // Delete entry if status is untouched
@@ -300,7 +300,7 @@ export const ScalesProvider: React.FC<React.PropsWithChildren> = ({ children }) 
         .eq('practice_id', practiceId);
 
       if (error) {
-        console.error("[ScalesContext] Error deleting progress:", error);
+        // console.error("[ScalesContext] Error deleting progress:", error); // Removed log
         showError("Failed to reset practice status.");
         return;
       }
@@ -323,7 +323,7 @@ export const ScalesProvider: React.FC<React.PropsWithChildren> = ({ children }) 
         }, { onConflict: 'user_id, practice_id' });
 
       if (error) {
-        console.error("[ScalesContext] Error upserting progress:", error);
+        // console.error("[ScalesContext] Error upserting progress:", error); // Removed log
         showError("Failed to save practice status.");
         return;
       }
@@ -343,7 +343,7 @@ export const ScalesProvider: React.FC<React.PropsWithChildren> = ({ children }) 
       return;
     }
 
-    console.log(`[ScalesContext] updateScaleMasteryBPM called: ${scalePermutationId} -> ${newBPM} BPM`);
+    // console.log(`[ScalesContext] updateScaleMasteryBPM called: ${scalePermutationId} -> ${newBPM} BPM`); // Removed log
 
     // 1. Upsert the highest BPM
     const { error } = await supabase
@@ -356,13 +356,13 @@ export const ScalesProvider: React.FC<React.PropsWithChildren> = ({ children }) 
         }, { onConflict: 'user_id, scale_permutation_id' });
 
     if (error) {
-        console.error("[ScalesContext] Error upserting scale BPM mastery:", error);
+        // console.error("[ScalesContext] Error upserting scale BPM mastery:", error); // Removed log
         showError("Failed to save scale BPM progress.");
         return;
     }
 
     // 2. Update local state
-    console.log(`[ScalesContext] Updating local state for ${scalePermutationId} to ${newBPM}`);
+    // console.log(`[ScalesContext] Updating local state for ${scalePermutationId} to ${newBPM}`); // Removed log
     setScaleMasteryBPMMap(prev => ({
         ...prev,
         [scalePermutationId]: newBPM,
@@ -378,7 +378,7 @@ export const ScalesProvider: React.FC<React.PropsWithChildren> = ({ children }) 
       return;
     }
 
-    console.log(`[ScalesContext] addLogEntry called with:`, entry);
+    // console.log(`[ScalesContext] addLogEntry called with:`, entry); // Removed log
 
     const newEntry: PracticeLogEntry = {
       ...entry,
@@ -399,7 +399,7 @@ export const ScalesProvider: React.FC<React.PropsWithChildren> = ({ children }) 
       .single();
 
     if (error) {
-      console.error("[ScalesContext] Error inserting log entry:", error);
+      // console.error("[ScalesContext] Error inserting log entry:", error); // Removed log
       showError("Failed to log practice session.");
       return;
     }
@@ -411,7 +411,7 @@ export const ScalesProvider: React.FC<React.PropsWithChildren> = ({ children }) 
         timestamp: new Date(data.created_at).getTime(),
     };
 
-    console.log(`[ScalesContext] Log entry inserted successfully. ID: ${data.id}`);
+    // console.log(`[ScalesContext] Log entry inserted successfully. ID: ${data.id}`); // Removed log
     setLog(prev => [finalEntry, ...prev]);
   }, [userId]);
 

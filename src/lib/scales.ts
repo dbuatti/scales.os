@@ -141,7 +141,7 @@ export const parseScalePermutationId = (
     const octaves = findOriginal(cleanedPermutationParts[5], OCTAVE_CONFIGURATIONS);
 
     if (!articulation || !direction || !handConfig || !rhythm || !accent || !octaves) {
-        console.error("Failed to parse permutation ID components:", scalePermutationId);
+        // console.error("Failed to parse permutation ID components:", scalePermutationId); // Removed log
         return null;
     }
 
