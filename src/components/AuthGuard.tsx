@@ -11,7 +11,10 @@ interface AuthGuardProps {
 const AuthGuard: React.FC<AuthGuardProps> = ({ isPublic = false }) => {
   const { session, isLoading } = useSupabaseSession();
 
+  console.log("[AuthGuard] isLoading:", isLoading, "session:", session, "isPublic:", isPublic);
+
   if (isLoading) {
+    console.log("[AuthGuard] Rendering Skeleton (Loading session)");
     // Show a full-screen loading skeleton while checking session
     return (
       <div className="min-h-[calc(100vh-64px)] flex items-center justify-center p-8">
@@ -23,18 +26,22 @@ const AuthGuard: React.FC<AuthGuardProps> = ({ isPublic = false }) => {
   if (isPublic) {
     // If public route (like login) and user is logged in, redirect to home
     if (session) {
+      console.log("[AuthGuard] Public route, user logged in, redirecting to /");
       return <Navigate to="/" replace />;
     }
     // Otherwise, render the public content (Login page)
+    console.log("[AuthGuard] Public route, user not logged in, rendering Outlet");
     return <Outlet />;
   }
 
   // Protected route: If user is NOT logged in, redirect to login
   if (!session) {
+    console.log("[AuthGuard] Protected route, user not logged in, redirecting to /login");
     return <Navigate to="/login" replace />;
   }
 
   // If logged in, render the protected content
+  console.log("[AuthGuard] Protected route, user logged in, rendering Outlet");
   return <Outlet />;
 };
 
