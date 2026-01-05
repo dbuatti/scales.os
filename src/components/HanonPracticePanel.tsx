@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { LogIn, Check } from 'lucide-react';
@@ -23,7 +23,7 @@ interface HanonPracticePanelProps {
 
 const HanonPracticePanel: React.FC<HanonPracticePanelProps> = ({ currentBPM, addLogEntry, updatePracticeStatus, progressMap, initialFocus }) => {
   
-  const { setActivePermutationHighestBPM, setActivePracticeItem } = useGlobalBPM();
+  const { setActivePermutationHighestBPM, setActivePracticeItem, setActiveLogSnapshotFunction } = useGlobalBPM();
   
   const initialExercise = initialFocus?.name || HANON_EXERCISES[0];
   const [selectedExercise, setSelectedExercise] = useState<HanonExercise>(initialExercise);
@@ -50,29 +50,8 @@ const HanonPracticePanel: React.FC<HanonPracticePanelProps> = ({ currentBPM, add
       return progressMap[maxTargetId] === 'mastered';
   }, [selectedExercise, progressMap]);
 
-  // Effect to update global context for Summary Panel
-  useEffect(() => {
-      setActivePracticeItem({
-          type: 'hanon',
-          name: selectedExercise,
-          nextTargetBPM: nextBPMTarget,
-          isMastered: isFullyMastered,
-      });
-  }, [selectedExercise, nextBPMTarget, isFullyMastered, setActivePracticeItem]);
-
-
-  const handleToggleMastery = (targetBPM: HanonBPMTarget) => {
-    const practiceId = getHanonPracticeId(selectedExercise, targetBPM);
-    const currentStatus = progressMap[practiceId] || 'untouched';
-    
-    // Toggle between 'mastered' and 'untouched'
-    const nextStatus = currentStatus === 'mastered' ? 'untouched' : 'mastered';
-    
-    updatePracticeStatus(practiceId, nextStatus);
-    showSuccess(`${selectedExercise} at ${targetBPM} BPM marked as ${nextStatus}.`);
-  };
-
-  const handleLogSnapshot = () => {
+  // Define the snapshot function using useCallback
+  const handleLogSnapshot = useCallback(() => {
     // Log the snapshot (durationMinutes: 0 indicates a snapshot log)
     addLogEntry({
       durationMinutes: 0, 
@@ -85,6 +64,34 @@ const HanonPracticePanel: React.FC<HanonPracticePanelProps> = ({ currentBPM, add
     });
 
     showSuccess(`Hanon practice session logged at ${currentBPM} BPM.`);
+  }, [addLogEntry, selectedExercise, currentBPM]);
+
+
+  // Effect to update global context for Summary Panel
+  useEffect(() => {
+      setActivePracticeItem({
+          type: 'hanon',
+          name: selectedExercise,
+          nextTargetBPM: nextBPMTarget,
+          isMastered: isFullyMastered,
+      });
+      
+      // Set the snapshot function
+      setActiveLogSnapshotFunction(handleLogSnapshot);
+      
+      return () => setActiveLogSnapshotFunction(null);
+  }, [selectedExercise, nextBPMTarget, isFullyMastered, setActivePracticeItem, handleLogSnapshot, setActiveLogSnapshotFunction]);
+
+
+  const handleToggleMastery = (targetBPM: HanonBPMTarget) => {
+    const practiceId = getHanonPracticeId(selectedExercise, targetBPM);
+    const currentStatus = progressMap[practiceId] || 'untouched';
+    
+    // Toggle between 'mastered' and 'untouched'
+    const nextStatus = currentStatus === 'mastered' ? 'untouched' : 'mastered';
+    
+    updatePracticeStatus(practiceId, nextStatus);
+    showSuccess(`${selectedExercise} at ${targetBPM} BPM marked as ${nextStatus}.`);
   };
 
   return (
@@ -146,14 +153,6 @@ const HanonPracticePanel: React.FC<HanonPracticePanelProps> = ({ currentBPM, add
                 Next Mastery Goal: <span className="font-bold">{nextBPMTarget} BPM</span>
             </p>
         </div>
-
-        {/* Log Snapshot Button - now just logs the session, doesn't auto-advance mastery */}
-        <Button 
-            onClick={handleLogSnapshot} 
-            className="w-full text-xl py-6 bg-primary hover:bg-primary/90 transition-all duration-300 shadow-lg shadow-primary/50 text-primary-foreground"
-        >
-            <LogIn className="w-6 h-6 mr-3" /> LOG HANON PRACTICE ({currentBPM} BPM)
-        </Button>
     </CardContent>
   );
 };

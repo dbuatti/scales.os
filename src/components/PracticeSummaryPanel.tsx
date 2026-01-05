@@ -1,11 +1,12 @@
 import React from 'react';
 import { useGlobalBPM, ActivePracticeItem } from '@/context/GlobalBPMContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Check, Clock, Target } from 'lucide-react';
+import { Check, Clock, Target, LogIn } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
 
 const PracticeSummaryPanel: React.FC = () => {
-  const { activePracticeItem, currentBPM } = useGlobalBPM();
+  const { activePracticeItem, currentBPM, activeLogSnapshotFunction } = useGlobalBPM();
 
   if (!activePracticeItem) {
     return (
@@ -15,10 +16,17 @@ const PracticeSummaryPanel: React.FC = () => {
             CURRENT FOCUS
           </CardTitle>
         </CardHeader>
-        <CardContent className="p-4 text-center">
+        <CardContent className="p-4 text-center space-y-4">
           <p className="text-sm text-muted-foreground font-mono">
             Select an exercise below to set your focus.
           </p>
+          <Button 
+            disabled={true}
+            className="w-full bg-accent/50 text-accent-foreground font-mono"
+            size="sm"
+          >
+            <LogIn className="w-4 h-4 mr-2" /> Log Snapshot (N/A BPM)
+          </Button>
         </CardContent>
       </Card>
     );
@@ -86,9 +94,21 @@ const PracticeSummaryPanel: React.FC = () => {
           CURRENT FOCUS
         </CardTitle>
       </CardHeader>
-      <CardContent className="p-4 text-center">
+      <CardContent className="p-4 text-center space-y-4">
         {activePracticeItem.type === 'scale' && renderScaleSummary(activePracticeItem)}
         {(activePracticeItem.type === 'dohnanyi' || activePracticeItem.type === 'hanon') && renderExerciseSummary(activePracticeItem)}
+        
+        {/* Snapshot Capture Button */}
+        <div className="pt-4 border-t border-border mt-4">
+            <Button 
+                onClick={activeLogSnapshotFunction} 
+                disabled={!activeLogSnapshotFunction}
+                className="w-full bg-accent hover:bg-accent/80 text-accent-foreground font-mono"
+                size="sm"
+            >
+                <LogIn className="w-4 h-4 mr-2" /> LOG SNAPSHOT ({currentBPM} BPM)
+            </Button>
+        </div>
       </CardContent>
     </Card>
   );

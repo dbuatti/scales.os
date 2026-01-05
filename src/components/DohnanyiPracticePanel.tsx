@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { LogIn, Check } from 'lucide-react';
@@ -22,7 +22,7 @@ interface DohnanyiPracticePanelProps {
 
 const DohnanyiPracticePanel: React.FC<DohnanyiPracticePanelProps> = ({ currentBPM, addLogEntry, updatePracticeStatus, progressMap, initialFocus }) => {
   
-  const { setActivePermutationHighestBPM, setActivePracticeItem } = useGlobalBPM();
+  const { setActivePermutationHighestBPM, setActivePracticeItem, setActiveLogSnapshotFunction } = useGlobalBPM();
   
   const initialExercise = initialFocus?.name || DOHNANYI_EXERCISES[0];
   const [selectedExercise, setSelectedExercise] = useState<DohnanyiExercise>(initialExercise);
@@ -49,29 +49,8 @@ const DohnanyiPracticePanel: React.FC<DohnanyiPracticePanelProps> = ({ currentBP
       return progressMap[maxTargetId] === 'mastered';
   }, [selectedExercise, progressMap]);
 
-  // Effect to update global context for Summary Panel
-  useEffect(() => {
-      setActivePracticeItem({
-          type: 'dohnanyi',
-          name: selectedExercise,
-          nextTargetBPM: nextBPMTarget,
-          isMastered: isFullyMastered,
-      });
-  }, [selectedExercise, nextBPMTarget, isFullyMastered, setActivePracticeItem]);
-
-
-  const handleToggleMastery = (targetBPM: DohnanyiBPMTarget) => {
-    const practiceId = getDohnanyiPracticeId(selectedExercise, targetBPM);
-    const currentStatus = progressMap[practiceId] || 'untouched';
-    
-    // Toggle between 'mastered' and 'untouched'
-    const nextStatus = currentStatus === 'mastered' ? 'untouched' : 'mastered';
-    
-    updatePracticeStatus(practiceId, nextStatus);
-    showSuccess(`${selectedExercise} at ${targetBPM} BPM marked as ${nextStatus}.`);
-  };
-
-  const handleLogSnapshot = () => {
+  // Define the snapshot function using useCallback
+  const handleLogSnapshot = useCallback(() => {
     // Log the snapshot (durationMinutes: 0 indicates a snapshot log)
     addLogEntry({
       durationMinutes: 0, 
@@ -84,6 +63,34 @@ const DohnanyiPracticePanel: React.FC<DohnanyiPracticePanelProps> = ({ currentBP
     });
 
     showSuccess(`Dohnányi practice session logged at ${currentBPM} BPM.`);
+  }, [addLogEntry, selectedExercise, currentBPM]);
+
+
+  // Effect to update global context for Summary Panel
+  useEffect(() => {
+      setActivePracticeItem({
+          type: 'dohnanyi',
+          name: selectedExercise,
+          nextTargetBPM: nextBPMTarget,
+          isMastered: isFullyMastered,
+      });
+      
+      // Set the snapshot function
+      setActiveLogSnapshotFunction(handleLogSnapshot);
+      
+      return () => setActiveLogSnapshotFunction(null);
+  }, [selectedExercise, nextBPMTarget, isFullyMastered, setActivePracticeItem, handleLogSnapshot, setActiveLogSnapshotFunction]);
+
+
+  const handleToggleMastery = (targetBPM: DohnanyiBPMTarget) => {
+    const practiceId = getDohnanyiPracticeId(selectedExercise, targetBPM);
+    const currentStatus = progressMap[practiceId] || 'untouched';
+    
+    // Toggle between 'mastered' and 'untouched'
+    const nextStatus = currentStatus === 'mastered' ? 'untouched' : 'mastered';
+    
+    updatePracticeStatus(practiceId, nextStatus);
+    showSuccess(`${selectedExercise} at ${targetBPM} BPM marked as ${nextStatus}.`);
   };
 
   return (
@@ -143,14 +150,6 @@ const DohnanyiPracticePanel: React.FC<DohnanyiPracticePanelProps> = ({ currentBP
                 Next Mastery Goal: <span className="font-bold">{nextBPMTarget} BPM</span>
             </p>
         </div>
-
-        {/* Log Snapshot Button - now just logs the session, doesn't auto-advance mastery */}
-        <Button 
-            onClick={handleLogSnapshot} 
-            className="w-full text-xl py-6 bg-primary hover:bg-primary/90 transition-all duration-300 shadow-lg shadow-primary/50 text-primary-foreground"
-        >
-            <LogIn className="w-6 h-6 mr-3" /> LOG DOHNÁNYI PRACTICE ({currentBPM} BPM)
-        </Button>
     </CardContent>
   );
 };

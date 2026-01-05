@@ -11,10 +11,12 @@ interface GlobalBPMContextType {
   currentBPM: number;
   activePermutationHighestBPM: number;
   activePracticeItem: ActivePracticeItem;
+  activeLogSnapshotFunction: (() => void) | null;
   handleBpmChange: (delta: number) => void;
   setCurrentBPM: (bpm: number) => void;
   setActivePermutationHighestBPM: (bpm: number) => void;
   setActivePracticeItem: (item: ActivePracticeItem) => void;
+  setActiveLogSnapshotFunction: (func: (() => void) | null) => void;
 }
 
 const GlobalBPMContext = createContext<GlobalBPMContextType | undefined>(undefined);
@@ -23,6 +25,7 @@ export const GlobalBPMProvider: React.FC<React.PropsWithChildren> = ({ children 
   const [currentBPM, setCurrentBPM] = useState(100);
   const [activePermutationHighestBPM, setActivePermutationHighestBPM] = useState(0);
   const [activePracticeItem, setActivePracticeItem] = useState<ActivePracticeItem>(null);
+  const [activeLogSnapshotFunction, setActiveLogSnapshotFunction] = useState<(() => void) | null>(null);
 
   const handleBpmChange = useCallback((delta: number) => {
     setCurrentBPM(prev => Math.min(MAX_BPM, Math.max(MIN_BPM, prev + delta)));
@@ -32,11 +35,13 @@ export const GlobalBPMProvider: React.FC<React.PropsWithChildren> = ({ children 
     currentBPM,
     activePermutationHighestBPM,
     activePracticeItem,
+    activeLogSnapshotFunction,
     handleBpmChange,
     setCurrentBPM,
     setActivePermutationHighestBPM,
     setActivePracticeItem,
-  }), [currentBPM, activePermutationHighestBPM, activePracticeItem, handleBpmChange]);
+    setActiveLogSnapshotFunction,
+  }), [currentBPM, activePermutationHighestBPM, activePracticeItem, activeLogSnapshotFunction, handleBpmChange]);
 
   return (
     <GlobalBPMContext.Provider value={contextValue}>

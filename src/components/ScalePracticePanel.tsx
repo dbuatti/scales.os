@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { LogIn } from 'lucide-react';
@@ -75,7 +75,7 @@ const ALL_TYPES = [...SCALE_TYPES, ...ARPEGGIO_TYPES];
 
 const ScalePracticePanel: React.FC<ScalePracticePanelProps> = ({ currentBPM, addLogEntry, updatePracticeStatus, updateScaleMasteryBPM, scaleMasteryBPMMap, allScales, initialFocus }) => {
   
-  const { setActivePermutationHighestBPM, setActivePracticeItem } = useGlobalBPM();
+  const { setActivePermutationHighestBPM, setActivePracticeItem, setActiveLogSnapshotFunction } = useGlobalBPM();
   
   // Calculate initial state based on prop
   const initialPermutation = useMemo(() => {
@@ -138,27 +138,8 @@ const ScalePracticePanel: React.FC<ScalePracticePanelProps> = ({ currentBPM, add
   const highestMasteredBPM = currentPermutationId ? scaleMasteryBPMMap[currentPermutationId] || 0 : 0;
   const nextBPMGoal = highestMasteredBPM > 0 ? highestMasteredBPM + 3 : 40; // Start at 40 BPM if untouched
 
-  // Effect to update global context for BPM visualization and Summary Panel
-  useEffect(() => {
-    setActivePermutationHighestBPM(highestMasteredBPM);
-    
-    if (result) {
-        setActivePracticeItem({
-            type: 'scale',
-            key: result.scaleItem.key,
-            scaleType: result.scaleItem.type,
-            articulation: selectedArticulation,
-            octaves: selectedOctaves,
-            highestBPM: highestMasteredBPM,
-            nextGoalBPM: nextBPMGoal,
-        });
-    } else {
-        setActivePracticeItem(null);
-    }
-  }, [highestMasteredBPM, setActivePermutationHighestBPM, setActivePracticeItem, currentPermutationId, selectedKey, selectedType, selectedArticulation, selectedOctaves, nextBPMGoal, result]);
-
-
-  const handleSaveSnapshot = () => {
+  // Define the snapshot function using useCallback
+  const handleSaveSnapshot = useCallback(() => {
     if (!result) {
         showError("Please select a valid scale/arpeggio combination.");
         return;
@@ -194,8 +175,34 @@ const ScalePracticePanel: React.FC<ScalePracticePanelProps> = ({ currentBPM, add
     });
 
     showSuccess(message);
-  };
-  
+  }, [currentBPM, result, highestMasteredBPM, updateScaleMasteryBPM, addLogEntry, selectedArticulation, selectedDirection, selectedHandConfig, selectedRhythm, selectedAccent, selectedOctaves]);
+
+
+  // Effect to update global context for BPM visualization and Summary Panel
+  useEffect(() => {
+    setActivePermutationHighestBPM(highestMasteredBPM);
+    
+    if (result) {
+        setActivePracticeItem({
+            type: 'scale',
+            key: result.scaleItem.key,
+            scaleType: result.scaleItem.type,
+            articulation: selectedArticulation,
+            octaves: selectedOctaves,
+            highestBPM: highestMasteredBPM,
+            nextGoalBPM: nextBPMGoal,
+        });
+    } else {
+        setActivePracticeItem(null);
+    }
+    
+    // Set the snapshot function
+    setActiveLogSnapshotFunction(handleSaveSnapshot);
+    
+    return () => setActiveLogSnapshotFunction(null);
+  }, [highestMasteredBPM, setActivePermutationHighestBPM, setActivePracticeItem, currentPermutationId, selectedKey, selectedType, selectedArticulation, selectedOctaves, nextBPMGoal, result, handleSaveSnapshot, setActiveLogSnapshotFunction]);
+
+
   // Determine available keys based on selected type
   const isChromatic = selectedType === "Chromatic";
   const availableKeys = isChromatic ? ["C"] : KEYS;
@@ -298,14 +305,6 @@ const ScalePracticePanel: React.FC<ScalePracticePanelProps> = ({ currentBPM, add
         </div>
 
 
-        {/* Log Snapshot Button */}
-        <Button 
-            onClick={handleSaveSnapshot} 
-            className="w-full text-xl py-6 bg-primary hover:bg-primary/90 transition-all duration-300 shadow-lg shadow-primary/50 text-primary-foreground"
-        >
-            <LogIn className="w-6 h-6 mr-3" /> LOG SCALE SNAPSHOT ({currentBPM} BPM)
-        </Button>
-          
         {/* Extra Special Edition Permutations */}
         <div className="pt-8 space-y-6">
             <div className="flex items-center">
