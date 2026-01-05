@@ -59,7 +59,8 @@ const Login: React.FC = () => {
             }}
             theme="dark"
             providers={[]}
-            redirectTo={window.location.origin + '/'}
+            // Ensure password recovery redirects to the new ResetPassword page
+            redirectTo={window.location.origin + '/reset-password'} 
           />
         </CardContent>
       </Card>

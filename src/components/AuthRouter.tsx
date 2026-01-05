@@ -10,6 +10,7 @@ import Login from '@/pages/Login';
 import Index from '@/pages/Index';
 import ProgressPage from '@/pages/Progress';
 import NotFound from '@/pages/NotFound';
+import ResetPassword from '@/pages/ResetPassword'; // Import the new ResetPassword page
 
 // Wrapper component to provide children to AppLayout for public routes
 const PublicLayoutWrapper: React.FC = () => (
@@ -40,6 +41,7 @@ const AuthRouter: React.FC = () => {
         {/* Redirect any public routes to authenticated home if logged in */}
         <Route path="/login" element={<Navigate to="/" replace />} />
         <Route path="/landing" element={<Navigate to="/" replace />} />
+        <Route path="/reset-password" element={<Navigate to="/" replace />} /> {/* Redirect if logged in */}
         <Route path="*" element={<NotFound />} /> {/* Catch-all for protected routes */}
       </Routes>
     );
@@ -51,6 +53,7 @@ const AuthRouter: React.FC = () => {
           <Route path="/login" element={<Login />} />
           <Route path="/landing" element={<LandingPage />} />
           <Route path="/" element={<LandingPage />} /> {/* Default public route */}
+          <Route path="/reset-password" element={<ResetPassword />} /> {/* New public route */}
         </Route>
         {/* Redirect any protected routes to login if not logged in */}
         <Route path="/progress" element={<Navigate to="/login" replace />} />
