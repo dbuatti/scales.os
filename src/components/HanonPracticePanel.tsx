@@ -71,24 +71,29 @@ const HanonPracticePanel: React.FC<HanonPracticePanelProps> = ({
   const handleLogSnapshot = useCallback(() => {
     const now = Date.now();
     if (now - lastSnapshotTimestampRef.current < SNAPSHOT_DEBOUNCE_MS) {
+      console.log("[HanonPracticePanel] Snapshot debounced.");
       return;
     }
 
     const currentCallKey = `${selectedExercise}-${currentBPM}`;
     if (lastSuccessfulCallKeyRef.current === currentCallKey) {
+        console.log("[HanonPracticePanel] Duplicate snapshot call prevented.");
         return;
     }
 
     lastSnapshotTimestampRef.current = now;
     lastSuccessfulCallKeyRef.current = currentCallKey;
 
-    addLogEntry({
-      durationMinutes: 0, 
-      itemsPracticed: [{
-        type: 'hanon',
+    const itemToLog = {
+        type: 'hanon' as const, // Explicitly type as 'hanon'
         hanonName: selectedExercise,
         hanonBpmTarget: currentBPM,
-      }],
+    };
+    console.log("[HanonPracticePanel] Logging Hanon snapshot:", { selectedExercise, currentBPM, itemToLog });
+
+    addLogEntry({
+      durationMinutes: 0, 
+      itemsPracticed: [itemToLog],
       notes: `Hanon Snapshot: ${selectedExercise} practiced at ${currentBPM} BPM.`,
     });
 
@@ -127,6 +132,7 @@ const HanonPracticePanel: React.FC<HanonPracticePanelProps> = ({
     
     const nextStatus = currentStatus === 'mastered' ? 'untouched' : 'mastered';
     
+    console.log("[HanonPracticePanel] Toggling mastery:", { selectedExercise, targetBPM, currentStatus, nextStatus, practiceId });
     updatePracticeStatus(practiceId, nextStatus);
     showSuccess(`${selectedExercise} at ${targetBPM} BPM marked as ${nextStatus}.`);
   };

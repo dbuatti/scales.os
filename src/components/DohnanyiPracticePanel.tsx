@@ -70,24 +70,29 @@ const DohnanyiPracticePanel: React.FC<DohnanyiPracticePanelProps> = ({
   const handleLogSnapshot = useCallback(() => {
     const now = Date.now();
     if (now - lastSnapshotTimestampRef.current < SNAPSHOT_DEBOUNCE_MS) {
+      console.log("[DohnanyiPracticePanel] Snapshot debounced.");
       return;
     }
 
     const currentCallKey = `${selectedExercise}-${currentBPM}`;
     if (lastSuccessfulCallKeyRef.current === currentCallKey) {
+        console.log("[DohnanyiPracticePanel] Duplicate snapshot call prevented.");
         return;
     }
 
     lastSnapshotTimestampRef.current = now;
     lastSuccessfulCallKeyRef.current = currentCallKey;
 
-    addLogEntry({
-      durationMinutes: 0, 
-      itemsPracticed: [{
-        type: 'dohnanyi',
+    const itemToLog = {
+        type: 'dohnanyi' as const, // Explicitly type as 'dohnanyi'
         dohnanyiName: selectedExercise,
         bpmTarget: currentBPM,
-      }],
+    };
+    console.log("[DohnanyiPracticePanel] Logging Dohnányi snapshot:", { selectedExercise, currentBPM, itemToLog });
+
+    addLogEntry({
+      durationMinutes: 0, 
+      itemsPracticed: [itemToLog],
       notes: `Dohnányi Snapshot: ${selectedExercise} practiced at ${currentBPM} BPM.`,
     });
 
@@ -126,6 +131,7 @@ const DohnanyiPracticePanel: React.FC<DohnanyiPracticePanelProps> = ({
     
     const nextStatus = currentStatus === 'mastered' ? 'untouched' : 'mastered';
     
+    console.log("[DohnanyiPracticePanel] Toggling mastery:", { selectedExercise, targetBPM, currentStatus, nextStatus, practiceId });
     updatePracticeStatus(practiceId, nextStatus);
     showSuccess(`${selectedExercise} at ${targetBPM} BPM marked as ${nextStatus}.`);
   };
