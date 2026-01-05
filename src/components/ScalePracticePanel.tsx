@@ -69,9 +69,10 @@ interface ScalePracticePanelProps {
     scaleMasteryBPMMap: ReturnType<typeof useScales>['scaleMasteryBPMMap']; 
     allScales: ReturnType<typeof useScales>['allScales'];
     initialFocus: (NextFocus & { type: 'scale' }) | undefined;
+    activeTab: 'scales' | 'dohnanyi' | 'hanon'; // Added activeTab prop
 }
 
-const ScalePracticePanel: React.FC<ScalePracticePanelProps> = ({ currentBPM, addLogEntry, updatePracticeStatus, updateScaleMasteryBPM, scaleMasteryBPMMap, allScales, initialFocus }) => {
+const ScalePracticePanel: React.FC<ScalePracticePanelProps> = ({ currentBPM, addLogEntry, updatePracticeStatus, updateScaleMasteryBPM, scaleMasteryBPMMap, allScales, initialFocus, activeTab }) => {
   
   const { 
     setActivePermutationHighestBPM, 
@@ -79,64 +80,40 @@ const ScalePracticePanel: React.FC<ScalePracticePanelProps> = ({ currentBPM, add
     setActiveLogSnapshotFunction,
     activePermutationHighestBPM: globalActivePermutationHighestBPM, // Get current global BPM
     activePracticeItem: globalActivePracticeItem, // Get current global active item
-    // Removed setCurrentBPM from here
+    setCurrentBPM // <-- Import setCurrentBPM
   } = useGlobalBPM();
   
   // Add refs for debounce logic
   const lastSnapshotTimestampRef = useRef<number>(0); 
   const lastSuccessfulCallKeyRef = useRef<string>(''); 
   
-  // Calculate initial state based on prop
-  const initialPermutation = useMemo(() => {
-    if (initialFocus) {
-        return parseScalePermutationId(initialFocus.scalePermutationId);
-    }
-    return null;
-  }, [initialFocus]);
-  
-  // Note: initialType is the cleaned ID part (e.g., "MajorArpeggio")
-  const initialKey = initialPermutation?.scaleId.split('-')[0] as Key || KEYS[0];
-  const initialTypeId = initialPermutation?.scaleId.split('-')[1] || SCALE_TYPES[0].replace(/\s/g, ""); // Default to Major Scale
-  
-  // State for selected parameters
-  // We need to store the full type name in state for the ToggleGroup to display correctly, 
-  // but the ID part for lookup. Let's map the initial ID part back to the full name.
+  // Local state for user's current selection
   const ALL_COMBINED_TYPES = [...SCALE_TYPES, ...ARPEGGIO_TYPES];
-  const initialFullType = ALL_COMBINED_TYPES.find(t => t.replace(/\s/g, "") === initialTypeId) || SCALE_TYPES[0];
-  
-  const [selectedKey, setSelectedKey] = useState<Key>(initialKey);
-  const [selectedType, setSelectedType] = useState<string>(initialFullType); 
-  const [selectedArticulation, setSelectedArticulation] = useState<Articulation>(initialPermutation?.articulation || ARTICULATIONS[0]);
+  const [selectedKey, setSelectedKey] = useState<Key>(KEYS[0]);
+  const [selectedType, setSelectedType] = useState<string>(SCALE_TYPES[0]); 
+  const [selectedArticulation, setSelectedArticulation] = useState<Articulation>(ARTICULATIONS[0]);
+  const [selectedDirection, setSelectedDirection] = useState<DirectionType>(DIRECTION_TYPES[2]);
+  const [selectedHandConfig, setSelectedHandConfig] = useState<HandConfiguration>(HAND_CONFIGURATIONS[0]);
+  const [selectedRhythm, setSelectedRhythm] = useState<RhythmicPermutation>(RHYTHMIC_PERMUTATIONS[0]);
+  const [selectedAccent, setSelectedAccent] = useState<AccentDistribution>(ACCENT_DISTRIBUTIONS[3]);
+  const [selectedOctaves, setSelectedOctaves] = useState<OctaveConfiguration>(OCTAVE_CONFIGURATIONS[1]); // Default to 2 Octaves
 
-  // New states
-  const [selectedDirection, setSelectedDirection] = useState<DirectionType>(initialPermutation?.direction || DIRECTION_TYPES[2]);
-  const [selectedHandConfig, setSelectedHandConfig] = useState<HandConfiguration>(initialPermutation?.handConfig || HAND_CONFIGURATIONS[0]);
-  const [selectedRhythm, setSelectedRhythm] = useState<RhythmicPermutation>(initialPermutation?.rhythm || RHYTHMIC_PERMUTATIONS[0]);
-  const [selectedAccent, setSelectedAccent] = useState<AccentDistribution>(initialPermutation?.accent || ACCENT_DISTRIBUTIONS[3]);
-  const [selectedOctaves, setSelectedOctaves] = useState<OctaveConfiguration>(initialPermutation?.octaves || OCTAVE_CONFIGURATIONS[1]); // Default to 2 Octaves
+  // State for the suggested item from nextFocus
+  const [suggestedScalePermutation, setSuggestedScalePermutation] = useState<(NextFocus & { type: 'scale' }) | null>(null);
 
-  // Effect to reset local state when a new initialFocus is provided (i.e., next challenge is queued)
+  // Effect to update suggestedScalePermutation when initialFocus changes and is relevant to scales
   useEffect(() => {
-    if (initialFocus) {
-        const parsed = parseScalePermutationId(initialFocus.scalePermutationId);
-        if (parsed) {
-            const [key, typeId] = parsed.scaleId.split('-');
-            const fullType = ALL_COMBINED_TYPES.find(t => t.replace(/\s/g, "") === typeId) || SCALE_TYPES[0];
-            
-            setSelectedKey(key as Key);
-            setSelectedType(fullType); // <-- This sets the state
-            setSelectedArticulation(parsed.articulation);
-            setSelectedDirection(parsed.direction);
-            setSelectedHandConfig(parsed.handConfig);
-            setSelectedRhythm(parsed.rhythm);
-            setSelectedAccent(parsed.accent);
-            setSelectedOctaves(parsed.octaves);
-            
-            // Reset the last successful call key to allow new handling
-            lastSuccessfulCallKeyRef.current = '';
+    if (activeTab === 'scales' && initialFocus && initialFocus.type === 'scale') {
+        // Only update suggestion if it's different from the current suggestion
+        if (!shallowEqual(suggestedScalePermutation, initialFocus)) {
+            setSuggestedScalePermutation(initialFocus);
         }
+    } else if (suggestedScalePermutation) {
+        // Clear suggestion if tab is not scales or initialFocus is not a scale
+        setSuggestedScalePermutation(null);
     }
-  }, [initialFocus]);
+  }, [initialFocus, activeTab, suggestedScalePermutation]);
+
 
   const selectedTempoLevel = useMemo(() => mapBPMToTempoLevel(currentBPM), [currentBPM]);
 
@@ -191,9 +168,6 @@ const ScalePracticePanel: React.FC<ScalePracticePanelProps> = ({ currentBPM, add
   // Determine highest mastered BPM and next goal
   const highestMasteredBPM = currentPermutationId ? scaleMasteryBPMMap[currentPermutationId] || 0 : 0;
   const nextBPMGoal = highestMasteredBPM > 0 ? highestMasteredBPM + 3 : 40; // Start at 40 BPM if untouched
-
-  // Removed the useEffect that directly called setCurrentBPM(nextBPMGoal) from here.
-  // GlobalBPMContext will now handle setting currentBPM based on activePracticeItem.
 
   // Define the snapshot function using useCallback
   const handleSaveSnapshot = useCallback(() => {
@@ -310,6 +284,30 @@ const ScalePracticePanel: React.FC<ScalePracticePanelProps> = ({ currentBPM, add
     };
   }, [setActiveLogSnapshotFunction, handleSaveSnapshot]); // Now depends on handleSaveSnapshot
 
+  // Function to apply the suggested permutation
+  const applySuggestedPermutation = useCallback(() => {
+    if (suggestedScalePermutation) {
+        const parsed = parseScalePermutationId(suggestedScalePermutation.scalePermutationId);
+        if (parsed) {
+            const [key, typeId] = parsed.scaleId.split('-');
+            const fullType = ALL_COMBINED_TYPES.find(t => t.replace(/\s/g, "") === typeId) || SCALE_TYPES[0];
+            
+            setSelectedKey(key as Key);
+            setSelectedType(fullType);
+            setSelectedArticulation(parsed.articulation);
+            setSelectedDirection(parsed.direction);
+            setSelectedHandConfig(parsed.handConfig);
+            setSelectedRhythm(parsed.rhythm);
+            setSelectedAccent(parsed.accent);
+            setSelectedOctaves(parsed.octaves);
+            
+            // Reset last successful call key to allow new snapshot
+            lastSuccessfulCallKeyRef.current = ''; 
+            showSuccess(`Loaded suggested: ${suggestedScalePermutation.scaleItem.key} ${suggestedScalePermutation.scaleItem.type}`);
+        }
+    }
+  }, [suggestedScalePermutation, ALL_COMBINED_TYPES]);
+
 
   // Determine available keys based on selected type
   const isChromatic = selectedType === "Chromatic";
@@ -318,6 +316,24 @@ const ScalePracticePanel: React.FC<ScalePracticePanelProps> = ({ currentBPM, add
 
   return (
     <CardContent className="p-0 space-y-6">
+        {/* Suggestion UI */}
+        {suggestedScalePermutation && (
+            <div className="p-3 border border-dashed border-primary/50 rounded-lg bg-accent/20 flex items-center justify-between">
+                <p className="text-sm text-primary font-mono">
+                    Next Suggested: <span className="font-bold">{suggestedScalePermutation.scaleItem.key} {suggestedScalePermutation.scaleItem.type}</span>
+                    <span className="text-xs text-muted-foreground ml-2">({suggestedScalePermutation.description})</span>
+                </p>
+                <Button 
+                    onClick={applySuggestedPermutation} 
+                    variant="secondary" 
+                    size="sm"
+                    className="bg-primary text-primary-foreground hover:bg-primary/90"
+                >
+                    Load Suggestion
+                </Button>
+            </div>
+        )}
+
         {/* Primary Selections: Key, Type, Articulation */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             

@@ -19,9 +19,10 @@ interface HanonPracticePanelProps {
     updatePracticeStatus: ReturnType<typeof useScales>['updatePracticeStatus'];
     progressMap: ReturnType<typeof useScales>['progressMap'];
     initialFocus: (NextFocus & { type: 'hanon' }) | undefined;
+    activeTab: 'scales' | 'dohnanyi' | 'hanon'; // Added activeTab prop
 }
 
-const HanonPracticePanel: React.FC<HanonPracticePanelProps> = ({ currentBPM, addLogEntry, updatePracticeStatus, progressMap, initialFocus }) => {
+const HanonPracticePanel: React.FC<HanonPracticePanelProps> = ({ currentBPM, addLogEntry, updatePracticeStatus, progressMap, initialFocus, activeTab }) => {
   
   const { 
     setActivePermutationHighestBPM, 
@@ -30,19 +31,25 @@ const HanonPracticePanel: React.FC<HanonPracticePanelProps> = ({ currentBPM, add
     activePracticeItem: globalActivePracticeItem // Get current global active item
   } = useGlobalBPM();
   
-  const initialExercise = initialFocus?.name || HANON_EXERCISES[0];
-  const [selectedExercise, setSelectedExercise] = useState<HanonExercise>(initialExercise);
+  // Local state for user's current selection
+  const [selectedExercise, setSelectedExercise] = useState<HanonExercise>(HANON_EXERCISES[0]);
   
+  // State for the suggested item from nextFocus
+  const [suggestedHanon, setSuggestedHanon] = useState<(NextFocus & { type: 'hanon' }) | null>(null);
+
+  // Effect to update suggestedHanon when initialFocus changes and is relevant to Hanon
+  useEffect(() => {
+    if (activeTab === 'hanon' && initialFocus && initialFocus.type === 'hanon') {
+        if (!shallowEqual(suggestedHanon, initialFocus)) {
+            setSuggestedHanon(initialFocus);
+        }
+    } else if (suggestedHanon) {
+        setSuggestedHanon(null);
+    }
+  }, [initialFocus, activeTab, suggestedHanon]);
+
   const lastSnapshotTimestampRef = useRef<number>(0); 
   const lastSuccessfulCallKeyRef = useRef<string>(''); 
-
-  // Effect to reset local state when a new initialFocus is provided (i.e., next challenge is queued)
-  useEffect(() => {
-    if (initialFocus && initialFocus.type === 'hanon') {
-        setSelectedExercise(initialFocus.name);
-        lastSuccessfulCallKeyRef.current = ''; // Reset for new focus
-    }
-  }, [initialFocus]);
 
   // Reset BPM visualization when this panel is active
   useEffect(() => {
@@ -139,8 +146,35 @@ const HanonPracticePanel: React.FC<HanonPracticePanelProps> = ({ currentBPM, add
     showSuccess(`${selectedExercise} at ${targetBPM} BPM marked as ${nextStatus}.`);
   };
 
+  // Function to apply the suggested Hanon exercise
+  const applySuggestedHanon = useCallback(() => {
+    if (suggestedHanon) {
+        setSelectedExercise(suggestedHanon.name);
+        lastSuccessfulCallKeyRef.current = ''; // Reset for new snapshot
+        showSuccess(`Loaded suggested: ${suggestedHanon.name}`);
+    }
+  }, [suggestedHanon]);
+
   return (
     <CardContent className="p-0 space-y-6">
+        {/* Suggestion UI */}
+        {suggestedHanon && (
+            <div className="p-3 border border-dashed border-primary/50 rounded-lg bg-accent/20 flex items-center justify-between">
+                <p className="text-sm text-primary font-mono">
+                    Next Suggested: <span className="font-bold">{suggestedHanon.name}</span>
+                    <span className="text-xs text-muted-foreground ml-2">({suggestedHanon.description})</span>
+                </p>
+                <Button 
+                    onClick={applySuggestedHanon} 
+                    variant="secondary" 
+                    size="sm"
+                    className="bg-primary text-primary-foreground hover:bg-primary/90"
+                >
+                    Load Suggestion
+                </Button>
+            </div>
+        )}
+
         <div className="space-y-3 border p-4 rounded-lg border-primary/30 bg-secondary/50">
             <Label className="text-lg font-semibold text-primary block mb-2 font-mono">HANON EXERCISES (1-60)</Label>
             <p className="text-xs text-muted-foreground italic mb-4">

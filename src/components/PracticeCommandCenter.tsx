@@ -190,6 +190,7 @@ const PracticeCommandCenter: React.FC = () => {
                 updateScaleMasteryBPM={updateScaleMasteryBPM}
                 scaleMasteryBPMMap={scaleMasteryBPMMap}
                 allScales={allScales} 
+                activeTab={activeTab}
               />
             </TabsContent>
             <TabsContent value="dohnanyi" className="mt-4">
@@ -199,6 +200,7 @@ const PracticeCommandCenter: React.FC = () => {
                 addLogEntry={addLogEntry} 
                 updatePracticeStatus={updatePracticeStatus} 
                 progressMap={progressMap}
+                activeTab={activeTab}
               />
             </TabsContent>
             <TabsContent value="hanon" className="mt-4">
@@ -208,6 +210,7 @@ const PracticeCommandCenter: React.FC = () => {
                 addLogEntry={addLogEntry} 
                 updatePracticeStatus={updatePracticeStatus} 
                 progressMap={progressMap}
+                activeTab={activeTab}
               />
             </TabsContent>
           </Tabs>
