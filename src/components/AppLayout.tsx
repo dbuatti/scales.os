@@ -1,12 +1,11 @@
 import React from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Gauge, Grid3x3, LogOut, User, Home } from 'lucide-react'; // Added Home icon
+import { Gauge, Grid3x3, LogOut, User, Home } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { useSupabaseSession } from '@/hooks/use-supabase-session';
 import { supabase } from '@/integrations/supabase/client';
 import { showSuccess, showError } from '@/utils/toast';
-import AuthenticatedHeaderControls from './AuthenticatedHeaderControls';
 
 interface NavLinkProps {
     to: string;
@@ -37,7 +36,12 @@ const NavLink: React.FC<NavLinkProps> = ({ to, icon, label }) => {
     );
 };
 
-const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+interface AppLayoutProps {
+    children: React.ReactNode;
+    headerRightContent?: React.ReactNode; // New prop for dynamic content on the right side of the header
+}
+
+const AppLayout: React.FC<AppLayoutProps> = ({ children, headerRightContent }) => {
     const { session, isLoading } = useSupabaseSession();
     const navigate = useNavigate();
 
@@ -47,7 +51,7 @@ const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
             showError("Failed to log out.");
         } else {
             showSuccess("Successfully logged out.");
-            navigate('/login'); // Redirect to login after logout
+            navigate('/login');
         }
     };
 
@@ -60,28 +64,10 @@ const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                         SCALES.OS
                     </h1>
                     <nav className="flex items-center space-x-4">
-                        {session ? (
+                        {headerRightContent ? ( // Render dynamic content if provided
+                            headerRightContent
+                        ) : ( // Otherwise, render default public/unauthenticated links
                             <>
-                                {/* Global Controls (BPM/Timer) */}
-                                <AuthenticatedHeaderControls />
-                                
-                                {/* Navigation Links for Authenticated Users */}
-                                <NavLink to="/" icon={<Gauge className="w-5 h-5" />} label="Command Centre" />
-                                <NavLink to="/progress" icon={<Grid3x3 className="w-5 h-5" />} label="Mastery Matrix" />
-                                
-                                {/* Logout Button */}
-                                <Button 
-                                    variant="ghost" 
-                                    onClick={handleLogout}
-                                    className="flex flex-col items-center p-2 transition-colors duration-200 h-auto text-destructive hover:bg-destructive/20 hover:text-destructive"
-                                >
-                                    <LogOut className="w-5 h-5" />
-                                    <span className="text-xs mt-1 hidden sm:inline font-mono">Logout</span>
-                                </Button>
-                            </>
-                        ) : (
-                            <>
-                                {/* Navigation Links for Unauthenticated Users */}
                                 <NavLink to="/landing" icon={<Home className="w-5 h-5" />} label="Home" />
                                 <Button asChild variant="ghost" className="text-primary hover:bg-primary/20">
                                     <Link to="/login">
