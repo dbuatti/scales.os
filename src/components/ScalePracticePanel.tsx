@@ -7,9 +7,9 @@ import {
   Key, Articulation, TempoLevel,
   DIRECTION_TYPES, HAND_CONFIGURATIONS, RHYTHMIC_PERMUTATIONS, ACCENT_DISTRIBUTIONS, OCTAVE_CONFIGURATIONS,
   DirectionType, HandConfiguration, RhythmicPermutation, AccentDistribution, OctaveConfiguration, TEMPO_LEVELS,
-  getScalePermutationId
+  getScalePermutationId, parseScalePermutationId
 } from '@/lib/scales';
-import { useScales } from '../context/ScalesContext';
+import { useScales, NextFocus } from '../context/ScalesContext';
 import { showSuccess, showError } from '@/utils/toast';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { cn } from '@/lib/utils';
@@ -68,25 +68,37 @@ interface ScalePracticePanelProps {
     updateScaleMasteryBPM: ReturnType<typeof useScales>['updateScaleMasteryBPM']; 
     scaleMasteryBPMMap: ReturnType<typeof useScales>['scaleMasteryBPMMap']; 
     allScales: ReturnType<typeof useScales>['allScales'];
+    initialFocus: (NextFocus & { type: 'scale' }) | undefined;
 }
 
 const ALL_TYPES = [...SCALE_TYPES, ...ARPEGGIO_TYPES];
 
-const ScalePracticePanel: React.FC<ScalePracticePanelProps> = ({ currentBPM, addLogEntry, updatePracticeStatus, updateScaleMasteryBPM, scaleMasteryBPMMap, allScales }) => {
+const ScalePracticePanel: React.FC<ScalePracticePanelProps> = ({ currentBPM, addLogEntry, updatePracticeStatus, updateScaleMasteryBPM, scaleMasteryBPMMap, allScales, initialFocus }) => {
   
   const { setActivePermutationHighestBPM } = useGlobalBPM();
   
+  // Calculate initial state based on prop
+  const initialPermutation = useMemo(() => {
+    if (initialFocus) {
+        return parseScalePermutationId(initialFocus.scalePermutationId);
+    }
+    return null;
+  }, [initialFocus]);
+  
+  const initialKey = initialPermutation?.scaleId.split('-')[0] as Key || KEYS[0];
+  const initialType = initialPermutation?.scaleId.split('-')[1] || ALL_TYPES[0];
+  
   // State for selected parameters
-  const [selectedKey, setSelectedKey] = useState<Key>(KEYS[0]);
-  const [selectedType, setSelectedType] = useState<string>(ALL_TYPES[0]); 
-  const [selectedArticulation, setSelectedArticulation] = useState<Articulation>(ARTICULATIONS[0]);
+  const [selectedKey, setSelectedKey] = useState<Key>(initialKey);
+  const [selectedType, setSelectedType] = useState<string>(initialType); 
+  const [selectedArticulation, setSelectedArticulation] = useState<Articulation>(initialPermutation?.articulation || ARTICULATIONS[0]);
 
   // New states
-  const [selectedDirection, setSelectedDirection] = useState<DirectionType>(DIRECTION_TYPES[2]);
-  const [selectedHandConfig, setSelectedHandConfig] = useState<HandConfiguration>(HAND_CONFIGURATIONS[0]);
-  const [selectedRhythm, setSelectedRhythm] = useState<RhythmicPermutation>(RHYTHMIC_PERMUTATIONS[0]);
-  const [selectedAccent, setSelectedAccent] = useState<AccentDistribution>(ACCENT_DISTRIBUTIONS[3]);
-  const [selectedOctaves, setSelectedOctaves] = useState<OctaveConfiguration>(OCTAVE_CONFIGURATIONS[1]); // Default to 2 Octaves
+  const [selectedDirection, setSelectedDirection] = useState<DirectionType>(initialPermutation?.direction || DIRECTION_TYPES[2]);
+  const [selectedHandConfig, setSelectedHandConfig] = useState<HandConfiguration>(initialPermutation?.handConfig || HAND_CONFIGURATIONS[0]);
+  const [selectedRhythm, setSelectedRhythm] = useState<RhythmicPermutation>(initialPermutation?.rhythm || RHYTHMIC_PERMUTATIONS[0]);
+  const [selectedAccent, setSelectedAccent] = useState<AccentDistribution>(initialPermutation?.accent || ACCENT_DISTRIBUTIONS[3]);
+  const [selectedOctaves, setSelectedOctaves] = useState<OctaveConfiguration>(initialPermutation?.octaves || OCTAVE_CONFIGURATIONS[1]); // Default to 2 Octaves
 
   const selectedTempoLevel = useMemo(() => mapBPMToTempoLevel(currentBPM), [currentBPM]);
 

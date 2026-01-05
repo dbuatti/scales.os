@@ -108,6 +108,54 @@ export const getScalePermutationId = (
   return `${scaleId}-${cleanString(articulation)}-${cleanString(direction)}-${cleanString(handConfig)}-${cleanString(rhythm)}-${cleanString(accent)}-${cleanString(octaves)}`;
 };
 
+// Utility to parse a scale permutation ID back into its components
+export const parseScalePermutationId = (
+  scalePermutationId: string
+): {
+    scaleId: string;
+    articulation: Articulation;
+    direction: DirectionType;
+    handConfig: HandConfiguration;
+    rhythm: RhythmicPermutation;
+    accent: AccentDistribution;
+    octaves: OctaveConfiguration;
+} | null => {
+    const parts = scalePermutationId.split('-');
+    
+    // We expect at least 8 parts: Key, Type, Articulation, Direction, HandConfig, Rhythm, Accent, Octaves
+    // Example: C-Major-Legato-Asc+Descstandard-Handstogether-Straight-Noaccentneutralevenness-2OctavesStandard
+    if (parts.length < 8) return null; 
+
+    const scaleId = `${parts[0]}-${parts[1]}`; 
+    const cleanedPermutationParts = parts.slice(2);
+    
+    const findOriginal = (cleanedPart: string, options: readonly string[]): string | undefined => {
+        return options.find(option => cleanString(option) === cleanedPart);
+    };
+    
+    const articulation = findOriginal(cleanedPermutationParts[0], ARTICULATIONS);
+    const direction = findOriginal(cleanedPermutationParts[1], DIRECTION_TYPES);
+    const handConfig = findOriginal(cleanedPermutationParts[2], HAND_CONFIGURATIONS);
+    const rhythm = findOriginal(cleanedPermutationParts[3], RHYTHMIC_PERMUTATIONS);
+    const accent = findOriginal(cleanedPermutationParts[4], ACCENT_DISTRIBUTIONS);
+    const octaves = findOriginal(cleanedPermutationParts[5], OCTAVE_CONFIGURATIONS);
+
+    if (!articulation || !direction || !handConfig || !rhythm || !accent || !octaves) {
+        console.error("Failed to parse permutation ID components:", scalePermutationId);
+        return null;
+    }
+
+    return {
+        scaleId,
+        articulation: articulation as Articulation,
+        direction: direction as DirectionType,
+        handConfig: handConfig as HandConfiguration,
+        rhythm: rhythm as RhythmicPermutation,
+        accent: accent as AccentDistribution,
+        octaves: octaves as OctaveConfiguration,
+    };
+};
+
 
 // Utility to generate a unique ID for a specific practice combination (used for Grade Tracker based on TempoLevel categories)
 export const getPracticeId = (

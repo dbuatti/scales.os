@@ -5,7 +5,7 @@ import { LogIn, Check } from 'lucide-react';
 import { 
   DOHNANYI_EXERCISES, DohnanyiExercise, DOHNANYI_BPM_TARGETS, DohnanyiBPMTarget, getDohnanyiPracticeId
 } from '@/lib/scales';
-import { useScales } from '../context/ScalesContext';
+import { useScales, NextFocus } from '../context/ScalesContext';
 import { showSuccess, showError } from '@/utils/toast';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { cn } from '@/lib/utils';
@@ -17,13 +17,15 @@ interface DohnanyiPracticePanelProps {
     addLogEntry: ReturnType<typeof useScales>['addLogEntry'];
     updatePracticeStatus: ReturnType<typeof useScales>['updatePracticeStatus'];
     progressMap: ReturnType<typeof useScales>['progressMap'];
-    // Removed setActivePermutationHighestBPM prop
+    initialFocus: (NextFocus & { type: 'dohnanyi' }) | undefined;
 }
 
-const DohnanyiPracticePanel: React.FC<DohnanyiPracticePanelProps> = ({ currentBPM, addLogEntry, updatePracticeStatus, progressMap }) => {
+const DohnanyiPracticePanel: React.FC<DohnanyiPracticePanelProps> = ({ currentBPM, addLogEntry, updatePracticeStatus, progressMap, initialFocus }) => {
   
   const { setActivePermutationHighestBPM } = useGlobalBPM();
-  const [selectedExercise, setSelectedExercise] = useState<DohnanyiExercise>(DOHNANYI_EXERCISES[0]);
+  
+  const initialExercise = initialFocus?.name || DOHNANYI_EXERCISES[0];
+  const [selectedExercise, setSelectedExercise] = useState<DohnanyiExercise>(initialExercise);
   
   // Reset BPM visualization when this panel is active
   useEffect(() => {

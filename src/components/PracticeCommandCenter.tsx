@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { useScales } from '../context/ScalesContext';
@@ -13,8 +13,28 @@ import { MIN_BPM, MAX_BPM } from '@/lib/scales';
 import { formatDistanceToNow } from 'date-fns';
 
 const PracticeCommandCenter: React.FC = () => {
-  const { addLogEntry, allScales, log, progressMap, updatePracticeStatus, updateScaleMasteryBPM, scaleMasteryBPMMap } = useScales();
-  const { currentBPM, activePermutationHighestBPM, handleBpmChange, setCurrentBPM, setActivePermutationHighestBPM } = useGlobalBPM();
+  const { addLogEntry, allScales, log, progressMap, updatePracticeStatus, updateScaleMasteryBPM, scaleMasteryBPMMap, nextFocus } = useScales();
+  const { currentBPM, activePermutationHighestBPM, setCurrentBPM, setActivePermutationHighestBPM } = useGlobalBPM();
+  
+  // Determine initial tab based on nextFocus
+  const initialTab = nextFocus?.type === 'dohnanyi' ? 'dohnanyi' : nextFocus?.type === 'hanon' ? 'hanon' : 'scales';
+  const [activeTab, setActiveTab] = useState<'scales' | 'dohnanyi' | 'hanon'>(initialTab);
+  
+  // Set initial BPM and active tab based on nextFocus when data loads
+  useEffect(() => {
+    if (nextFocus) {
+        if (nextFocus.type === 'scale') {
+            // Set BPM to the next suggested goal (highest mastered + 3, or 40)
+            setCurrentBPM(nextFocus.nextBPMGoal);
+            setActiveTab('scales'); // Fix: Use 'scales' for the tab name
+        } else if (nextFocus.type === 'dohnanyi' || nextFocus.type === 'hanon') {
+            // Set BPM to the target BPM for the next mastery step
+            setCurrentBPM(nextFocus.bpmTarget);
+            setActiveTab(nextFocus.type);
+        }
+    }
+  }, [nextFocus, setCurrentBPM]); 
+
   
   // Find the most recent log entry that includes BPM information
   const lastLogEntry = useMemo(() => {
@@ -93,7 +113,7 @@ const PracticeCommandCenter: React.FC = () => {
 
             {/* Timer Integration (Removed full card view) */}
             <div className="w-full lg:w-1/3">
-                {/* Placeholder for the full timer card if needed, but removing it as requested */}
+                {/* Placeholder for the full timer card if needed, but for now, just show a message */}
                 <div className="block md:hidden">
                     {/* Show full timer on small screens if needed, but for now, just show a message */}
                     <p className="text-sm text-muted-foreground font-mono text-center">
@@ -140,32 +160,38 @@ const PracticeCommandCenter: React.FC = () => {
           <GradeTracker />
 
           {/* Tabbed Practice Panels */}
-          <Tabs defaultValue="scales" className="w-full pt-4">
+          <Tabs 
+            defaultValue="scales" 
+            value={activeTab} 
+            onValueChange={(v) => {
+                setActiveTab(v as 'scales' | 'dohnanyi' | 'hanon');
+                setActivePermutationHighestBPM(0); // Reset BPM visualization when switching tabs
+            }} 
+            className="w-full pt-4"
+          >
             <TabsList className="grid w-full grid-cols-3 bg-secondary/50 border border-primary/30">
               <TabsTrigger 
                 value="scales" 
                 className="font-mono text-primary data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
-                onClick={() => setActivePermutationHighestBPM(0)} // Reset when switching tabs, ScalePanel will update it
               >
                 Scales
               </TabsTrigger>
               <TabsTrigger 
                 value="dohnanyi" 
                 className="font-mono text-primary data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
-                onClick={() => setActivePermutationHighestBPM(0)}
               >
                 Dohnányi
               </TabsTrigger>
             <TabsTrigger 
                 value="hanon" 
                 className="font-mono text-primary data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
-                onClick={() => setActivePermutationHighestBPM(0)}
               >
                 Hanon
               </TabsTrigger>
             </TabsList>
             <TabsContent value="scales" className="mt-4">
               <ScalePracticePanel 
+                initialFocus={nextFocus?.type === 'scale' ? nextFocus : undefined}
                 currentBPM={currentBPM} 
                 addLogEntry={addLogEntry} 
                 updatePracticeStatus={updatePracticeStatus} 
@@ -176,6 +202,7 @@ const PracticeCommandCenter: React.FC = () => {
             </TabsContent>
             <TabsContent value="dohnanyi" className="mt-4">
               <DohnanyiPracticePanel 
+                initialFocus={nextFocus?.type === 'dohnanyi' ? nextFocus : undefined}
                 currentBPM={currentBPM} 
                 addLogEntry={addLogEntry} 
                 updatePracticeStatus={updatePracticeStatus} 
@@ -184,6 +211,7 @@ const PracticeCommandCenter: React.FC = () => {
             </TabsContent>
             <TabsContent value="hanon" className="mt-4">
               <HanonPracticePanel 
+                initialFocus={nextFocus?.type === 'hanon' ? nextFocus : undefined}
                 currentBPM={currentBPM} 
                 addLogEntry={addLogEntry} 
                 updatePracticeStatus={updatePracticeStatus} 

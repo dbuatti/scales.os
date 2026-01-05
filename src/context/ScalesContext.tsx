@@ -1,11 +1,11 @@
 import React, { createContext, useContext, useState, useMemo, useEffect, useCallback } from 'react';
-import { Outlet } from 'react-router-dom'; // Keep Outlet import for reference, but not used in provider itself
 import { 
-  ALL_SCALE_ITEMS, ScaleItem, ARTICULATIONS, TEMPO_LEVELS, Articulation, TempoLevel, getPracticeId,
+  ALL_SCALE_ITEMS, ScaleItem, ARTICULATIONS, TEMPO_LEVELS, Articulation, TempoLevel, 
   DIRECTION_TYPES, HAND_CONFIGURATIONS, RHYTHMIC_PERMUTATIONS, ACCENT_DISTRIBUTIONS, OCTAVE_CONFIGURATIONS,
   DirectionType, HandConfiguration, RhythmicPermutation, AccentDistribution, OctaveConfiguration,
   DohnanyiExercise, DohnanyiItem, ALL_DOHNANYI_ITEMS, DOHNANYI_BPM_TARGETS, getDohnanyiPracticeId, ALL_DOHNANYI_COMBINATIONS,
-  HanonExercise, HanonItem, ALL_HANON_ITEMS, ALL_HANON_COMBINATIONS, getScalePermutationId
+  HanonExercise, HanonItem, ALL_HANON_ITEMS, ALL_HANON_COMBINATIONS, getScalePermutationId,
+  PRACTICE_GRADES, getGradeRequirements,
 } from '@/lib/scales';
 import { useSupabaseSession } from '@/hooks/use-supabase-session';
 import { supabase } from '@/integrations/supabase/client';
@@ -56,11 +56,40 @@ export interface PracticeLogEntry {
   notes: string;
 }
 
+export type NextFocus = 
+  | {
+      type: 'scale';
+      scaleItem: ScaleItem;
+      scalePermutationId: string;
+      requiredBPM: number;
+      currentHighestBPM: number;
+      nextBPMGoal: number;
+      grade: number;
+      description: string;
+    }
+  | {
+      type: 'dohnanyi';
+      name: DohnanyiExercise;
+      bpmTarget: number;
+      grade: number;
+      description: string;
+    }
+  | {
+      type: 'hanon';
+      name: HanonExercise;
+      bpmTarget: number;
+      grade: number;
+      description: string;
+    }
+  | null;
+
+
 interface ScalesContextType {
   progressMap: Record<string, 'practiced' | 'mastered'>; // Used for Dohnanyi/Hanon/Old Grade Tracking
   scaleMasteryBPMMap: Record<string, number>; // Used for granular scale BPM tracking
   log: PracticeLogEntry[];
   isLoading: boolean;
+  nextFocus: NextFocus;
   updatePracticeStatus: (practiceId: string, status: ScaleStatus) => void;
   updateScaleMasteryBPM: (scalePermutationId: string, newBPM: number) => void;
   addLogEntry: (entry: Omit<PracticeLogEntry, 'id' | 'timestamp'>) => void;
@@ -164,6 +193,89 @@ export const ScalesProvider: React.FC<React.PropsWithChildren> = ({ children }) 
       setIsDataLoading(false);
     }
   }, [userId, isSessionLoading, fetchData]);
+
+
+  // 1.5 Calculate Next Focus
+  const nextFocus: NextFocus = useMemo(() => {
+    if (isSessionLoading || isDataLoading) return null;
+    
+    const nextGrade = PRACTICE_GRADES.find(grade => {
+        const requirements = getGradeRequirements(grade.id);
+        
+        return requirements.some(req => {
+            if (req.type === 'scale') {
+                const highestBPM = scaleMasteryBPMMap[req.scalePermutationId] || 0;
+                return highestBPM < req.requiredBPM;
+            } else {
+                return progressMap[req.practiceId] !== 'mastered';
+            }
+        });
+    });
+
+    if (!nextGrade) {
+        return null; // All grades mastered
+    }
+    
+    const requirements = getGradeRequirements(nextGrade.id);
+    
+    // Find the first unmastered requirement
+    const nextRequirement = requirements.find(req => {
+        if (req.type === 'scale') {
+            const highestBPM = scaleMasteryBPMMap[req.scalePermutationId] || 0;
+            return highestBPM < req.requiredBPM;
+        } else {
+            return progressMap[req.practiceId] !== 'mastered';
+        }
+    });
+    
+    if (!nextRequirement) return null;
+
+    if (nextRequirement.type === 'scale') {
+        const highestBPM = scaleMasteryBPMMap[nextRequirement.scalePermutationId] || 0;
+        const nextBPMGoal = highestBPM > 0 ? highestBPM + 3 : 40;
+        
+        // Parse scale details from permutation ID
+        const scaleIdPart = nextRequirement.scalePermutationId.split('-').slice(0, 2).join('-');
+        const scaleItem = ALL_SCALE_ITEMS.find(s => s.id === scaleIdPart);
+        
+        if (scaleItem) {
+            return {
+                type: 'scale',
+                scaleItem,
+                scalePermutationId: nextRequirement.scalePermutationId,
+                requiredBPM: nextRequirement.requiredBPM,
+                currentHighestBPM: highestBPM,
+                nextBPMGoal,
+                grade: nextGrade.id,
+                description: nextRequirement.description,
+            };
+        }
+    } else if (nextRequirement.type === 'dohnanyi') {
+        const dohItem = ALL_DOHNANYI_COMBINATIONS.find(c => c.id === nextRequirement.practiceId);
+        if (dohItem) {
+            return {
+                type: 'dohnanyi',
+                name: dohItem.name,
+                bpmTarget: dohItem.bpm,
+                grade: nextGrade.id,
+                description: nextRequirement.description,
+            };
+        }
+    } else if (nextRequirement.type === 'hanon') {
+        const hanonItem = ALL_HANON_COMBINATIONS.find(c => c.id === nextRequirement.practiceId);
+        if (hanonItem) {
+            return {
+                type: 'hanon',
+                name: hanonItem.name,
+                bpmTarget: hanonItem.bpm,
+                grade: nextGrade.id,
+                description: nextRequirement.description,
+            };
+        }
+    }
+    
+    return null;
+  }, [progressMap, scaleMasteryBPMMap, isSessionLoading, isDataLoading]);
 
 
   // 2. Update Practice Status (Upsert to Supabase - used for Dohnanyi/Hanon/Grade categories)
@@ -297,6 +409,7 @@ export const ScalesProvider: React.FC<React.PropsWithChildren> = ({ children }) 
     scaleMasteryBPMMap,
     log,
     isLoading,
+    nextFocus,
     updatePracticeStatus,
     updateScaleMasteryBPM,
     addLogEntry,
@@ -305,11 +418,11 @@ export const ScalesProvider: React.FC<React.PropsWithChildren> = ({ children }) 
     allDohnanyiCombinations: ALL_DOHNANYI_COMBINATIONS,
     allHanon: ALL_HANON_ITEMS,
     allHanonCombinations: ALL_HANON_COMBINATIONS,
-  }), [progressMap, scaleMasteryBPMMap, log, isLoading, updatePracticeStatus, updateScaleMasteryBPM, addLogEntry]);
+  }), [progressMap, scaleMasteryBPMMap, log, isLoading, nextFocus, updatePracticeStatus, updateScaleMasteryBPM, addLogEntry]);
 
   return (
     <ScalesContext.Provider value={contextValue}>
-      {children} {/* Render children */}
+      {children}
     </ScalesContext.Provider>
   );
 };

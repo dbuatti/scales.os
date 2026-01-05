@@ -5,7 +5,7 @@ import { LogIn, Check } from 'lucide-react';
 import { 
   HANON_EXERCISES, HanonExercise, HANON_BPM_TARGETS, HanonBPMTarget, getHanonPracticeId
 } from '@/lib/scales';
-import { useScales } from '../context/ScalesContext';
+import { useScales, NextFocus } from '../context/ScalesContext';
 import { showSuccess, showError } from '@/utils/toast';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { cn } from '@/lib/utils';
@@ -18,13 +18,15 @@ interface HanonPracticePanelProps {
     addLogEntry: ReturnType<typeof useScales>['addLogEntry'];
     updatePracticeStatus: ReturnType<typeof useScales>['updatePracticeStatus'];
     progressMap: ReturnType<typeof useScales>['progressMap'];
-    // Removed setActivePermutationHighestBPM prop
+    initialFocus: (NextFocus & { type: 'hanon' }) | undefined;
 }
 
-const HanonPracticePanel: React.FC<HanonPracticePanelProps> = ({ currentBPM, addLogEntry, updatePracticeStatus, progressMap }) => {
+const HanonPracticePanel: React.FC<HanonPracticePanelProps> = ({ currentBPM, addLogEntry, updatePracticeStatus, progressMap, initialFocus }) => {
   
   const { setActivePermutationHighestBPM } = useGlobalBPM();
-  const [selectedExercise, setSelectedExercise] = useState<HanonExercise>(HANON_EXERCISES[0]);
+  
+  const initialExercise = initialFocus?.name || HANON_EXERCISES[0];
+  const [selectedExercise, setSelectedExercise] = useState<HanonExercise>(initialExercise);
   
   // Reset BPM visualization when this panel is active
   useEffect(() => {
