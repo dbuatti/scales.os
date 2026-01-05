@@ -309,7 +309,7 @@ const ScalePracticePanel: React.FC<ScalePracticePanelProps> = ({ currentBPM, add
         console.log('[ScalePracticePanel] Cleaning up activeLogSnapshotFunction in GlobalBPMContext.');
         setActiveLogSnapshotFunction(null);
     };
-  }, [setActiveLogSnapshotFunction]); // Only depends on setActiveLogSnapshotFunction (stable from context)
+  }, [setActiveLogSnapshotFunction, latestHandleSaveSnapshotRef]); // Added latestHandleSaveSnapshotRef to dependencies
 
 
   // Determine available keys based on selected type
