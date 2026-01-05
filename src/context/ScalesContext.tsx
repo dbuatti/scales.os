@@ -5,7 +5,7 @@ import {
   DirectionType, HandConfiguration, RhythmicPermutation, AccentDistribution, OctaveConfiguration,
   DohnanyiExercise, DohnanyiItem, ALL_DOHNANYI_ITEMS, DOHNANYI_BPM_TARGETS, getDohnanyiPracticeId, ALL_DOHNANYI_COMBINATIONS,
   HanonExercise, HanonItem, ALL_HANON_ITEMS, ALL_HANON_COMBINATIONS, getScalePermutationId,
-  PRACTICE_GRADES, getGradeRequirements,
+  PRACTICE_GRADES, getGradeRequirements, GradeRequirement, parseScalePermutationId
 } from '@/lib/scales';
 import { useSupabaseSession } from '@/hooks/use-supabase-session';
 import { supabase } from '@/integrations/supabase/client';
@@ -192,7 +192,7 @@ export const ScalesProvider: React.FC<React.PropsWithChildren> = ({ children }) 
   }, [userId, isSessionLoading, fetchData]);
 
 
-  // 1.5 Calculate Next Focus
+  // 1.5 Calculate Next Focus (Enhanced Logic)
   const nextFocus: NextFocus = useMemo(() => {
     if (isSessionLoading || isDataLoading) return null;
     
@@ -215,58 +215,93 @@ export const ScalesProvider: React.FC<React.PropsWithChildren> = ({ children }) 
     
     const requirements = getGradeRequirements(nextGrade.id);
     
-    // Find the first unmastered requirement
-    const nextRequirement = requirements.find(req => {
-        if (req.type === 'scale') {
-            const highestBPM = scaleMasteryBPMMap[req.scalePermutationId] || 0;
-            return highestBPM < req.requiredBPM;
-        } else {
-            return progressMap[req.practiceId] !== 'mastered';
-        }
-    });
-    
-    if (!nextRequirement) return null;
+    // Filter for unmastered requirements and add a 'score' for prioritization
+    const scoredRequirements = requirements
+        .filter(req => {
+            if (req.type === 'scale') {
+                const highestBPM = scaleMasteryBPMMap[req.scalePermutationId] || 0;
+                return highestBPM < req.requiredBPM;
+            } else {
+                return progressMap[req.practiceId] !== 'mastered';
+            }
+        })
+        .map(req => {
+            let score = 0; // Higher score means higher priority
+            if (req.type === 'scale') {
+                const highestBPM = scaleMasteryBPMMap[req.scalePermutationId] || 0;
+                // Prioritize if already practiced (highestBPM > 0)
+                if (highestBPM > 0) {
+                    score += 10; 
+                    // Further prioritize if current highest BPM is close to required BPM
+                    const bpmDifference = req.requiredBPM - highestBPM;
+                    if (bpmDifference <= 10 && bpmDifference > 0) { // Within 10 BPM of goal
+                        score += 5;
+                    } else if (bpmDifference <= 20 && bpmDifference > 0) { // Within 20 BPM of goal
+                        score += 3;
+                    }
+                }
+            } else { // Dohnanyi or Hanon
+                if (progressMap[req.practiceId] === 'practiced') {
+                    score += 10; // Prioritize if already marked as 'practiced'
+                }
+            }
+            return { req, score };
+        })
+        .sort((a, b) => b.score - a.score); // Sort by score descending
 
-    if (nextRequirement.type === 'scale') {
-        const highestBPM = scaleMasteryBPMMap[nextRequirement.scalePermutationId] || 0;
+    // If no unmastered requirements, return null (shouldn't happen if nextGrade exists)
+    if (scoredRequirements.length === 0) return null;
+
+    // Select from the top 3 candidates (or fewer if less than 3 exist) to introduce some randomness
+    const topCandidates = scoredRequirements.slice(0, Math.min(3, scoredRequirements.length));
+    const randomIndex = Math.floor(Math.random() * topCandidates.length);
+    const selectedRequirement = topCandidates[randomIndex].req;
+    
+    if (!selectedRequirement) return null;
+
+    if (selectedRequirement.type === 'scale') {
+        const highestBPM = scaleMasteryBPMMap[selectedRequirement.scalePermutationId] || 0;
         const nextBPMGoal = highestBPM > 0 ? highestBPM + 3 : 40;
         
         // Parse scale details from permutation ID
-        const scaleIdPart = nextRequirement.scalePermutationId.split('-').slice(0, 2).join('-');
+        const parsed = parseScalePermutationId(selectedRequirement.scalePermutationId);
+        if (!parsed) return null; // Should not happen with valid IDs
+        
+        const scaleIdPart = parsed.scaleId;
         const scaleItem = ALL_SCALE_ITEMS.find(s => s.id === scaleIdPart);
         
         if (scaleItem) {
             return {
                 type: 'scale',
                 scaleItem,
-                scalePermutationId: nextRequirement.scalePermutationId,
-                requiredBPM: nextRequirement.requiredBPM,
+                scalePermutationId: selectedRequirement.scalePermutationId,
+                requiredBPM: selectedRequirement.requiredBPM,
                 currentHighestBPM: highestBPM,
                 nextBPMGoal,
                 grade: nextGrade.id,
-                description: nextRequirement.description,
+                description: selectedRequirement.description,
             };
         }
-    } else if (nextRequirement.type === 'dohnanyi') {
-        const dohItem = ALL_DOHNANYI_COMBINATIONS.find(c => c.id === nextRequirement.practiceId);
+    } else if (selectedRequirement.type === 'dohnanyi') {
+        const dohItem = ALL_DOHNANYI_COMBINATIONS.find(c => c.id === selectedRequirement.practiceId);
         if (dohItem) {
             return {
                 type: 'dohnanyi',
                 name: dohItem.name,
                 bpmTarget: dohItem.bpm,
                 grade: nextGrade.id,
-                description: nextRequirement.description,
+                description: selectedRequirement.description,
             };
         }
-    } else if (nextRequirement.type === 'hanon') {
-        const hanonItem = ALL_HANON_COMBINATIONS.find(c => c.id === nextRequirement.practiceId);
+    } else if (selectedRequirement.type === 'hanon') {
+        const hanonItem = ALL_HANON_COMBINATIONS.find(c => c.id === selectedRequirement.practiceId);
         if (hanonItem) {
             return {
                 type: 'hanon',
                 name: hanonItem.name,
                 bpmTarget: hanonItem.bpm,
                 grade: nextGrade.id,
-                description: nextRequirement.description,
+                description: selectedRequirement.description,
             };
         }
     }
@@ -281,8 +316,6 @@ export const ScalesProvider: React.FC<React.PropsWithChildren> = ({ children }) 
       showError("You must be logged in to save progress.");
       return;
     }
-
-    // console.log(`[ScalesContext] updatePracticeStatus called: ${practiceId} -> ${status}`); // Removed log
 
     if (status === 'untouched') {
       // Delete entry if status is untouched
