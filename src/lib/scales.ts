@@ -180,21 +180,6 @@ export const getTempoLevelBPMThreshold = (tempo: TempoLevel): number => {
     return 0;
 };
 
-// Utility to generate a unique ID for a specific Dohnanyi exercise at a BPM target
-export const getDohnanyiPracticeId = (
-  exercise: DohnanyiExercise, 
-  bpm: DohnanyiBPMTarget
-): string => {
-  return `Dohnanyi-${cleanString(exercise)}-${bpm}BPM`;
-};
-
-// NEW: Utility to generate a base ID for a Dohnanyi exercise (without BPM)
-export const getDohnanyiExerciseBaseId = (
-  exercise: DohnanyiExercise
-): string => {
-  return `Dohnanyi-${cleanString(exercise)}`;
-};
-
 
 // --- Dohnányi Exercises ---
 export const DOHNANYI_EXERCISES = [
@@ -205,6 +190,13 @@ export const DOHNANYI_EXERCISES = [
 
 export type DohnanyiExercise = typeof DOHNANYI_EXERCISES[number];
 
+// NEW: Utility to generate a base ID for a Dohnanyi exercise (without BPM)
+export const getDohnanyiExerciseBaseId = (
+  exercise: DohnanyiExercise
+): string => {
+  return `Dohnanyi-${cleanString(exercise)}`;
+};
+
 export type DohnanyiItem = {
   type: 'Dohnanyi';
   name: DohnanyiExercise;
@@ -214,11 +206,19 @@ export type DohnanyiItem = {
 export const ALL_DOHNANYI_ITEMS: DohnanyiItem[] = DOHNANYI_EXERCISES.map(name => ({
     type: 'Dohnanyi',
     name,
-    id: getDohnanyiExerciseBaseId(name), // Use the new base ID function
+    id: getDohnanyiExerciseBaseId(name),
 }));
 
 export const DOHNANYI_BPM_TARGETS = [60, 80, 100, 120, 140, 160] as const;
 export type DohnanyiBPMTarget = typeof DOHNANYI_BPM_TARGETS[number];
+
+// Utility to generate a unique ID for a specific Dohnanyi exercise at a BPM target
+export const getDohnanyiPracticeId = (
+  exercise: DohnanyiExercise, 
+  bpm: DohnanyiBPMTarget
+): string => {
+  return `Dohnanyi-${cleanString(exercise)}-${bpm}BPM`;
+};
 
 export const ALL_DOHNANYI_COMBINATIONS: { id: string, name: DohnanyiExercise, bpm: DohnanyiBPMTarget }[] = [];
 DOHNANYI_EXERCISES.forEach(name => {
@@ -238,6 +238,13 @@ export const HANON_EXERCISES = HANON_EXERCISE_NAMES as Readonly<typeof HANON_EXE
 
 export type HanonExercise = typeof HANON_EXERCISES[number];
 
+// NEW: Utility to generate a base ID for a Hanon exercise (without BPM)
+export const getHanonExerciseBaseId = (
+  exercise: HanonExercise
+): string => {
+  return `Hanon-${cleanString(exercise)}`;
+};
+
 export type HanonItem = {
   type: 'Hanon';
   name: HanonExercise;
@@ -247,11 +254,19 @@ export type HanonItem = {
 export const ALL_HANON_ITEMS: HanonItem[] = HANON_EXERCISES.map(name => ({
     type: 'Hanon',
     name,
-    id: getHanonExerciseBaseId(name), // Use the new base ID function
+    id: getHanonExerciseBaseId(name),
 }));
 
 export const HANON_BPM_TARGETS = [60, 80, 100, 120, 140, 160] as const;
 export type HanonBPMTarget = typeof HANON_BPM_TARGETS[number];
+
+// Utility to generate a unique ID for a specific Hanon exercise at a BPM target
+export const getHanonPracticeId = (
+  exercise: HanonExercise,
+  bpm: HanonBPMTarget
+): string => {
+  return `Hanon-${cleanString(exercise)}-${bpm}BPM`;
+};
 
 export const ALL_HANON_COMBINATIONS: { id: string, name: HanonExercise, bpm: HanonBPMTarget }[] = [];
 HANON_EXERCISES.forEach(name => {
@@ -263,21 +278,6 @@ HANON_EXERCISES.forEach(name => {
         });
     });
 });
-
-// NEW: Utility to generate a base ID for a Hanon exercise (without BPM)
-export const getHanonExerciseBaseId = (
-  exercise: HanonExercise
-): string => {
-  return `Hanon-${cleanString(exercise)}`;
-};
-
-// Utility to generate a unique ID for a specific Hanon exercise at a BPM target
-export const getHanonPracticeId = (
-  exercise: HanonExercise,
-  bpm: HanonBPMTarget
-): string => {
-  return `Hanon-${cleanString(exercise)}-${bpm}BPM`;
-};
 
 
 // --- Grading System ---
