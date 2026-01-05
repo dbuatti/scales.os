@@ -14,7 +14,7 @@ import { showSuccess, showError } from '@/utils/toast';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { cn } from '@/lib/utils';
 import { Label } from '@/components/ui/label';
-import { useGlobalBPM } from '@/context/GlobalBPMContext';
+import { useGlobalBPM, SNAPSHOT_DEBOUNCE_MS } from '@/context/GlobalBPMContext';
 
 // Helper function to map BPM to TempoLevel string for progress ID compatibility (kept for logging)
 const mapBPMToTempoLevel = (bpm: number): TempoLevel => {
@@ -77,8 +77,9 @@ const ScalePracticePanel: React.FC<ScalePracticePanelProps> = ({ currentBPM, add
   
   const { setActivePermutationHighestBPM, setActivePracticeItem, setActiveLogSnapshotFunction } = useGlobalBPM();
   
-  // Add a ref to track if we've already handled the current focus
-  const handledFocusRef = useRef<string>('');
+  // Add refs for debounce logic
+  const lastSnapshotTimestampRef = useRef<number>(0); 
+  const lastSuccessfulCallKeyRef = useRef<string>(''); 
   
   // Calculate initial state based on prop
   const initialPermutation = useMemo(() => {
@@ -125,8 +126,8 @@ const ScalePracticePanel: React.FC<ScalePracticePanelProps> = ({ currentBPM, add
             setSelectedAccent(parsed.accent);
             setSelectedOctaves(parsed.octaves);
             
-            // Reset the handled focus ref to allow new handling
-            handledFocusRef.current = '';
+            // Reset the last successful call key to allow new handling
+            lastSuccessfulCallKeyRef.current = '';
         }
     }
   }, [initialFocus]);
@@ -174,22 +175,30 @@ const ScalePracticePanel: React.FC<ScalePracticePanelProps> = ({ currentBPM, add
 
   // Define the snapshot function using useCallback
   const handleSaveSnapshot = useCallback(() => {
+    const now = Date.now();
+    if (now - lastSnapshotTimestampRef.current < SNAPSHOT_DEBOUNCE_MS) {
+      console.log(`[ScalePracticePanel] Snapshot debounced - too soon since last call (${now - lastSnapshotTimestampRef.current}ms since last snapshot).`);
+      return;
+    }
+    
     if (!result) {
         showError("Please select a valid scale/arpeggio combination.");
         return;
     }
     const { scaleItem, scalePermutationId } = result;
 
-    console.log(`[ScalePracticePanel] handleSaveSnapshot called. Current BPM: ${currentBPM}, Highest Mastered: ${highestMasteredBPM}, Permutation ID: ${scalePermutationId}`);
-    
-    // Prevent duplicate calls for the same permutation and BPM
-    const callKey = `${scalePermutationId}-${currentBPM}`;
-    if (handledFocusRef.current === callKey) {
-        console.log(`[ScalePracticePanel] Duplicate call detected for ${callKey}, skipping.`);
+    const currentCallKey = `${scalePermutationId}-${currentBPM}`;
+    if (lastSuccessfulCallKeyRef.current === currentCallKey) {
+        console.log(`[ScalePracticePanel] Duplicate call detected for ${currentCallKey}, skipping.`);
         return;
     }
-    handledFocusRef.current = callKey;
 
+    // If we reach here, it's a valid call after debounce and not a duplicate key
+    lastSnapshotTimestampRef.current = now; // Update timestamp for successful call
+    lastSuccessfulCallKeyRef.current = currentCallKey; // Update the last successful call key
+
+    console.log(`[ScalePracticePanel] handleSaveSnapshot called. Current BPM: ${currentBPM}, Highest Mastered: ${highestMasteredBPM}, Permutation ID: ${scalePermutationId}`);
+    
     let message = `Snapshot logged at ${currentBPM} BPM.`;
     
     // 1. Check and update the highest mastered BPM
@@ -267,8 +276,6 @@ const ScalePracticePanel: React.FC<ScalePracticePanelProps> = ({ currentBPM, add
     nextBPMGoal, 
     result, 
     setActiveLogSnapshotFunction,
-    // Removed handleSaveSnapshot from dependencies to prevent re-renders
-    // The stableSnapshotFunction now ensures we always call the latest handleSaveSnapshot
   ]);
 
 

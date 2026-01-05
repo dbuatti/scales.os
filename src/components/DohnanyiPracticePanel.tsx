@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect, useCallback } from 'react';
+import React, { useState, useMemo, useEffect, useCallback, useRef } from 'react';
 import { CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { LogIn, Check } from 'lucide-react';
@@ -10,7 +10,7 @@ import { showSuccess, showError } from '@/utils/toast';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { cn } from '@/lib/utils';
 import { Label } from '@/components/ui/label';
-import { useGlobalBPM } from '@/context/GlobalBPMContext';
+import { useGlobalBPM, SNAPSHOT_DEBOUNCE_MS } from '@/context/GlobalBPMContext';
 
 interface DohnanyiPracticePanelProps {
     currentBPM: number;
@@ -27,10 +27,14 @@ const DohnanyiPracticePanel: React.FC<DohnanyiPracticePanelProps> = ({ currentBP
   const initialExercise = initialFocus?.name || DOHNANYI_EXERCISES[0];
   const [selectedExercise, setSelectedExercise] = useState<DohnanyiExercise>(initialExercise);
   
+  const lastSnapshotTimestampRef = useRef<number>(0); 
+  const lastSuccessfulCallKeyRef = useRef<string>(''); 
+
   // Effect to reset local state when a new initialFocus is provided (i.e., next challenge is queued)
   useEffect(() => {
     if (initialFocus && initialFocus.type === 'dohnanyi') {
         setSelectedExercise(initialFocus.name);
+        lastSuccessfulCallKeyRef.current = ''; // Reset for new focus
     }
   }, [initialFocus]);
 
@@ -58,6 +62,21 @@ const DohnanyiPracticePanel: React.FC<DohnanyiPracticePanelProps> = ({ currentBP
 
   // Define the snapshot function using useCallback
   const handleLogSnapshot = useCallback(() => {
+    const now = Date.now();
+    if (now - lastSnapshotTimestampRef.current < SNAPSHOT_DEBOUNCE_MS) {
+      console.log(`[DohnanyiPracticePanel] Snapshot debounced - too soon since last call (${now - lastSnapshotTimestampRef.current}ms since last snapshot).`);
+      return;
+    }
+
+    const currentCallKey = `${selectedExercise}-${currentBPM}`;
+    if (lastSuccessfulCallKeyRef.current === currentCallKey) {
+        console.log(`[DohnanyiPracticePanel] Duplicate call detected for ${currentCallKey}, skipping.`);
+        return;
+    }
+
+    lastSnapshotTimestampRef.current = now;
+    lastSuccessfulCallKeyRef.current = currentCallKey;
+
     // Log the snapshot (durationMinutes: 0 indicates a snapshot log)
     addLogEntry({
       durationMinutes: 0, 

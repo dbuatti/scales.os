@@ -1,6 +1,8 @@
 import React, { createContext, useContext, useState, useMemo, useCallback } from 'react';
 import { MIN_BPM, MAX_BPM } from '@/lib/scales';
 
+export const SNAPSHOT_DEBOUNCE_MS = 1000; // 1 second debounce
+
 export type ActivePracticeItem = 
   | { type: 'scale', key: string, scaleType: string, articulation: string, octaves: string, highestBPM: number, nextGoalBPM: number }
   | { type: 'dohnanyi', name: string, nextTargetBPM: number, isMastered: boolean }
