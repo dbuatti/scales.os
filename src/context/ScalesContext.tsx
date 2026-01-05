@@ -4,7 +4,7 @@ import {
   DIRECTION_TYPES, HAND_CONFIGURATIONS, RHYTHMIC_PERMUTATIONS, ACCENT_DISTRIBUTIONS, OCTAVE_CONFIGURATIONS,
   DirectionType, HandConfiguration, RhythmicPermutation, AccentDistribution, OctaveConfiguration,
   DohnanyiExercise, DohnanyiItem, ALL_DOHNANYI_ITEMS, DOHNANYI_BPM_TARGETS, getDohnanyiPracticeId, ALL_DOHNANYI_COMBINATIONS,
-  HanonExercise, HanonItem, ALL_HANON_ITEMS, ALL_HANON_COMBINATIONS, getScalePermutationId,
+  HanonExercise, HanonItem, ALL_HANON_ITEMS, ALL_HANON_COMBINATIONS, getHanonPracticeId, getScalePermutationId,
   PRACTICE_GRADES, getGradeRequirements, GradeRequirement, parseScalePermutationId
 } from '@/lib/scales';
 import { useSupabaseSession } from '@/hooks/use-supabase-session';
@@ -15,7 +15,8 @@ import { showSuccess, showError } from '@/utils/toast';
 
 export type ScaleStatus = 'untouched' | 'practiced' | 'mastered';
 
-// Progress is now keyed by a combination ID (Dohnanyi/Hanon/Grade Tracker specific)
+// Progress is now keyed by a combination ID (Dohnanyi/Hanon/Old Grade Tracking)
+// This type is now primarily for legacy or other non-BPM tracked progress if any remain.
 export interface StoredProgressEntry {
   practice_id: string;
   status: 'practiced' | 'mastered';
@@ -23,6 +24,12 @@ export interface StoredProgressEntry {
 
 export interface ScaleMasteryEntry {
   scale_permutation_id: string;
+  highest_mastered_bpm: number;
+}
+
+// New type for Dohnanyi/Hanon exercise mastery
+export interface ExerciseMasteryEntry {
+  exercise_id: string;
   highest_mastered_bpm: number;
 }
 
@@ -70,14 +77,20 @@ export type NextFocus =
   | {
       type: 'dohnanyi';
       name: DohnanyiExercise;
-      bpmTarget: number;
+      exerciseId: string; // New: unique ID for the exercise
+      requiredBPM: number; // New: required BPM for grade
+      currentHighestBPM: number; // New: current highest BPM for this exercise
+      nextBPMGoal: number; // New: next incremental goal
       grade: number;
       description: string;
     }
   | {
       type: 'hanon';
       name: HanonExercise;
-      bpmTarget: number;
+      exerciseId: string; // New: unique ID for the exercise
+      requiredBPM: number; // New: required BPM for grade
+      currentHighestBPM: number; // New: current highest BPM for this exercise
+      nextBPMGoal: number; // New: next incremental goal
       grade: number;
       description: string;
     }
@@ -85,13 +98,15 @@ export type NextFocus =
 
 
 interface ScalesContextType {
-  progressMap: Record<string, 'practiced' | 'mastered'>; // Used for Dohnanyi/Hanon/Old Grade Tracking
+  progressMap: Record<string, 'practiced' | 'mastered'>; // Used for Dohnanyi/Hanon/Old Grade Tracking (will be phased out for Dohnanyi/Hanon)
   scaleMasteryBPMMap: Record<string, number>; // Used for granular scale BPM tracking
+  exerciseMasteryBPMMap: Record<string, number>; // New: Used for Dohnanyi/Hanon BPM tracking
   log: PracticeLogEntry[];
   isLoading: boolean;
   nextFocus: NextFocus;
-  updatePracticeStatus: (practiceId: string, status: ScaleStatus) => void;
+  updatePracticeStatus: (practiceId: string, status: ScaleStatus) => void; // Will be for non-BPM tracked items
   updateScaleMasteryBPM: (scalePermutationId: string, newBPM: number) => void;
+  updateExerciseMasteryBPM: (exerciseId: string, newBPM: number) => void; // New: for Dohnanyi/Hanon
   addLogEntry: (entry: Omit<PracticeLogEntry, 'id' | 'timestamp'>) => void;
   allScales: ScaleItem[];
   allDohnanyi: DohnanyiItem[];
@@ -115,8 +130,9 @@ const progressArrayToMap = (arr: StoredProgressEntry[]): Record<string, 'practic
 // ScalesProvider now accepts and renders children
 export const ScalesProvider: React.FC<React.PropsWithChildren> = ({ children }) => {
   const { userId, isLoading: isSessionLoading } = useSupabaseSession();
-  const [progressMap, setProgressMap] = useState<Record<string, 'practiced' | 'mastered'>>({});
+  const [progressMap, setProgressMap] = useState<Record<string, 'practiced' | 'mastered'>>({}); // Legacy for now
   const [scaleMasteryBPMMap, setScaleMasteryBPMMap] = useState<Record<string, number>>({});
+  const [exerciseMasteryBPMMap, setExerciseMasteryBPMMap] = useState<Record<string, number>>({}); // New state
   const [log, setLog] = useState<PracticeLogEntry[]>([]);
   const [isDataLoading, setIsDataLoading] = useState(true);
 
@@ -126,7 +142,7 @@ export const ScalesProvider: React.FC<React.PropsWithChildren> = ({ children }) 
   const fetchData = useCallback(async (id: string) => {
     setIsDataLoading(true);
     
-    // Fetch Progress (Dohnanyi/Hanon/Old Grade Tracking)
+    // Fetch Progress (Legacy for now, might be removed if all tracking moves to BPM)
     const { data: progressData, error: progressError } = await supabase
       .from('user_progress')
       .select('practice_id, status')
@@ -154,6 +170,21 @@ export const ScalesProvider: React.FC<React.PropsWithChildren> = ({ children }) 
       setScaleMasteryBPMMap(bpmMap);
     }
 
+    // Fetch Exercise BPM Mastery (NEW)
+    const { data: exerciseMasteryData, error: exerciseMasteryError } = await supabase
+      .from('exercise_mastery')
+      .select('exercise_id, highest_mastered_bpm')
+      .eq('user_id', id);
+
+    if (exerciseMasteryError) {
+      showError("Failed to load exercise BPM progress.");
+    } else if (exerciseMasteryData) {
+      const bpmMap = exerciseMasteryData.reduce((acc, item) => {
+        acc[item.exercise_id] = item.highest_mastered_bpm;
+        return acc;
+      }, {} as Record<string, number>);
+      setExerciseMasteryBPMMap(bpmMap);
+    }
 
     // Fetch Logs
     const { data: logData, error: logError } = await supabase
@@ -186,6 +217,7 @@ export const ScalesProvider: React.FC<React.PropsWithChildren> = ({ children }) 
       // If not logged in, clear state and stop loading
       setProgressMap({});
       setScaleMasteryBPMMap({});
+      setExerciseMasteryBPMMap({}); // Clear new map
       setLog([]);
       setIsDataLoading(false);
     }
@@ -203,8 +235,10 @@ export const ScalesProvider: React.FC<React.PropsWithChildren> = ({ children }) 
             if (req.type === 'scale') {
                 const highestBPM = scaleMasteryBPMMap[req.scalePermutationId] || 0;
                 return highestBPM < req.requiredBPM;
-            } else {
-                return progressMap[req.practiceId] !== 'mastered';
+            } else { // Dohnanyi or Hanon
+                // Now check against exerciseMasteryBPMMap
+                const highestBPM = exerciseMasteryBPMMap[req.practiceId] || 0;
+                return highestBPM < req.requiredBPM;
             }
         });
     });
@@ -221,8 +255,9 @@ export const ScalesProvider: React.FC<React.PropsWithChildren> = ({ children }) 
             if (req.type === 'scale') {
                 const highestBPM = scaleMasteryBPMMap[req.scalePermutationId] || 0;
                 return highestBPM < req.requiredBPM;
-            } else {
-                return progressMap[req.practiceId] !== 'mastered';
+            } else { // Dohnanyi or Hanon
+                const highestBPM = exerciseMasteryBPMMap[req.practiceId] || 0;
+                return highestBPM < req.requiredBPM;
             }
         })
         .map(req => {
@@ -241,8 +276,15 @@ export const ScalesProvider: React.FC<React.PropsWithChildren> = ({ children }) 
                     }
                 }
             } else { // Dohnanyi or Hanon
-                if (progressMap[req.practiceId] === 'practiced') {
-                    score += 10; // Prioritize if already marked as 'practiced'
+                const highestBPM = exerciseMasteryBPMMap[req.practiceId] || 0;
+                if (highestBPM > 0) { // Prioritize if already practiced
+                    score += 10;
+                    const bpmDifference = req.requiredBPM - highestBPM;
+                    if (bpmDifference <= 10 && bpmDifference > 0) {
+                        score += 5;
+                    } else if (bpmDifference <= 20 && bpmDifference > 0) {
+                        score += 3;
+                    }
                 }
             }
             return { req, score };
@@ -283,23 +325,33 @@ export const ScalesProvider: React.FC<React.PropsWithChildren> = ({ children }) 
             };
         }
     } else if (selectedRequirement.type === 'dohnanyi') {
-        const dohItem = ALL_DOHNANYI_COMBINATIONS.find(c => c.id === selectedRequirement.practiceId);
+        const dohItem = ALL_DOHNANYI_COMBINATIONS.find(c => c.id === selectedRequirement.practiceId); // Use practiceId
         if (dohItem) {
+            const currentHighestBPM = exerciseMasteryBPMMap[selectedRequirement.practiceId] || 0;
+            const nextBPMGoal = currentHighestBPM > 0 ? currentHighestBPM + 3 : 40;
             return {
                 type: 'dohnanyi',
                 name: dohItem.name,
-                bpmTarget: dohItem.bpm,
+                exerciseId: dohItem.id,
+                requiredBPM: selectedRequirement.requiredBPM,
+                currentHighestBPM: currentHighestBPM,
+                nextBPMGoal: nextBPMGoal,
                 grade: nextGrade.id,
                 description: selectedRequirement.description,
             };
         }
     } else if (selectedRequirement.type === 'hanon') {
-        const hanonItem = ALL_HANON_COMBINATIONS.find(c => c.id === selectedRequirement.practiceId);
+        const hanonItem = ALL_HANON_COMBINATIONS.find(c => c.id === selectedRequirement.practiceId); // Use practiceId
         if (hanonItem) {
+            const currentHighestBPM = exerciseMasteryBPMMap[selectedRequirement.practiceId] || 0;
+            const nextBPMGoal = currentHighestBPM > 0 ? currentHighestBPM + 3 : 40;
             return {
                 type: 'hanon',
                 name: hanonItem.name,
-                bpmTarget: hanonItem.bpm,
+                exerciseId: hanonItem.id,
+                requiredBPM: selectedRequirement.requiredBPM,
+                currentHighestBPM: currentHighestBPM,
+                nextBPMGoal: nextBPMGoal,
                 grade: nextGrade.id,
                 description: selectedRequirement.description,
             };
@@ -307,10 +359,11 @@ export const ScalesProvider: React.FC<React.PropsWithChildren> = ({ children }) 
     }
     
     return null;
-  }, [progressMap, scaleMasteryBPMMap, isSessionLoading, isDataLoading]);
+  }, [progressMap, scaleMasteryBPMMap, exerciseMasteryBPMMap, isSessionLoading, isDataLoading]);
 
 
   // 2. Update Practice Status (Upsert to Supabase - used for Dohnanyi/Hanon/Grade categories)
+  // This function will now primarily be for non-BPM tracked items if any remain.
   const updatePracticeStatus = useCallback(async (practiceId: string, status: ScaleStatus) => {
     if (!userId) {
       showError("You must be logged in to save progress.");
@@ -390,8 +443,35 @@ export const ScalesProvider: React.FC<React.PropsWithChildren> = ({ children }) 
     
   }, [userId]);
 
+  // 4. Update Exercise Mastery BPM (NEW: Upsert to Supabase - for Dohnanyi/Hanon granular tracking)
+  const updateExerciseMasteryBPM = useCallback(async (exerciseId: string, newBPM: number) => {
+    if (!userId) {
+      showError("You must be logged in to save exercise BPM progress.");
+      return;
+    }
 
-  // 4. Add Log Entry (Insert to Supabase)
+    const { error } = await supabase
+        .from('exercise_mastery')
+        .upsert({
+            user_id: userId,
+            exercise_id: exerciseId,
+            highest_mastered_bpm: newBPM,
+            last_practiced_at: new Date().toISOString(),
+        }, { onConflict: 'user_id, exercise_id' });
+
+    if (error) {
+        showError("Failed to save exercise BPM progress.");
+        return;
+    }
+
+    setExerciseMasteryBPMMap(prev => ({
+        ...prev,
+        [exerciseId]: newBPM,
+    }));
+  }, [userId]);
+
+
+  // 5. Add Log Entry (Insert to Supabase)
   const addLogEntry = useCallback(async (entry: Omit<PracticeLogEntry, 'id' | 'timestamp'>) => {
     if (!userId) {
       showError("You must be logged in to log practice sessions.");
@@ -435,18 +515,23 @@ export const ScalesProvider: React.FC<React.PropsWithChildren> = ({ children }) 
   const contextValue = useMemo(() => ({
     progressMap,
     scaleMasteryBPMMap,
+    exerciseMasteryBPMMap, // Include new map
     log,
     isLoading,
     nextFocus,
     updatePracticeStatus,
     updateScaleMasteryBPM,
+    updateExerciseMasteryBPM, // Include new function
     addLogEntry,
     allScales: ALL_SCALE_ITEMS,
     allDohnanyi: ALL_DOHNANYI_ITEMS,
     allDohnanyiCombinations: ALL_DOHNANYI_COMBINATIONS,
     allHanon: ALL_HANON_ITEMS,
     allHanonCombinations: ALL_HANON_COMBINATIONS,
-  }), [progressMap, scaleMasteryBPMMap, log, isLoading, nextFocus, updatePracticeStatus, updateScaleMasteryBPM, addLogEntry]);
+  }), [
+    progressMap, scaleMasteryBPMMap, exerciseMasteryBPMMap, log, isLoading, nextFocus, 
+    updatePracticeStatus, updateScaleMasteryBPM, updateExerciseMasteryBPM, addLogEntry
+  ]);
 
   return (
     <ScalesContext.Provider value={contextValue}>
