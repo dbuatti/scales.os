@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { useScales } from '../context/ScalesContext';
@@ -16,6 +16,10 @@ import PracticeSummaryPanel from './PracticeSummaryPanel';
 const PracticeCommandCenter: React.FC = () => {
   const { addLogEntry, allScales, log, progressMap, updatePracticeStatus, updateScaleMasteryBPM, scaleMasteryBPMMap, nextFocus } = useScales();
   const { currentBPM, activePermutationHighestBPM, setCurrentBPM, setActivePermutationHighestBPM } = useGlobalBPM();
+  
+  // Add a ref to debounce snapshot calls
+  const lastSnapshotRef = useRef<number>(0);
+  const SNAPSHOT_DEBOUNCE_MS = 1000; // 1 second debounce
   
   // Determine initial tab based on nextFocus
   const initialTab = nextFocus?.type === 'dohnanyi' ? 'dohnanyi' : nextFocus?.type === 'hanon' ? 'hanon' : 'scales';
@@ -65,6 +69,25 @@ const PracticeCommandCenter: React.FC = () => {
     return Math.min(100, (masteredBPMAdjusted / range) * 100);
   }, [activePermutationHighestBPM]);
 
+  // Debounced snapshot handler
+  const handleSnapshotClick = () => {
+    const now = Date.now();
+    if (now - lastSnapshotRef.current < SNAPSHOT_DEBOUNCE_MS) {
+      console.log(`[PracticeCommandCenter] Snapshot debounced - too soon since last call`);
+      return;
+    }
+    lastSnapshotRef.current = now;
+    
+    // Get the current snapshot function from context
+    const { activeLogSnapshotFunction } = useGlobalBPM();
+    
+    if (activeLogSnapshotFunction) {
+      console.log(`[PracticeCommandCenter] Calling snapshot function`);
+      activeLogSnapshotFunction();
+    } else {
+      console.log(`[PracticeCommandCenter] No snapshot function available`);
+    }
+  };
 
   return (
     <div className="p-4 md:p-8 min-h-[calc(100vh-64px)] flex flex-col items-center justify-start bg-background">

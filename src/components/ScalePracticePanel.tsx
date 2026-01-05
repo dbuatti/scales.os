@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect, useCallback } from 'react';
+import React, { useState, useMemo, useEffect, useCallback, useRef } from 'react';
 import { CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { LogIn } from 'lucide-react';
@@ -77,6 +77,9 @@ const ScalePracticePanel: React.FC<ScalePracticePanelProps> = ({ currentBPM, add
   
   const { setActivePermutationHighestBPM, setActivePracticeItem, setActiveLogSnapshotFunction } = useGlobalBPM();
   
+  // Add a ref to track if we've already handled the current focus
+  const handledFocusRef = useRef<string>('');
+  
   // Calculate initial state based on prop
   const initialPermutation = useMemo(() => {
     if (initialFocus) {
@@ -121,6 +124,9 @@ const ScalePracticePanel: React.FC<ScalePracticePanelProps> = ({ currentBPM, add
             setSelectedRhythm(parsed.rhythm);
             setSelectedAccent(parsed.accent);
             setSelectedOctaves(parsed.octaves);
+            
+            // Reset the handled focus ref to allow new handling
+            handledFocusRef.current = '';
         }
     }
   }, [initialFocus]);
@@ -176,6 +182,14 @@ const ScalePracticePanel: React.FC<ScalePracticePanelProps> = ({ currentBPM, add
 
     console.log(`[ScalePracticePanel] handleSaveSnapshot called. Current BPM: ${currentBPM}, Highest Mastered: ${highestMasteredBPM}, Permutation ID: ${scalePermutationId}`);
     
+    // Prevent duplicate calls for the same permutation and BPM
+    const callKey = `${scalePermutationId}-${currentBPM}`;
+    if (handledFocusRef.current === callKey) {
+        console.log(`[ScalePracticePanel] Duplicate call detected for ${callKey}, skipping.`);
+        return;
+    }
+    handledFocusRef.current = callKey;
+
     let message = `Snapshot logged at ${currentBPM} BPM.`;
     
     // 1. Check and update the highest mastered BPM
