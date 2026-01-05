@@ -255,12 +255,6 @@ const ScalePracticePanel: React.FC<ScalePracticePanelProps> = ({ currentBPM, add
     showSuccess(message);
   }, [currentBPM, result, highestMasteredBPM, updateScaleMasteryBPM, addLogEntry, selectedKey, selectedType, selectedArticulation, selectedDirection, selectedHandConfig, selectedRhythm, selectedAccent, selectedOctaves]);
 
-  // Use a ref to hold the latest handleSaveSnapshot function
-  const latestHandleSaveSnapshotRef = useRef(handleSaveSnapshot);
-  useEffect(() => {
-    latestHandleSaveSnapshotRef.current = handleSaveSnapshot;
-  }, [handleSaveSnapshot]); // This effect updates the ref whenever handleSaveSnapshot changes.
-
   // Effect to update global context for BPM visualization and Summary Panel
   useEffect(() => {
     // Only update if the BPM value actually changes
@@ -303,13 +297,14 @@ const ScalePracticePanel: React.FC<ScalePracticePanelProps> = ({ currentBPM, add
   // Effect to set and cleanup the activeLogSnapshotFunction in global context
   useEffect(() => {
     console.log('[ScalePracticePanel] Setting activeLogSnapshotFunction in GlobalBPMContext.');
-    setActiveLogSnapshotFunction(() => latestHandleSaveSnapshotRef.current);
+    // Directly pass handleSaveSnapshot as a dependency to ensure it's always the latest version
+    setActiveLogSnapshotFunction(() => handleSaveSnapshot);
     
     return () => {
         console.log('[ScalePracticePanel] Cleaning up activeLogSnapshotFunction in GlobalBPMContext.');
         setActiveLogSnapshotFunction(null);
     };
-  }, [setActiveLogSnapshotFunction, latestHandleSaveSnapshotRef]); // Added latestHandleSaveSnapshotRef to dependencies
+  }, [setActiveLogSnapshotFunction, handleSaveSnapshot]); // Now depends on handleSaveSnapshot
 
 
   // Determine available keys based on selected type
