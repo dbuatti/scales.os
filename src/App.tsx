@@ -22,43 +22,46 @@ const PublicLayoutWrapper = () => (
   </AppLayout>
 );
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <GlobalBPMProvider>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
-          <Routes>
-            {/* Public Routes wrapped in AppLayout */}
-            <Route element={<PublicLayoutWrapper />}>
-              {/* Default route for unauthenticated users */}
-              <Route path="/" element={<AuthGuard isPublic={true} />}>
-                <Route index element={<LandingPage />} /> {/* Landing page is now the default public route */}
+const App = () => {
+  console.log("[App.tsx] App component rendering."); // Added log
+  return (
+    <QueryClientProvider client={queryClient}>
+      <GlobalBPMProvider>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+            <Routes>
+              {/* Public Routes wrapped in AppLayout */}
+              <Route element={<PublicLayoutWrapper />}>
+                {/* Default route for unauthenticated users */}
+                <Route path="/" element={<AuthGuard isPublic={true} />}>
+                  <Route index element={<LandingPage />} /> {/* Landing page is now the default public route */}
+                </Route>
+                <Route path="/login" element={<AuthGuard isPublic={true} />}>
+                  <Route index element={<Login />} />
+                </Route>
+                <Route path="/landing" element={<AuthGuard isPublic={true} />}>
+                  <Route index element={<LandingPage />} />
+                </Route>
+                
+                {/* Catch-all for 404 */}
+                <Route path="*" element={<NotFound />} />
               </Route>
-              <Route path="/login" element={<AuthGuard isPublic={true} />}>
-                <Route index element={<Login />} />
-              </Route>
-              <Route path="/landing" element={<AuthGuard isPublic={true} />}>
-                <Route index element={<LandingPage />} />
-              </Route>
-              
-              {/* Catch-all for 404 */}
-              <Route path="*" element={<NotFound />} />
-            </Route>
 
-            {/* Protected Routes wrapped in AuthGuard and AuthenticatedShell (which includes ScalesProvider and AppLayout) */}
-            <Route element={<AuthGuard />}>
-              <Route element={<AuthenticatedShell />}>
-                <Route path="/" element={<Index />} /> {/* Authenticated users go to Index */}
-                <Route path="/progress" element={<ProgressPage />} />
+              {/* Protected Routes wrapped in AuthGuard and AuthenticatedShell (which includes ScalesProvider and AppLayout) */}
+              <Route element={<AuthGuard />}>
+                <Route element={<AuthenticatedShell />}>
+                  <Route path="/" element={<Index />} /> {/* Authenticated users go to Index */}
+                  <Route path="/progress" element={<ProgressPage />} />
+                </Route>
               </Route>
-            </Route>
-          </Routes>
-        </BrowserRouter>
-      </TooltipProvider>
-    </GlobalBPMProvider>
-  </QueryClientProvider>
-);
+            </Routes>
+          </BrowserRouter>
+        </TooltipProvider>
+      </GlobalBPMProvider>
+    </QueryClientProvider>
+  );
+};
 
 export default App;

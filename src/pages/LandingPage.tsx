@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { CheckCircle, Target, TrendingUp, BookOpen, Users, Award } from 'lucide-react';
+import { CheckCircle, Target, TrendingUp, BookOpen, Users, Award, Home } from 'lucide-react'; // Added Home icon for consistency
 import { cn } from '@/lib/utils';
 
 const FeatureCard: React.FC<{ icon: React.ReactNode; title: string; description: string }> = ({ icon, title, description }) => (
@@ -21,6 +21,7 @@ const FeatureCard: React.FC<{ icon: React.ReactNode; title: string; description:
 );
 
 const LandingPage: React.FC = () => {
+  console.log("[LandingPage.tsx] LandingPage component rendering."); // Added log
   return (
     <div className="min-h-[calc(100vh-64px)] flex flex-col items-center justify-start bg-background text-foreground">
       {/* Hero Section */}
