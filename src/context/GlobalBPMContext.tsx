@@ -24,18 +24,34 @@ interface GlobalBPMContextType {
 const GlobalBPMContext = createContext<GlobalBPMContextType | undefined>(undefined);
 
 export const GlobalBPMProvider: React.FC<React.PropsWithChildren> = ({ children }) => {
-  const [currentBPM, setCurrentBPM] = useState(100);
+  const [currentBPM, setCurrentBPMState] = useState(100);
   const [activePermutationHighestBPM, setActivePermutationHighestBPM] = useState(0);
-  const [activePracticeItem, setActivePracticeItem] = useState<ActivePracticeItem>(null);
+  const [activePracticeItem, setActivePracticeItemState] = useState<ActivePracticeItem>(null);
   const [activeLogSnapshotFunction, setActiveLogSnapshotFunction] = useState<(() => void) | null>(null);
+  const [isBpmManuallyAdjusted, setIsBpmManuallyAdjusted] = useState(false); // New state to track manual adjustments
+
+  // Wrapper for setCurrentBPM to also set the manual adjustment flag
+  const setCurrentBPM = useCallback((bpm: number) => {
+    setCurrentBPMState(bpm);
+    setIsBpmManuallyAdjusted(true); // Mark as manually adjusted
+  }, []);
 
   const handleBpmChange = useCallback((delta: number) => {
-    setCurrentBPM(prev => Math.min(MAX_BPM, Math.max(MIN_BPM, prev + delta)));
+    setCurrentBPMState(prev => Math.min(MAX_BPM, Math.max(MIN_BPM, prev + delta)));
+    setIsBpmManuallyAdjusted(true); // Mark as manually adjusted
   }, []);
   
-  // New useEffect to manage currentBPM based on activePracticeItem
+  // Wrapper for setActivePracticeItem to reset manual adjustment flag
+  const setActivePracticeItem = useCallback((item: ActivePracticeItem) => {
+    setActivePracticeItemState(item);
+    // Reset manual adjustment flag when a new practice item is selected
+    // This allows the suggested BPM to load for the new item.
+    setIsBpmManuallyAdjusted(false); 
+  }, []);
+
+  // Effect to manage currentBPM based on activePracticeItem, but only if not manually adjusted
   useEffect(() => {
-    if (activePracticeItem) {
+    if (activePracticeItem && !isBpmManuallyAdjusted) {
       let targetBPM: number;
       if (activePracticeItem.type === 'scale') {
         targetBPM = activePracticeItem.nextGoalBPM;
@@ -46,16 +62,16 @@ export const GlobalBPMProvider: React.FC<React.PropsWithChildren> = ({ children 
       // Only update currentBPM if it's different from the targetBPM
       if (currentBPM !== targetBPM) {
         console.log(`[GlobalBPMContext] Setting currentBPM to ${targetBPM} based on activePracticeItem.`);
-        setCurrentBPM(targetBPM);
+        setCurrentBPMState(targetBPM); // Use internal state setter to avoid marking as manual
       }
-    } else {
-      // If no active practice item, reset to a default BPM (e.g., 100)
+    } else if (!activePracticeItem && !isBpmManuallyAdjusted) {
+      // If no active practice item and not manually adjusted, reset to a default BPM (e.g., 100)
       if (currentBPM !== 100) {
         console.log(`[GlobalBPMContext] No active practice item. Resetting currentBPM to 100.`);
-        setCurrentBPM(100);
+        setCurrentBPMState(100); // Use internal state setter
       }
     }
-  }, [activePracticeItem, currentBPM]); // Depend on activePracticeItem and currentBPM
+  }, [activePracticeItem, isBpmManuallyAdjusted, currentBPM]); // Depend on activePracticeItem, isBpmManuallyAdjusted, and currentBPM
 
   const contextValue = useMemo(() => ({
     currentBPM,
@@ -67,7 +83,7 @@ export const GlobalBPMProvider: React.FC<React.PropsWithChildren> = ({ children 
     setActivePermutationHighestBPM,
     setActivePracticeItem,
     setActiveLogSnapshotFunction,
-  }), [currentBPM, activePermutationHighestBPM, activePracticeItem, activeLogSnapshotFunction, handleBpmChange]);
+  }), [currentBPM, activePermutationHighestBPM, activePracticeItem, activeLogSnapshotFunction, handleBpmChange, setCurrentBPM, setActivePermutationHighestBPM, setActivePracticeItem, setActiveLogSnapshotFunction]);
 
   return (
     <GlobalBPMContext.Provider value={contextValue}>
