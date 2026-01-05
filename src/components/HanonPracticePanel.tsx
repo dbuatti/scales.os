@@ -92,10 +92,7 @@ const HanonPracticePanel: React.FC<HanonPracticePanelProps> = ({ currentBPM, add
     showSuccess(`Hanon practice session logged at ${currentBPM} BPM.`);
   }, [addLogEntry, selectedExercise, currentBPM]);
 
-  const stableSnapshotFunction = useCallback(() => {
-    latestHandleLogSnapshotRef.current();
-  }, []);
-
+  // Use a ref to hold the latest handleLogSnapshot function
   const latestHandleLogSnapshotRef = useRef(handleLogSnapshot);
   useEffect(() => {
     latestHandleLogSnapshotRef.current = handleLogSnapshot;
@@ -109,15 +106,18 @@ const HanonPracticePanel: React.FC<HanonPracticePanelProps> = ({ currentBPM, add
           nextTargetBPM: nextBPMTarget,
           isMastered: isFullyMastered,
       });
-      
-      console.log('[HanonPracticePanel] Setting activeLogSnapshotFunction in GlobalBPMContext.');
-      setActiveLogSnapshotFunction(stableSnapshotFunction);
-      
-      return () => {
-          console.log('[HanonPracticePanel] Cleaning up activeLogSnapshotFunction in GlobalBPMContext.');
-          setActiveLogSnapshotFunction(null);
-      };
-  }, [selectedExercise, nextBPMTarget, isFullyMastered, setActivePracticeItem, stableSnapshotFunction]);
+  }, [selectedExercise, nextBPMTarget, isFullyMastered, setActivePracticeItem]);
+
+  // Effect to set and cleanup the activeLogSnapshotFunction in global context
+  useEffect(() => {
+    console.log('[HanonPracticePanel] Setting activeLogSnapshotFunction in GlobalBPMContext.');
+    setActiveLogSnapshotFunction(() => latestHandleLogSnapshotRef.current);
+    
+    return () => {
+        console.log('[HanonPracticePanel] Cleaning up activeLogSnapshotFunction in GlobalBPMContext.');
+        setActiveLogSnapshotFunction(null);
+    };
+  }, [setActiveLogSnapshotFunction]);
 
 
   const handleToggleMastery = (targetBPM: HanonBPMTarget) => {

@@ -233,13 +233,6 @@ const ScalePracticePanel: React.FC<ScalePracticePanelProps> = ({ currentBPM, add
     showSuccess(message);
   }, [currentBPM, result, highestMasteredBPM, updateScaleMasteryBPM, addLogEntry, selectedArticulation, selectedDirection, selectedHandConfig, selectedRhythm, selectedAccent, selectedOctaves]);
 
-  // This function will be passed to the global context.
-  // It needs to be stable, so it's a useCallback.
-  // It calls the latest version of handleSaveSnapshot via a ref.
-  const stableSnapshotFunction = useCallback(() => {
-    latestHandleSaveSnapshotRef.current();
-  }, []); // Empty dependency array makes it truly stable.
-
   // Use a ref to hold the latest handleSaveSnapshot function
   const latestHandleSaveSnapshotRef = useRef(handleSaveSnapshot);
   useEffect(() => {
@@ -263,27 +256,26 @@ const ScalePracticePanel: React.FC<ScalePracticePanelProps> = ({ currentBPM, add
     } else {
         setActivePracticeItem(null);
     }
-    
+  }, [
+    highestMasteredBPM, 
+    setActivePermutationHighestBPM, 
+    setActivePracticeItem, 
+    result, 
+    selectedArticulation, 
+    selectedOctaves, 
+    nextBPMGoal, 
+  ]);
+
+  // Effect to set and cleanup the activeLogSnapshotFunction in global context
+  useEffect(() => {
     console.log('[ScalePracticePanel] Setting activeLogSnapshotFunction in GlobalBPMContext.');
-    setActiveLogSnapshotFunction(stableSnapshotFunction);
+    setActiveLogSnapshotFunction(() => latestHandleSaveSnapshotRef.current);
     
     return () => {
         console.log('[ScalePracticePanel] Cleaning up activeLogSnapshotFunction in GlobalBPMContext.');
         setActiveLogSnapshotFunction(null);
     };
-  }, [
-    highestMasteredBPM, 
-    setActivePermutationHighestBPM, 
-    setActivePracticeItem, 
-    currentPermutationId, 
-    selectedKey, 
-    selectedType, 
-    selectedArticulation, 
-    selectedOctaves, 
-    nextBPMGoal, 
-    result, 
-    stableSnapshotFunction, 
-  ]);
+  }, [setActiveLogSnapshotFunction]); // Only depends on setActiveLogSnapshotFunction (stable from context)
 
 
   // Determine available keys based on selected type

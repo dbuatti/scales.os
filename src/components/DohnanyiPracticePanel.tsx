@@ -91,10 +91,7 @@ const DohnanyiPracticePanel: React.FC<DohnanyiPracticePanelProps> = ({ currentBP
     showSuccess(`Dohnányi practice session logged at ${currentBPM} BPM.`);
   }, [addLogEntry, selectedExercise, currentBPM]);
 
-  const stableSnapshotFunction = useCallback(() => {
-    latestHandleLogSnapshotRef.current();
-  }, []);
-
+  // Use a ref to hold the latest handleLogSnapshot function
   const latestHandleLogSnapshotRef = useRef(handleLogSnapshot);
   useEffect(() => {
     latestHandleLogSnapshotRef.current = handleLogSnapshot;
@@ -108,15 +105,18 @@ const DohnanyiPracticePanel: React.FC<DohnanyiPracticePanelProps> = ({ currentBP
           nextTargetBPM: nextBPMTarget,
           isMastered: isFullyMastered,
       });
-      
-      console.log('[DohnanyiPracticePanel] Setting activeLogSnapshotFunction in GlobalBPMContext.');
-      setActiveLogSnapshotFunction(stableSnapshotFunction);
-      
-      return () => {
-          console.log('[DohnanyiPracticePanel] Cleaning up activeLogSnapshotFunction in GlobalBPMContext.');
-          setActiveLogSnapshotFunction(null);
-      };
-  }, [selectedExercise, nextBPMTarget, isFullyMastered, setActivePracticeItem, stableSnapshotFunction]);
+  }, [selectedExercise, nextBPMTarget, isFullyMastered, setActivePracticeItem]);
+
+  // Effect to set and cleanup the activeLogSnapshotFunction in global context
+  useEffect(() => {
+    console.log('[DohnanyiPracticePanel] Setting activeLogSnapshotFunction in GlobalBPMContext.');
+    setActiveLogSnapshotFunction(() => latestHandleLogSnapshotRef.current);
+    
+    return () => {
+        console.log('[DohnanyiPracticePanel] Cleaning up activeLogSnapshotFunction in GlobalBPMContext.');
+        setActiveLogSnapshotFunction(null);
+    };
+  }, [setActiveLogSnapshotFunction]);
 
 
   const handleToggleMastery = (targetBPM: DohnanyiBPMTarget) => {
