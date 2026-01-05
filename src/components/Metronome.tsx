@@ -14,11 +14,13 @@ const Metronome: React.FC<MetronomeProps> = ({ bpm }) => {
   const [isRunning, setIsRunning] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
   const [division, setDivision] = useState<NoteDivision>('quarter');
-  const [currentBeat, setCurrentBeat] = useState(0); // 0, 1, 2, 3...
+  const [currentBeatVisual, setCurrentBeatVisual] = useState(0); // For visual indicator only
   
   const audioContextRef = useRef<AudioContext | null>(null);
   const timerRef = useRef<number | null>(null);
   const nextNoteTimeRef = useRef(0);
+  const currentBeatRef = useRef(0); // For scheduling logic
+  
   const lookahead = 25.0; // How far ahead to schedule audio (in milliseconds)
   const scheduleAheadTime = 0.1; // How far ahead to schedule audio (in seconds)
 
@@ -73,15 +75,16 @@ const Metronome: React.FC<MetronomeProps> = ({ bpm }) => {
     console.log(`[Metronome] Scheduler: Current time: ${context.currentTime.toFixed(3)}s, Next note time: ${nextNoteTimeRef.current.toFixed(3)}s, Interval: ${interval.toFixed(3)}s`);
 
     while (nextNoteTimeRef.current < context.currentTime + scheduleAheadTime) {
-      // Use functional update for currentBeat to avoid it being a dependency of scheduler
-      setCurrentBeat(prev => {
-        const newBeat = (prev + 1);
-        const beatIndex = newBeat % (division === 'quarter' ? 4 : 8);
-        const isAccent = beatIndex === 1; // First beat (index 0) is accent, so (0+1)%4 = 1
-        playClick(nextNoteTimeRef.current, isAccent);
-        console.log(`[Metronome] Scheduler: Updating currentBeat to ${newBeat}, playing click.`);
-        return newBeat;
-      });
+      const beatIndex = currentBeatRef.current % (division === 'quarter' ? 4 : 8);
+      const isAccent = beatIndex === 0; // First beat (index 0) is accent
+
+      playClick(nextNoteTimeRef.current, isAccent);
+      
+      // Update beat for scheduling logic
+      currentBeatRef.current++;
+      // Update beat state for visual indicator
+      setCurrentBeatVisual(currentBeatRef.current); 
+      console.log(`[Metronome] Scheduler: Updating currentBeatRef to ${currentBeatRef.current}, playing click.`);
 
       // Advance time
       nextNoteTimeRef.current += interval;
@@ -90,7 +93,7 @@ const Metronome: React.FC<MetronomeProps> = ({ bpm }) => {
     
     timerRef.current = window.setTimeout(scheduler, lookahead);
     console.log(`[Metronome] Scheduler: Set next scheduler timeout for ${lookahead}ms.`);
-  }, [bpm, division, playClick, scheduleAheadTime, lookahead]); // Removed currentBeat from dependencies
+  }, [bpm, division, playClick, scheduleAheadTime, lookahead]);
 
   // Start/Stop logic
   useEffect(() => {
@@ -98,8 +101,9 @@ const Metronome: React.FC<MetronomeProps> = ({ bpm }) => {
     if (isRunning) {
       const context = initAudioContext();
       
-      // Reset beat counter and set initial time
-      setCurrentBeat(0);
+      // Reset beat counters and set initial time
+      currentBeatRef.current = 0; // Reset ref
+      setCurrentBeatVisual(0); // Reset visual state
       nextNoteTimeRef.current = context.currentTime + 0.1; // Start slightly in the future
       console.log(`[Metronome] useEffect [isRunning]: Starting metronome. Initial nextNoteTime: ${nextNoteTimeRef.current.toFixed(3)}s`);
       
@@ -111,7 +115,8 @@ const Metronome: React.FC<MetronomeProps> = ({ bpm }) => {
         timerRef.current = null;
         console.log("[Metronome] useEffect [isRunning]: Cleared scheduler timeout.");
       }
-      setCurrentBeat(0);
+      currentBeatRef.current = 0; // Reset ref
+      setCurrentBeatVisual(0); // Reset visual state
       console.log("[Metronome] useEffect [isRunning]: Stopped metronome, reset currentBeat to 0.");
     }
 
@@ -129,7 +134,8 @@ const Metronome: React.FC<MetronomeProps> = ({ bpm }) => {
   useEffect(() => {
       console.log(`[Metronome] useEffect [division, isRunning]: division changed to ${division}, isRunning: ${isRunning}`);
       if (isRunning) {
-          setCurrentBeat(0);
+          currentBeatRef.current = 0; // Reset ref
+          setCurrentBeatVisual(0); // Reset visual state
           console.log("[Metronome] useEffect [division, isRunning]: Metronome running, reset currentBeat to 0 due to division change.");
       }
   }, [division, isRunning]);
@@ -205,7 +211,7 @@ const Metronome: React.FC<MetronomeProps> = ({ bpm }) => {
             key={index} 
             className={cn(
               "w-3 h-3 rounded-full transition-colors duration-100",
-              isRunning && (currentBeat % 4) === index ? "bg-yellow-400 shadow-md shadow-yellow-400/50" : "bg-muted-foreground/30"
+              isRunning && (currentBeatVisual % 4) === index ? "bg-yellow-400 shadow-md shadow-yellow-400/50" : "bg-muted-foreground/30"
             )}
           />
         ))}
