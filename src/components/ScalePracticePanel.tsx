@@ -85,12 +85,17 @@ const ScalePracticePanel: React.FC<ScalePracticePanelProps> = ({ currentBPM, add
     return null;
   }, [initialFocus]);
   
+  // Note: initialType is the cleaned ID part (e.g., "MajorArpeggio")
   const initialKey = initialPermutation?.scaleId.split('-')[0] as Key || KEYS[0];
-  const initialType = initialPermutation?.scaleId.split('-')[1] || ALL_TYPES[0];
+  const initialType = initialPermutation?.scaleId.split('-')[1] || ALL_TYPES[0].replace(/\s/g, "");
   
   // State for selected parameters
+  // We need to store the full type name in state for the ToggleGroup to display correctly, 
+  // but the ID part for lookup. Let's map the initial ID part back to the full name.
+  const initialFullType = ALL_TYPES.find(t => t.replace(/\s/g, "") === initialType) || ALL_TYPES[0];
+  
   const [selectedKey, setSelectedKey] = useState<Key>(initialKey);
-  const [selectedType, setSelectedType] = useState<string>(initialType); 
+  const [selectedType, setSelectedType] = useState<string>(initialFullType); 
   const [selectedArticulation, setSelectedArticulation] = useState<Articulation>(initialPermutation?.articulation || ARTICULATIONS[0]);
 
   // New states
@@ -105,9 +110,11 @@ const ScalePracticePanel: React.FC<ScalePracticePanelProps> = ({ currentBPM, add
     if (initialFocus) {
         const parsed = parseScalePermutationId(initialFocus.scalePermutationId);
         if (parsed) {
-            const [key, type] = parsed.scaleId.split('-');
+            const [key, typeId] = parsed.scaleId.split('-');
+            const fullType = ALL_TYPES.find(t => t.replace(/\s/g, "") === typeId) || ALL_TYPES[0];
+            
             setSelectedKey(key as Key);
-            setSelectedType(type);
+            setSelectedType(fullType);
             setSelectedArticulation(parsed.articulation);
             setSelectedDirection(parsed.direction);
             setSelectedHandConfig(parsed.handConfig);
@@ -123,11 +130,14 @@ const ScalePracticePanel: React.FC<ScalePracticePanelProps> = ({ currentBPM, add
   const getScaleItemAndPermutationId = () => {
     let scaleItem;
     const isChromatic = selectedType === "Chromatic";
+    const selectedTypeId = selectedType.replace(/\s/g, ""); // Cleaned ID part
 
     if (isChromatic) {
-        scaleItem = allScales.find(s => s.type === "Chromatic");
+        // Chromatic scale ID is always C-Chromatic
+        scaleItem = allScales.find(s => s.id === "C-Chromatic");
     } else {
-        scaleItem = allScales.find(s => s.key === selectedKey && s.type === selectedType);
+        // Find by key and cleaned type ID
+        scaleItem = allScales.find(s => s.key === selectedKey && s.id === `${selectedKey}-${selectedTypeId}`);
     }
 
     if (!scaleItem) {
