@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useMemo, useEffect, useCallback } from 'react';
+import { Outlet } from 'react-router-dom'; // Import Outlet
 import { 
   ALL_SCALE_ITEMS, ScaleItem, ARTICULATIONS, TEMPO_LEVELS, Articulation, TempoLevel, getPracticeId,
   DIRECTION_TYPES, HAND_CONFIGURATIONS, RHYTHMIC_PERMUTATIONS, ACCENT_DISTRIBUTIONS, OCTAVE_CONFIGURATIONS,
@@ -82,7 +83,8 @@ const progressArrayToMap = (arr: StoredProgressEntry[]): Record<string, 'practic
   }, {} as Record<string, 'practiced' | 'mastered'>);
 };
 
-export const ScalesProvider: React.FC<React.PropsWithChildren> = ({ children }) => {
+// ScalesProvider now renders Outlet to function as a route wrapper
+export const ScalesProvider: React.FC = () => {
   const { userId, isLoading: isSessionLoading } = useSupabaseSession();
   const [progressMap, setProgressMap] = useState<Record<string, 'practiced' | 'mastered'>>({});
   const [scaleMasteryBPMMap, setScaleMasteryBPMMap] = useState<Record<string, number>>({});
@@ -307,7 +309,7 @@ export const ScalesProvider: React.FC<React.PropsWithChildren> = ({ children }) 
 
   return (
     <ScalesContext.Provider value={contextValue}>
-      {children}
+      <Outlet /> {/* Render nested routes */}
     </ScalesContext.Provider>
   );
 };

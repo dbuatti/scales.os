@@ -9,14 +9,14 @@ import AppLayout from "./components/AppLayout";
 import ProgressPage from "./pages/Progress";
 import Login from "./pages/Login";
 import AuthGuard from "./components/AuthGuard";
-import ContextWrapper from "./components/ContextWrapper";
-import { GlobalBPMProvider } from "./context/GlobalBPMContext"; // Import GlobalBPMProvider
+import { GlobalBPMProvider } from "./context/GlobalBPMContext";
+import { ScalesProvider } from "./context/ScalesContext"; // Import ScalesProvider
 
 const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <GlobalBPMProvider> {/* Wrap with GlobalBPMProvider */}
+    <GlobalBPMProvider>
       <TooltipProvider>
         <Toaster />
         <Sonner />
@@ -30,7 +30,7 @@ const App = () => (
 
               {/* Protected Routes */}
               <Route element={<AuthGuard />}>
-                <Route element={<ContextWrapper />}>
+                <Route element={<ScalesProvider />}> {/* Use ScalesProvider directly here */}
                   <Route path="/" element={<Index />} />
                   <Route path="/progress" element={<ProgressPage />} />
                 </Route>
