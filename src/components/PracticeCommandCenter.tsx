@@ -71,6 +71,9 @@ const PracticeCommandCenter: React.FC = () => {
     return Math.min(100, (masteredBPMAdjusted / range) * 100);
   }, [activePermutationHighestBPM]);
 
+  // Log the current BPM for debugging purposes
+  console.log(`[PracticeCommandCenter:Render] Displaying currentBPM: ${currentBPM}`);
+
   return (
     <div className="p-4 md:p-8 min-h-[calc(100vh-64px)] flex flex-col items-center justify-start bg-background">
       <Card className="w-full max-w-6xl bg-card border-2 border-primary shadow-2xl shadow-primary/50 transition-all duration-500">
