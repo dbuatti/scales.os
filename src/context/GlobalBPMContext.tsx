@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useMemo, useCallback } from 'react';
+import React, { createContext, useContext, useState, useMemo, useCallback, useEffect } from 'react';
 import { MIN_BPM, MAX_BPM } from '@/lib/scales';
 
 export const SNAPSHOT_DEBOUNCE_MS = 1000; // 1 second debounce
@@ -33,6 +33,30 @@ export const GlobalBPMProvider: React.FC<React.PropsWithChildren> = ({ children 
     setCurrentBPM(prev => Math.min(MAX_BPM, Math.max(MIN_BPM, prev + delta)));
   }, []);
   
+  // New useEffect to manage currentBPM based on activePracticeItem
+  useEffect(() => {
+    if (activePracticeItem) {
+      let targetBPM: number;
+      if (activePracticeItem.type === 'scale') {
+        targetBPM = activePracticeItem.nextGoalBPM;
+      } else { // dohnanyi or hanon
+        targetBPM = activePracticeItem.nextTargetBPM;
+      }
+
+      // Only update currentBPM if it's different from the targetBPM
+      if (currentBPM !== targetBPM) {
+        console.log(`[GlobalBPMContext] Setting currentBPM to ${targetBPM} based on activePracticeItem.`);
+        setCurrentBPM(targetBPM);
+      }
+    } else {
+      // If no active practice item, reset to a default BPM (e.g., 100)
+      if (currentBPM !== 100) {
+        console.log(`[GlobalBPMContext] No active practice item. Resetting currentBPM to 100.`);
+        setCurrentBPM(100);
+      }
+    }
+  }, [activePracticeItem, currentBPM]); // Depend on activePracticeItem and currentBPM
+
   const contextValue = useMemo(() => ({
     currentBPM,
     activePermutationHighestBPM,
