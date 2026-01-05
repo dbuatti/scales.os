@@ -123,7 +123,7 @@ const ScalePracticePanel: React.FC<ScalePracticePanelProps> = ({ currentBPM, add
             const fullType = ALL_COMBINED_TYPES.find(t => t.replace(/\s/g, "") === typeId) || SCALE_TYPES[0];
             
             setSelectedKey(key as Key);
-            setSelectedType(fullType);
+            setSelectedType(fullType); // <-- This sets the state
             setSelectedArticulation(parsed.articulation);
             setSelectedDirection(parsed.direction);
             setSelectedHandConfig(parsed.handConfig);
@@ -140,6 +140,8 @@ const ScalePracticePanel: React.FC<ScalePracticePanelProps> = ({ currentBPM, add
   const selectedTempoLevel = useMemo(() => mapBPMToTempoLevel(currentBPM), [currentBPM]);
 
   const getScaleItemAndPermutationId = useCallback(() => {
+    console.log(`[ScalePracticePanel:getPermutationId] Calculating for: Key: ${selectedKey}, Type: ${selectedType}, Articulation: ${selectedArticulation}, Direction: ${selectedDirection}, HandConfig: ${selectedHandConfig}, Rhythm: ${selectedRhythm}, Accent: ${selectedAccent}, Octaves: ${selectedOctaves}`);
+
     let scaleItem;
     const isChromatic = selectedType === "Chromatic";
     const selectedTypeId = selectedType.replace(/\s/g, ""); // Cleaned ID part
@@ -153,7 +155,7 @@ const ScalePracticePanel: React.FC<ScalePracticePanelProps> = ({ currentBPM, add
     }
 
     if (!scaleItem) {
-      console.error("Could not identify the scale/arpeggio combination.");
+      console.error("[ScalePracticePanel:getPermutationId] Could not identify the scale/arpeggio combination.");
       return null;
     }
 
@@ -168,6 +170,7 @@ const ScalePracticePanel: React.FC<ScalePracticePanelProps> = ({ currentBPM, add
       selectedOctaves
     );
     
+    console.log(`[ScalePracticePanel:getPermutationId] Generated scaleItem.id: ${scaleItem.id}, Permutation ID: ${scalePermutationId}`);
     return { scaleItem, scalePermutationId };
   }, [
     selectedKey,
@@ -192,7 +195,7 @@ const ScalePracticePanel: React.FC<ScalePracticePanelProps> = ({ currentBPM, add
   const handleSaveSnapshot = useCallback(() => {
     const now = Date.now();
     if (now - lastSnapshotTimestampRef.current < SNAPSHOT_DEBOUNCE_MS) {
-      console.log(`[ScalePracticePanel] Snapshot debounced - too soon since last call (${now - lastSnapshotTimestampRef.current}ms since last snapshot).`);
+      console.log(`[ScalePracticePanel:handleSaveSnapshot] Snapshot debounced - too soon since last call (${now - lastSnapshotTimestampRef.current}ms since last snapshot).`);
       return;
     }
     
@@ -204,7 +207,7 @@ const ScalePracticePanel: React.FC<ScalePracticePanelProps> = ({ currentBPM, add
 
     const currentCallKey = `${scalePermutationId}-${currentBPM}`;
     if (lastSuccessfulCallKeyRef.current === currentCallKey) {
-        console.log(`[ScalePracticePanel] Duplicate call detected for ${currentCallKey}, skipping.`);
+        console.log(`[ScalePracticePanel:handleSaveSnapshot] Duplicate call detected for ${currentCallKey}, skipping.`);
         return;
     }
 
@@ -212,17 +215,21 @@ const ScalePracticePanel: React.FC<ScalePracticePanelProps> = ({ currentBPM, add
     lastSnapshotTimestampRef.current = now; // Update timestamp for successful call
     lastSuccessfulCallKeyRef.current = currentCallKey; // Update the last successful call key
 
-    console.log(`[ScalePracticePanel] handleSaveSnapshot called. Current BPM: ${currentBPM}, Highest Mastered: ${highestMasteredBPM}, Permutation ID: ${scalePermutationId}`);
+    console.log(`[ScalePracticePanel:handleSaveSnapshot] Snapshot triggered. Current selected permutation states:`);
+    console.log(`  Key: ${selectedKey}, Type: ${selectedType}, Articulation: ${selectedArticulation}`);
+    console.log(`  Direction: ${selectedDirection}, HandConfig: ${selectedHandConfig}, Rhythm: ${selectedRhythm}, Accent: ${selectedAccent}, Octaves: ${selectedOctaves}`);
+    console.log(`  Resulting scalePermutationId: ${scalePermutationId}`);
+    console.log(`  Current BPM: ${currentBPM}, Highest Mastered: ${highestMasteredBPM}`);
     
     let message = `Snapshot logged at ${currentBPM} BPM.`;
     
     // 1. Check and update the highest mastered BPM
     if (currentBPM > highestMasteredBPM) {
-        console.log(`[ScalePracticePanel] Updating mastery BPM for ${scalePermutationId} from ${highestMasteredBPM} to ${currentBPM}`);
+        console.log(`[ScalePracticePanel:handleSaveSnapshot] Updating mastery BPM for ${scalePermutationId} from ${highestMasteredBPM} to ${currentBPM}`);
         updateScaleMasteryBPM(scalePermutationId, currentBPM);
         message = `Mastery updated! Highest BPM for this permutation is now ${currentBPM}. Next goal: ${currentBPM + 3} BPM.`;
     } else {
-        console.log(`[ScalePracticePanel] BPM ${currentBPM} is not higher than current mastery ${highestMasteredBPM}. Logging snapshot only.`);
+        console.log(`[ScalePracticePanel:handleSaveSnapshot] BPM ${currentBPM} is not higher than current mastery ${highestMasteredBPM}. Logging snapshot only.`);
         message = `Snapshot logged at ${currentBPM} BPM. Highest mastered BPM remains ${highestMasteredBPM}.`;
     }
 
@@ -244,9 +251,9 @@ const ScalePracticePanel: React.FC<ScalePracticePanelProps> = ({ currentBPM, add
       notes: `Snapshot: ${scaleItem.key} ${scaleItem.type} (${selectedArticulation}, ${selectedDirection}, ${selectedHandConfig}, ${selectedRhythm}, ${selectedAccent}, ${selectedOctaves}). Logged BPM: ${currentBPM}`,
     });
 
-    console.log(`[ScalePracticePanel] Showing toast: ${message}`);
+    console.log(`[ScalePracticePanel:handleSaveSnapshot] Showing toast: ${message}`);
     showSuccess(message);
-  }, [currentBPM, result, highestMasteredBPM, updateScaleMasteryBPM, addLogEntry, selectedArticulation, selectedDirection, selectedHandConfig, selectedRhythm, selectedAccent, selectedOctaves]);
+  }, [currentBPM, result, highestMasteredBPM, updateScaleMasteryBPM, addLogEntry, selectedKey, selectedType, selectedArticulation, selectedDirection, selectedHandConfig, selectedRhythm, selectedAccent, selectedOctaves]);
 
   // Use a ref to hold the latest handleSaveSnapshot function
   const latestHandleSaveSnapshotRef = useRef(handleSaveSnapshot);
@@ -271,9 +278,15 @@ const ScalePracticePanel: React.FC<ScalePracticePanelProps> = ({ currentBPM, add
         nextGoalBPM: nextBPMGoal,
     } : null;
 
+    console.log(`[ScalePracticePanel:useEffect:setActivePracticeItem] Current globalActivePracticeItem:`, globalActivePracticeItem);
+    console.log(`[ScalePracticePanel:useEffect:setActivePracticeItem] New activePracticeItem to set:`, newActivePracticeItem);
+
     // Only update if the content of activePracticeItem actually changes
     if (!shallowEqual(globalActivePracticeItem, newActivePracticeItem)) {
+        console.log(`[ScalePracticePanel:useEffect:setActivePracticeItem] Updating global active practice item.`);
         setActivePracticeItem(newActivePracticeItem);
+    } else {
+        console.log(`[ScalePracticePanel:useEffect:setActivePracticeItem] Global active practice item is shallow equal, skipping update.`);
     }
   }, [
     highestMasteredBPM, 
