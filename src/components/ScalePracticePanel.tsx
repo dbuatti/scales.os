@@ -224,6 +224,11 @@ const ScalePracticePanel: React.FC<ScalePracticePanelProps> = ({ currentBPM, add
     showSuccess(message);
   }, [currentBPM, result, highestMasteredBPM, updateScaleMasteryBPM, addLogEntry, selectedArticulation, selectedDirection, selectedHandConfig, selectedRhythm, selectedAccent, selectedOctaves]);
 
+  // Use a ref to hold the latest handleSaveSnapshot function
+  const latestHandleSaveSnapshot = useRef(handleSaveSnapshot);
+  useEffect(() => {
+    latestHandleSaveSnapshot.current = handleSaveSnapshot;
+  }, [handleSaveSnapshot]);
 
   // Effect to update global context for BPM visualization and Summary Panel
   useEffect(() => {
@@ -243,11 +248,11 @@ const ScalePracticePanel: React.FC<ScalePracticePanelProps> = ({ currentBPM, add
         setActivePracticeItem(null);
     }
     
-    // Set the snapshot function
-    setActiveLogSnapshotFunction(handleSaveSnapshot);
+    // Set the snapshot function using the ref to ensure a stable reference
+    setActiveLogSnapshotFunction(() => latestHandleSaveSnapshot.current);
     
     return () => setActiveLogSnapshotFunction(null);
-  }, [highestMasteredBPM, setActivePermutationHighestBPM, setActivePracticeItem, currentPermutationId, selectedKey, selectedType, selectedArticulation, selectedOctaves, nextBPMGoal, result, handleSaveSnapshot, setActiveLogSnapshotFunction]);
+  }, [highestMasteredBPM, setActivePermutationHighestBPM, setActivePracticeItem, currentPermutationId, selectedKey, selectedType, selectedArticulation, selectedOctaves, nextBPMGoal, result, setActiveLogSnapshotFunction]);
 
 
   // Determine available keys based on selected type
