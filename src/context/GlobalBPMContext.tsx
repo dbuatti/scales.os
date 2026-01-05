@@ -50,9 +50,10 @@ export const GlobalBPMProvider: React.FC<React.PropsWithChildren> = ({ children 
   // Wrapper for setActivePracticeItem to reset manual adjustment flag
   const setActivePracticeItem = useCallback((item: ActivePracticeItem) => {
     setActivePracticeItemState(item);
-    // Reset manual adjustment flags when a new practice item is selected
+    // Reset BPM manual adjustment flag when a new practice item is selected
     setIsBpmManuallyAdjusted(false); 
-    setIsPermutationManuallyAdjusted(false); // Reset permutation adjustment flag
+    // IMPORTANT: isPermutationManuallyAdjusted is NOT reset here.
+    // It is reset only when a suggestion is loaded or tab is changed in PracticeCommandCenter.
   }, []);
 
   // Effect to manage currentBPM based on activePracticeItem, but only if not manually adjusted
