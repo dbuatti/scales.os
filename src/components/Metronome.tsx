@@ -73,15 +73,13 @@ const Metronome: React.FC<MetronomeProps> = ({ bpm }) => {
     console.log(`[Metronome] Scheduler: Current time: ${context.currentTime.toFixed(3)}s, Next note time: ${nextNoteTimeRef.current.toFixed(3)}s, Interval: ${interval.toFixed(3)}s`);
 
     while (nextNoteTimeRef.current < context.currentTime + scheduleAheadTime) {
-      const beatIndex = currentBeat % (division === 'quarter' ? 4 : 8);
-      const isAccent = beatIndex === 0;
-
-      playClick(nextNoteTimeRef.current, isAccent);
-      
-      // Update beat state for visualization
+      // Use functional update for currentBeat to avoid it being a dependency of scheduler
       setCurrentBeat(prev => {
         const newBeat = (prev + 1);
-        console.log(`[Metronome] Scheduler: Updating currentBeat to ${newBeat}`);
+        const beatIndex = newBeat % (division === 'quarter' ? 4 : 8);
+        const isAccent = beatIndex === 1; // First beat (index 0) is accent, so (0+1)%4 = 1
+        playClick(nextNoteTimeRef.current, isAccent);
+        console.log(`[Metronome] Scheduler: Updating currentBeat to ${newBeat}, playing click.`);
         return newBeat;
       });
 
@@ -92,7 +90,7 @@ const Metronome: React.FC<MetronomeProps> = ({ bpm }) => {
     
     timerRef.current = window.setTimeout(scheduler, lookahead);
     console.log(`[Metronome] Scheduler: Set next scheduler timeout for ${lookahead}ms.`);
-  }, [bpm, division, currentBeat, playClick, scheduleAheadTime, lookahead]);
+  }, [bpm, division, playClick, scheduleAheadTime, lookahead]); // Removed currentBeat from dependencies
 
   // Start/Stop logic
   useEffect(() => {
