@@ -18,20 +18,19 @@ const PracticeCommandCenter: React.FC = () => {
   const { addLogEntry, allScales, log, progressMap, updatePracticeStatus, updateScaleMasteryBPM, scaleMasteryBPMMap, nextFocus } = useScales();
   const { currentBPM, activePermutationHighestBPM, setCurrentBPM, setActivePermutationHighestBPM, setIsPermutationManuallyAdjusted } = useGlobalBPM();
   
-  // Determine initial tab based on nextFocus
-  const initialTab = nextFocus?.type === 'dohnanyi' ? 'dohnanyi' : nextFocus?.type === 'hanon' ? 'hanon' : 'scales';
-  const [activeTab, setActiveTab] = useState<'scales' | 'dohnanyi' | 'hanon'>(initialTab);
+  const [activeTab, setActiveTab] = useState<'scales' | 'dohnanyi' | 'hanon'>('scales');
+  const [isTabManuallySelected, setIsTabManuallySelected] = useState(false); // New state to track manual tab selection
   
-  // Set initial active tab based on nextFocus when data loads
+  // Set initial active tab based on nextFocus when data loads, but only if not manually selected
   useEffect(() => {
-    if (nextFocus) {
+    if (nextFocus && !isTabManuallySelected) {
         if (nextFocus.type === 'scale') {
             setActiveTab('scales');
         } else if (nextFocus.type === 'dohnanyi' || nextFocus.type === 'hanon') {
             setActiveTab(nextFocus.type);
         }
     }
-  }, [nextFocus]); 
+  }, [nextFocus, isTabManuallySelected]); 
 
   // Function to apply the suggested item by setting the active tab
   const handleLoadSuggestion = useCallback((item: NextFocus) => {
@@ -39,6 +38,7 @@ const PracticeCommandCenter: React.FC = () => {
 
     // Reset manual adjustment flag so the suggestion can be applied
     setIsPermutationManuallyAdjusted(false);
+    setIsTabManuallySelected(false); // Reset manual tab selection to allow suggestion to change tab
 
     if (item.type === 'scale') {
         setActiveTab('scales');
@@ -187,6 +187,7 @@ const PracticeCommandCenter: React.FC = () => {
                 setActiveTab(v as 'scales' | 'dohnanyi' | 'hanon');
                 setActivePermutationHighestBPM(0); // Reset BPM visualization when switching tabs
                 setIsPermutationManuallyAdjusted(false); // Reset permutation adjustment flag when switching tabs
+                setIsTabManuallySelected(true); // Mark tab as manually selected
             }} 
             className="w-full pt-4"
           >
@@ -227,8 +228,8 @@ const PracticeCommandCenter: React.FC = () => {
                 suggestedDohnanyi={nextFocus?.type === 'dohnanyi' ? nextFocus : undefined}
                 currentBPM={currentBPM} 
                 addLogEntry={addLogEntry} 
-                updatePracticeStatus={updatePracticeStatus} // Passed down
-                progressMap={progressMap} // Passed down
+                updatePracticeStatus={updatePracticeStatus} 
+                progressMap={progressMap} 
                 activeTab={activeTab}
               />
             </TabsContent>
@@ -237,8 +238,8 @@ const PracticeCommandCenter: React.FC = () => {
                 suggestedHanon={nextFocus?.type === 'hanon' ? nextFocus : undefined}
                 currentBPM={currentBPM} 
                 addLogEntry={addLogEntry} 
-                updatePracticeStatus={updatePracticeStatus} // Passed down
-                progressMap={progressMap} // Passed down
+                updatePracticeStatus={updatePracticeStatus} 
+                progressMap={progressMap} 
                 activeTab={activeTab}
               />
             </TabsContent>
