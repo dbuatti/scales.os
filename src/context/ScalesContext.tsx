@@ -72,7 +72,7 @@ const progressArrayToMap = (arr: StoredProgressEntry[]): Record<string, 'practic
   }, {} as Record<string, 'practiced' | 'mastered'>);
 };
 
-export const ScalesProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const ScalesProvider: React.FC<React.PropsWithChildren> = ({ children }) => {
   const { userId, isLoading: isSessionLoading } = useSupabaseSession();
   const [progressMap, setProgressMap] = useState<Record<string, 'practiced' | 'mastered'>>({});
   const [log, setLog] = useState<PracticeLogEntry[]>([]);
