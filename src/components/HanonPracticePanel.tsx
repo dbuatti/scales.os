@@ -3,38 +3,39 @@ import { CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { LogIn, Check } from 'lucide-react';
 import { 
-  DOHNANYI_EXERCISES, DohnanyiExercise, DOHNANYI_BPM_TARGETS, DohnanyiBPMTarget, getDohnanyiPracticeId
+  HANON_EXERCISES, HanonExercise, HANON_BPM_TARGETS, HanonBPMTarget, getHanonPracticeId
 } from '@/lib/scales';
 import { useScales } from '../context/ScalesContext';
 import { showSuccess, showError } from '@/utils/toast';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { cn } from '@/lib/utils';
 import { Label } from '@/components/ui/label';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
-interface DohnanyiPracticePanelProps {
+interface HanonPracticePanelProps {
     currentBPM: number;
     addLogEntry: ReturnType<typeof useScales>['addLogEntry'];
     updatePracticeStatus: ReturnType<typeof useScales>['updatePracticeStatus'];
     progressMap: ReturnType<typeof useScales>['progressMap'];
 }
 
-const DohnanyiPracticePanel: React.FC<DohnanyiPracticePanelProps> = ({ currentBPM, addLogEntry, updatePracticeStatus, progressMap }) => {
+const HanonPracticePanel: React.FC<HanonPracticePanelProps> = ({ currentBPM, addLogEntry, updatePracticeStatus, progressMap }) => {
   
-  const [selectedExercise, setSelectedExercise] = useState<DohnanyiExercise>(DOHNANYI_EXERCISES[0]);
+  const [selectedExercise, setSelectedExercise] = useState<HanonExercise>(HANON_EXERCISES[0]);
   
   // Determine the next BPM target for the selected exercise
   const nextBPMTarget = useMemo(() => {
-    for (const target of DOHNANYI_BPM_TARGETS) {
-      const practiceId = getDohnanyiPracticeId(selectedExercise, target);
+    for (const target of HANON_BPM_TARGETS) {
+      const practiceId = getHanonPracticeId(selectedExercise, target);
       if (progressMap[practiceId] !== 'mastered') {
         return target;
       }
     }
-    return DOHNANYI_BPM_TARGETS[DOHNANYI_BPM_TARGETS.length - 1]; // Max BPM if mastered
+    return HANON_BPM_TARGETS[HANON_BPM_TARGETS.length - 1]; // Max BPM if mastered
   }, [selectedExercise, progressMap]);
 
-  const handleToggleMastery = (targetBPM: DohnanyiBPMTarget) => {
-    const practiceId = getDohnanyiPracticeId(selectedExercise, targetBPM);
+  const handleToggleMastery = (targetBPM: HanonBPMTarget) => {
+    const practiceId = getHanonPracticeId(selectedExercise, targetBPM);
     const currentStatus = progressMap[practiceId] || 'untouched';
     
     // Toggle between 'mastered' and 'untouched'
@@ -49,47 +50,49 @@ const DohnanyiPracticePanel: React.FC<DohnanyiPracticePanelProps> = ({ currentBP
     addLogEntry({
       durationMinutes: 0, 
       itemsPracticed: [{
-        type: 'dohnanyi',
-        dohnanyiName: selectedExercise,
-        bpmTarget: currentBPM, // Log the actual BPM practiced
+        type: 'hanon',
+        hanonName: selectedExercise,
+        hanonBpmTarget: currentBPM, // Log the actual BPM practiced
       }],
-      notes: `Dohnányi Snapshot: ${selectedExercise} practiced at ${currentBPM} BPM.`,
+      notes: `Hanon Snapshot: ${selectedExercise} practiced at ${currentBPM} BPM.`,
     });
 
-    showSuccess(`Dohnányi practice session logged at ${currentBPM} BPM.`);
+    showSuccess(`Hanon practice session logged at ${currentBPM} BPM.`);
   };
 
   return (
     <CardContent className="p-0 space-y-6">
         <div className="space-y-3 border p-4 rounded-lg border-primary/30 bg-secondary/50">
-            <Label className="text-lg font-semibold text-primary block mb-2 font-mono">DOHNÁNYI EXERCISES</Label>
+            <Label className="text-lg font-semibold text-primary block mb-2 font-mono">HANON EXERCISES (1-60)</Label>
             <p className="text-xs text-muted-foreground italic mb-4">
                 Select the exercise you are currently practicing. Mastery is tracked by BPM targets.
             </p>
-            <ToggleGroup 
-                type="single" 
-                value={selectedExercise} 
-                onValueChange={(value) => value && setSelectedExercise(value as DohnanyiExercise)}
-                className="flex flex-wrap justify-center gap-2 w-full"
-            >
-                {DOHNANYI_EXERCISES.map(exercise => (
-                    <ToggleGroupItem 
-                        key={exercise} 
-                        value={exercise} 
-                        aria-label={`Select exercise ${exercise}`}
-                        className="data-[state=on]:bg-primary data-[state=on]:text-primary-foreground data-[state=on]:shadow-md data-[state=on]:border-primary/80 border border-border text-xs px-2 py-1 h-auto font-mono flex-1 min-w-[80px]"
-                    >
-                        {exercise}
-                    </ToggleGroupItem>
-                ))}
-            </ToggleGroup>
+            <ScrollArea className="h-[200px] w-full pr-4">
+                <ToggleGroup 
+                    type="single" 
+                    value={selectedExercise} 
+                    onValueChange={(value) => value && setSelectedExercise(value as HanonExercise)}
+                    className="flex flex-wrap justify-start gap-2 w-full"
+                >
+                    {HANON_EXERCISES.map(exercise => (
+                        <ToggleGroupItem 
+                            key={exercise} 
+                            value={exercise} 
+                            aria-label={`Select exercise ${exercise}`}
+                            className="data-[state=on]:bg-primary data-[state=on]:text-primary-foreground data-[state=on]:shadow-md data-[state=on]:border-primary/80 border border-border text-xs px-2 py-1 h-auto font-mono min-w-[80px]"
+                        >
+                            {exercise.replace('Exercise ', 'Ex. ')}
+                        </ToggleGroupItem>
+                    ))}
+                </ToggleGroup>
+            </ScrollArea>
         </div>
 
         <div className="space-y-4 p-4 rounded-lg border border-primary/30 bg-secondary/50">
             <Label className="text-lg font-semibold text-primary block mb-2 font-mono">MASTERY TARGETS (Click to Toggle Mastery)</Label>
             <div className="flex flex-wrap gap-3 justify-center">
-                {DOHNANYI_BPM_TARGETS.map(targetBPM => {
-                    const practiceId = getDohnanyiPracticeId(selectedExercise, targetBPM);
+                {HANON_BPM_TARGETS.map(targetBPM => {
+                    const practiceId = getHanonPracticeId(selectedExercise, targetBPM);
                     const status = progressMap[practiceId] === 'mastered';
                     
                     return (
@@ -122,10 +125,10 @@ const DohnanyiPracticePanel: React.FC<DohnanyiPracticePanelProps> = ({ currentBP
             onClick={handleLogSnapshot} 
             className="w-full text-xl py-6 bg-primary hover:bg-primary/90 transition-all duration-300 shadow-lg shadow-primary/50 text-primary-foreground"
         >
-            <LogIn className="w-6 h-6 mr-3" /> LOG DOHNÁNYI PRACTICE ({currentBPM} BPM)
+            <LogIn className="w-6 h-6 mr-3" /> LOG HANON PRACTICE ({currentBPM} BPM)
         </Button>
     </CardContent>
   );
 };
 
-export default DohnanyiPracticePanel;
+export default HanonPracticePanel;

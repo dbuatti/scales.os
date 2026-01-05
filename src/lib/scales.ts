@@ -108,6 +108,12 @@ export const getDohnanyiPracticeId = (exercise: DohnanyiExercise, bpmTarget: Doh
     return `DOHNANYI-${cleanString(exercise)}-${bpmTarget}BPM`;
 };
 
+// Utility to generate a unique ID for Hanon practice based on target BPM
+export const getHanonPracticeId = (exercise: HanonExercise, bpmTarget: HanonBPMTarget): string => {
+    const cleanString = (s: string) => s.replace(/[\s\/\(\)]/g, "");
+    return `HANON-${cleanString(exercise)}-${bpmTarget}BPM`;
+};
+
 
 // --- Dohnányi Exercises ---
 export const DOHNANYI_EXERCISES = [
@@ -143,6 +149,40 @@ DOHNANYI_EXERCISES.forEach(name => {
         });
     });
 });
+
+
+// --- Hanon Exercises ---
+const HANON_EXERCISE_NAMES = Array.from({ length: 60 }, (_, i) => `Exercise ${i + 1}`) as [string, ...string[]];
+export const HANON_EXERCISES = HANON_EXERCISE_NAMES as Readonly<typeof HANON_EXERCISE_NAMES>;
+
+export type HanonExercise = typeof HANON_EXERCISES[number];
+
+export type HanonItem = {
+  type: 'Hanon';
+  name: HanonExercise;
+  id: string; // e.g., Hanon-Exercise1
+};
+
+export const ALL_HANON_ITEMS: HanonItem[] = HANON_EXERCISES.map(name => ({
+    type: 'Hanon',
+    name,
+    id: `Hanon-${name.replace(/\s/g, "")}`,
+}));
+
+export const HANON_BPM_TARGETS = [60, 80, 100, 120, 140, 160] as const;
+export type HanonBPMTarget = typeof HANON_BPM_TARGETS[number];
+
+export const ALL_HANON_COMBINATIONS: { id: string, name: HanonExercise, bpm: HanonBPMTarget }[] = [];
+HANON_EXERCISES.forEach(name => {
+    HANON_BPM_TARGETS.forEach(bpm => {
+        ALL_HANON_COMBINATIONS.push({
+            id: getHanonPracticeId(name, bpm),
+            name,
+            bpm,
+        });
+    });
+});
+
 
 // --- Grading System ---
 export const PRACTICE_GRADES = [

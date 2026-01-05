@@ -4,7 +4,8 @@ import { Progress } from '@/components/ui/progress';
 import { 
     PRACTICE_GRADES, getPracticeId, KEYS, SCALE_TYPES, ARPEGGIO_TYPES, ARTICULATIONS, TEMPO_LEVELS, 
     OCTAVE_CONFIGURATIONS, DIRECTION_TYPES, HAND_CONFIGURATIONS, RHYTHMIC_PERMUTATIONS, ACCENT_DISTRIBUTIONS, 
-    DOHNANYI_EXERCISES, DOHNANYI_BPM_TARGETS, getDohnanyiPracticeId 
+    DOHNANYI_EXERCISES, DOHNANYI_BPM_TARGETS, getDohnanyiPracticeId,
+    HANON_EXERCISES, HANON_BPM_TARGETS, getHanonPracticeId
 } from '@/lib/scales';
 import { useScales } from '../context/ScalesContext';
 import { cn } from '@/lib/utils';
@@ -134,11 +135,17 @@ const getRequiredPracticeIdsForGrade = (gradeId: number): string[] => {
         );
     }
     
-    // Grade 10 includes all Dohnányi mastery steps
+    // Grade 10 includes all Dohnányi mastery steps AND Hanon mastery steps
     if (gradeId >= 10) {
         DOHNANYI_EXERCISES.forEach(exercise => {
             DOHNANYI_BPM_TARGETS.forEach(bpm => {
                 requiredIds.push(getDohnanyiPracticeId(exercise, bpm));
+            });
+        });
+        
+        HANON_EXERCISES.forEach(exercise => {
+            HANON_BPM_TARGETS.forEach(bpm => {
+                requiredIds.push(getHanonPracticeId(exercise, bpm));
             });
         });
     }
@@ -153,7 +160,7 @@ const GradeTracker: React.FC = () => {
     const gradeStats = useMemo(() => {
         const stats = PRACTICE_GRADES.map(grade => {
             
-            // For Grade 10, we calculate based on the union of all required IDs from Grades 1-9 + Dohnanyi mastery steps.
+            // For Grade 10, we calculate based on the union of all required IDs from Grades 1-9 + Dohnanyi/Hanon mastery steps.
             if (grade.id === 10) {
                 const allRequiredIds = new Set<string>();
                 PRACTICE_GRADES.slice(0, 9).forEach(g => {
@@ -162,6 +169,11 @@ const GradeTracker: React.FC = () => {
                 DOHNANYI_EXERCISES.forEach(exercise => {
                     DOHNANYI_BPM_TARGETS.forEach(bpm => {
                         allRequiredIds.add(getDohnanyiPracticeId(exercise, bpm));
+                    });
+                });
+                HANON_EXERCISES.forEach(exercise => {
+                    HANON_BPM_TARGETS.forEach(bpm => {
+                        allRequiredIds.add(getHanonPracticeId(exercise, bpm));
                     });
                 });
                 

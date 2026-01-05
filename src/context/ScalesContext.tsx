@@ -3,7 +3,8 @@ import {
   ALL_SCALE_ITEMS, ScaleItem, ARTICULATIONS, TEMPO_LEVELS, Articulation, TempoLevel, getPracticeId,
   DIRECTION_TYPES, HAND_CONFIGURATIONS, RHYTHMIC_PERMUTATIONS, ACCENT_DISTRIBUTIONS, OCTAVE_CONFIGURATIONS,
   DirectionType, HandConfiguration, RhythmicPermutation, AccentDistribution, OctaveConfiguration,
-  DohnanyiExercise, DohnanyiItem, ALL_DOHNANYI_ITEMS, DOHNANYI_BPM_TARGETS, getDohnanyiPracticeId, ALL_DOHNANYI_COMBINATIONS
+  DohnanyiExercise, DohnanyiItem, ALL_DOHNANYI_ITEMS, DOHNANYI_BPM_TARGETS, getDohnanyiPracticeId, ALL_DOHNANYI_COMBINATIONS,
+  HanonExercise, HanonItem, ALL_HANON_ITEMS, ALL_HANON_COMBINATIONS
 } from '@/lib/scales';
 import { useSupabaseSession } from '@/hooks/use-supabase-session';
 import { supabase } from '@/integrations/supabase/client';
@@ -20,7 +21,7 @@ export interface StoredProgressEntry {
 }
 
 export interface PracticeLogItem {
-  type: 'scale' | 'dohnanyi';
+  type: 'scale' | 'dohnanyi' | 'hanon';
   // Scale specific fields
   scaleId?: string;
   articulation?: Articulation;
@@ -33,6 +34,9 @@ export interface PracticeLogItem {
   // Dohnanyi specific fields
   dohnanyiName?: DohnanyiExercise;
   bpmTarget?: number; // The target BPM for Dohnanyi mastery step
+  // Hanon specific fields
+  hanonName?: HanonExercise;
+  hanonBpmTarget?: number;
 }
 
 export interface PracticeLogEntry {
@@ -52,6 +56,8 @@ interface ScalesContextType {
   allScales: ScaleItem[];
   allDohnanyi: DohnanyiItem[];
   allDohnanyiCombinations: typeof ALL_DOHNANYI_COMBINATIONS;
+  allHanon: HanonItem[];
+  allHanonCombinations: typeof ALL_HANON_COMBINATIONS;
 }
 
 // --- Context and Provider ---
@@ -231,6 +237,8 @@ export const ScalesProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     allScales: ALL_SCALE_ITEMS,
     allDohnanyi: ALL_DOHNANYI_ITEMS,
     allDohnanyiCombinations: ALL_DOHNANYI_COMBINATIONS,
+    allHanon: ALL_HANON_ITEMS,
+    allHanonCombinations: ALL_HANON_COMBINATIONS,
   }), [progressMap, log, isLoading, updatePracticeStatus, addLogEntry]);
 
   return (

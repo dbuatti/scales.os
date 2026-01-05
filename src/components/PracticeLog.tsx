@@ -6,7 +6,7 @@ import { format } from 'date-fns';
 import { ScrollArea } from '@/components/ui/scroll-area';
 
 const PracticeLog = () => {
-  const { log, allScales, allDohnanyi } = useScales();
+  const { log, allScales, allDohnanyi, allHanon } = useScales();
 
   if (log.length === 0) {
     return (
@@ -27,6 +27,11 @@ const PracticeLog = () => {
   }, {} as Record<string, string>);
   
   const dohnanyiMap = allDohnanyi.reduce((acc, item) => {
+    acc[item.id] = item.name;
+    return acc;
+  }, {} as Record<string, string>);
+  
+  const hanonMap = allHanon.reduce((acc, item) => {
     acc[item.id] = item.name;
     return acc;
   }, {} as Record<string, string>);
@@ -81,7 +86,15 @@ const PracticeLog = () => {
                             <>
                                 <span className="font-bold text-primary">{item.dohnanyiName}</span>
                                 <span className="text-xs font-normal mt-1">
-                                    Mastery Target: {item.bpmTarget} BPM
+                                    Logged BPM: {item.bpmTarget}
+                                </span>
+                            </>
+                        )}
+                        {item.type === 'hanon' && item.hanonName && (
+                            <>
+                                <span className="font-bold text-primary">{item.hanonName}</span>
+                                <span className="text-xs font-normal mt-1">
+                                    Logged BPM: {item.hanonBpmTarget}
                                 </span>
                             </>
                         )}

@@ -7,6 +7,7 @@ import {
   DIRECTION_TYPES, HAND_CONFIGURATIONS, RHYTHMIC_PERMUTATIONS, ACCENT_DISTRIBUTIONS, OCTAVE_CONFIGURATIONS,
   DirectionType, HandConfiguration, RhythmicPermutation, AccentDistribution, OctaveConfiguration,
   PRACTICE_GRADES, DOHNANYI_BPM_TARGETS, DOHNANYI_EXERCISES, getDohnanyiPracticeId, ALL_SCALE_ITEMS,
+  HANON_EXERCISES, HANON_BPM_TARGETS, getHanonPracticeId,
   KEYS, SCALE_TYPES, ARPEGGIO_TYPES
 } from '@/lib/scales';
 import { Clock, Check, Target } from 'lucide-react';
@@ -124,6 +125,12 @@ const getRequiredPracticeIdsForGrade = (gradeId: number): string[] => {
                 requiredIds.push(getDohnanyiPracticeId(exercise, bpm));
             });
         });
+        
+        HANON_EXERCISES.forEach(exercise => {
+            HANON_BPM_TARGETS.forEach(bpm => {
+                requiredIds.push(getHanonPracticeId(exercise, bpm));
+            });
+        });
     }
 
     return Array.from(new Set(requiredIds));
@@ -131,7 +138,7 @@ const getRequiredPracticeIdsForGrade = (gradeId: number): string[] => {
 
 
 const PracticeStats = () => {
-  const { progressMap, log, allScales, allDohnanyiCombinations } = useScales();
+  const { progressMap, log, allScales, allDohnanyiCombinations, allHanonCombinations } = useScales();
 
   const stats = useMemo(() => {
     
@@ -166,7 +173,7 @@ const PracticeStats = () => {
       completionPercentage,
       totalDurationMinutes,
     };
-  }, [progressMap, log, allScales, allDohnanyiCombinations]);
+  }, [progressMap, log, allScales, allDohnanyiCombinations, allHanonCombinations]);
 
   // Logic to suggest the next focus based on the lowest incomplete grade
   const nextFocus = useMemo(() => {
@@ -186,7 +193,7 @@ const PracticeStats = () => {
     
     if (!nextId) return null; // Should not happen if nextGrade is found
 
-    // Determine if it's a Scale or Dohnányi exercise
+    // Determine if it's a Scale, Dohnányi, or Hanon exercise
     if (nextId.startsWith('DOHNANYI')) {
         const dohItem = allDohnanyiCombinations.find(c => c.id === nextId);
         if (dohItem) {
@@ -194,6 +201,16 @@ const PracticeStats = () => {
                 type: 'Dohnanyi',
                 name: dohItem.name,
                 goal: `Master ${dohItem.name} at ${dohItem.bpm} BPM.`,
+                grade: nextGrade.id,
+            };
+        }
+    } else if (nextId.startsWith('HANON')) {
+        const hanonItem = allHanonCombinations.find(c => c.id === nextId);
+        if (hanonItem) {
+            return {
+                type: 'Hanon',
+                name: hanonItem.name,
+                goal: `Master ${hanonItem.name} at ${hanonItem.bpm} BPM.`,
                 grade: nextGrade.id,
             };
         }
@@ -235,7 +252,7 @@ const PracticeStats = () => {
     
     return { type: 'General', goal: `Continue working on Grade ${nextGrade.id}: ${nextGrade.description}`, grade: nextGrade.id };
 
-  }, [progressMap, allScales, allDohnanyiCombinations]);
+  }, [progressMap, allScales, allDohnanyiCombinations, allHanonCombinations]);
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">

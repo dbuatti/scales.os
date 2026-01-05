@@ -10,6 +10,7 @@ import { formatDistanceToNow } from 'date-fns';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import ScalePracticePanel from './ScalePracticePanel';
 import DohnanyiPracticePanel from './DohnanyiPracticePanel';
+import HanonPracticePanel from './HanonPracticePanel'; // New import
 import GradeTracker from './GradeTracker'; // New component for grading
 
 const MIN_BPM = 40;
@@ -151,12 +152,15 @@ const PracticeCommandCenter: React.FC = () => {
 
           {/* Tabbed Practice Panels */}
           <Tabs defaultValue="scales" className="w-full pt-4">
-            <TabsList className="grid w-full grid-cols-2 bg-secondary/50 border border-primary/30">
+            <TabsList className="grid w-full grid-cols-3 bg-secondary/50 border border-primary/30">
               <TabsTrigger value="scales" className="font-mono text-primary data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
-                Scales & Arpeggios
+                Scales
               </TabsTrigger>
               <TabsTrigger value="dohnanyi" className="font-mono text-primary data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
-                Dohnányi Exercises
+                Dohnányi
+              </TabsTrigger>
+              <TabsTrigger value="hanon" className="font-mono text-primary data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+                Hanon
               </TabsTrigger>
             </TabsList>
             <TabsContent value="scales" className="mt-4">
@@ -169,6 +173,14 @@ const PracticeCommandCenter: React.FC = () => {
             </TabsContent>
             <TabsContent value="dohnanyi" className="mt-4">
               <DohnanyiPracticePanel 
+                currentBPM={currentBPM} 
+                addLogEntry={addLogEntry} 
+                updatePracticeStatus={updatePracticeStatus} 
+                progressMap={progressMap}
+              />
+            </TabsContent>
+            <TabsContent value="hanon" className="mt-4">
+              <HanonPracticePanel 
                 currentBPM={currentBPM} 
                 addLogEntry={addLogEntry} 
                 updatePracticeStatus={updatePracticeStatus} 
