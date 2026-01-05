@@ -8,7 +8,7 @@ import {
 import { useScales, NextFocus } from '../context/ScalesContext';
 import { showSuccess, showError } from '@/utils/toast';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
-import { cn, shallowEqual } from '@/lib/utils'; // Import shallowEqual
+import { cn, shallowEqual } from '@/lib/utils';
 import { Label } from '@/components/ui/label';
 import { useGlobalBPM, SNAPSHOT_DEBOUNCE_MS, ActivePracticeItem } from '@/context/GlobalBPMContext';
 
@@ -17,45 +17,41 @@ interface DohnanyiPracticePanelProps {
     addLogEntry: ReturnType<typeof useScales>['addLogEntry'];
     updatePracticeStatus: ReturnType<typeof useScales>['updatePracticeStatus'];
     progressMap: ReturnType<typeof useScales>['progressMap'];
-    initialFocus: (NextFocus & { type: 'dohnanyi' }) | undefined;
-    activeTab: 'scales' | 'dohnanyi' | 'hanon'; // Added activeTab prop
+    activeTab: 'scales' | 'dohnanyi' | 'hanon';
+    suggestedDohnanyi: (NextFocus & { type: 'dohnanyi' }) | undefined;
 }
 
-const DohnanyiPracticePanel: React.FC<DohnanyiPracticePanelProps> = ({ currentBPM, addLogEntry, updatePracticeStatus, progressMap, initialFocus, activeTab }) => {
+const DohnanyiPracticePanel: React.FC<DohnanyiPracticePanelProps> = ({ 
+  currentBPM, addLogEntry, updatePracticeStatus, progressMap, 
+  activeTab, suggestedDohnanyi
+}) => {
   
   const { 
     setActivePermutationHighestBPM, 
     setActivePracticeItem, 
     setActiveLogSnapshotFunction,
-    activePracticeItem: globalActivePracticeItem // Get current global active item
+    activePracticeItem: globalActivePracticeItem
   } = useGlobalBPM();
   
-  // Local state for user's current selection
   const [selectedExercise, setSelectedExercise] = useState<DohnanyiExercise>(DOHNANYI_EXERCISES[0]);
   
-  // State for the suggested item from nextFocus
-  const [suggestedDohnanyi, setSuggestedDohnanyi] = useState<(NextFocus & { type: 'dohnanyi' }) | null>(null);
-
-  // Effect to update suggestedDohnanyi when initialFocus changes and is relevant to Dohnányi
-  useEffect(() => {
-    if (activeTab === 'dohnanyi' && initialFocus && initialFocus.type === 'dohnanyi') {
-        if (!shallowEqual(suggestedDohnanyi, initialFocus)) {
-            setSuggestedDohnanyi(initialFocus);
-        }
-    } else if (suggestedDohnanyi) {
-        setSuggestedDohnanyi(null);
-    }
-  }, [initialFocus, activeTab, suggestedDohnanyi]);
-
   const lastSnapshotTimestampRef = useRef<number>(0); 
   const lastSuccessfulCallKeyRef = useRef<string>(''); 
 
-  // Reset BPM visualization when this panel is active
+  // Effect to apply the suggested Dohnányi exercise when it changes and the tab is active
+  useEffect(() => {
+    if (activeTab === 'dohnanyi' && suggestedDohnanyi) {
+        if (selectedExercise !== suggestedDohnanyi.name) {
+            setSelectedExercise(suggestedDohnanyi.name);
+            lastSuccessfulCallKeyRef.current = ''; // Reset for new snapshot
+        }
+    }
+  }, [suggestedDohnanyi, activeTab, selectedExercise]);
+
   useEffect(() => {
     setActivePermutationHighestBPM(0);
   }, [setActivePermutationHighestBPM]);
   
-  // Determine the next BPM target for the selected exercise
   const nextBPMTarget = useMemo(() => {
     for (const target of DOHNANYI_BPM_TARGETS) {
       const practiceId = getDohnanyiPracticeId(selectedExercise, target);
@@ -63,39 +59,34 @@ const DohnanyiPracticePanel: React.FC<DohnanyiPracticePanelProps> = ({ currentBP
         return target;
       }
     }
-    return DOHNANYI_BPM_TARGETS[DOHNANYI_BPM_TARGETS.length - 1]; // Max BPM if mastered
+    return DOHNANYI_BPM_TARGETS[DOHNANYI_BPM_TARGETS.length - 1];
   }, [selectedExercise, progressMap]);
   
-  // Determine if the next target is already mastered (meaning all targets are mastered)
   const isFullyMastered = useMemo(() => {
       const maxTargetId = getDohnanyiPracticeId(selectedExercise, DOHNANYI_BPM_TARGETS[DOHNANYI_BPM_TARGETS.length - 1]);
       return progressMap[maxTargetId] === 'mastered';
   }, [selectedExercise, progressMap]);
 
-  // Define the snapshot function using useCallback
   const handleLogSnapshot = useCallback(() => {
     const now = Date.now();
     if (now - lastSnapshotTimestampRef.current < SNAPSHOT_DEBOUNCE_MS) {
-      // console.log(`[DohnanyiPracticePanel] Snapshot debounced - too soon since last call (${now - lastSnapshotTimestampRef.current}ms since last snapshot).`); // Removed log
       return;
     }
 
     const currentCallKey = `${selectedExercise}-${currentBPM}`;
     if (lastSuccessfulCallKeyRef.current === currentCallKey) {
-        // console.log(`[DohnanyiPracticePanel] Duplicate call detected for ${currentCallKey}, skipping.`); // Removed log
         return;
     }
 
     lastSnapshotTimestampRef.current = now;
     lastSuccessfulCallKeyRef.current = currentCallKey;
 
-    // Log the snapshot (durationMinutes: 0 indicates a snapshot log)
     addLogEntry({
       durationMinutes: 0, 
       itemsPracticed: [{
         type: 'dohnanyi',
         dohnanyiName: selectedExercise,
-        bpmTarget: currentBPM, // Log the actual BPM practiced
+        bpmTarget: currentBPM,
       }],
       notes: `Dohnányi Snapshot: ${selectedExercise} practiced at ${currentBPM} BPM.`,
     });
@@ -103,13 +94,11 @@ const DohnanyiPracticePanel: React.FC<DohnanyiPracticePanelProps> = ({ currentBP
     showSuccess(`Dohnányi practice session logged at ${currentBPM} BPM.`);
   }, [addLogEntry, selectedExercise, currentBPM]);
 
-  // Use a ref to hold the latest handleLogSnapshot function
   const latestHandleLogSnapshotRef = useRef(handleLogSnapshot);
   useEffect(() => {
     latestHandleLogSnapshotRef.current = handleLogSnapshot;
   }, [handleLogSnapshot]);
 
-  // Effect to update global context for Summary Panel
   useEffect(() => {
       const newActivePracticeItem: ActivePracticeItem = {
           type: 'dohnanyi',
@@ -122,13 +111,10 @@ const DohnanyiPracticePanel: React.FC<DohnanyiPracticePanelProps> = ({ currentBP
       }
   }, [selectedExercise, nextBPMTarget, isFullyMastered, setActivePracticeItem, globalActivePracticeItem]);
 
-  // Effect to set and cleanup the activeLogSnapshotFunction in global context
   useEffect(() => {
-    // console.log('[DohnanyiPracticePanel] Setting activeLogSnapshotFunction in GlobalBPMContext.'); // Removed log
     setActiveLogSnapshotFunction(() => latestHandleLogSnapshotRef.current);
     
     return () => {
-        // console.log('[DohnanyiPracticePanel] Cleaning up activeLogSnapshotFunction in GlobalBPMContext.'); // Removed log
         setActiveLogSnapshotFunction(null);
     };
   }, [setActiveLogSnapshotFunction]);
@@ -138,42 +124,14 @@ const DohnanyiPracticePanel: React.FC<DohnanyiPracticePanelProps> = ({ currentBP
     const practiceId = getDohnanyiPracticeId(selectedExercise, targetBPM);
     const currentStatus = progressMap[practiceId] || 'untouched';
     
-    // Toggle between 'mastered' and 'untouched'
     const nextStatus = currentStatus === 'mastered' ? 'untouched' : 'mastered';
     
     updatePracticeStatus(practiceId, nextStatus);
     showSuccess(`${selectedExercise} at ${targetBPM} BPM marked as ${nextStatus}.`);
   };
 
-  // Function to apply the suggested Dohnányi exercise
-  const applySuggestedDohnanyi = useCallback(() => {
-    if (suggestedDohnanyi) {
-        setSelectedExercise(suggestedDohnanyi.name);
-        lastSuccessfulCallKeyRef.current = ''; // Reset for new snapshot
-        showSuccess(`Loaded suggested: ${suggestedDohnanyi.name}`);
-    }
-  }, [suggestedDohnanyi]);
-
   return (
     <CardContent className="p-0 space-y-6">
-        {/* Suggestion UI */}
-        {suggestedDohnanyi && (
-            <div className="p-3 border border-dashed border-primary/50 rounded-lg bg-accent/20 flex items-center justify-between">
-                <p className="text-sm text-primary font-mono">
-                    Next Suggested: <span className="font-bold">{suggestedDohnanyi.name}</span>
-                    <span className="text-xs text-muted-foreground ml-2">({suggestedDohnanyi.description})</span>
-                </p>
-                <Button 
-                    onClick={applySuggestedDohnanyi} 
-                    variant="secondary" 
-                    size="sm"
-                    className="bg-primary text-primary-foreground hover:bg-primary/90"
-                >
-                    Load Suggestion
-                </Button>
-            </div>
-        )}
-
         <div className="space-y-3 border p-4 rounded-lg border-primary/30 bg-secondary/50">
             <Label className="text-lg font-semibold text-primary block mb-2 font-mono">DOHNÁNYI EXERCISES</Label>
             <p className="text-xs text-muted-foreground italic mb-4">

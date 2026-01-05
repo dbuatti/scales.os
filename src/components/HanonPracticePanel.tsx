@@ -8,7 +8,7 @@ import {
 import { useScales, NextFocus } from '../context/ScalesContext';
 import { showSuccess, showError } from '@/utils/toast';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
-import { cn, shallowEqual } from '@/lib/utils'; // Import shallowEqual
+import { cn, shallowEqual } from '@/lib/utils';
 import { Label } from '@/components/ui/label';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useGlobalBPM, SNAPSHOT_DEBOUNCE_MS, ActivePracticeItem } from '@/context/GlobalBPMContext';
@@ -18,45 +18,41 @@ interface HanonPracticePanelProps {
     addLogEntry: ReturnType<typeof useScales>['addLogEntry'];
     updatePracticeStatus: ReturnType<typeof useScales>['updatePracticeStatus'];
     progressMap: ReturnType<typeof useScales>['progressMap'];
-    initialFocus: (NextFocus & { type: 'hanon' }) | undefined;
-    activeTab: 'scales' | 'dohnanyi' | 'hanon'; // Added activeTab prop
+    activeTab: 'scales' | 'dohnanyi' | 'hanon';
+    suggestedHanon: (NextFocus & { type: 'hanon' }) | undefined;
 }
 
-const HanonPracticePanel: React.FC<HanonPracticePanelProps> = ({ currentBPM, addLogEntry, updatePracticeStatus, progressMap, initialFocus, activeTab }) => {
+const HanonPracticePanel: React.FC<HanonPracticePanelProps> = ({ 
+  currentBPM, addLogEntry, updatePracticeStatus, progressMap, 
+  activeTab, suggestedHanon
+}) => {
   
   const { 
     setActivePermutationHighestBPM, 
     setActivePracticeItem, 
     setActiveLogSnapshotFunction,
-    activePracticeItem: globalActivePracticeItem // Get current global active item
+    activePracticeItem: globalActivePracticeItem
   } = useGlobalBPM();
   
-  // Local state for user's current selection
   const [selectedExercise, setSelectedExercise] = useState<HanonExercise>(HANON_EXERCISES[0]);
   
-  // State for the suggested item from nextFocus
-  const [suggestedHanon, setSuggestedHanon] = useState<(NextFocus & { type: 'hanon' }) | null>(null);
-
-  // Effect to update suggestedHanon when initialFocus changes and is relevant to Hanon
-  useEffect(() => {
-    if (activeTab === 'hanon' && initialFocus && initialFocus.type === 'hanon') {
-        if (!shallowEqual(suggestedHanon, initialFocus)) {
-            setSuggestedHanon(initialFocus);
-        }
-    } else if (suggestedHanon) {
-        setSuggestedHanon(null);
-    }
-  }, [initialFocus, activeTab, suggestedHanon]);
-
   const lastSnapshotTimestampRef = useRef<number>(0); 
   const lastSuccessfulCallKeyRef = useRef<string>(''); 
 
-  // Reset BPM visualization when this panel is active
+  // Effect to apply the suggested Hanon exercise when it changes and the tab is active
+  useEffect(() => {
+    if (activeTab === 'hanon' && suggestedHanon) {
+        if (selectedExercise !== suggestedHanon.name) {
+            setSelectedExercise(suggestedHanon.name);
+            lastSuccessfulCallKeyRef.current = ''; // Reset for new snapshot
+        }
+    }
+  }, [suggestedHanon, activeTab, selectedExercise]);
+
   useEffect(() => {
     setActivePermutationHighestBPM(0);
   }, [setActivePermutationHighestBPM]);
   
-  // Determine the next BPM target for the selected exercise
   const nextBPMTarget = useMemo(() => {
     for (const target of HANON_BPM_TARGETS) {
       const practiceId = getHanonPracticeId(selectedExercise, target);
@@ -64,39 +60,34 @@ const HanonPracticePanel: React.FC<HanonPracticePanelProps> = ({ currentBPM, add
         return target;
       }
     }
-    return HANON_BPM_TARGETS[HANON_BPM_TARGETS.length - 1]; // Max BPM if mastered
+    return HANON_BPM_TARGETS[HANON_BPM_TARGETS.length - 1];
   }, [selectedExercise, progressMap]);
   
-  // Determine if the next target is already mastered (meaning all targets are mastered)
   const isFullyMastered = useMemo(() => {
       const maxTargetId = getHanonPracticeId(selectedExercise, HANON_BPM_TARGETS[HANON_BPM_TARGETS.length - 1]);
       return progressMap[maxTargetId] === 'mastered';
   }, [selectedExercise, progressMap]);
 
-  // Define the snapshot function using useCallback
   const handleLogSnapshot = useCallback(() => {
     const now = Date.now();
     if (now - lastSnapshotTimestampRef.current < SNAPSHOT_DEBOUNCE_MS) {
-      // console.log(`[HanonPracticePanel] Snapshot debounced - too soon since last call (${now - lastSnapshotTimestampRef.current}ms since last snapshot).`); // Removed log
       return;
     }
 
     const currentCallKey = `${selectedExercise}-${currentBPM}`;
     if (lastSuccessfulCallKeyRef.current === currentCallKey) {
-        // console.log(`[HanonPracticePanel] Duplicate call detected for ${currentCallKey}, skipping.`); // Removed log
         return;
     }
 
     lastSnapshotTimestampRef.current = now;
     lastSuccessfulCallKeyRef.current = currentCallKey;
 
-    // Log the snapshot (durationMinutes: 0 indicates a snapshot log)
     addLogEntry({
       durationMinutes: 0, 
       itemsPracticed: [{
         type: 'hanon',
         hanonName: selectedExercise,
-        hanonBpmTarget: currentBPM, // Log the actual BPM practiced
+        hanonBpmTarget: currentBPM,
       }],
       notes: `Hanon Snapshot: ${selectedExercise} practiced at ${currentBPM} BPM.`,
     });
@@ -104,13 +95,11 @@ const HanonPracticePanel: React.FC<HanonPracticePanelProps> = ({ currentBPM, add
     showSuccess(`Hanon practice session logged at ${currentBPM} BPM.`);
   }, [addLogEntry, selectedExercise, currentBPM]);
 
-  // Use a ref to hold the latest handleLogSnapshot function
   const latestHandleLogSnapshotRef = useRef(handleLogSnapshot);
   useEffect(() => {
     latestHandleLogSnapshotRef.current = handleLogSnapshot;
   }, [handleLogSnapshot]);
 
-  // Effect to update global context for Summary Panel
   useEffect(() => {
       const newActivePracticeItem: ActivePracticeItem = {
           type: 'hanon',
@@ -123,13 +112,10 @@ const HanonPracticePanel: React.FC<HanonPracticePanelProps> = ({ currentBPM, add
       }
   }, [selectedExercise, nextBPMTarget, isFullyMastered, setActivePracticeItem, globalActivePracticeItem]);
 
-  // Effect to set and cleanup the activeLogSnapshotFunction in global context
   useEffect(() => {
-    // console.log('[HanonPracticePanel] Setting activeLogSnapshotFunction in GlobalBPMContext.'); // Removed log
     setActiveLogSnapshotFunction(() => latestHandleLogSnapshotRef.current);
     
     return () => {
-        // console.log('[HanonPracticePanel] Cleaning up activeLogSnapshotFunction in GlobalBPMContext.'); // Removed log
         setActiveLogSnapshotFunction(null);
     };
   }, [setActiveLogSnapshotFunction]);
@@ -139,42 +125,14 @@ const HanonPracticePanel: React.FC<HanonPracticePanelProps> = ({ currentBPM, add
     const practiceId = getHanonPracticeId(selectedExercise, targetBPM);
     const currentStatus = progressMap[practiceId] || 'untouched';
     
-    // Toggle between 'mastered' and 'untouched'
     const nextStatus = currentStatus === 'mastered' ? 'untouched' : 'mastered';
     
     updatePracticeStatus(practiceId, nextStatus);
     showSuccess(`${selectedExercise} at ${targetBPM} BPM marked as ${nextStatus}.`);
   };
 
-  // Function to apply the suggested Hanon exercise
-  const applySuggestedHanon = useCallback(() => {
-    if (suggestedHanon) {
-        setSelectedExercise(suggestedHanon.name);
-        lastSuccessfulCallKeyRef.current = ''; // Reset for new snapshot
-        showSuccess(`Loaded suggested: ${suggestedHanon.name}`);
-    }
-  }, [suggestedHanon]);
-
   return (
     <CardContent className="p-0 space-y-6">
-        {/* Suggestion UI */}
-        {suggestedHanon && (
-            <div className="p-3 border border-dashed border-primary/50 rounded-lg bg-accent/20 flex items-center justify-between">
-                <p className="text-sm text-primary font-mono">
-                    Next Suggested: <span className="font-bold">{suggestedHanon.name}</span>
-                    <span className="text-xs text-muted-foreground ml-2">({suggestedHanon.description})</span>
-                </p>
-                <Button 
-                    onClick={applySuggestedHanon} 
-                    variant="secondary" 
-                    size="sm"
-                    className="bg-primary text-primary-foreground hover:bg-primary/90"
-                >
-                    Load Suggestion
-                </Button>
-            </div>
-        )}
-
         <div className="space-y-3 border p-4 rounded-lg border-primary/30 bg-secondary/50">
             <Label className="text-lg font-semibold text-primary block mb-2 font-mono">HANON EXERCISES (1-60)</Label>
             <p className="text-xs text-muted-foreground italic mb-4">

@@ -1,7 +1,7 @@
-import React, { useState, useMemo, useEffect, useRef } from 'react';
+import React, { useState, useMemo, useEffect, useRef, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
-import { useScales } from '../context/ScalesContext';
+import { useScales, NextFocus } from '../context/ScalesContext';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import ScalePracticePanel from './ScalePracticePanel';
 import DohnanyiPracticePanel from './DohnanyiPracticePanel';
@@ -12,6 +12,8 @@ import { useGlobalBPM } from '@/context/GlobalBPMContext';
 import { MIN_BPM, MAX_BPM } from '@/lib/scales';
 import { formatDistanceToNow } from 'date-fns';
 import PracticeSummaryPanel from './PracticeSummaryPanel';
+import { Button } from '@/components/ui/button';
+import { showSuccess } from '@/utils/toast';
 
 const PracticeCommandCenter: React.FC = () => {
   const { addLogEntry, allScales, log, progressMap, updatePracticeStatus, updateScaleMasteryBPM, scaleMasteryBPMMap, nextFocus } = useScales();
@@ -32,7 +34,20 @@ const PracticeCommandCenter: React.FC = () => {
     }
   }, [nextFocus]); 
 
-  
+  // Function to apply the suggested item by setting the active tab
+  const handleLoadSuggestion = useCallback((item: NextFocus) => {
+    if (!item) return;
+
+    if (item.type === 'scale') {
+        setActiveTab('scales');
+    } else if (item.type === 'dohnanyi') {
+        setActiveTab('dohnanyi');
+    } else if (item.type === 'hanon') {
+        setActiveTab('hanon');
+    }
+    showSuccess(`Loaded suggested: ${item.type === 'scale' ? `${item.scaleItem.key} ${item.scaleItem.type}` : item.name}`);
+  }, []);
+
   // Find the most recent log entry that includes BPM information
   const lastLogEntry = useMemo(() => {
     const entry = log.find(logEntry => logEntry.notes.includes("BPM:"));
@@ -58,9 +73,6 @@ const PracticeCommandCenter: React.FC = () => {
     const masteredBPMAdjusted = activePermutationHighestBPM - MIN_BPM;
     return Math.min(100, (masteredBPMAdjusted / range) * 100);
   }, [activePermutationHighestBPM]);
-
-  // Log the current BPM for debugging purposes
-  // console.log(`[PracticeCommandCenter:Render] Displaying currentBPM: ${currentBPM}`); // Removed log
 
   return (
     <div className="p-4 md:p-8 min-h-[calc(100vh-64px)] flex flex-col items-center justify-start bg-background">
@@ -108,9 +120,27 @@ const PracticeCommandCenter: React.FC = () => {
                 </p>
             </div>
 
-            {/* Column 2 & 3: Practice Summary Panel */}
-            <div className="lg:col-span-2">
+            {/* Column 2 & 3: Practice Summary Panel and Next Suggested */}
+            <div className="lg:col-span-2 space-y-4">
                 <PracticeSummaryPanel />
+                {nextFocus && (
+                    <div className="p-3 border border-dashed border-primary/50 rounded-lg bg-accent/20 flex items-center justify-between">
+                        <p className="text-sm text-primary font-mono">
+                            Next Suggested: <span className="font-bold">
+                                {nextFocus.type === 'scale' ? `${nextFocus.scaleItem.key} ${nextFocus.scaleItem.type}` : nextFocus.name}
+                            </span>
+                            <span className="text-xs text-muted-foreground ml-2">({nextFocus.description})</span>
+                        </p>
+                        <Button 
+                            onClick={() => handleLoadSuggestion(nextFocus)} 
+                            variant="secondary" 
+                            size="sm"
+                            className="bg-primary text-primary-foreground hover:bg-primary/90"
+                        >
+                            Load Suggestion
+                        </Button>
+                    </div>
+                )}
             </div>
           </div>
           
@@ -155,7 +185,6 @@ const PracticeCommandCenter: React.FC = () => {
             defaultValue="scales" 
             value={activeTab} 
             onValueChange={(v) => {
-                // console.log(`[PracticeCommandCenter] Tab changed to: ${v}`); // Removed log
                 setActiveTab(v as 'scales' | 'dohnanyi' | 'hanon');
                 setActivePermutationHighestBPM(0); // Reset BPM visualization when switching tabs
             }} 
@@ -183,7 +212,7 @@ const PracticeCommandCenter: React.FC = () => {
             </TabsList>
             <TabsContent value="scales" className="mt-4">
               <ScalePracticePanel 
-                initialFocus={nextFocus?.type === 'scale' ? nextFocus : undefined}
+                suggestedScalePermutation={nextFocus?.type === 'scale' ? nextFocus : undefined}
                 currentBPM={currentBPM} 
                 addLogEntry={addLogEntry} 
                 updatePracticeStatus={updatePracticeStatus} 
@@ -195,7 +224,7 @@ const PracticeCommandCenter: React.FC = () => {
             </TabsContent>
             <TabsContent value="dohnanyi" className="mt-4">
               <DohnanyiPracticePanel 
-                initialFocus={nextFocus?.type === 'dohnanyi' ? nextFocus : undefined}
+                suggestedDohnanyi={nextFocus?.type === 'dohnanyi' ? nextFocus : undefined}
                 currentBPM={currentBPM} 
                 addLogEntry={addLogEntry} 
                 updatePracticeStatus={updatePracticeStatus} 
@@ -205,7 +234,7 @@ const PracticeCommandCenter: React.FC = () => {
             </TabsContent>
             <TabsContent value="hanon" className="mt-4">
               <HanonPracticePanel 
-                initialFocus={nextFocus?.type === 'hanon' ? nextFocus : undefined}
+                suggestedHanon={nextFocus?.type === 'hanon' ? nextFocus : undefined}
                 currentBPM={currentBPM} 
                 addLogEntry={addLogEntry} 
                 updatePracticeStatus={updatePracticeStatus} 
