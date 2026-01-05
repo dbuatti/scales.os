@@ -69,6 +69,7 @@ const Metronome: React.FC<MetronomeProps> = ({ bpm }) => {
       return;
     }
 
+    console.log(`[Metronome] Scheduler: Current BPM prop: ${bpm}`); // Log BPM here
     const secondsPerBeat = 60.0 / bpm;
     const interval = division === 'quarter' ? secondsPerBeat : secondsPerBeat / 2;
 
@@ -104,7 +105,7 @@ const Metronome: React.FC<MetronomeProps> = ({ bpm }) => {
       // Reset beat counters and set initial time
       currentBeatRef.current = 0; // Reset ref
       setCurrentBeatVisual(0); // Reset visual state
-      nextNoteTimeRef.current = context.currentTime + 0.1; // Start slightly in the future
+      nextNoteTimeRef.current = context.currentTime; // Start immediately
       console.log(`[Metronome] useEffect [isRunning]: Starting metronome. Initial nextNoteTime: ${nextNoteTimeRef.current.toFixed(3)}s`);
       
       // Start scheduling loop
