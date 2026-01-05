@@ -11,6 +11,7 @@ import { cn } from '@/lib/utils';
 import { useGlobalBPM } from '@/context/GlobalBPMContext';
 import { MIN_BPM, MAX_BPM } from '@/lib/scales';
 import { formatDistanceToNow } from 'date-fns';
+import PracticeSummaryPanel from './PracticeSummaryPanel';
 
 const PracticeCommandCenter: React.FC = () => {
   const { addLogEntry, allScales, log, progressMap, updatePracticeStatus, updateScaleMasteryBPM, scaleMasteryBPMMap, nextFocus } = useScales();
@@ -26,7 +27,7 @@ const PracticeCommandCenter: React.FC = () => {
         if (nextFocus.type === 'scale') {
             // Set BPM to the next suggested goal (highest mastered + 3, or 40)
             setCurrentBPM(nextFocus.nextBPMGoal);
-            setActiveTab('scales'); // Fix: Use 'scales' for the tab name
+            setActiveTab('scales');
         } else if (nextFocus.type === 'dohnanyi' || nextFocus.type === 'hanon') {
             // Set BPM to the target BPM for the next mastery step
             setCurrentBPM(nextFocus.bpmTarget);
@@ -73,11 +74,11 @@ const PracticeCommandCenter: React.FC = () => {
         </CardHeader>
         <CardContent className="p-6 space-y-6">
           
-          {/* Top Row: BPM Display (Now just display, controls are in header) */}
-          <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center space-y-4 lg:space-y-0 lg:space-x-8">
+          {/* Top Row: BPM Display & Summary Panel */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
             
-            {/* Tempo Display */}
-            <div className="flex-1 space-y-2">
+            {/* Column 1: Tempo Display */}
+            <div className="lg:col-span-1 space-y-2">
                 {/* Last Practiced Message */}
                 <div className="h-10 flex items-center justify-center lg:justify-start">
                     {lastLogEntry ? (
@@ -100,30 +101,22 @@ const PracticeCommandCenter: React.FC = () => {
                     CURRENT TEMPO (BPM)
                 </Label>
                 <div className="flex items-center justify-center lg:justify-start space-x-4">
-                    {/* Removed +/- buttons */}
                     <div className="text-7xl font-mono font-extrabold text-primary tracking-tighter min-w-[120px] text-center">
                         {currentBPM}
                     </div>
-                    {/* Removed +/- buttons */}
                 </div>
                 <p className="text-sm text-muted-foreground font-mono text-center lg:text-left">
                     Use controls in the header or the slider below to set BPM.
                 </p>
             </div>
 
-            {/* Timer Integration (Removed full card view) */}
-            <div className="w-full lg:w-1/3">
-                {/* Placeholder for the full timer card if needed, but for now, just show a message */}
-                <div className="block md:hidden">
-                    {/* Show full timer on small screens if needed, but for now, just show a message */}
-                    <p className="text-sm text-muted-foreground font-mono text-center">
-                        Timer controls are in the header.
-                    </p>
-                </div>
+            {/* Column 2 & 3: Practice Summary Panel */}
+            <div className="lg:col-span-2">
+                <PracticeSummaryPanel />
             </div>
           </div>
           
-          {/* BPM Slider (Fine-tuned control) - Now uses setCurrentBPM from global context */}
+          {/* BPM Slider (Fine-tuned control) */}
           <div className="space-y-4 pt-4 border-t border-border">
             <Label className="text-sm font-semibold text-muted-foreground block font-mono">BPM Fine Control</Label>
             <div className="flex items-center space-x-4">

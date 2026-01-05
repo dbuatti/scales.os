@@ -22,7 +22,7 @@ interface DohnanyiPracticePanelProps {
 
 const DohnanyiPracticePanel: React.FC<DohnanyiPracticePanelProps> = ({ currentBPM, addLogEntry, updatePracticeStatus, progressMap, initialFocus }) => {
   
-  const { setActivePermutationHighestBPM } = useGlobalBPM();
+  const { setActivePermutationHighestBPM, setActivePracticeItem } = useGlobalBPM();
   
   const initialExercise = initialFocus?.name || DOHNANYI_EXERCISES[0];
   const [selectedExercise, setSelectedExercise] = useState<DohnanyiExercise>(initialExercise);
@@ -42,6 +42,23 @@ const DohnanyiPracticePanel: React.FC<DohnanyiPracticePanelProps> = ({ currentBP
     }
     return DOHNANYI_BPM_TARGETS[DOHNANYI_BPM_TARGETS.length - 1]; // Max BPM if mastered
   }, [selectedExercise, progressMap]);
+  
+  // Determine if the next target is already mastered (meaning all targets are mastered)
+  const isFullyMastered = useMemo(() => {
+      const maxTargetId = getDohnanyiPracticeId(selectedExercise, DOHNANYI_BPM_TARGETS[DOHNANYI_BPM_TARGETS.length - 1]);
+      return progressMap[maxTargetId] === 'mastered';
+  }, [selectedExercise, progressMap]);
+
+  // Effect to update global context for Summary Panel
+  useEffect(() => {
+      setActivePracticeItem({
+          type: 'dohnanyi',
+          name: selectedExercise,
+          nextTargetBPM: nextBPMTarget,
+          isMastered: isFullyMastered,
+      });
+  }, [selectedExercise, nextBPMTarget, isFullyMastered, setActivePracticeItem]);
+
 
   const handleToggleMastery = (targetBPM: DohnanyiBPMTarget) => {
     const practiceId = getDohnanyiPracticeId(selectedExercise, targetBPM);

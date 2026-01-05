@@ -23,7 +23,7 @@ interface HanonPracticePanelProps {
 
 const HanonPracticePanel: React.FC<HanonPracticePanelProps> = ({ currentBPM, addLogEntry, updatePracticeStatus, progressMap, initialFocus }) => {
   
-  const { setActivePermutationHighestBPM } = useGlobalBPM();
+  const { setActivePermutationHighestBPM, setActivePracticeItem } = useGlobalBPM();
   
   const initialExercise = initialFocus?.name || HANON_EXERCISES[0];
   const [selectedExercise, setSelectedExercise] = useState<HanonExercise>(initialExercise);
@@ -43,6 +43,23 @@ const HanonPracticePanel: React.FC<HanonPracticePanelProps> = ({ currentBPM, add
     }
     return HANON_BPM_TARGETS[HANON_BPM_TARGETS.length - 1]; // Max BPM if mastered
   }, [selectedExercise, progressMap]);
+  
+  // Determine if the next target is already mastered (meaning all targets are mastered)
+  const isFullyMastered = useMemo(() => {
+      const maxTargetId = getHanonPracticeId(selectedExercise, HANON_BPM_TARGETS[HANON_BPM_TARGETS.length - 1]);
+      return progressMap[maxTargetId] === 'mastered';
+  }, [selectedExercise, progressMap]);
+
+  // Effect to update global context for Summary Panel
+  useEffect(() => {
+      setActivePracticeItem({
+          type: 'hanon',
+          name: selectedExercise,
+          nextTargetBPM: nextBPMTarget,
+          isMastered: isFullyMastered,
+      });
+  }, [selectedExercise, nextBPMTarget, isFullyMastered, setActivePracticeItem]);
+
 
   const handleToggleMastery = (targetBPM: HanonBPMTarget) => {
     const practiceId = getHanonPracticeId(selectedExercise, targetBPM);

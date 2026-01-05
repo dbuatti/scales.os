@@ -75,7 +75,7 @@ const ALL_TYPES = [...SCALE_TYPES, ...ARPEGGIO_TYPES];
 
 const ScalePracticePanel: React.FC<ScalePracticePanelProps> = ({ currentBPM, addLogEntry, updatePracticeStatus, updateScaleMasteryBPM, scaleMasteryBPMMap, allScales, initialFocus }) => {
   
-  const { setActivePermutationHighestBPM } = useGlobalBPM();
+  const { setActivePermutationHighestBPM, setActivePracticeItem } = useGlobalBPM();
   
   // Calculate initial state based on prop
   const initialPermutation = useMemo(() => {
@@ -138,10 +138,24 @@ const ScalePracticePanel: React.FC<ScalePracticePanelProps> = ({ currentBPM, add
   const highestMasteredBPM = currentPermutationId ? scaleMasteryBPMMap[currentPermutationId] || 0 : 0;
   const nextBPMGoal = highestMasteredBPM > 0 ? highestMasteredBPM + 3 : 40; // Start at 40 BPM if untouched
 
-  // Notify parent component whenever the selected permutation changes
+  // Effect to update global context for BPM visualization and Summary Panel
   useEffect(() => {
     setActivePermutationHighestBPM(highestMasteredBPM);
-  }, [highestMasteredBPM, setActivePermutationHighestBPM, currentPermutationId]);
+    
+    if (result) {
+        setActivePracticeItem({
+            type: 'scale',
+            key: result.scaleItem.key,
+            scaleType: result.scaleItem.type,
+            articulation: selectedArticulation,
+            octaves: selectedOctaves,
+            highestBPM: highestMasteredBPM,
+            nextGoalBPM: nextBPMGoal,
+        });
+    } else {
+        setActivePracticeItem(null);
+    }
+  }, [highestMasteredBPM, setActivePermutationHighestBPM, setActivePracticeItem, currentPermutationId, selectedKey, selectedType, selectedArticulation, selectedOctaves, nextBPMGoal, result]);
 
 
   const handleSaveSnapshot = () => {
