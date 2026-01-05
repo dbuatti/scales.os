@@ -5,7 +5,7 @@ import {
   DirectionType, HandConfiguration, RhythmicPermutation, AccentDistribution, OctaveConfiguration,
   DohnanyiExercise, DohnanyiItem, ALL_DOHNANYI_ITEMS, DOHNANYI_BPM_TARGETS, getDohnanyiPracticeId, ALL_DOHNANYI_COMBINATIONS,
   HanonExercise, HanonItem, ALL_HANON_ITEMS, ALL_HANON_COMBINATIONS, getHanonPracticeId, getScalePermutationId,
-  PRACTICE_GRADES, getGradeRequirements, GradeRequirement, parseScalePermutationId
+  PRACTICE_GRADES, getGradeRequirements, GradeRequirement, parseScalePermutationId, getDohnanyiExerciseBaseId, getHanonExerciseBaseId
 } from '@/lib/scales';
 import { useSupabaseSession } from '@/hooks/use-supabase-session';
 import { supabase } from '@/integrations/supabase/client';
@@ -113,6 +113,7 @@ interface ScalesContextType {
   allDohnanyiCombinations: typeof ALL_DOHNANYI_COMBINATIONS;
   allHanon: HanonItem[];
   allHanonCombinations: typeof ALL_HANON_COMBINATIONS;
+  refetchData: () => Promise<void>; // New: Function to manually refetch data
 }
 
 // --- Context and Provider ---
@@ -223,6 +224,17 @@ export const ScalesProvider: React.FC<React.PropsWithChildren> = ({ children }) 
     }
   }, [userId, isSessionLoading, fetchData]);
 
+  // New: refetchData function to be exposed
+  const refetchData = useCallback(async () => {
+    if (userId) {
+      showSuccess("Refreshing practice data...");
+      await fetchData(userId);
+      showSuccess("Practice data refreshed!");
+    } else {
+      showError("Cannot refresh data: User not logged in.");
+    }
+  }, [userId, fetchData]);
+
 
   // 1.5 Calculate Next Focus (Enhanced Logic)
   const nextFocus: NextFocus = useMemo(() => {
@@ -237,7 +249,7 @@ export const ScalesProvider: React.FC<React.PropsWithChildren> = ({ children }) 
                 return highestBPM < req.requiredBPM;
             } else { // Dohnanyi or Hanon
                 // Now check against exerciseMasteryBPMMap
-                const highestBPM = exerciseMasteryBPMMap[req.practiceId] || 0;
+                const highestBPM = exerciseMasteryBPMMap[req.exerciseId] || 0; // Use exerciseId here
                 return highestBPM < req.requiredBPM;
             }
         });
@@ -256,7 +268,7 @@ export const ScalesProvider: React.FC<React.PropsWithChildren> = ({ children }) 
                 const highestBPM = scaleMasteryBPMMap[req.scalePermutationId] || 0;
                 return highestBPM < req.requiredBPM;
             } else { // Dohnanyi or Hanon
-                const highestBPM = exerciseMasteryBPMMap[req.practiceId] || 0;
+                const highestBPM = exerciseMasteryBPMMap[req.exerciseId] || 0; // Use exerciseId here
                 return highestBPM < req.requiredBPM;
             }
         })
@@ -276,7 +288,7 @@ export const ScalesProvider: React.FC<React.PropsWithChildren> = ({ children }) 
                     }
                 }
             } else { // Dohnanyi or Hanon
-                const highestBPM = exerciseMasteryBPMMap[req.practiceId] || 0;
+                const highestBPM = exerciseMasteryBPMMap[req.exerciseId] || 0; // Use exerciseId here
                 if (highestBPM > 0) { // Prioritize if already practiced
                     score += 10;
                     const bpmDifference = req.requiredBPM - highestBPM;
@@ -325,9 +337,9 @@ export const ScalesProvider: React.FC<React.PropsWithChildren> = ({ children }) 
             };
         }
     } else if (selectedRequirement.type === 'dohnanyi') {
-        const dohItem = ALL_DOHNANYI_COMBINATIONS.find(c => c.id === selectedRequirement.practiceId); // Use practiceId
+        const dohItem = ALL_DOHNANYI_ITEMS.find(c => c.id === selectedRequirement.exerciseId); // Use exerciseId
         if (dohItem) {
-            const currentHighestBPM = exerciseMasteryBPMMap[selectedRequirement.practiceId] || 0;
+            const currentHighestBPM = exerciseMasteryBPMMap[selectedRequirement.exerciseId] || 0; // Use exerciseId here
             const nextBPMGoal = currentHighestBPM > 0 ? currentHighestBPM + 3 : 40;
             return {
                 type: 'dohnanyi',
@@ -341,9 +353,9 @@ export const ScalesProvider: React.FC<React.PropsWithChildren> = ({ children }) 
             };
         }
     } else if (selectedRequirement.type === 'hanon') {
-        const hanonItem = ALL_HANON_COMBINATIONS.find(c => c.id === selectedRequirement.practiceId); // Use practiceId
+        const hanonItem = ALL_HANON_ITEMS.find(c => c.id === selectedRequirement.exerciseId); // Use exerciseId
         if (hanonItem) {
-            const currentHighestBPM = exerciseMasteryBPMMap[selectedRequirement.practiceId] || 0;
+            const currentHighestBPM = exerciseMasteryBPMMap[selectedRequirement.exerciseId] || 0; // Use exerciseId here
             const nextBPMGoal = currentHighestBPM > 0 ? currentHighestBPM + 3 : 40;
             return {
                 type: 'hanon',
@@ -359,7 +371,7 @@ export const ScalesProvider: React.FC<React.PropsWithChildren> = ({ children }) 
     }
     
     return null;
-  }, [progressMap, scaleMasteryBPMMap, exerciseMasteryBPMMap, isSessionLoading, isDataLoading]);
+  }, [scaleMasteryBPMMap, exerciseMasteryBPMMap, isSessionLoading, isDataLoading]);
 
 
   // 2. Update Practice Status (Upsert to Supabase - used for Dohnanyi/Hanon/Grade categories)
@@ -528,9 +540,10 @@ export const ScalesProvider: React.FC<React.PropsWithChildren> = ({ children }) 
     allDohnanyiCombinations: ALL_DOHNANYI_COMBINATIONS,
     allHanon: ALL_HANON_ITEMS,
     allHanonCombinations: ALL_HANON_COMBINATIONS,
+    refetchData, // Expose refetchData
   }), [
     progressMap, scaleMasteryBPMMap, exerciseMasteryBPMMap, log, isLoading, nextFocus, 
-    updatePracticeStatus, updateScaleMasteryBPM, updateExerciseMasteryBPM, addLogEntry
+    updatePracticeStatus, updateScaleMasteryBPM, updateExerciseMasteryBPM, addLogEntry, refetchData
   ]);
 
   return (

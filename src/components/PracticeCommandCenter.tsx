@@ -13,9 +13,10 @@ import { formatDistanceToNow } from 'date-fns';
 import PracticeSummaryPanel from './PracticeSummaryPanel';
 import { Button } from '@/components/ui/button';
 import { showSuccess } from '@/utils/toast';
+import { RefreshCw } from 'lucide-react'; // Import the refresh icon
 
 const PracticeCommandCenter: React.FC = () => {
-  const { addLogEntry, allScales, log, progressMap, updatePracticeStatus, updateScaleMasteryBPM, scaleMasteryBPMMap, nextFocus } = useScales();
+  const { addLogEntry, allScales, log, progressMap, updatePracticeStatus, updateScaleMasteryBPM, scaleMasteryBPMMap, nextFocus, refetchData } = useScales();
   const { currentBPM, activePermutationHighestBPM, setCurrentBPM, setActivePermutationHighestBPM, setIsPermutationManuallyAdjusted } = useGlobalBPM();
   
   const [activeTab, setActiveTab] = useState<'scales' | 'dohnanyi' | 'hanon'>('scales');
@@ -245,6 +246,17 @@ const PracticeCommandCenter: React.FC = () => {
             </TabsContent>
           </Tabs>
           
+          {/* Refresh Data Button */}
+          <div className="pt-6 border-t border-border flex justify-center">
+            <Button 
+              onClick={refetchData} 
+              variant="outline" 
+              className="text-primary border-primary/50 hover:bg-primary/20"
+            >
+              <RefreshCw className="w-4 h-4 mr-2" /> Refresh All Data
+            </Button>
+          </div>
+
         </CardContent>
       </Card>
     </div>
