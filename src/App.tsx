@@ -2,7 +2,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Outlet } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Outlet, Navigate } from "react-router-dom";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import AppLayout from "./components/AppLayout";
@@ -11,6 +11,7 @@ import Login from "./pages/Login";
 import AuthGuard from "./components/AuthGuard";
 import AuthenticatedShell from "./components/AuthenticatedShell";
 import { GlobalBPMProvider } from "./context/GlobalBPMContext";
+import LandingPage from "./pages/LandingPage"; // Import the new LandingPage
 
 const queryClient = new QueryClient();
 
@@ -31,8 +32,15 @@ const App = () => (
           <Routes>
             {/* Public Routes wrapped in AppLayout */}
             <Route element={<PublicLayoutWrapper />}>
+              {/* Default route for unauthenticated users */}
+              <Route path="/" element={<AuthGuard isPublic={true} />}>
+                <Route index element={<LandingPage />} /> {/* Landing page is now the default public route */}
+              </Route>
               <Route path="/login" element={<AuthGuard isPublic={true} />}>
                 <Route index element={<Login />} />
+              </Route>
+              <Route path="/landing" element={<AuthGuard isPublic={true} />}>
+                <Route index element={<LandingPage />} />
               </Route>
               
               {/* Catch-all for 404 */}
@@ -42,7 +50,7 @@ const App = () => (
             {/* Protected Routes wrapped in AuthGuard and AuthenticatedShell (which includes ScalesProvider and AppLayout) */}
             <Route element={<AuthGuard />}>
               <Route element={<AuthenticatedShell />}>
-                <Route path="/" element={<Index />} />
+                <Route path="/" element={<Index />} /> {/* Authenticated users go to Index */}
                 <Route path="/progress" element={<ProgressPage />} />
               </Route>
             </Route>

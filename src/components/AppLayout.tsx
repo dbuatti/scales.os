@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Gauge, Grid3x3, LogOut, User } from 'lucide-react';
+import { Gauge, Grid3x3, LogOut, User, Home } from 'lucide-react'; // Added Home icon
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { useSupabaseSession } from '@/hooks/use-supabase-session';
@@ -44,11 +44,10 @@ const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const handleLogout = async () => {
         const { error } = await supabase.auth.signOut();
         if (error) {
-            // console.error("Logout error:", error); // Removed log
             showError("Failed to log out.");
         } else {
             showSuccess("Successfully logged out.");
-            navigate('/login');
+            navigate('/login'); // Redirect to login after logout
         }
     };
 
@@ -61,12 +60,12 @@ const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                         SCALES.OS
                     </h1>
                     <nav className="flex items-center space-x-4">
-                        {session && (
+                        {session ? (
                             <>
                                 {/* Global Controls (BPM/Timer) */}
                                 <AuthenticatedHeaderControls />
                                 
-                                {/* Navigation Links */}
+                                {/* Navigation Links for Authenticated Users */}
                                 <NavLink to="/" icon={<Gauge className="w-5 h-5" />} label="Command Centre" />
                                 <NavLink to="/progress" icon={<Grid3x3 className="w-5 h-5" />} label="Mastery Matrix" />
                                 
@@ -80,13 +79,16 @@ const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                                     <span className="text-xs mt-1 hidden sm:inline font-mono">Logout</span>
                                 </Button>
                             </>
-                        )}
-                        {!session && !isLoading && (
-                            <Button asChild variant="ghost" className="text-primary hover:bg-primary/20">
-                                <Link to="/login">
-                                    <User className="w-5 h-5 mr-2" /> Login
-                                </Link>
-                            </Button>
+                        ) : (
+                            <>
+                                {/* Navigation Links for Unauthenticated Users */}
+                                <NavLink to="/landing" icon={<Home className="w-5 h-5" />} label="Home" />
+                                <Button asChild variant="ghost" className="text-primary hover:bg-primary/20">
+                                    <Link to="/login">
+                                        <User className="w-5 h-5 mr-2" /> Login / Sign Up
+                                    </Link>
+                                </Button>
+                            </>
                         )}
                     </nav>
                 </div>
