@@ -11,17 +11,19 @@ import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { cn } from '@/lib/utils';
 import { Label } from '@/components/ui/label';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { useGlobalBPM } from '@/context/GlobalBPMContext';
 
 interface HanonPracticePanelProps {
     currentBPM: number;
     addLogEntry: ReturnType<typeof useScales>['addLogEntry'];
     updatePracticeStatus: ReturnType<typeof useScales>['updatePracticeStatus'];
     progressMap: ReturnType<typeof useScales>['progressMap'];
-    setActivePermutationHighestBPM: (bpm: number) => void; // New prop
+    // Removed setActivePermutationHighestBPM prop
 }
 
-const HanonPracticePanel: React.FC<HanonPracticePanelProps> = ({ currentBPM, addLogEntry, updatePracticeStatus, progressMap, setActivePermutationHighestBPM }) => {
+const HanonPracticePanel: React.FC<HanonPracticePanelProps> = ({ currentBPM, addLogEntry, updatePracticeStatus, progressMap }) => {
   
+  const { setActivePermutationHighestBPM } = useGlobalBPM();
   const [selectedExercise, setSelectedExercise] = useState<HanonExercise>(HANON_EXERCISES[0]);
   
   // Reset BPM visualization when this panel is active

@@ -1,0 +1,184 @@
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { Button } from '@/components/ui/button';
+import { Volume2, VolumeX, Music, Clock } from 'lucide-react';
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
+import { cn } from '@/lib/utils';
+
+interface MetronomeProps {
+  bpm: number;
+}
+
+type NoteDivision = 'quarter' | 'eighth';
+
+const Metronome: React.FC<MetronomeProps> = ({ bpm }) => {
+  const [isRunning, setIsRunning] = useState(false);
+  const [isMuted, setIsMuted] = useState(false);
+  const [division, setDivision] = useState<NoteDivision>('quarter');
+  const [currentBeat, setCurrentBeat] = useState(0); // 0, 1, 2, 3...
+  
+  const audioContextRef = useRef<AudioContext | null>(null);
+  const timerRef = useRef<number | null>(null);
+  const nextNoteTimeRef = useRef(0);
+  const lookahead = 25.0; // How far ahead to schedule audio (in milliseconds)
+  const scheduleAheadTime = 0.1; // How far ahead to schedule audio (in seconds)
+
+  // Initialize AudioContext
+  const initAudioContext = useCallback(() => {
+    if (!audioContextRef.current) {
+      audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
+    }
+    return audioContextRef.current;
+  }, []);
+
+  // Function to play a click sound
+  const playClick = useCallback((time: number, isAccent: boolean) => {
+    if (isMuted) return;
+
+    const context = initAudioContext();
+    const osc = context.createOscillator();
+    const gain = context.createGain();
+
+    osc.connect(gain);
+    gain.connect(context.destination);
+
+    // Set frequency and volume based on accent
+    const frequency = isAccent ? 880 : 440; // A5 for accent, A4 for regular
+    const volume = isAccent ? 0.8 : 0.5;
+    const duration = 0.025; // Short click
+
+    osc.frequency.setValueAtTime(frequency, time);
+    gain.gain.setValueAtTime(volume, time);
+    gain.gain.exponentialRampToValueAtTime(0.001, time + duration);
+
+    osc.start(time);
+    osc.stop(time + duration);
+  }, [isMuted, initAudioContext]);
+
+  // Scheduling function
+  const scheduler = useCallback(() => {
+    const context = audioContextRef.current;
+    if (!context) return;
+
+    const secondsPerBeat = 60.0 / bpm;
+    const interval = division === 'quarter' ? secondsPerBeat : secondsPerBeat / 2;
+
+    while (nextNoteTimeRef.current < context.currentTime + scheduleAheadTime) {
+      const beatIndex = currentBeat % (division === 'quarter' ? 4 : 8);
+      const isAccent = beatIndex === 0;
+
+      playClick(nextNoteTimeRef.current, isAccent);
+      
+      // Update beat state for visualization
+      setCurrentBeat(prev => (prev + 1));
+
+      // Advance time
+      nextNoteTimeRef.current += interval;
+    }
+    
+    timerRef.current = window.setTimeout(scheduler, lookahead);
+  }, [bpm, division, currentBeat, playClick, scheduleAheadTime, lookahead]);
+
+  // Start/Stop logic
+  useEffect(() => {
+    if (isRunning) {
+      const context = initAudioContext();
+      
+      // Reset beat counter and set initial time
+      setCurrentBeat(0);
+      nextNoteTimeRef.current = context.currentTime + 0.1; // Start slightly in the future
+      
+      // Start scheduling loop
+      timerRef.current = window.setTimeout(scheduler, lookahead);
+    } else {
+      if (timerRef.current !== null) {
+        window.clearTimeout(timerRef.current);
+        timerRef.current = null;
+      }
+      setCurrentBeat(0);
+    }
+
+    return () => {
+      if (timerRef.current !== null) {
+        window.clearTimeout(timerRef.current);
+      }
+    };
+  }, [isRunning, scheduler, initAudioContext]);
+  
+  // Reset beat counter when division changes while running
+  useEffect(() => {
+      if (isRunning) {
+          setCurrentBeat(0);
+      }
+  }, [division, isRunning]);
+
+  const handleToggleRun = () => {
+    if (!isRunning) {
+        // Ensure AudioContext is resumed on user interaction
+        if (audioContextRef.current && audioContextRef.current.state === 'suspended') {
+            audioContextRef.current.resume();
+        }
+    }
+    setIsRunning(prev => !prev);
+  };
+
+  return (
+    <div className="flex items-center space-x-2">
+      <Button 
+        onClick={handleToggleRun} 
+        size="sm" 
+        className={cn(
+          "w-20 font-mono transition-colors",
+          isRunning ? "bg-destructive hover:bg-destructive/90 text-destructive-foreground" : "bg-primary hover:bg-primary/90 text-primary-foreground"
+        )}
+      >
+        {isRunning ? 'STOP' : 'START'}
+      </Button>
+      
+      <Button 
+        onClick={() => setIsMuted(prev => !prev)} 
+        variant="ghost" 
+        size="icon"
+        className="text-primary hover:bg-primary/20"
+      >
+        {isMuted ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
+      </Button>
+      
+      <ToggleGroup 
+        type="single" 
+        value={division} 
+        onValueChange={(value) => value && setDivision(value as NoteDivision)}
+        className="bg-secondary/50 rounded-md p-1"
+      >
+        <ToggleGroupItem 
+          value="quarter" 
+          aria-label="Quarter Note Division"
+          className="data-[state=on]:bg-primary data-[state=on]:text-primary-foreground text-xs h-8 px-2 font-mono"
+        >
+          <Clock className="w-4 h-4 mr-1" /> 1/4
+        </ToggleGroupItem>
+        <ToggleGroupItem 
+          value="eighth" 
+          aria-label="Eighth Note Division"
+          className="data-[state=on]:bg-primary data-[state=on]:text-primary-foreground text-xs h-8 px-2 font-mono"
+        >
+          <Music className="w-4 h-4 mr-1" /> 1/8
+        </ToggleGroupItem>
+      </ToggleGroup>
+      
+      {/* Beat Indicator (Visual feedback) */}
+      <div className="flex space-x-1">
+        {[0, 1, 2, 3].map(index => (
+          <div 
+            key={index} 
+            className={cn(
+              "w-3 h-3 rounded-full transition-colors duration-100",
+              isRunning && (currentBeat % 4) === index ? "bg-yellow-400 shadow-md shadow-yellow-400/50" : "bg-muted-foreground/30"
+            )}
+          />
+        ))}
+      </div>
+    </div>
+  );
+};
+
+export default Metronome;

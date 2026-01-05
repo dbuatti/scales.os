@@ -87,6 +87,11 @@ export type ScaleItem = {
   id: string;
 };
 
+// --- Global BPM Constants ---
+export const MIN_BPM = 40;
+export const MAX_BPM = 250;
+
+
 // Utility to clean strings for ID generation
 const cleanString = (s: string) => s.replace(/[\s\/\(\)]/g, "");
 
@@ -127,15 +132,20 @@ export const getTempoLevelBPMThreshold = (tempo: TempoLevel): number => {
     return 0;
 };
 
-
-// Utility to generate a unique ID for Dohnanyi practice based on target BPM
-export const getDohnanyiPracticeId = (exercise: DohnanyiExercise, bpmTarget: DohnanyiBPMTarget): string => {
-    return `DOHNANYI-${cleanString(exercise)}-${bpmTarget}BPM`;
+// Utility to generate a unique ID for a specific Dohnanyi exercise at a BPM target
+export const getDohnanyiPracticeId = (
+  exercise: DohnanyiExercise, 
+  bpm: DohnanyiBPMTarget
+): string => {
+  return `Dohnanyi-${cleanString(exercise)}-${bpm}BPM`;
 };
 
-// Utility to generate a unique ID for Hanon practice based on target BPM
-export const getHanonPracticeId = (exercise: HanonExercise, bpmTarget: HanonBPMTarget): string => {
-    return `HANON-${cleanString(exercise)}-${bpmTarget}BPM`;
+// Utility to generate a unique ID for a specific Hanon exercise at a BPM target
+export const getHanonPracticeId = (
+  exercise: HanonExercise, 
+  bpm: HanonBPMTarget
+): string => {
+  return `Hanon-${cleanString(exercise)}-${bpm}BPM`;
 };
 
 

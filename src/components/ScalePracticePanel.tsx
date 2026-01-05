@@ -14,6 +14,7 @@ import { showSuccess, showError } from '@/utils/toast';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { cn } from '@/lib/utils';
 import { Label } from '@/components/ui/label';
+import { useGlobalBPM } from '@/context/GlobalBPMContext';
 
 // Helper function to map BPM to TempoLevel string for progress ID compatibility (kept for logging)
 const mapBPMToTempoLevel = (bpm: number): TempoLevel => {
@@ -67,12 +68,13 @@ interface ScalePracticePanelProps {
     updateScaleMasteryBPM: ReturnType<typeof useScales>['updateScaleMasteryBPM']; 
     scaleMasteryBPMMap: ReturnType<typeof useScales>['scaleMasteryBPMMap']; 
     allScales: ReturnType<typeof useScales>['allScales'];
-    setActivePermutationHighestBPM: (bpm: number) => void;
 }
 
 const ALL_TYPES = [...SCALE_TYPES, ...ARPEGGIO_TYPES];
 
-const ScalePracticePanel: React.FC<ScalePracticePanelProps> = ({ currentBPM, addLogEntry, updatePracticeStatus, updateScaleMasteryBPM, scaleMasteryBPMMap, allScales, setActivePermutationHighestBPM }) => {
+const ScalePracticePanel: React.FC<ScalePracticePanelProps> = ({ currentBPM, addLogEntry, updatePracticeStatus, updateScaleMasteryBPM, scaleMasteryBPMMap, allScales }) => {
+  
+  const { setActivePermutationHighestBPM } = useGlobalBPM();
   
   // State for selected parameters
   const [selectedKey, setSelectedKey] = useState<Key>(KEYS[0]);

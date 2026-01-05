@@ -3,12 +3,14 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Play, Pause, RotateCcw, LogIn } from 'lucide-react';
 import { showSuccess } from '@/utils/toast';
+import { cn } from '@/lib/utils';
 
 interface PracticeTimerProps {
   onLogSession: (durationMinutes: number) => void;
+  isCondensed?: boolean;
 }
 
-const PracticeTimer: React.FC<PracticeTimerProps> = ({ onLogSession }) => {
+const PracticeTimer: React.FC<PracticeTimerProps> = ({ onLogSession, isCondensed = false }) => {
   const [time, setTime] = useState(0); // Time in seconds, counting up
   const [isRunning, setIsRunning] = useState(false);
 
@@ -55,7 +57,36 @@ const PracticeTimer: React.FC<PracticeTimerProps> = ({ onLogSession }) => {
       if (interval) clearInterval(interval);
     };
   }, [isRunning]);
+  
+  if (isCondensed) {
+    return (
+        <div className="flex items-center space-x-2">
+            <div className="text-lg font-mono font-extrabold text-primary tracking-tighter min-w-[60px] text-center">
+                {formatTime(time)}
+            </div>
+            
+            {isRunning ? (
+                <Button onClick={handlePause} variant="secondary" size="icon" className="w-8 h-8 bg-destructive hover:bg-destructive/90 text-destructive-foreground">
+                    <Pause className="w-4 h-4" />
+                </Button>
+            ) : (
+                <Button onClick={handleStart} size="icon" className="w-8 h-8 bg-primary hover:bg-primary/90 text-primary-foreground" disabled={time > 0}>
+                    <Play className="w-4 h-4" />
+                </Button>
+            )}
+            
+            <Button onClick={handleLog} size="icon" className="w-8 h-8 bg-accent hover:bg-accent/80 text-accent-foreground" disabled={time === 0 || isRunning}>
+                <LogIn className="w-4 h-4" />
+            </Button>
+            
+            <Button onClick={handleReset} variant="outline" size="icon" className="w-8 h-8 border-muted-foreground text-muted-foreground hover:bg-accent" disabled={time === 0}>
+                <RotateCcw className="w-4 h-4" />
+            </Button>
+        </div>
+    );
+  }
 
+  // Full Card View (for PracticeCommandCenter)
   return (
     <Card className="w-full bg-card/70 border-primary/30 shadow-2xl">
       <CardHeader className="p-3 border-b border-primary/20">

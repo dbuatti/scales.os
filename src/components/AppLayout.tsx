@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { useSupabaseSession } from '@/hooks/use-supabase-session';
 import { supabase } from '@/integrations/supabase/client';
 import { showSuccess, showError } from '@/utils/toast';
+import AuthenticatedHeaderControls from './AuthenticatedHeaderControls';
 
 interface NavLinkProps {
     to: string;
@@ -62,8 +63,14 @@ const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                     <nav className="flex items-center space-x-4">
                         {session && (
                             <>
+                                {/* Global Controls (BPM/Timer) */}
+                                <AuthenticatedHeaderControls />
+                                
+                                {/* Navigation Links */}
                                 <NavLink to="/" icon={<Gauge className="w-5 h-5" />} label="Command Centre" />
                                 <NavLink to="/progress" icon={<Grid3x3 className="w-5 h-5" />} label="Mastery Matrix" />
+                                
+                                {/* Logout Button */}
                                 <Button 
                                     variant="ghost" 
                                     onClick={handleLogout}

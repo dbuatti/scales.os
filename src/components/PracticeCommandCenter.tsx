@@ -1,48 +1,21 @@
-import React, { useState, useMemo } from 'react';
+import React, { useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
-import { LogIn } from 'lucide-react';
 import { useScales } from '../context/ScalesContext';
-import { showSuccess } from '@/utils/toast';
-import PracticeTimer from './PracticeTimer';
-import { formatDistanceToNow } from 'date-fns';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import ScalePracticePanel from './ScalePracticePanel';
 import DohnanyiPracticePanel from './DohnanyiPracticePanel';
 import HanonPracticePanel from './HanonPracticePanel';
 import GradeTracker from './GradeTracker';
 import { cn } from '@/lib/utils';
-
-const MIN_BPM = 40;
-const MAX_BPM = 250;
+import { useGlobalBPM } from '@/context/GlobalBPMContext';
+import { MIN_BPM, MAX_BPM } from '@/lib/scales';
+import { formatDistanceToNow } from 'date-fns';
 
 const PracticeCommandCenter: React.FC = () => {
   const { addLogEntry, allScales, log, progressMap, updatePracticeStatus, updateScaleMasteryBPM, scaleMasteryBPMMap } = useScales();
+  const { currentBPM, activePermutationHighestBPM, handleBpmChange, setCurrentBPM, setActivePermutationHighestBPM } = useGlobalBPM();
   
-  // State for fine-tuned BPM (Metronome feature)
-  const [currentBPM, setCurrentBPM] = useState(100); // Default starting BPM
-  
-  // State to track the highest mastered BPM for the currently selected permutation in the active tab
-  const [activePermutationHighestBPM, setActivePermutationHighestBPM] = useState(0); 
-
-  // Handler for +/- 1 BPM adjustment
-  const handleBpmChange = (delta: number) => {
-      setCurrentBPM(prev => Math.min(MAX_BPM, Math.max(MIN_BPM, prev + delta)));
-  };
-
-  const handleLogSession = (durationMinutes: number) => {
-    // When logging a timed session, we log a general entry without specific scale/dohnanyi items, 
-    // as the user might switch between exercises during the timed session.
-    addLogEntry({
-      durationMinutes: durationMinutes, 
-      itemsPracticed: [],
-      notes: `General timed practice session logged. Focused BPM: ${currentBPM}`,
-    });
-
-    showSuccess(`Logged ${durationMinutes} minutes of general practice.`);
-  };
-
   // Find the most recent log entry that includes BPM information
   const lastLogEntry = useMemo(() => {
     const entry = log.find(logEntry => logEntry.notes.includes("BPM:"));
@@ -80,10 +53,10 @@ const PracticeCommandCenter: React.FC = () => {
         </CardHeader>
         <CardContent className="p-6 space-y-6">
           
-          {/* Top Row: BPM and Timer */}
+          {/* Top Row: BPM Display (Now just display, controls are in header) */}
           <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center space-y-4 lg:space-y-0 lg:space-x-8">
             
-            {/* Tempo Display / Metronome Control */}
+            {/* Tempo Display */}
             <div className="flex-1 space-y-2">
                 {/* Last Practiced Message */}
                 <div className="h-10 flex items-center justify-center lg:justify-start">
@@ -107,40 +80,30 @@ const PracticeCommandCenter: React.FC = () => {
                     CURRENT TEMPO (BPM)
                 </Label>
                 <div className="flex items-center justify-center lg:justify-start space-x-4">
-                    <Button 
-                        onClick={() => handleBpmChange(-1)} 
-                        variant="outline" 
-                        size="icon" 
-                        className="w-12 h-12 text-primary border-primary/50 text-2xl font-bold hover:bg-accent"
-                        disabled={currentBPM <= MIN_BPM}
-                    >
-                        -
-                    </Button>
+                    {/* Removed +/- buttons */}
                     <div className="text-7xl font-mono font-extrabold text-primary tracking-tighter min-w-[120px] text-center">
                         {currentBPM}
                     </div>
-                    <Button 
-                        onClick={() => handleBpmChange(1)} 
-                        variant="outline" 
-                        size="icon" 
-                        className="w-12 h-12 text-primary border-primary/50 text-2xl font-bold hover:bg-accent"
-                        disabled={currentBPM >= MAX_BPM}
-                    >
-                        +
-                    </Button>
+                    {/* Removed +/- buttons */}
                 </div>
                 <p className="text-sm text-muted-foreground font-mono text-center lg:text-left">
-                    Use +/- buttons or the slider below to set BPM.
+                    Use controls in the header or the slider below to set BPM.
                 </p>
             </div>
 
-            {/* Timer Integration (Top Right) */}
+            {/* Timer Integration (Removed full card view) */}
             <div className="w-full lg:w-1/3">
-                <PracticeTimer onLogSession={handleLogSession} />
+                {/* Placeholder for the full timer card if needed, but removing it as requested */}
+                <div className="block md:hidden">
+                    {/* Show full timer on small screens if needed, but for now, just show a message */}
+                    <p className="text-sm text-muted-foreground font-mono text-center">
+                        Timer controls are in the header.
+                    </p>
+                </div>
             </div>
           </div>
           
-          {/* BPM Slider (Fine-tuned control) */}
+          {/* BPM Slider (Fine-tuned control) - Now uses setCurrentBPM from global context */}
           <div className="space-y-4 pt-4 border-t border-border">
             <Label className="text-sm font-semibold text-muted-foreground block font-mono">BPM Fine Control</Label>
             <div className="flex items-center space-x-4">
@@ -193,7 +156,7 @@ const PracticeCommandCenter: React.FC = () => {
               >
                 Dohnányi
               </TabsTrigger>
-              <TabsTrigger 
+            <TabsTrigger 
                 value="hanon" 
                 className="font-mono text-primary data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
                 onClick={() => setActivePermutationHighestBPM(0)}
@@ -209,7 +172,6 @@ const PracticeCommandCenter: React.FC = () => {
                 updateScaleMasteryBPM={updateScaleMasteryBPM}
                 scaleMasteryBPMMap={scaleMasteryBPMMap}
                 allScales={allScales} 
-                setActivePermutationHighestBPM={setActivePermutationHighestBPM}
               />
             </TabsContent>
             <TabsContent value="dohnanyi" className="mt-4">
@@ -218,7 +180,6 @@ const PracticeCommandCenter: React.FC = () => {
                 addLogEntry={addLogEntry} 
                 updatePracticeStatus={updatePracticeStatus} 
                 progressMap={progressMap}
-                setActivePermutationHighestBPM={setActivePermutationHighestBPM}
               />
             </TabsContent>
             <TabsContent value="hanon" className="mt-4">
@@ -227,7 +188,6 @@ const PracticeCommandCenter: React.FC = () => {
                 addLogEntry={addLogEntry} 
                 updatePracticeStatus={updatePracticeStatus} 
                 progressMap={progressMap}
-                setActivePermutationHighestBPM={setActivePermutationHighestBPM}
               />
             </TabsContent>
           </Tabs>

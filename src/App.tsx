@@ -9,37 +9,40 @@ import AppLayout from "./components/AppLayout";
 import ProgressPage from "./pages/Progress";
 import Login from "./pages/Login";
 import AuthGuard from "./components/AuthGuard";
-import ContextWrapper from "./components/ContextWrapper"; // Import the new wrapper
+import ContextWrapper from "./components/ContextWrapper";
+import { GlobalBPMProvider } from "./context/GlobalBPMContext"; // Import GlobalBPMProvider
 
 const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <AppLayout>
-          <Routes>
-            {/* Public Routes */}
-            <Route path="/login" element={<AuthGuard isPublic={true} />}>
-              <Route index element={<Login />} />
-            </Route>
-
-            {/* Protected Routes */}
-            <Route element={<AuthGuard />}>
-              <Route element={<ContextWrapper />}> {/* Use ContextWrapper here */}
-                <Route path="/" element={<Index />} />
-                <Route path="/progress" element={<ProgressPage />} />
+    <GlobalBPMProvider> {/* Wrap with GlobalBPMProvider */}
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <AppLayout>
+            <Routes>
+              {/* Public Routes */}
+              <Route path="/login" element={<AuthGuard isPublic={true} />}>
+                <Route index element={<Login />} />
               </Route>
-            </Route>
-            
-            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </AppLayout>
-      </BrowserRouter>
-    </TooltipProvider>
+
+              {/* Protected Routes */}
+              <Route element={<AuthGuard />}>
+                <Route element={<ContextWrapper />}>
+                  <Route path="/" element={<Index />} />
+                  <Route path="/progress" element={<ProgressPage />} />
+                </Route>
+              </Route>
+              
+              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </AppLayout>
+        </BrowserRouter>
+      </TooltipProvider>
+    </GlobalBPMProvider>
   </QueryClientProvider>
 );
 
