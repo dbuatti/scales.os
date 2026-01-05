@@ -87,6 +87,28 @@ export type ScaleItem = {
   id: string;
 };
 
+// Utility to generate a unique ID for a specific practice combination
+export const getPracticeId = (
+  scaleId: string, 
+  articulation: Articulation, 
+  tempo: TempoLevel,
+  direction: DirectionType,
+  handConfig: HandConfiguration,
+  rhythm: RhythmicPermutation,
+  accent: AccentDistribution,
+  octaves: OctaveConfiguration
+): string => {
+  const cleanString = (s: string) => s.replace(/[\s\/\(\)]/g, "");
+  return `${scaleId}-${cleanString(articulation)}-${cleanString(tempo)}-${cleanString(direction)}-${cleanString(handConfig)}-${cleanString(rhythm)}-${cleanString(accent)}-${cleanString(octaves)}`;
+};
+
+// Utility to generate a unique ID for Dohnanyi practice based on target BPM
+export const getDohnanyiPracticeId = (exercise: DohnanyiExercise, bpmTarget: DohnanyiBPMTarget): string => {
+    const cleanString = (s: string) => s.replace(/[\s\/\(\)]/g, "");
+    return `DOHNANYI-${cleanString(exercise)}-${bpmTarget}BPM`;
+};
+
+
 // --- Dohnányi Exercises ---
 export const DOHNANYI_EXERCISES = [
   "Exercise I", "Exercise II", "Exercise III", "Exercise IV", 
@@ -176,24 +198,3 @@ export const generateScaleItems = (): ScaleItem[] => {
 };
 
 export const ALL_SCALE_ITEMS = generateScaleItems();
-
-// Utility to generate a unique ID for a specific practice combination
-export const getPracticeId = (
-  scaleId: string, 
-  articulation: Articulation, 
-  tempo: TempoLevel,
-  direction: DirectionType,
-  handConfig: HandConfiguration,
-  rhythm: RhythmicPermutation,
-  accent: AccentDistribution,
-  octaves: OctaveConfiguration
-): string => {
-  const cleanString = (s: string) => s.replace(/[\s\/\(\)]/g, "");
-  return `${scaleId}-${cleanString(articulation)}-${cleanString(tempo)}-${cleanString(direction)}-${cleanString(handConfig)}-${cleanString(rhythm)}-${cleanString(accent)}-${cleanString(octaves)}`;
-};
-
-// Utility to generate a unique ID for Dohnanyi practice based on target BPM
-export const getDohnanyiPracticeId = (exercise: DohnanyiExercise, bpmTarget: DohnanyiBPMTarget): string => {
-    const cleanString = (s: string) => s.replace(/[\s\/\(\)]/g, "");
-    return `DOHNANYI-${cleanString(exercise)}-${bpmTarget}BPM`;
-};
