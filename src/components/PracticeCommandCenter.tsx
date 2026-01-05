@@ -6,7 +6,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import ScalePracticePanel from './ScalePracticePanel';
 import DohnanyiPracticePanel from './DohnanyiPracticePanel';
 import HanonPracticePanel from './HanonPracticePanel';
-import GradeTracker from './GradeTracker';
 import { cn } from '@/lib/utils';
 import { useGlobalBPM } from '@/context/GlobalBPMContext';
 import { MIN_BPM, MAX_BPM } from '@/lib/scales';
@@ -176,9 +175,6 @@ const PracticeCommandCenter: React.FC = () => {
                 </p>
             )}
           </div>
-
-          {/* Grade Tracker */}
-          <GradeTracker />
 
           {/* Tabbed Practice Panels */}
           <Tabs 

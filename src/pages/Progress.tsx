@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { useScales } from '@/context/ScalesContext';
 import { Skeleton } from '@/components/ui/skeleton';
+import GradeTracker from '@/components/GradeTracker'; // Import GradeTracker
 
 const ProgressPage: React.FC = () => {
   const { isLoading } = useScales();
@@ -33,6 +34,9 @@ const ProgressPage: React.FC = () => {
       </p>
 
       <PracticeStats />
+      
+      {/* Grade Tracker added here */}
+      <GradeTracker />
 
       <Card>
         <CardHeader>
