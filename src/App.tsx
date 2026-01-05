@@ -2,17 +2,24 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Outlet } from "react-router-dom";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import AppLayout from "./components/AppLayout";
 import ProgressPage from "./pages/Progress";
 import Login from "./pages/Login";
 import AuthGuard from "./components/AuthGuard";
+import AuthenticatedShell from "./components/AuthenticatedShell";
 import { GlobalBPMProvider } from "./context/GlobalBPMContext";
-import { ScalesProvider } from "./context/ScalesContext"; // Import ScalesProvider
 
 const queryClient = new QueryClient();
+
+// Wrapper for unauthenticated routes to still use AppLayout
+const PublicLayoutWrapper = () => (
+  <AppLayout>
+    <Outlet />
+  </AppLayout>
+);
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -21,25 +28,25 @@ const App = () => (
         <Toaster />
         <Sonner />
         <BrowserRouter>
-          <AppLayout>
-            <Routes>
-              {/* Public Routes */}
+          <Routes>
+            {/* Public Routes wrapped in AppLayout */}
+            <Route element={<PublicLayoutWrapper />}>
               <Route path="/login" element={<AuthGuard isPublic={true} />}>
                 <Route index element={<Login />} />
               </Route>
-
-              {/* Protected Routes */}
-              <Route element={<AuthGuard />}>
-                <Route element={<ScalesProvider />}> {/* Use ScalesProvider directly here */}
-                  <Route path="/" element={<Index />} />
-                  <Route path="/progress" element={<ProgressPage />} />
-                </Route>
-              </Route>
               
-              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+              {/* Catch-all for 404 */}
               <Route path="*" element={<NotFound />} />
-            </Routes>
-          </AppLayout>
+            </Route>
+
+            {/* Protected Routes wrapped in AuthGuard and AuthenticatedShell (which includes ScalesProvider and AppLayout) */}
+            <Route element={<AuthGuard />}>
+              <Route element={<AuthenticatedShell />}>
+                <Route path="/" element={<Index />} />
+                <Route path="/progress" element={<ProgressPage />} />
+              </Route>
+            </Route>
+          </Routes>
         </BrowserRouter>
       </TooltipProvider>
     </GlobalBPMProvider>
