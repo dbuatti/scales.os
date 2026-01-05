@@ -16,7 +16,7 @@ import { showSuccess } from '@/utils/toast';
 
 const PracticeCommandCenter: React.FC = () => {
   const { addLogEntry, allScales, log, progressMap, updatePracticeStatus, updateScaleMasteryBPM, scaleMasteryBPMMap, nextFocus } = useScales();
-  const { currentBPM, activePermutationHighestBPM, setCurrentBPM, setActivePermutationHighestBPM } = useGlobalBPM();
+  const { currentBPM, activePermutationHighestBPM, setCurrentBPM, setActivePermutationHighestBPM, setIsPermutationManuallyAdjusted } = useGlobalBPM();
   
   // Determine initial tab based on nextFocus
   const initialTab = nextFocus?.type === 'dohnanyi' ? 'dohnanyi' : nextFocus?.type === 'hanon' ? 'hanon' : 'scales';
@@ -37,6 +37,9 @@ const PracticeCommandCenter: React.FC = () => {
   const handleLoadSuggestion = useCallback((item: NextFocus) => {
     if (!item) return;
 
+    // Reset manual adjustment flag so the suggestion can be applied
+    setIsPermutationManuallyAdjusted(false);
+
     if (item.type === 'scale') {
         setActiveTab('scales');
     } else if (item.type === 'dohnanyi') {
@@ -45,7 +48,7 @@ const PracticeCommandCenter: React.FC = () => {
         setActiveTab('hanon');
     }
     showSuccess(`Loaded suggested: ${item.type === 'scale' ? `${item.scaleItem.key} ${item.scaleItem.type}` : item.name}`);
-  }, []);
+  }, [setIsPermutationManuallyAdjusted]);
 
   // Find the most recent log entry that includes BPM information
   const lastLogEntry = useMemo(() => {
@@ -183,6 +186,7 @@ const PracticeCommandCenter: React.FC = () => {
             onValueChange={(v) => {
                 setActiveTab(v as 'scales' | 'dohnanyi' | 'hanon');
                 setActivePermutationHighestBPM(0); // Reset BPM visualization when switching tabs
+                setIsPermutationManuallyAdjusted(false); // Reset permutation adjustment flag when switching tabs
             }} 
             className="w-full pt-4"
           >

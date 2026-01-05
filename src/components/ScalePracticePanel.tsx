@@ -83,13 +83,15 @@ const ScalePracticePanel: React.FC<ScalePracticePanelProps> = ({
     setActiveLogSnapshotFunction,
     activePermutationHighestBPM: globalActivePermutationHighestBPM,
     activePracticeItem: globalActivePracticeItem,
-    setCurrentBPM
+    setCurrentBPM,
+    isPermutationManuallyAdjusted, // New
+    setIsPermutationManuallyAdjusted // New
   } = useGlobalBPM();
   
   const lastSnapshotTimestampRef = useRef<number>(0); 
   const lastSuccessfulCallKeyRef = useRef<string>(''); 
   
-  const ALL_COMBINED_TYPES = [...SCALE_TYPES, ...ARPEGGIO_TYPES];
+  const ALL_COMBINED_TYPES = useMemo(() => [...SCALE_TYPES, ...ARPEGGIO_TYPES], []);
   const [selectedKey, setSelectedKey] = useState<Key>(KEYS[0]);
   const [selectedType, setSelectedType] = useState<string>(SCALE_TYPES[0]); 
   const [selectedArticulation, setSelectedArticulation] = useState<Articulation>(ARTICULATIONS[0]);
@@ -101,7 +103,7 @@ const ScalePracticePanel: React.FC<ScalePracticePanelProps> = ({
 
   // Effect to apply the suggested permutation when it changes and the tab is active
   useEffect(() => {
-    if (activeTab === 'scales' && suggestedScalePermutation) {
+    if (activeTab === 'scales' && suggestedScalePermutation && !isPermutationManuallyAdjusted) {
         const parsed = parseScalePermutationId(suggestedScalePermutation.scalePermutationId);
         if (parsed) {
             const [key, typeId] = parsed.scaleId.split('-');
@@ -131,7 +133,11 @@ const ScalePracticePanel: React.FC<ScalePracticePanelProps> = ({
             }
         }
     }
-  }, [suggestedScalePermutation, activeTab, ALL_COMBINED_TYPES, selectedKey, selectedType, selectedArticulation, selectedDirection, selectedHandConfig, selectedRhythm, selectedAccent, selectedOctaves]);
+  }, [
+    suggestedScalePermutation, activeTab, isPermutationManuallyAdjusted, ALL_COMBINED_TYPES,
+    selectedKey, selectedType, selectedArticulation, selectedDirection, selectedHandConfig, 
+    selectedRhythm, selectedAccent, selectedOctaves
+  ]);
 
 
   const selectedTempoLevel = useMemo(() => mapBPMToTempoLevel(currentBPM), [currentBPM]);
@@ -227,7 +233,7 @@ const ScalePracticePanel: React.FC<ScalePracticePanelProps> = ({
     });
 
     showSuccess(message);
-  }, [currentBPM, result, highestMasteredBPM, updateScaleMasteryBPM, addLogEntry, selectedKey, selectedType, selectedArticulation, selectedDirection, selectedHandConfig, selectedRhythm, selectedAccent, selectedOctaves]);
+  }, [currentBPM, result, highestMasteredBPM, updateScaleMasteryBPM, addLogEntry, selectedArticulation, selectedDirection, selectedHandConfig, selectedRhythm, selectedAccent, selectedOctaves]);
 
   useEffect(() => {
     if (globalActivePermutationHighestBPM !== highestMasteredBPM) {
@@ -270,6 +276,50 @@ const ScalePracticePanel: React.FC<ScalePracticePanelProps> = ({
   const isChromatic = selectedType === "Chromatic";
   const availableKeys = isChromatic ? ["C"] : KEYS;
 
+  // Helper to set state and mark as manually adjusted
+  const setKeyAndAdjust = useCallback((key: Key) => {
+    setSelectedKey(key);
+    setIsPermutationManuallyAdjusted(true);
+  }, [setIsPermutationManuallyAdjusted]);
+
+  const setTypeAndAdjust = useCallback((type: string) => {
+    setSelectedType(type);
+    if (type === "Chromatic") {
+        setSelectedKey("C"); // Chromatic is always C
+    }
+    setIsPermutationManuallyAdjusted(true);
+  }, [setIsPermutationManuallyAdjusted]);
+
+  const setArticulationAndAdjust = useCallback((articulation: Articulation) => {
+    setSelectedArticulation(articulation);
+    setIsPermutationManuallyAdjusted(true);
+  }, [setIsPermutationManuallyAdjusted]);
+
+  const setDirectionAndAdjust = useCallback((direction: DirectionType) => {
+    setSelectedDirection(direction);
+    setIsPermutationManuallyAdjusted(true);
+  }, [setIsPermutationManuallyAdjusted]);
+
+  const setHandConfigAndAdjust = useCallback((handConfig: HandConfiguration) => {
+    setSelectedHandConfig(handConfig);
+    setIsPermutationManuallyAdjusted(true);
+  }, [setIsPermutationManuallyAdjusted]);
+
+  const setRhythmAndAdjust = useCallback((rhythm: RhythmicPermutation) => {
+    setSelectedRhythm(rhythm);
+    setIsPermutationManuallyAdjusted(true);
+  }, [setIsPermutationManuallyAdjusted]);
+
+  const setAccentAndAdjust = useCallback((accent: AccentDistribution) => {
+    setSelectedAccent(accent);
+    setIsPermutationManuallyAdjusted(true);
+  }, [setIsPermutationManuallyAdjusted]);
+
+  const setOctavesAndAdjust = useCallback((octaves: OctaveConfiguration) => {
+    setSelectedOctaves(octaves);
+    setIsPermutationManuallyAdjusted(true);
+  }, [setIsPermutationManuallyAdjusted]);
+
 
   return (
     <CardContent className="p-0 space-y-6">
@@ -283,7 +333,7 @@ const ScalePracticePanel: React.FC<ScalePracticePanelProps> = ({
                 type="single" 
                 value={selectedKey} 
                 onValueChange={(value) => {
-                    if (value) setSelectedKey(value as Key);
+                    if (value) setKeyAndAdjust(value as Key);
                 }}
                 className="flex flex-wrap justify-center gap-2 w-full"
                 disabled={isChromatic}
@@ -316,12 +366,8 @@ const ScalePracticePanel: React.FC<ScalePracticePanelProps> = ({
                     type="single" 
                     value={selectedType} 
                     onValueChange={(value) => {
-                      console.log("[ScalePracticePanel] ToggleGroup onValueChange:", value); // Added log
                       if (value) {
-                        setSelectedType(value);
-                        if (value === "Chromatic") {
-                            setSelectedKey("C");
-                        }
+                        setTypeAndAdjust(value);
                       }
                     }}
                     className="flex flex-wrap justify-center gap-2 w-full"
@@ -346,8 +392,7 @@ const ScalePracticePanel: React.FC<ScalePracticePanelProps> = ({
                     type="single" 
                     value={selectedType} 
                     onValueChange={(value) => {
-                      console.log("[ScalePracticePanel] ToggleGroup onValueChange (Arpeggios):", value); // Added log
-                      if (value) setSelectedType(value);
+                      if (value) setTypeAndAdjust(value);
                     }}
                     className="flex flex-wrap justify-center gap-2 w-full"
                   >
@@ -372,7 +417,7 @@ const ScalePracticePanel: React.FC<ScalePracticePanelProps> = ({
               <ToggleGroup 
                 type="single" 
                 value={selectedArticulation} 
-                onValueChange={(value) => value && setSelectedArticulation(value as Articulation)}
+                onValueChange={(value) => value && setArticulationAndAdjust(value as Articulation)}
                 className="flex flex-wrap justify-center gap-2 w-full"
               >
                 {ARTICULATIONS.map(articulation => (
@@ -405,21 +450,21 @@ const ScalePracticePanel: React.FC<ScalePracticePanelProps> = ({
                     description="Increase range to test consistency and endurance."
                     options={OCTAVE_CONFIGURATIONS}
                     selectedValue={selectedOctaves}
-                    onValueChange={(value) => setSelectedOctaves(value)}
+                    onValueChange={setOctavesAndAdjust}
                 />
                 <PermutationSection
                     title="2. DIRECTION & STARTING POINT"
                     description="Removes 'muscle-memory autopilot' and tests mental mapping."
                     options={DIRECTION_TYPES}
                     selectedValue={selectedDirection}
-                    onValueChange={(value) => setSelectedDirection(value)}
+                    onValueChange={setDirectionAndAdjust}
                 />
                 <PermutationSection
                     title="3. HAND CONFIGURATION"
                     description="Professional expectation: tests coordination and integration."
                     options={HAND_CONFIGURATIONS}
                     selectedValue={selectedHandConfig}
-                    onValueChange={(value) => setSelectedHandConfig(value)}
+                    onValueChange={setHandConfigAndAdjust}
                 />
             </div>
             
@@ -429,14 +474,14 @@ const ScalePracticePanel: React.FC<ScalePracticePanelProps> = ({
                     description="High value, low time: reveals weak fingers and hidden tension."
                     options={RHYTHMIC_PERMUTATIONS}
                     selectedValue={selectedRhythm}
-                    onValueChange={(value) => setSelectedRhythm(value)}
+                    onValueChange={setRhythmAndAdjust}
                 />
                 <PermutationSection
                     title="5. ACCENT & WEIGHT DISTRIBUTION"
                     description="Quietly professional: ensures neutral evenness and control."
                     options={ACCENT_DISTRIBUTIONS}
                     selectedValue={selectedAccent}
-                    onValueChange={(value) => setSelectedAccent(value)}
+                    onValueChange={setAccentAndAdjust}
                 />
             </div>
         </div>
