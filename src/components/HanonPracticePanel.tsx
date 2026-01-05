@@ -8,10 +8,10 @@ import {
 import { useScales, NextFocus } from '../context/ScalesContext';
 import { showSuccess, showError } from '@/utils/toast';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
-import { cn } from '@/lib/utils';
+import { cn, shallowEqual } from '@/lib/utils'; // Import shallowEqual
 import { Label } from '@/components/ui/label';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { useGlobalBPM, SNAPSHOT_DEBOUNCE_MS } from '@/context/GlobalBPMContext';
+import { useGlobalBPM, SNAPSHOT_DEBOUNCE_MS, ActivePracticeItem } from '@/context/GlobalBPMContext';
 
 interface HanonPracticePanelProps {
     currentBPM: number;
@@ -23,7 +23,12 @@ interface HanonPracticePanelProps {
 
 const HanonPracticePanel: React.FC<HanonPracticePanelProps> = ({ currentBPM, addLogEntry, updatePracticeStatus, progressMap, initialFocus }) => {
   
-  const { setActivePermutationHighestBPM, setActivePracticeItem, setActiveLogSnapshotFunction } = useGlobalBPM();
+  const { 
+    setActivePermutationHighestBPM, 
+    setActivePracticeItem, 
+    setActiveLogSnapshotFunction,
+    activePracticeItem: globalActivePracticeItem // Get current global active item
+  } = useGlobalBPM();
   
   const initialExercise = initialFocus?.name || HANON_EXERCISES[0];
   const [selectedExercise, setSelectedExercise] = useState<HanonExercise>(initialExercise);
@@ -100,13 +105,16 @@ const HanonPracticePanel: React.FC<HanonPracticePanelProps> = ({ currentBPM, add
 
   // Effect to update global context for Summary Panel
   useEffect(() => {
-      setActivePracticeItem({
+      const newActivePracticeItem: ActivePracticeItem = {
           type: 'hanon',
           name: selectedExercise,
           nextTargetBPM: nextBPMTarget,
           isMastered: isFullyMastered,
-      });
-  }, [selectedExercise, nextBPMTarget, isFullyMastered, setActivePracticeItem]);
+      };
+      if (!shallowEqual(globalActivePracticeItem, newActivePracticeItem)) {
+        setActivePracticeItem(newActivePracticeItem);
+      }
+  }, [selectedExercise, nextBPMTarget, isFullyMastered, setActivePracticeItem, globalActivePracticeItem]);
 
   // Effect to set and cleanup the activeLogSnapshotFunction in global context
   useEffect(() => {

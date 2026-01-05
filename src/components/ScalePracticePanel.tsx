@@ -12,9 +12,9 @@ import {
 import { useScales, NextFocus } from '../context/ScalesContext';
 import { showSuccess, showError } from '@/utils/toast';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
-import { cn } from '@/lib/utils';
+import { cn, shallowEqual } from '@/lib/utils'; // Import shallowEqual
 import { Label } from '@/components/ui/label';
-import { useGlobalBPM, SNAPSHOT_DEBOUNCE_MS } from '@/context/GlobalBPMContext';
+import { useGlobalBPM, SNAPSHOT_DEBOUNCE_MS, ActivePracticeItem } from '@/context/GlobalBPMContext';
 
 // Helper function to map BPM to TempoLevel string for progress ID compatibility (kept for logging)
 const mapBPMToTempoLevel = (bpm: number): TempoLevel => {
@@ -75,7 +75,13 @@ const ALL_TYPES = [...SCALE_TYPES, ...ARPEGGIO_TYPES];
 
 const ScalePracticePanel: React.FC<ScalePracticePanelProps> = ({ currentBPM, addLogEntry, updatePracticeStatus, updateScaleMasteryBPM, scaleMasteryBPMMap, allScales, initialFocus }) => {
   
-  const { setActivePermutationHighestBPM, setActivePracticeItem, setActiveLogSnapshotFunction } = useGlobalBPM();
+  const { 
+    setActivePermutationHighestBPM, 
+    setActivePracticeItem, 
+    setActiveLogSnapshotFunction,
+    activePermutationHighestBPM: globalActivePermutationHighestBPM, // Get current global BPM
+    activePracticeItem: globalActivePracticeItem // Get current global active item
+  } = useGlobalBPM();
   
   // Add refs for debounce logic
   const lastSnapshotTimestampRef = useRef<number>(0); 
@@ -134,7 +140,7 @@ const ScalePracticePanel: React.FC<ScalePracticePanelProps> = ({ currentBPM, add
 
   const selectedTempoLevel = useMemo(() => mapBPMToTempoLevel(currentBPM), [currentBPM]);
 
-  const getScaleItemAndPermutationId = () => {
+  const getScaleItemAndPermutationId = useCallback(() => {
     let scaleItem;
     const isChromatic = selectedType === "Chromatic";
     const selectedTypeId = selectedType.replace(/\s/g, ""); // Cleaned ID part
@@ -164,9 +170,19 @@ const ScalePracticePanel: React.FC<ScalePracticePanelProps> = ({ currentBPM, add
     );
     
     return { scaleItem, scalePermutationId };
-  }
+  }, [
+    selectedKey,
+    selectedType,
+    allScales,
+    selectedArticulation,
+    selectedDirection,
+    selectedHandConfig,
+    selectedRhythm,
+    selectedAccent,
+    selectedOctaves
+  ]);
   
-  const result = getScaleItemAndPermutationId();
+  const result = useMemo(() => getScaleItemAndPermutationId(), [getScaleItemAndPermutationId]);
   const currentPermutationId = result?.scalePermutationId;
   
   // Determine highest mastered BPM and next goal
@@ -241,29 +257,35 @@ const ScalePracticePanel: React.FC<ScalePracticePanelProps> = ({ currentBPM, add
 
   // Effect to update global context for BPM visualization and Summary Panel
   useEffect(() => {
-    setActivePermutationHighestBPM(highestMasteredBPM);
+    // Only update if the BPM value actually changes
+    if (globalActivePermutationHighestBPM !== highestMasteredBPM) {
+        setActivePermutationHighestBPM(highestMasteredBPM);
+    }
     
-    if (result) {
-        setActivePracticeItem({
-            type: 'scale',
-            key: result.scaleItem.key,
-            scaleType: result.scaleItem.type,
-            articulation: selectedArticulation,
-            octaves: selectedOctaves,
-            highestBPM: highestMasteredBPM,
-            nextGoalBPM: nextBPMGoal,
-        });
-    } else {
-        setActivePracticeItem(null);
+    const newActivePracticeItem: ActivePracticeItem = result ? {
+        type: 'scale',
+        key: result.scaleItem.key,
+        scaleType: result.scaleItem.type,
+        articulation: selectedArticulation,
+        octaves: selectedOctaves,
+        highestBPM: highestMasteredBPM,
+        nextGoalBPM: nextBPMGoal,
+    } : null;
+
+    // Only update if the content of activePracticeItem actually changes
+    if (!shallowEqual(globalActivePracticeItem, newActivePracticeItem)) {
+        setActivePracticeItem(newActivePracticeItem);
     }
   }, [
     highestMasteredBPM, 
+    globalActivePermutationHighestBPM,
     setActivePermutationHighestBPM, 
     setActivePracticeItem, 
     result, 
     selectedArticulation, 
     selectedOctaves, 
-    nextBPMGoal, 
+    nextBPMGoal,
+    globalActivePracticeItem
   ]);
 
   // Effect to set and cleanup the activeLogSnapshotFunction in global context
