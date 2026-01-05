@@ -71,8 +71,6 @@ interface ScalePracticePanelProps {
     initialFocus: (NextFocus & { type: 'scale' }) | undefined;
 }
 
-const ALL_TYPES = [...SCALE_TYPES, ...ARPEGGIO_TYPES];
-
 const ScalePracticePanel: React.FC<ScalePracticePanelProps> = ({ currentBPM, addLogEntry, updatePracticeStatus, updateScaleMasteryBPM, scaleMasteryBPMMap, allScales, initialFocus }) => {
   
   const { 
@@ -97,12 +95,13 @@ const ScalePracticePanel: React.FC<ScalePracticePanelProps> = ({ currentBPM, add
   
   // Note: initialType is the cleaned ID part (e.g., "MajorArpeggio")
   const initialKey = initialPermutation?.scaleId.split('-')[0] as Key || KEYS[0];
-  const initialType = initialPermutation?.scaleId.split('-')[1] || ALL_TYPES[0].replace(/\s/g, "");
+  const initialTypeId = initialPermutation?.scaleId.split('-')[1] || SCALE_TYPES[0].replace(/\s/g, ""); // Default to Major Scale
   
   // State for selected parameters
   // We need to store the full type name in state for the ToggleGroup to display correctly, 
   // but the ID part for lookup. Let's map the initial ID part back to the full name.
-  const initialFullType = ALL_TYPES.find(t => t.replace(/\s/g, "") === initialType) || ALL_TYPES[0];
+  const ALL_COMBINED_TYPES = [...SCALE_TYPES, ...ARPEGGIO_TYPES];
+  const initialFullType = ALL_COMBINED_TYPES.find(t => t.replace(/\s/g, "") === initialTypeId) || SCALE_TYPES[0];
   
   const [selectedKey, setSelectedKey] = useState<Key>(initialKey);
   const [selectedType, setSelectedType] = useState<string>(initialFullType); 
@@ -121,7 +120,7 @@ const ScalePracticePanel: React.FC<ScalePracticePanelProps> = ({ currentBPM, add
         const parsed = parseScalePermutationId(initialFocus.scalePermutationId);
         if (parsed) {
             const [key, typeId] = parsed.scaleId.split('-');
-            const fullType = ALL_TYPES.find(t => t.replace(/\s/g, "") === typeId) || ALL_TYPES[0];
+            const fullType = ALL_COMBINED_TYPES.find(t => t.replace(/\s/g, "") === typeId) || SCALE_TYPES[0];
             
             setSelectedKey(key as Key);
             setSelectedType(fullType);
@@ -342,30 +341,60 @@ const ScalePracticePanel: React.FC<ScalePracticePanelProps> = ({ currentBPM, add
             {/* Scale/Arpeggio Type Selection */}
             <div className="space-y-3 border p-4 rounded-lg border-primary/30 bg-secondary/50 md:col-span-1">
               <Label className="text-lg font-semibold text-primary block mb-2 font-mono">TYPE</Label>
-              <ToggleGroup 
-                type="single" 
-                value={selectedType} 
-                onValueChange={(value) => {
-                  if (value) {
-                    setSelectedType(value);
-                    if (value === "Chromatic") {
-                        setSelectedKey("C");
-                    }
-                  }
-                }}
-                className="flex flex-wrap justify-center gap-2 w-full"
-              >
-                {ALL_TYPES.map(type => (
-                  <ToggleGroupItem 
-                    key={type} 
-                    value={type} 
-                    aria-label={`Select type ${type}`}
-                    className="data-[state=on]:bg-primary data-[state=on]:text-primary-foreground data-[state=on]:shadow-md data-[state=on]:border-primary/80 border border-border text-xs px-2 py-1 h-auto font-mono flex-1 min-w-[80px]"
+              <div className="space-y-4">
+                {/* Scales Section */}
+                <div>
+                  <p className="text-sm font-semibold text-foreground/80 mb-2 font-mono">Scales</p>
+                  <ToggleGroup 
+                    type="single" 
+                    value={selectedType} 
+                    onValueChange={(value) => {
+                      if (value) {
+                        setSelectedType(value);
+                        if (value === "Chromatic") {
+                            setSelectedKey("C");
+                        }
+                      }
+                    }}
+                    className="flex flex-wrap justify-center gap-2 w-full"
                   >
-                    {type.replace(' Arpeggio', '').replace(' Minor', ' Min').replace(' Major', ' Maj')}
-                  </ToggleGroupItem>
-                ))}
-              </ToggleGroup>
+                    {SCALE_TYPES.map(type => (
+                      <ToggleGroupItem 
+                        key={type} 
+                        value={type} 
+                        aria-label={`Select type ${type}`}
+                        className="data-[state=on]:bg-primary data-[state=on]:text-primary-foreground data-[state=on]:shadow-md data-[state=on]:border-primary/80 border border-border text-xs px-2 py-1 h-auto font-mono flex-1 min-w-[80px]"
+                      >
+                        {type.replace(' Minor', ' Min').replace(' Major', ' Maj')}
+                      </ToggleGroupItem>
+                    ))}
+                  </ToggleGroup>
+                </div>
+
+                {/* Arpeggios Section */}
+                <div>
+                  <p className="text-sm font-semibold text-foreground/80 mb-2 font-mono">Arpeggios</p>
+                  <ToggleGroup 
+                    type="single" 
+                    value={selectedType} 
+                    onValueChange={(value) => {
+                      if (value) setSelectedType(value);
+                    }}
+                    className="flex flex-wrap justify-center gap-2 w-full"
+                  >
+                    {ARPEGGIO_TYPES.map(type => (
+                      <ToggleGroupItem 
+                        key={type} 
+                        value={type} 
+                        aria-label={`Select type ${type}`}
+                        className="data-[state=on]:bg-primary data-[state=on]:text-primary-foreground data-[state=on]:shadow-md data-[state=on]:border-primary/80 border border-border text-xs px-2 py-1 h-auto font-mono flex-1 min-w-[80px]"
+                      >
+                        {type.replace(' Arpeggio', '')}
+                      </ToggleGroupItem>
+                    ))}
+                  </ToggleGroup>
+                </div>
+              </div>
             </div>
             
             {/* Articulation Selection */}
