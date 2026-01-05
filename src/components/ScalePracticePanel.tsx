@@ -323,6 +323,11 @@ const ScalePracticePanel: React.FC<ScalePracticePanelProps> = ({
 
   return (
     <CardContent className="p-0 space-y-6">
+        {/* DEBUG: Current Type State */}
+        <p className="text-sm text-muted-foreground font-mono text-center">
+            DEBUG: Current Type State: <span className="font-bold text-primary">{selectedType}</span>
+        </p>
+
         {/* Primary Selections: Key, Type, Articulation */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             
