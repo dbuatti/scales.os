@@ -140,8 +140,11 @@ export const ScalesProvider: React.FC<React.PropsWithChildren> = ({ children }) 
 
   const isLoading = isSessionLoading || isDataLoading;
 
+  console.log("[ScalesContext] userId:", userId, "isSessionLoading:", isSessionLoading, "isDataLoading:", isDataLoading, "Overall isLoading:", isLoading);
+
   // 1. Fetch data from Supabase
   const fetchData = useCallback(async (id: string) => {
+    console.log("[ScalesContext] Starting fetchData for userId:", id);
     setIsDataLoading(true);
     
     // Fetch Progress (Legacy for now, might be removed if all tracking moves to BPM)
@@ -152,8 +155,10 @@ export const ScalesProvider: React.FC<React.PropsWithChildren> = ({ children }) 
 
     if (progressError) {
       showError("Failed to load practice progress.");
+      console.error("[ScalesContext] Progress fetch error:", progressError);
     } else if (progressData) {
       setProgressMap(progressArrayToMap(progressData as StoredProgressEntry[]));
+      console.log("[ScalesContext] Progress data loaded:", progressData.length, "entries.");
     }
     
     // Fetch Scale BPM Mastery
@@ -164,12 +169,14 @@ export const ScalesProvider: React.FC<React.PropsWithChildren> = ({ children }) 
 
     if (scaleMasteryError) {
       showError("Failed to load scale BPM progress.");
+      console.error("[ScalesContext] Scale mastery fetch error:", scaleMasteryError);
     } else if (scaleMasteryData) {
       const bpmMap = scaleMasteryData.reduce((acc, item) => {
         acc[item.scale_permutation_id] = item.highest_mastered_bpm;
         return acc;
       }, {} as Record<string, number>);
       setScaleMasteryBPMMap(bpmMap);
+      console.log("[ScalesContext] Scale mastery data loaded:", scaleMasteryData.length, "entries.");
     }
 
     // Fetch Exercise BPM Mastery (NEW)
@@ -180,12 +187,14 @@ export const ScalesProvider: React.FC<React.PropsWithChildren> = ({ children }) 
 
     if (exerciseMasteryError) {
       showError("Failed to load exercise BPM progress.");
+      console.error("[ScalesContext] Exercise mastery fetch error:", exerciseMasteryError);
     } else if (exerciseMasteryData) {
       const bpmMap = exerciseMasteryData.reduce((acc, item) => {
         acc[item.exercise_id] = item.highest_mastered_bpm;
         return acc;
       }, {} as Record<string, number>);
       setExerciseMasteryBPMMap(bpmMap);
+      console.log("[ScalesContext] Exercise mastery data loaded:", exerciseMasteryData.length, "entries.");
     }
 
     // Fetch Logs
@@ -197,6 +206,7 @@ export const ScalesProvider: React.FC<React.PropsWithChildren> = ({ children }) 
 
     if (logError) {
       showError("Failed to load practice logs.");
+      console.error("[ScalesContext] Log fetch error:", logError);
     } else if (logData) {
       // Note: DB column is still named 'scales_practiced' but stores PracticeLogItem[]
       const formattedLog: PracticeLogEntry[] = logData.map(item => ({
@@ -207,9 +217,11 @@ export const ScalesProvider: React.FC<React.PropsWithChildren> = ({ children }) 
         notes: item.notes || '',
       }));
       setLog(formattedLog);
+      console.log("[ScalesContext] Log data loaded:", logData.length, "entries.");
     }
 
     setIsDataLoading(false);
+    console.log("[ScalesContext] Finished fetchData.");
   }, []);
 
   useEffect(() => {
@@ -217,6 +229,7 @@ export const ScalesProvider: React.FC<React.PropsWithChildren> = ({ children }) 
       fetchData(userId);
     } else if (!isSessionLoading) {
       // If not logged in, clear state and stop loading
+      console.log("[ScalesContext] User not logged in, clearing state.");
       setProgressMap({});
       setScaleMasteryBPMMap({});
       setExerciseMasteryBPMMap({}); // Clear new map
@@ -252,6 +265,7 @@ export const ScalesProvider: React.FC<React.PropsWithChildren> = ({ children }) 
 
     if (dohnanyiError) {
       showError("Failed to clear Dohnányi mastery data.");
+      console.error("[ScalesContext] Error clearing Dohnányi mastery:", dohnanyiError);
       return;
     }
 
@@ -264,6 +278,7 @@ export const ScalesProvider: React.FC<React.PropsWithChildren> = ({ children }) 
 
     if (hanonError) {
       showError("Failed to clear Hanon mastery data.");
+      console.error("[ScalesContext] Error clearing Hanon mastery:", hanonError);
       return;
     }
 
@@ -428,6 +443,7 @@ export const ScalesProvider: React.FC<React.PropsWithChildren> = ({ children }) 
 
       if (error) {
         showError("Failed to reset practice status.");
+        console.error("[ScalesContext] Error resetting practice status:", error);
         return;
       }
       
@@ -450,6 +466,7 @@ export const ScalesProvider: React.FC<React.PropsWithChildren> = ({ children }) 
 
       if (error) {
         showError("Failed to save practice status.");
+        console.error("[ScalesContext] Error saving practice status:", error);
         return;
       }
       
@@ -480,6 +497,7 @@ export const ScalesProvider: React.FC<React.PropsWithChildren> = ({ children }) 
 
     if (error) {
         showError("Failed to save scale BPM progress.");
+        console.error("[ScalesContext] Error saving scale BPM progress:", error);
         return;
     }
 
@@ -509,6 +527,7 @@ export const ScalesProvider: React.FC<React.PropsWithChildren> = ({ children }) 
 
     if (error) {
         showError("Failed to save exercise BPM progress.");
+        console.error("[ScalesContext] Error saving exercise BPM progress:", error);
         return;
     }
 
@@ -546,6 +565,7 @@ export const ScalesProvider: React.FC<React.PropsWithChildren> = ({ children }) 
 
     if (error) {
       showError("Failed to log practice session.");
+      console.error("[ScalesContext] Error logging practice session:", error);
       return;
     }
     

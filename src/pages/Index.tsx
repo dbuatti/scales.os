@@ -7,6 +7,8 @@ import { Skeleton } from '@/components/ui/skeleton';
 const Index = () => {
   const { isLoading } = useScales();
 
+  console.log("[Index.tsx] ScalesContext isLoading:", isLoading);
+
   if (isLoading) {
     return (
       <div className="flex flex-col min-h-[calc(100vh-64px)] p-4 md:p-8 items-center justify-center">
