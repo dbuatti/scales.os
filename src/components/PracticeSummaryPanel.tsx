@@ -8,6 +8,15 @@ import { Button } from '@/components/ui/button';
 const PracticeSummaryPanel: React.FC = () => {
   const { activePracticeItem, currentBPM, activeLogSnapshotFunction } = useGlobalBPM();
 
+  // Add logging when component renders
+  React.useEffect(() => {
+    console.log('[PracticeSummaryPanel] Rendered with:', {
+      activePracticeItem,
+      currentBPM,
+      hasSnapshotFunction: !!activeLogSnapshotFunction
+    });
+  }, [activePracticeItem, currentBPM, activeLogSnapshotFunction]);
+
   if (!activePracticeItem) {
     return (
       <Card className="w-full bg-card/70 border-primary/30 shadow-lg">
@@ -101,7 +110,14 @@ const PracticeSummaryPanel: React.FC = () => {
         {/* Snapshot Capture Button */}
         <div className="pt-4 border-t border-border mt-4">
             <Button 
-                onClick={activeLogSnapshotFunction} 
+                onClick={() => {
+                    console.log('[PracticeSummaryPanel] Snapshot button clicked');
+                    if (activeLogSnapshotFunction) {
+                        activeLogSnapshotFunction();
+                    } else {
+                        console.log('[PracticeSummaryPanel] No snapshot function available');
+                    }
+                }} 
                 disabled={!activeLogSnapshotFunction}
                 className="w-full bg-accent hover:bg-accent/80 text-accent-foreground font-mono"
                 size="sm"

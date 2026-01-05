@@ -125,6 +125,7 @@ export const ScalesProvider: React.FC<React.PropsWithChildren> = ({ children }) 
   // 1. Fetch data from Supabase
   const fetchData = useCallback(async (id: string) => {
     setIsDataLoading(true);
+    console.log(`[ScalesContext] Fetching data for user: ${id}`);
     
     // Fetch Progress (Dohnanyi/Hanon/Old Grade Tracking)
     const { data: progressData, error: progressError } = await supabase
@@ -136,6 +137,7 @@ export const ScalesProvider: React.FC<React.PropsWithChildren> = ({ children }) 
       console.error("[ScalesContext] Error fetching progress:", progressError);
       showError("Failed to load practice progress.");
     } else if (progressData) {
+      console.log(`[ScalesContext] Fetched ${progressData.length} progress entries`);
       setProgressMap(progressArrayToMap(progressData as StoredProgressEntry[]));
     }
     
@@ -149,6 +151,7 @@ export const ScalesProvider: React.FC<React.PropsWithChildren> = ({ children }) 
       console.error("[ScalesContext] Error fetching scale mastery BPM:", scaleMasteryError);
       showError("Failed to load scale BPM progress.");
     } else if (scaleMasteryData) {
+      console.log(`[ScalesContext] Fetched ${scaleMasteryData.length} scale mastery entries`);
       const bpmMap = scaleMasteryData.reduce((acc, item) => {
         acc[item.scale_permutation_id] = item.highest_mastered_bpm;
         return acc;
@@ -168,6 +171,7 @@ export const ScalesProvider: React.FC<React.PropsWithChildren> = ({ children }) 
       console.error("[ScalesContext] Error fetching logs:", logError);
       showError("Failed to load practice logs.");
     } else if (logData) {
+      console.log(`[ScalesContext] Fetched ${logData.length} log entries`);
       // Note: DB column is still named 'scales_practiced' but stores PracticeLogItem[]
       const formattedLog: PracticeLogEntry[] = logData.map(item => ({
         id: item.id,
@@ -285,6 +289,8 @@ export const ScalesProvider: React.FC<React.PropsWithChildren> = ({ children }) 
       return;
     }
 
+    console.log(`[ScalesContext] updatePracticeStatus called: ${practiceId} -> ${status}`);
+
     if (status === 'untouched') {
       // Delete entry if status is untouched
       const { error } = await supabase
@@ -337,6 +343,8 @@ export const ScalesProvider: React.FC<React.PropsWithChildren> = ({ children }) 
       return;
     }
 
+    console.log(`[ScalesContext] updateScaleMasteryBPM called: ${scalePermutationId} -> ${newBPM} BPM`);
+
     // 1. Upsert the highest BPM
     const { error } = await supabase
         .from('scale_permutations_mastery')
@@ -354,6 +362,7 @@ export const ScalesProvider: React.FC<React.PropsWithChildren> = ({ children }) 
     }
 
     // 2. Update local state
+    console.log(`[ScalesContext] Updating local state for ${scalePermutationId} to ${newBPM}`);
     setScaleMasteryBPMMap(prev => ({
         ...prev,
         [scalePermutationId]: newBPM,
@@ -368,6 +377,8 @@ export const ScalesProvider: React.FC<React.PropsWithChildren> = ({ children }) 
       showError("You must be logged in to log practice sessions.");
       return;
     }
+
+    console.log(`[ScalesContext] addLogEntry called with:`, entry);
 
     const newEntry: PracticeLogEntry = {
       ...entry,
@@ -400,6 +411,7 @@ export const ScalesProvider: React.FC<React.PropsWithChildren> = ({ children }) 
         timestamp: new Date(data.created_at).getTime(),
     };
 
+    console.log(`[ScalesContext] Log entry inserted successfully. ID: ${data.id}`);
     setLog(prev => [finalEntry, ...prev]);
   }, [userId]);
 

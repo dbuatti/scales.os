@@ -28,10 +28,12 @@ const PracticeCommandCenter: React.FC = () => {
             // Set BPM to the next suggested goal (highest mastered + 3, or 40)
             setCurrentBPM(nextFocus.nextBPMGoal);
             setActiveTab('scales');
+            console.log(`[PracticeCommandCenter] Next focus is scale. Setting BPM to ${nextFocus.nextBPMGoal}`);
         } else if (nextFocus.type === 'dohnanyi' || nextFocus.type === 'hanon') {
             // Set BPM to the target BPM for the next mastery step
             setCurrentBPM(nextFocus.bpmTarget);
             setActiveTab(nextFocus.type);
+            console.log(`[PracticeCommandCenter] Next focus is ${nextFocus.type}. Setting BPM to ${nextFocus.bpmTarget}`);
         }
     }
   }, [nextFocus, setCurrentBPM]); 
@@ -157,6 +159,7 @@ const PracticeCommandCenter: React.FC = () => {
             defaultValue="scales" 
             value={activeTab} 
             onValueChange={(v) => {
+                console.log(`[PracticeCommandCenter] Tab changed to: ${v}`);
                 setActiveTab(v as 'scales' | 'dohnanyi' | 'hanon');
                 setActivePermutationHighestBPM(0); // Reset BPM visualization when switching tabs
             }} 

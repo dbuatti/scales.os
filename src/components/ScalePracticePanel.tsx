@@ -174,13 +174,17 @@ const ScalePracticePanel: React.FC<ScalePracticePanelProps> = ({ currentBPM, add
     }
     const { scaleItem, scalePermutationId } = result;
 
+    console.log(`[ScalePracticePanel] handleSaveSnapshot called. Current BPM: ${currentBPM}, Highest Mastered: ${highestMasteredBPM}, Permutation ID: ${scalePermutationId}`);
+    
     let message = `Snapshot logged at ${currentBPM} BPM.`;
     
     // 1. Check and update the highest mastered BPM
     if (currentBPM > highestMasteredBPM) {
+        console.log(`[ScalePracticePanel] Updating mastery BPM for ${scalePermutationId} from ${highestMasteredBPM} to ${currentBPM}`);
         updateScaleMasteryBPM(scalePermutationId, currentBPM);
         message = `Mastery updated! Highest BPM for this permutation is now ${currentBPM}. Next goal: ${currentBPM + 3} BPM.`;
     } else {
+        console.log(`[ScalePracticePanel] BPM ${currentBPM} is not higher than current mastery ${highestMasteredBPM}. Logging snapshot only.`);
         message = `Snapshot logged at ${currentBPM} BPM. Highest mastered BPM remains ${highestMasteredBPM}.`;
     }
 
@@ -202,6 +206,7 @@ const ScalePracticePanel: React.FC<ScalePracticePanelProps> = ({ currentBPM, add
       notes: `Snapshot: ${scaleItem.key} ${scaleItem.type} (${selectedArticulation}, ${selectedDirection}, ${selectedHandConfig}, ${selectedRhythm}, ${selectedAccent}, ${selectedOctaves}). Logged BPM: ${currentBPM}`,
     });
 
+    console.log(`[ScalePracticePanel] Showing toast: ${message}`);
     showSuccess(message);
   }, [currentBPM, result, highestMasteredBPM, updateScaleMasteryBPM, addLogEntry, selectedArticulation, selectedDirection, selectedHandConfig, selectedRhythm, selectedAccent, selectedOctaves]);
 
