@@ -9,7 +9,7 @@ import AppLayout from "./components/AppLayout";
 import ProgressPage from "./pages/Progress";
 import Login from "./pages/Login";
 import AuthGuard from "./components/AuthGuard";
-import { ScalesProvider } from "./context/ScalesContext"; // Import ScalesProvider directly
+import ContextWrapper from "./components/ContextWrapper"; // Import the new wrapper
 
 const queryClient = new QueryClient();
 
@@ -28,7 +28,7 @@ const App = () => (
 
             {/* Protected Routes */}
             <Route element={<AuthGuard />}>
-              <Route element={<ScalesProvider />}> {/* ScalesProvider wraps all protected content */}
+              <Route element={<ContextWrapper />}> {/* Use ContextWrapper here */}
                 <Route path="/" element={<Index />} />
                 <Route path="/progress" element={<ProgressPage />} />
               </Route>
