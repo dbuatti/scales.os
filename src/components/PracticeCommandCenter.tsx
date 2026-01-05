@@ -21,28 +21,16 @@ const PracticeCommandCenter: React.FC = () => {
   const initialTab = nextFocus?.type === 'dohnanyi' ? 'dohnanyi' : nextFocus?.type === 'hanon' ? 'hanon' : 'scales';
   const [activeTab, setActiveTab] = useState<'scales' | 'dohnanyi' | 'hanon'>(initialTab);
   
-  // Set initial BPM and active tab based on nextFocus when data loads
+  // Set initial active tab based on nextFocus when data loads
   useEffect(() => {
     if (nextFocus) {
         if (nextFocus.type === 'scale') {
-            // Set BPM to the next suggested goal (highest mastered + 3, or 40)
-            // Only update if the BPM is actually different
-            if (currentBPM !== nextFocus.nextBPMGoal) {
-                setCurrentBPM(nextFocus.nextBPMGoal);
-                console.log(`[PracticeCommandCenter] Next focus is scale. Setting BPM to ${nextFocus.nextBPMGoal}`);
-            }
             setActiveTab('scales');
         } else if (nextFocus.type === 'dohnanyi' || nextFocus.type === 'hanon') {
-            // Set BPM to the target BPM for the next mastery step
-            // Only update if the BPM is actually different
-            if (currentBPM !== nextFocus.bpmTarget) {
-                setCurrentBPM(nextFocus.bpmTarget);
-                console.log(`[PracticeCommandCenter] Next focus is ${nextFocus.type}. Setting BPM to ${nextFocus.bpmTarget}`);
-            }
             setActiveTab(nextFocus.type);
         }
     }
-  }, [nextFocus, setCurrentBPM, currentBPM]); 
+  }, [nextFocus]); 
 
   
   // Find the most recent log entry that includes BPM information
