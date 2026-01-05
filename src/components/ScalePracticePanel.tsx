@@ -233,11 +233,18 @@ const ScalePracticePanel: React.FC<ScalePracticePanelProps> = ({ currentBPM, add
     showSuccess(message);
   }, [currentBPM, result, highestMasteredBPM, updateScaleMasteryBPM, addLogEntry, selectedArticulation, selectedDirection, selectedHandConfig, selectedRhythm, selectedAccent, selectedOctaves]);
 
+  // This function will be passed to the global context.
+  // It needs to be stable, so it's a useCallback.
+  // It calls the latest version of handleSaveSnapshot via a ref.
+  const stableSnapshotFunction = useCallback(() => {
+    latestHandleSaveSnapshotRef.current();
+  }, []); // Empty dependency array makes it truly stable.
+
   // Use a ref to hold the latest handleSaveSnapshot function
   const latestHandleSaveSnapshotRef = useRef(handleSaveSnapshot);
   useEffect(() => {
     latestHandleSaveSnapshotRef.current = handleSaveSnapshot;
-  }, [handleSaveSnapshot]);
+  }, [handleSaveSnapshot]); // This effect updates the ref whenever handleSaveSnapshot changes.
 
   // Effect to update global context for BPM visualization and Summary Panel
   useEffect(() => {
@@ -257,13 +264,13 @@ const ScalePracticePanel: React.FC<ScalePracticePanelProps> = ({ currentBPM, add
         setActivePracticeItem(null);
     }
     
-    // Set the snapshot function using the ref to ensure a stable reference
-    // The function passed to setActiveLogSnapshotFunction is stable,
-    // and it reads the latest value from the ref.
-    const stableSnapshotFunction = () => latestHandleSaveSnapshotRef.current();
+    console.log('[ScalePracticePanel] Setting activeLogSnapshotFunction in GlobalBPMContext.');
     setActiveLogSnapshotFunction(stableSnapshotFunction);
     
-    return () => setActiveLogSnapshotFunction(null);
+    return () => {
+        console.log('[ScalePracticePanel] Cleaning up activeLogSnapshotFunction in GlobalBPMContext.');
+        setActiveLogSnapshotFunction(null);
+    };
   }, [
     highestMasteredBPM, 
     setActivePermutationHighestBPM, 
@@ -275,7 +282,7 @@ const ScalePracticePanel: React.FC<ScalePracticePanelProps> = ({ currentBPM, add
     selectedOctaves, 
     nextBPMGoal, 
     result, 
-    setActiveLogSnapshotFunction,
+    stableSnapshotFunction, 
   ]);
 
 
