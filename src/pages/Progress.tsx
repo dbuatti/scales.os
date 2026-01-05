@@ -7,9 +7,11 @@ import { Separator } from '@/components/ui/separator';
 import { useScales } from '@/context/ScalesContext';
 import { Skeleton } from '@/components/ui/skeleton';
 import GradeTracker from '@/components/GradeTracker'; // Import GradeTracker
+import { Button } from '@/components/ui/button'; // Import Button
+import { Trash2 } from 'lucide-react'; // Import Trash2 icon
 
 const ProgressPage: React.FC = () => {
-  const { isLoading } = useScales();
+  const { isLoading, clearExerciseMastery } = useScales();
 
   if (isLoading) {
     return (
@@ -50,6 +52,17 @@ const ProgressPage: React.FC = () => {
       <Separator />
 
       <PracticeLog />
+
+      {/* Button to clear Dohnányi and Hanon progress */}
+      <div className="flex justify-center mt-10">
+        <Button 
+          onClick={clearExerciseMastery} 
+          variant="destructive" 
+          className="bg-destructive hover:bg-destructive/90 text-destructive-foreground"
+        >
+          <Trash2 className="w-4 h-4 mr-2" /> Clear Dohnányi & Hanon Progress
+        </Button>
+      </div>
     </div>
   );
 };

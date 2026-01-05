@@ -114,6 +114,7 @@ interface ScalesContextType {
   allHanon: HanonItem[];
   allHanonCombinations: typeof ALL_HANON_COMBINATIONS;
   refetchData: () => Promise<void>; // New: Function to manually refetch data
+  clearExerciseMastery: () => Promise<void>; // New: Function to clear Dohnanyi/Hanon mastery
 }
 
 // --- Context and Provider ---
@@ -234,6 +235,41 @@ export const ScalesProvider: React.FC<React.PropsWithChildren> = ({ children }) 
       showError("Cannot refresh data: User not logged in.");
     }
   }, [userId, fetchData]);
+
+  // New: Function to clear Dohnanyi and Hanon exercise mastery
+  const clearExerciseMastery = useCallback(async () => {
+    if (!userId) {
+      showError("You must be logged in to clear data.");
+      return;
+    }
+
+    // Delete all Dohnanyi entries
+    const { error: dohnanyiError } = await supabase
+      .from('exercise_mastery')
+      .delete()
+      .eq('user_id', userId)
+      .like('exercise_id', 'Dohnanyi-%'); // Match all Dohnanyi exercise IDs
+
+    if (dohnanyiError) {
+      showError("Failed to clear Dohnányi mastery data.");
+      return;
+    }
+
+    // Delete all Hanon entries
+    const { error: hanonError } = await supabase
+      .from('exercise_mastery')
+      .delete()
+      .eq('user_id', userId)
+      .like('exercise_id', 'Hanon-%'); // Match all Hanon exercise IDs
+
+    if (hanonError) {
+      showError("Failed to clear Hanon mastery data.");
+      return;
+    }
+
+    showSuccess("Dohnányi and Hanon mastery data cleared successfully!");
+    await refetchData(); // Refresh data to update UI
+  }, [userId, refetchData]);
 
 
   // 1.5 Calculate Next Focus (Enhanced Logic)
@@ -541,9 +577,10 @@ export const ScalesProvider: React.FC<React.PropsWithChildren> = ({ children }) 
     allHanon: ALL_HANON_ITEMS,
     allHanonCombinations: ALL_HANON_COMBINATIONS,
     refetchData, // Expose refetchData
+    clearExerciseMastery, // Expose clearExerciseMastery
   }), [
     progressMap, scaleMasteryBPMMap, exerciseMasteryBPMMap, log, isLoading, nextFocus, 
-    updatePracticeStatus, updateScaleMasteryBPM, updateExerciseMasteryBPM, addLogEntry, refetchData
+    updatePracticeStatus, updateScaleMasteryBPM, updateExerciseMasteryBPM, addLogEntry, refetchData, clearExerciseMastery
   ]);
 
   return (
