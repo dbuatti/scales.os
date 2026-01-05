@@ -100,6 +100,24 @@ const ScalePracticePanel: React.FC<ScalePracticePanelProps> = ({ currentBPM, add
   const [selectedAccent, setSelectedAccent] = useState<AccentDistribution>(initialPermutation?.accent || ACCENT_DISTRIBUTIONS[3]);
   const [selectedOctaves, setSelectedOctaves] = useState<OctaveConfiguration>(initialPermutation?.octaves || OCTAVE_CONFIGURATIONS[1]); // Default to 2 Octaves
 
+  // Effect to reset local state when a new initialFocus is provided (i.e., next challenge is queued)
+  useEffect(() => {
+    if (initialFocus) {
+        const parsed = parseScalePermutationId(initialFocus.scalePermutationId);
+        if (parsed) {
+            const [key, type] = parsed.scaleId.split('-');
+            setSelectedKey(key as Key);
+            setSelectedType(type);
+            setSelectedArticulation(parsed.articulation);
+            setSelectedDirection(parsed.direction);
+            setSelectedHandConfig(parsed.handConfig);
+            setSelectedRhythm(parsed.rhythm);
+            setSelectedAccent(parsed.accent);
+            setSelectedOctaves(parsed.octaves);
+        }
+    }
+  }, [initialFocus]);
+
   const selectedTempoLevel = useMemo(() => mapBPMToTempoLevel(currentBPM), [currentBPM]);
 
   const getScaleItemAndPermutationId = () => {

@@ -28,6 +28,13 @@ const HanonPracticePanel: React.FC<HanonPracticePanelProps> = ({ currentBPM, add
   const initialExercise = initialFocus?.name || HANON_EXERCISES[0];
   const [selectedExercise, setSelectedExercise] = useState<HanonExercise>(initialExercise);
   
+  // Effect to reset local state when a new initialFocus is provided (i.e., next challenge is queued)
+  useEffect(() => {
+    if (initialFocus && initialFocus.type === 'hanon') {
+        setSelectedExercise(initialFocus.name);
+    }
+  }, [initialFocus]);
+
   // Reset BPM visualization when this panel is active
   useEffect(() => {
     setActivePermutationHighestBPM(0);

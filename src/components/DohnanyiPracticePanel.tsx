@@ -27,6 +27,13 @@ const DohnanyiPracticePanel: React.FC<DohnanyiPracticePanelProps> = ({ currentBP
   const initialExercise = initialFocus?.name || DOHNANYI_EXERCISES[0];
   const [selectedExercise, setSelectedExercise] = useState<DohnanyiExercise>(initialExercise);
   
+  // Effect to reset local state when a new initialFocus is provided (i.e., next challenge is queued)
+  useEffect(() => {
+    if (initialFocus && initialFocus.type === 'dohnanyi') {
+        setSelectedExercise(initialFocus.name);
+    }
+  }, [initialFocus]);
+
   // Reset BPM visualization when this panel is active
   useEffect(() => {
     setActivePermutationHighestBPM(0);
