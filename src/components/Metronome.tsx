@@ -189,8 +189,10 @@ const Metronome: React.FC<MetronomeProps> = ({ bpm }) => {
           <div 
             key={index} 
             className={cn(
-              "w-3 h-3 rounded-full transition-colors duration-100",
-              isRunning && (currentBeatVisual % 4) === index ? "bg-yellow-400 shadow-md shadow-yellow-400/50" : "bg-muted-foreground/30"
+              "w-3 h-3 rounded-full transition-all duration-100",
+              isRunning && (currentBeatVisual % 4) === index 
+                ? "bg-yellow-400 shadow-md shadow-yellow-400/50 scale-125" // Added scale-125 for pulse effect
+                : "bg-muted-foreground/30"
             )}
           />
         ))}
