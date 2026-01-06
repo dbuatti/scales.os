@@ -9,7 +9,7 @@ import {
 } from '@/lib/scales';
 import { useScales, ScaleStatus } from '../context/ScalesContext';
 import { cn } from '@/lib/utils';
-import { Check, Clock, X, RotateCcw } from 'lucide-react';
+import { Check, Clock, X } from 'lucide-react'; // Removed RotateCcw
 import { showError, showSuccess } from '@/utils/toast';
 
 interface ScaleDetailDialogProps {
@@ -42,7 +42,8 @@ const getStatusClasses = (status: ScaleStatus) => {
     case 'mastered':
       return 'bg-green-600 hover:bg-green-700';
     case 'practiced':
-    case 'untouched': // We use BPM to determine status now, so this is just a base style
+      return 'bg-yellow-600 hover:bg-yellow-700';
+    case 'untouched':
     default:
       return 'bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600';
   }
@@ -125,41 +126,24 @@ const ScaleDetailDialog: React.FC<ScaleDetailDialogProps> = ({ scaleItem, childr
       DEFAULT_OCTAVES
     );
     
-    // Cycle logic: 
-    // 1. If untouched, set to required BPM for 'practiced' status (e.g., 40 BPM minimum)
-    // 2. If practiced but below required BPM, set to required BPM to mark as 'mastered' for this tempo category
-    // 3. If mastered for this category, reset to 0 (untouched)
-    
     let nextBPM: number;
     let nextStatusText: string;
     
     if (currentHighestBPM >= requiredBPM) {
-      // Currently mastered for this category -> Reset
+      // Currently mastered for this category -> Reset to untouched
       nextBPM = 0;
       nextStatusText = 'Untouched';
-    } else if (currentHighestBPM > 0) {
-      // Currently practiced but not mastered for this category -> Master it
+    } else {
+      // Not yet mastered for this category -> Set to required BPM to mark as mastered
       nextBPM = requiredBPM;
       nextStatusText = 'Mastered';
-    } else {
-      // Currently untouched -> Set to minimum practice BPM (e.g., 40)
-      nextBPM = 40; 
-      nextStatusText = 'Practiced';
     }
       
     updateScaleMasteryBPM(permutationId, nextBPM);
     showSuccess(`Status for ${scaleItem.key} ${scaleItem.type} (${articulation}, ${tempo.split(' ')[0]}) set to ${nextStatusText}. Highest BPM: ${nextBPM}`);
   };
   
-  const handleResetStatus = () => {
-    if (highestBPM === 0) {
-      showError("Status is already Untouched.");
-      return;
-    }
-    
-    updateScaleMasteryBPM(currentPermutationId, 0);
-    showSuccess(`Status for ${scaleItem.key} ${scaleItem.type} (${selectedArticulation}) reset to Untouched.`);
-  };
+  // Removed handleResetStatus as toggle now handles reset
 
   return (
     <Dialog>
@@ -252,16 +236,9 @@ const ScaleDetailDialog: React.FC<ScaleDetailDialogProps> = ({ scaleItem, childr
         
         <div className="flex justify-between items-center mt-4 pt-4 border-t border-border">
             <p className="text-sm text-muted-foreground">
-              Click a cell to cycle its status: Untouched → Practiced (40 BPM) → Mastered ({getTempoLevelBPMThreshold(selectedTempo)} BPM) → Untouched.
+              Click a cell to toggle its mastery: Untouched/Practiced → Mastered ({getTempoLevelBPMThreshold(selectedTempo)} BPM) / Mastered → Untouched.
             </p>
-            <Button 
-                onClick={handleResetStatus} 
-                variant="destructive" 
-                size="sm"
-                disabled={highestBPM === 0}
-            >
-                <RotateCcw className="w-4 h-4 mr-2" /> Reset Permutation Status
-            </Button>
+            {/* Removed Reset Permutation Status button */}
         </div>
         <p className="text-xs text-muted-foreground">
             Currently selected permutation: <span className="font-mono text-foreground">{selectedArticulation}</span>. Highest BPM: <span className={cn("font-mono font-bold", highestBPM >= getTempoLevelBPMThreshold(TEMPO_LEVELS[3]) ? 'text-green-400' : highestBPM > 0 ? 'text-yellow-400' : 'text-gray-400')}>{highestBPM} BPM</span>

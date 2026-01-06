@@ -115,6 +115,7 @@ interface ScalesContextType {
   allHanonCombinations: typeof ALL_HANON_COMBINATIONS;
   refetchData: () => Promise<void>; // New: Function to manually refetch data
   clearExerciseMastery: () => Promise<void>; // New: Function to clear Dohnanyi/Hanon mastery
+  clearScaleMastery: () => Promise<void>; // NEW: Function to clear all scale mastery
 }
 
 // --- Context and Provider ---
@@ -286,6 +287,28 @@ export const ScalesProvider: React.FC<React.PropsWithChildren> = ({ children }) 
     }
 
     showSuccess("Dohnányi and Hanon mastery data cleared successfully!");
+    await refetchData(); // Refresh data to update UI
+  }, [userId, refetchData]);
+
+  // NEW: Function to clear all scale mastery
+  const clearScaleMastery = useCallback(async () => {
+    if (!userId) {
+      showError("You must be logged in to clear scale mastery data.");
+      return;
+    }
+
+    const { error } = await supabase
+      .from('scale_permutations_mastery')
+      .delete()
+      .eq('user_id', userId);
+
+    if (error) {
+      showError("Failed to clear scale mastery data.");
+      console.error("[ScalesContext] Error clearing scale mastery:", error);
+      return;
+    }
+
+    showSuccess("All scale mastery data cleared successfully!");
     await refetchData(); // Refresh data to update UI
   }, [userId, refetchData]);
 
@@ -604,9 +627,10 @@ export const ScalesProvider: React.FC<React.PropsWithChildren> = ({ children }) 
     allHanonCombinations: ALL_HANON_COMBINATIONS,
     refetchData, // Expose refetchData
     clearExerciseMastery, // Expose clearExerciseMastery
+    clearScaleMastery, // Expose clearScaleMastery
   }), [
     progressMap, scaleMasteryBPMMap, exerciseMasteryBPMMap, log, isLoading, nextFocus, 
-    updatePracticeStatus, updateScaleMasteryBPM, updateExerciseMasteryBPM, addLogEntry, refetchData, clearExerciseMastery
+    updatePracticeStatus, updateScaleMasteryBPM, updateExerciseMasteryBPM, addLogEntry, refetchData, clearExerciseMastery, clearScaleMastery
   ]);
 
   return (

@@ -22,7 +22,7 @@ import {
 } from "@/components/ui/alert-dialog";
 
 const ProgressPage: React.FC = () => {
-  const { isLoading, clearExerciseMastery } = useScales();
+  const { isLoading, clearExerciseMastery, clearScaleMastery } = useScales(); // Added clearScaleMastery
 
   if (isLoading) {
     return (
@@ -63,8 +63,9 @@ const ProgressPage: React.FC = () => {
 
       <PracticeLog />
 
-      {/* Button to clear Dohnányi and Hanon progress with confirmation dialog */}
-      <div className="flex justify-center mt-10">
+      {/* Buttons to clear progress with confirmation dialogs */}
+      <div className="flex flex-col sm:flex-row justify-center gap-4 mt-10">
+        {/* Clear Dohnányi & Hanon Progress */}
         <AlertDialog>
           <AlertDialogTrigger asChild>
             <Button 
@@ -85,6 +86,35 @@ const ProgressPage: React.FC = () => {
               <AlertDialogCancel className="border-muted-foreground text-muted-foreground hover:bg-accent">Cancel</AlertDialogCancel>
               <AlertDialogAction 
                 onClick={clearExerciseMastery} 
+                className="bg-destructive hover:bg-destructive/90 text-destructive-foreground"
+              >
+                Continue
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+
+        {/* Clear All Scale Mastery Progress */}
+        <AlertDialog>
+          <AlertDialogTrigger asChild>
+            <Button 
+              variant="destructive" 
+              className="bg-destructive hover:bg-destructive/90 text-destructive-foreground"
+            >
+              <Trash2 className="w-4 h-4 mr-2" /> Clear All Scale Mastery
+            </Button>
+          </AlertDialogTrigger>
+          <AlertDialogContent className="bg-card border-primary/50 shadow-2xl shadow-primary/30">
+            <AlertDialogHeader>
+              <AlertDialogTitle className="text-primary font-mono">Are you absolutely sure?</AlertDialogTitle>
+              <AlertDialogDescription className="text-muted-foreground">
+                This action cannot be undone. This will permanently delete your highest mastered BPM records for ALL scale permutations.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel className="border-muted-foreground text-muted-foreground hover:bg-accent">Cancel</AlertDialogCancel>
+              <AlertDialogAction 
+                onClick={clearScaleMastery} 
                 className="bg-destructive hover:bg-destructive/90 text-destructive-foreground"
               >
                 Continue
