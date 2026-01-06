@@ -2,9 +2,10 @@ import React from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { 
-  ScaleItem, ARTICULATIONS, TEMPO_LEVELS, getPracticeId, Articulation, TempoLevel,
+  ScaleItem, ARTICULATIONS, TEMPO_LEVELS, Articulation, TempoLevel,
   DIRECTION_TYPES, HAND_CONFIGURATIONS, RHYTHMIC_PERMUTATIONS, ACCENT_DISTRIBUTIONS, OCTAVE_CONFIGURATIONS,
-  getScalePermutationId, getTempoLevelBPMThreshold
+  getScalePermutationId, getTempoLevelBPMThreshold, parseScalePermutationId,
+  DirectionType, HandConfiguration, RhythmicPermutation, AccentDistribution, OctaveConfiguration, cleanString // Added cleanString and missing types
 } from '@/lib/scales';
 import { useScales, ScaleStatus } from '../context/ScalesContext';
 import { cn } from '@/lib/utils';
@@ -63,7 +64,40 @@ const ScaleDetailDialog: React.FC<ScaleDetailDialogProps> = ({ scaleItem, childr
     DEFAULT_OCTAVES
   );
   
-  const highestBPM = scaleMasteryBPMMap[currentPermutationId] || 0;
+  // Function to get the highest BPM for a given permutation, considering legacy "Hands separately"
+  const getHighestBPMForPermutation = (
+    scaleId: string, 
+    articulation: Articulation, 
+    direction: DirectionType,
+    handConfig: HandConfiguration,
+    rhythm: RhythmicPermutation,
+    accent: AccentDistribution,
+    octaves: OctaveConfiguration
+  ): number => {
+    const currentId = getScalePermutationId(scaleId, articulation, direction, handConfig, rhythm, accent, octaves);
+    let highestBPM = scaleMasteryBPMMap[currentId] || 0;
+
+    // If the current handConfig is 'Left hand only' or 'Right hand only',
+    // also check for legacy 'Hands separately' and use its BPM if higher.
+    if (handConfig === "Left hand only" || handConfig === "Right hand only") {
+      const legacyHandConfig = "Hands separately";
+      const legacyId = `${scaleId}-${cleanString(articulation)}-${cleanString(direction)}-${cleanString(legacyHandConfig)}-${cleanString(rhythm)}-${cleanString(accent)}-${cleanString(octaves)}`;
+      const legacyBPM = scaleMasteryBPMMap[legacyId] || 0;
+      highestBPM = Math.max(highestBPM, legacyBPM);
+    }
+    return highestBPM;
+  };
+
+  const highestBPM = getHighestBPMForPermutation(
+    scaleItem.id, 
+    selectedArticulation, 
+    DEFAULT_DIRECTION,
+    DEFAULT_HAND_CONFIG,
+    DEFAULT_RHYTHM,
+    DEFAULT_ACCENT,
+    DEFAULT_OCTAVES
+  );
+
   const requiredBPM = getTempoLevelBPMThreshold(selectedTempo);
   
   const currentStatus: ScaleStatus = highestBPM >= requiredBPM ? 'mastered' : (highestBPM > 0 ? 'practiced' : 'untouched');
@@ -81,7 +115,15 @@ const ScaleDetailDialog: React.FC<ScaleDetailDialogProps> = ({ scaleItem, childr
     );
     
     const requiredBPM = getTempoLevelBPMThreshold(tempo);
-    const currentHighestBPM = scaleMasteryBPMMap[permutationId] || 0;
+    const currentHighestBPM = getHighestBPMForPermutation(
+      scaleItem.id, 
+      articulation, 
+      DEFAULT_DIRECTION,
+      DEFAULT_HAND_CONFIG,
+      DEFAULT_RHYTHM,
+      DEFAULT_ACCENT,
+      DEFAULT_OCTAVES
+    );
     
     // Cycle logic: 
     // 1. If untouched, set to required BPM for 'practiced' status (e.g., 40 BPM minimum)
@@ -164,7 +206,15 @@ const ScaleDetailDialog: React.FC<ScaleDetailDialogProps> = ({ scaleItem, childr
                     );
                     
                     const requiredBPM = getTempoLevelBPMThreshold(tempo);
-                    const currentHighestBPM = scaleMasteryBPMMap[permutationId] || 0;
+                    const currentHighestBPM = getHighestBPMForPermutation(
+                      scaleItem.id, 
+                      articulation, 
+                      DEFAULT_DIRECTION,
+                      DEFAULT_HAND_CONFIG,
+                      DEFAULT_RHYTHM,
+                      DEFAULT_ACCENT,
+                      DEFAULT_OCTAVES
+                    );
                     
                     const status: ScaleStatus = currentHighestBPM >= requiredBPM ? 'mastered' : (currentHighestBPM > 0 ? 'practiced' : 'untouched');
                     const statusText = status === 'mastered' ? 'Mastered' : status === 'practiced' ? 'Practiced' : 'Untouched';

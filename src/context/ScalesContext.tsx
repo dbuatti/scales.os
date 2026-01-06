@@ -40,7 +40,7 @@ export interface PracticeLogItem {
   articulation?: Articulation;
   tempo?: TempoLevel; // Kept for old logs/display
   direction?: DirectionType;
-  handConfig?: HandConfiguration;
+  handConfig?: HandConfiguration | 'Hands separately'; // Allow legacy value in logs
   rhythm?: RhythmicPermutation;
   accent?: AccentDistribution;
   octaves?: OctaveConfiguration;
@@ -128,6 +128,9 @@ const progressArrayToMap = (arr: StoredProgressEntry[]): Record<string, 'practic
     return acc;
   }, {} as Record<string, 'practiced' | 'mastered'>);
 };
+
+// Helper to clean strings for ID generation (copied from scales.ts to avoid circular dependency)
+const cleanString = (s: string) => s.replace(/[\s\/\(\)]/g, "");
 
 // ScalesProvider now accepts and renders children
 export const ScalesProvider: React.FC<React.PropsWithChildren> = ({ children }) => {
@@ -320,7 +323,10 @@ export const ScalesProvider: React.FC<React.PropsWithChildren> = ({ children }) 
                 return highestBPM < req.requiredBPM;
             } else { // Dohnanyi or Hanon
                 const highestBPM = exerciseMasteryBPMMap[req.exerciseId] || 0; // Use exerciseId here
-                return highestBPM < req.requiredBPM;
+                if (highestBPM > 0) { // Prioritize if already practiced
+                    return highestBPM < req.requiredBPM;
+                }
+                return true; // If untouched, it's a candidate
             }
         })
         .map(req => {

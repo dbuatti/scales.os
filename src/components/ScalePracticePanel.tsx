@@ -7,7 +7,7 @@ import {
   Key, Articulation, TempoLevel,
   DIRECTION_TYPES, HAND_CONFIGURATIONS, RHYTHMIC_PERMUTATIONS, ACCENT_DISTRIBUTIONS, OCTAVE_CONFIGURATIONS,
   DirectionType, HandConfiguration, RhythmicPermutation, AccentDistribution, OctaveConfiguration, TEMPO_LEVELS,
-  getScalePermutationId, parseScalePermutationId
+  getScalePermutationId, parseScalePermutationId, cleanString // Added cleanString
 } from '@/lib/scales';
 import { useScales, NextFocus } from '../context/ScalesContext';
 import { showSuccess, showError } from '@/utils/toast';
@@ -96,7 +96,7 @@ const ScalePracticePanel: React.FC<ScalePracticePanelProps> = ({
   const [selectedType, setSelectedType] = useState<string>(SCALE_TYPES[0]); 
   const [selectedArticulation, setSelectedArticulation] = useState<Articulation>(ARTICULATIONS[0]);
   const [selectedDirection, setSelectedDirection] = useState<DirectionType>(DIRECTION_TYPES[2]);
-  const [selectedHandConfig, setSelectedHandConfig] = useState<HandConfiguration>(HAND_CONFIGURATIONS[0]);
+  const [selectedHandConfig, setSelectedHandConfig] = useState<HandConfiguration>(HAND_CONFIGURATIONS[0]); // Default to "Hands together"
   const [selectedRhythm, setSelectedRhythm] = useState<RhythmicPermutation>(RHYTHMIC_PERMUTATIONS[0]);
   const [selectedAccent, setSelectedAccent] = useState<AccentDistribution>(ACCENT_DISTRIBUTIONS[3]);
   const [selectedOctaves, setSelectedOctaves] = useState<OctaveConfiguration>(OCTAVE_CONFIGURATIONS[1]);
@@ -109,13 +109,18 @@ const ScalePracticePanel: React.FC<ScalePracticePanelProps> = ({
             const [key, typeId] = parsed.scaleId.split('-');
             const fullType = ALL_COMBINED_TYPES.find(t => t.replace(/\s/g, "") === typeId) || SCALE_TYPES[0];
             
+            // Handle legacy 'Hands separately' from parsed data
+            let newHandConfig: HandConfiguration = parsed.handConfig === 'Hands separately' 
+                ? HAND_CONFIGURATIONS[0] // Default to 'Hands together' for display if legacy
+                : parsed.handConfig as HandConfiguration;
+
             // Only update if the current selection is different from the suggestion
             if (
                 selectedKey !== (key as Key) ||
                 selectedType !== fullType ||
                 selectedArticulation !== parsed.articulation ||
                 selectedDirection !== parsed.direction ||
-                selectedHandConfig !== parsed.handConfig ||
+                selectedHandConfig !== newHandConfig ||
                 selectedRhythm !== parsed.rhythm ||
                 selectedAccent !== parsed.accent ||
                 selectedOctaves !== parsed.octaves
@@ -124,7 +129,7 @@ const ScalePracticePanel: React.FC<ScalePracticePanelProps> = ({
                 setSelectedType(fullType);
                 setSelectedArticulation(parsed.articulation);
                 setSelectedDirection(parsed.direction);
-                setSelectedHandConfig(parsed.handConfig);
+                setSelectedHandConfig(newHandConfig);
                 setSelectedRhythm(parsed.rhythm);
                 setSelectedAccent(parsed.accent);
                 setSelectedOctaves(parsed.octaves);
@@ -183,7 +188,24 @@ const ScalePracticePanel: React.FC<ScalePracticePanelProps> = ({
   const result = useMemo(() => getScaleItemAndPermutationId(), [getScaleItemAndPermutationId]);
   const currentPermutationId = result?.scalePermutationId;
   
-  const highestMasteredBPM = currentPermutationId ? scaleMasteryBPMMap[currentPermutationId] || 0 : 0;
+  // Function to get the highest BPM for a given permutation, considering legacy "Hands separately"
+  const getHighestBPMForCurrentPermutation = useCallback((): number => {
+    if (!result) return 0;
+    const { scaleItem, scalePermutationId } = result;
+    let highestBPM = scaleMasteryBPMMap[scalePermutationId] || 0;
+
+    // If the current handConfig is 'Left hand only' or 'Right hand only',
+    // also check for legacy 'Hands separately' and use its BPM if higher.
+    if (selectedHandConfig === "Left hand only" || selectedHandConfig === "Right hand only") {
+      const legacyHandConfig = "Hands separately";
+      const legacyId = `${scaleItem.id}-${cleanString(selectedArticulation)}-${cleanString(selectedDirection)}-${cleanString(legacyHandConfig)}-${cleanString(selectedRhythm)}-${cleanString(selectedAccent)}-${cleanString(selectedOctaves)}`;
+      const legacyBPM = scaleMasteryBPMMap[legacyId] || 0;
+      highestBPM = Math.max(highestBPM, legacyBPM);
+    }
+    return highestBPM;
+  }, [result, scaleMasteryBPMMap, selectedArticulation, selectedDirection, selectedHandConfig, selectedRhythm, selectedAccent, selectedOctaves]);
+
+  const highestMasteredBPM = getHighestBPMForCurrentPermutation();
   const nextBPMGoal = highestMasteredBPM > 0 ? highestMasteredBPM + 3 : 40;
 
   const handleSaveSnapshot = useCallback(() => {
@@ -236,8 +258,9 @@ const ScalePracticePanel: React.FC<ScalePracticePanelProps> = ({
   }, [currentBPM, result, highestMasteredBPM, updateScaleMasteryBPM, addLogEntry, selectedArticulation, selectedDirection, selectedHandConfig, selectedRhythm, selectedAccent, selectedOctaves]);
 
   useEffect(() => {
-    if (globalActivePermutationHighestBPM !== highestMasteredBPM) {
-        setActivePermutationHighestBPM(highestMasteredBPM);
+    const currentHighestBPMForActivePermutation = getHighestBPMForCurrentPermutation();
+    if (globalActivePermutationHighestBPM !== currentHighestBPMForActivePermutation) {
+        setActivePermutationHighestBPM(currentHighestBPMForActivePermutation);
     }
     
     const newActivePracticeItem: ActivePracticeItem = result ? {
@@ -246,7 +269,7 @@ const ScalePracticePanel: React.FC<ScalePracticePanelProps> = ({
         scaleType: result.scaleItem.type,
         articulation: selectedArticulation,
         octaves: selectedOctaves,
-        highestBPM: highestMasteredBPM,
+        highestBPM: currentHighestBPMForActivePermutation,
         nextGoalBPM: nextBPMGoal,
     } : null;
 
@@ -262,7 +285,8 @@ const ScalePracticePanel: React.FC<ScalePracticePanelProps> = ({
     selectedArticulation, 
     selectedOctaves, 
     nextBPMGoal,
-    globalActivePracticeItem
+    globalActivePracticeItem,
+    getHighestBPMForCurrentPermutation
   ]);
 
   useEffect(() => {

@@ -3,7 +3,7 @@ import { useScales, ScaleStatus } from '../context/ScalesContext';
 import { 
   KEYS, SCALE_TYPES, ARPEGGIO_TYPES, ScaleItem, ARTICULATIONS, TEMPO_LEVELS, 
   DIRECTION_TYPES, HAND_CONFIGURATIONS, RHYTHMIC_PERMUTATIONS, ACCENT_DISTRIBUTIONS, OCTAVE_CONFIGURATIONS,
-  getScalePermutationId, getTempoLevelBPMThreshold
+  getScalePermutationId, getTempoLevelBPMThreshold, parseScalePermutationId, cleanString // Added cleanString
 } from '@/lib/scales';
 import { cn } from '@/lib/utils';
 import { Check, X, Clock, Eye } from 'lucide-react';
@@ -52,6 +52,7 @@ const getOverallStatus = (scaleItem: ScaleItem, scaleMasteryBPMMap: Record<strin
 
   ARTICULATIONS.forEach(articulation => {
     DIRECTION_TYPES.forEach(direction => {
+      // Iterate through all current HAND_CONFIGURATIONS
       HAND_CONFIGURATIONS.forEach(handConfig => {
         RHYTHMIC_PERMUTATIONS.forEach(rhythm => {
           ACCENT_DISTRIBUTIONS.forEach(accent => {
@@ -60,13 +61,22 @@ const getOverallStatus = (scaleItem: ScaleItem, scaleMasteryBPMMap: Record<strin
                 scaleItem.id, 
                 articulation, 
                 direction, 
-                handConfig, 
+                handConfig, // Use current handConfig
                 rhythm, 
                 accent,
                 octaves
               );
               
-              const highestBPM = scaleMasteryBPMMap[permutationId] || 0;
+              let highestBPM = scaleMasteryBPMMap[permutationId] || 0;
+
+              // Special handling for 'Left hand only' and 'Right hand only' to include legacy 'Hands separately'
+              if (handConfig === "Left hand only" || handConfig === "Right hand only") {
+                const legacyHandConfig = "Hands separately";
+                const legacyId = `${scaleItem.id}-${cleanString(articulation)}-${cleanString(direction)}-${cleanString(legacyHandConfig)}-${cleanString(rhythm)}-${cleanString(accent)}-${cleanString(octaves)}`;
+                const legacyBPM = scaleMasteryBPMMap[legacyId] || 0;
+                highestBPM = Math.max(highestBPM, legacyBPM);
+              }
+
               totalCombinations++;
               
               if (highestBPM >= REQUIRED_BPM_FOR_FULL_MASTERY) {

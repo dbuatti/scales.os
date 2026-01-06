@@ -41,7 +41,8 @@ export const DIRECTION_TYPES = [
 
 export const HAND_CONFIGURATIONS = [
   "Hands together",
-  "Hands separately",
+  "Left hand only", // Replaced "Hands separately"
+  "Right hand only", // Replaced "Hands separately"
   "Hands in contrary motion",
   "Hands in similar motion, staggered entry",
 ] as const;
@@ -93,7 +94,7 @@ export const MAX_BPM = 250;
 
 
 // Utility to clean strings for ID generation
-const cleanString = (s: string) => s.replace(/[\s\/\(\)]/g, "");
+export const cleanString = (s: string) => s.replace(/[\s\/\(\)]/g, "");
 
 // Utility to generate a unique ID for a specific scale permutation (excluding BPM/Tempo)
 export const getScalePermutationId = (
@@ -115,7 +116,7 @@ export const parseScalePermutationId = (
     scaleId: string;
     articulation: Articulation;
     direction: DirectionType;
-    handConfig: HandConfiguration;
+    handConfig: HandConfiguration | 'Hands separately'; // Allow legacy value
     rhythm: RhythmicPermutation;
     accent: AccentDistribution;
     octaves: OctaveConfiguration;
@@ -135,13 +136,17 @@ export const parseScalePermutationId = (
     
     const articulation = findOriginal(cleanedPermutationParts[0], ARTICULATIONS);
     const direction = findOriginal(cleanedPermutationParts[1], DIRECTION_TYPES);
-    const handConfig = findOriginal(cleanedPermutationParts[2], HAND_CONFIGURATIONS);
+    let handConfig: HandConfiguration | 'Hands separately' | undefined = findOriginal(cleanedPermutationParts[2], HAND_CONFIGURATIONS) as HandConfiguration;
+    // Handle legacy "Hands separately"
+    if (!handConfig && cleanedPermutationParts[2] === cleanString("Hands separately")) {
+        handConfig = 'Hands separately';
+    }
+
     const rhythm = findOriginal(cleanedPermutationParts[3], RHYTHMIC_PERMUTATIONS);
     const accent = findOriginal(cleanedPermutationParts[4], ACCENT_DISTRIBUTIONS);
     const octaves = findOriginal(cleanedPermutationParts[5], OCTAVE_CONFIGURATIONS);
 
     if (!articulation || !direction || !handConfig || !rhythm || !accent || !octaves) {
-        // console.error("Failed to parse permutation ID components:", scalePermutationId); // Removed log
         return null;
     }
 
@@ -149,7 +154,7 @@ export const parseScalePermutationId = (
         scaleId,
         articulation: articulation as Articulation,
         direction: direction as DirectionType,
-        handConfig: handConfig as HandConfiguration,
+        handConfig: handConfig,
         rhythm: rhythm as RhythmicPermutation,
         accent: accent as AccentDistribution,
         octaves: octaves as OctaveConfiguration,
@@ -326,7 +331,7 @@ export const getGradeRequirements = (gradeId: number): GradeRequirement[] => {
         tempoLevel: TempoLevel, 
         octaves: OctaveConfiguration,
         direction: DirectionType,
-        handConfig: HandConfiguration,
+        handConfigs: readonly HandConfiguration[], // Now accepts an array of hand configurations
         rhythm: RhythmicPermutation,
         accent: AccentDistribution,
         description: string
@@ -341,20 +346,22 @@ export const getGradeRequirements = (gradeId: number): GradeRequirement[] => {
                 const scaleId = `${key}-${type.replace(/\s/g, "")}`;
                 
                 articulations.forEach(articulation => {
-                    const scalePermutationId = getScalePermutationId(
-                        scaleId, 
-                        articulation, 
-                        direction,
-                        handConfig,
-                        rhythm,
-                        accent,
-                        octaves
-                    );
-                    requirements.push({
-                        type: 'scale',
-                        scalePermutationId,
-                        requiredBPM,
-                        description: `${key} ${type} (${articulation}, ${octaves}, ${direction}, ${handConfig}) @ ${requiredBPM} BPM`,
+                    handConfigs.forEach(handConfig => { // Iterate through hand configurations
+                        const scalePermutationId = getScalePermutationId(
+                            scaleId, 
+                            articulation, 
+                            direction,
+                            handConfig,
+                            rhythm,
+                            accent,
+                            octaves
+                        );
+                        requirements.push({
+                            type: 'scale',
+                            scalePermutationId,
+                            requiredBPM,
+                            description: `${key} ${type} (${articulation}, ${octaves}, ${direction}, ${handConfig}) @ ${requiredBPM} BPM`,
+                        });
                     });
                 });
             });
@@ -373,7 +380,8 @@ export const getGradeRequirements = (gradeId: number): GradeRequirement[] => {
             MAJOR_MINOR_ARP as readonly (ScaleType | ArpeggioType)[], 
             [ARTICULATIONS[0]] as readonly Articulation[], 
             TEMPO_LEVELS[0], OCTAVE_CONFIGURATIONS[0],
-            DIRECTION_TYPES[2], HAND_CONFIGURATIONS[1], RHYTHMIC_PERMUTATIONS[0], ACCENT_DISTRIBUTIONS[3],
+            DIRECTION_TYPES[2], [HAND_CONFIGURATIONS[1], HAND_CONFIGURATIONS[2]], // Left hand only, Right hand only
+            RHYTHMIC_PERMUTATIONS[0], ACCENT_DISTRIBUTIONS[3],
             PRACTICE_GRADES[0].description
         );
     }
@@ -382,7 +390,8 @@ export const getGradeRequirements = (gradeId: number): GradeRequirement[] => {
     if (gradeId >= 2) {
         generateScaleRequirements(
             ALL_KEYS, MAJOR_MINOR_ARP as readonly (ScaleType | ArpeggioType)[], [ARTICULATIONS[0]] as readonly Articulation[], TEMPO_LEVELS[0], OCTAVE_CONFIGURATIONS[1],
-            DIRECTION_TYPES[2], HAND_CONFIGURATIONS[1], RHYTHMIC_PERMUTATIONS[0], ACCENT_DISTRIBUTIONS[3],
+            DIRECTION_TYPES[2], [HAND_CONFIGURATIONS[1], HAND_CONFIGURATIONS[2]], // Left hand only, Right hand only
+            RHYTHMIC_PERMUTATIONS[0], ACCENT_DISTRIBUTIONS[3],
             PRACTICE_GRADES[1].description
         );
     }
@@ -391,7 +400,8 @@ export const getGradeRequirements = (gradeId: number): GradeRequirement[] => {
     if (gradeId >= 3) {
         generateScaleRequirements(
             ALL_KEYS, MAJOR_MINOR_ARP as readonly (ScaleType | ArpeggioType)[], [ARTICULATIONS[0]] as readonly Articulation[], TEMPO_LEVELS[1], OCTAVE_CONFIGURATIONS[1],
-            DIRECTION_TYPES[2], HAND_CONFIGURATIONS[0], RHYTHMIC_PERMUTATIONS[0], ACCENT_DISTRIBUTIONS[3],
+            DIRECTION_TYPES[2], [HAND_CONFIGURATIONS[0]], // Hands together
+            RHYTHMIC_PERMUTATIONS[0], ACCENT_DISTRIBUTIONS[3],
             PRACTICE_GRADES[2].description
         );
     }
@@ -400,7 +410,8 @@ export const getGradeRequirements = (gradeId: number): GradeRequirement[] => {
     if (gradeId >= 4) {
         generateScaleRequirements(
             ALL_KEYS, MAJOR_MINOR_SCALES as readonly (ScaleType | ArpeggioType)[], [ARTICULATIONS[0]] as readonly Articulation[], TEMPO_LEVELS[1], OCTAVE_CONFIGURATIONS[1],
-            DIRECTION_TYPES[2], HAND_CONFIGURATIONS[0], RHYTHMIC_PERMUTATIONS[0], ACCENT_DISTRIBUTIONS[3],
+            DIRECTION_TYPES[2], [HAND_CONFIGURATIONS[0]], // Hands together
+            RHYTHMIC_PERMUTATIONS[0], ACCENT_DISTRIBUTIONS[3],
             PRACTICE_GRADES[3].description
         );
     }
@@ -410,7 +421,8 @@ export const getGradeRequirements = (gradeId: number): GradeRequirement[] => {
         generateScaleRequirements(
             ALL_KEYS, MAJOR_MINOR_SCALES as readonly (ScaleType | ArpeggioType)[], [ARTICULATIONS[1], ARTICULATIONS[2]] as readonly Articulation[], 
             TEMPO_LEVELS[1], OCTAVE_CONFIGURATIONS[1],
-            DIRECTION_TYPES[2], HAND_CONFIGURATIONS[0], RHYTHMIC_PERMUTATIONS[0], ACCENT_DISTRIBUTIONS[3],
+            DIRECTION_TYPES[2], [HAND_CONFIGURATIONS[0]], // Hands together
+            RHYTHMIC_PERMUTATIONS[0], ACCENT_DISTRIBUTIONS[3],
             PRACTICE_GRADES[4].description
         );
     }
@@ -419,7 +431,8 @@ export const getGradeRequirements = (gradeId: number): GradeRequirement[] => {
     if (gradeId >= 6) {
         generateScaleRequirements(
             ALL_KEYS, MAJOR_MINOR_SCALES as readonly (ScaleType | ArpeggioType)[], [ARTICULATIONS[0]] as readonly Articulation[], TEMPO_LEVELS[2], OCTAVE_CONFIGURATIONS[2],
-            DIRECTION_TYPES[2], HAND_CONFIGURATIONS[0], RHYTHMIC_PERMUTATIONS[0], ACCENT_DISTRIBUTIONS[3],
+            DIRECTION_TYPES[2], [HAND_CONFIGURATIONS[0]], // Hands together
+            RHYTHMIC_PERMUTATIONS[0], ACCENT_DISTRIBUTIONS[3],
             PRACTICE_GRADES[5].description
         );
     }
@@ -429,7 +442,8 @@ export const getGradeRequirements = (gradeId: number): GradeRequirement[] => {
         [RHYTHMIC_PERMUTATIONS[1], RHYTHMIC_PERMUTATIONS[3]].forEach(rhythm => {
             generateScaleRequirements(
                 ALL_KEYS, MAJOR_MINOR_SCALES as readonly (ScaleType | ArpeggioType)[], [ARTICULATIONS[0]] as readonly Articulation[], TEMPO_LEVELS[1], OCTAVE_CONFIGURATIONS[1],
-                DIRECTION_TYPES[2], HAND_CONFIGURATIONS[0], rhythm, ACCENT_DISTRIBUTIONS[3],
+                DIRECTION_TYPES[2], [HAND_CONFIGURATIONS[0]], // Hands together
+                rhythm, ACCENT_DISTRIBUTIONS[3],
                 PRACTICE_GRADES[6].description
             );
         });
@@ -439,7 +453,8 @@ export const getGradeRequirements = (gradeId: number): GradeRequirement[] => {
     if (gradeId >= 8) {
         generateScaleRequirements(
             ALL_KEYS, ALL_TYPES as readonly (ScaleType | ArpeggioType)[], [ARTICULATIONS[0]] as readonly Articulation[], TEMPO_LEVELS[2], OCTAVE_CONFIGURATIONS[3],
-            DIRECTION_TYPES[3], HAND_CONFIGURATIONS[2], RHYTHMIC_PERMUTATIONS[0], ACCENT_DISTRIBUTIONS[1],
+            DIRECTION_TYPES[3], [HAND_CONFIGURATIONS[3]], // Hands in contrary motion
+            RHYTHMIC_PERMUTATIONS[0], ACCENT_DISTRIBUTIONS[1],
             PRACTICE_GRADES[7].description
         );
     }
@@ -448,7 +463,8 @@ export const getGradeRequirements = (gradeId: number): GradeRequirement[] => {
     if (gradeId >= 9) {
         generateScaleRequirements(
             ALL_KEYS, ALL_TYPES as readonly (ScaleType | ArpeggioType)[], [ARTICULATIONS[0]] as readonly Articulation[], TEMPO_LEVELS[3], OCTAVE_CONFIGURATIONS[3],
-            DIRECTION_TYPES[2], HAND_CONFIGURATIONS[0], RHYTHMIC_PERMUTATIONS[0], ACCENT_DISTRIBUTIONS[3],
+            DIRECTION_TYPES[2], [HAND_CONFIGURATIONS[0]], // Hands together
+            RHYTHMIC_PERMUTATIONS[0], ACCENT_DISTRIBUTIONS[3],
             PRACTICE_GRADES[8].description
         );
     }
