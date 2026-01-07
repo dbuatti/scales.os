@@ -2,90 +2,106 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ==============================================
+   RETRO TERMINAL / CRT PHOSPHOR THEME (2026 Edition)
+   Inspired by old monochrome monitors, hacker terminals,
+   and virtuoso piano practice command centers.
+   ============================================== */
+
 @layer base {
   :root {
-    /* Retro Space Dark Theme */
-    --background: 230 25% 10%; /* Deep Space Blue/Black */
-    --foreground: 210 40% 98%; /* Off-White */
+    /* Core Phosphor Green Palette */
+    --background: 140 100% 4%;        /* Almost pure black with subtle green tint */
+    --foreground: 140 80% 82%;        /* Classic phosphor green (P1 green) */
 
-    --card: 230 25% 15%;
-    --card-foreground: 210 40% 98%;
+    --card: 140 100% 6%;
+    --card-foreground: 140 80% 82%;
 
-    --popover: 230 25% 15%;
-    --popover-foreground: 210 40% 98%;
+    --popover: 140 100% 6%;
+    --popover-foreground: 140 80% 82%;
 
-    --primary: 185 90% 50%; /* Electric Cyan */
-    --primary-foreground: 230 25% 10%;
+    /* Primary: Electric Terminal Green (glowing) */
+    --primary: 140 100% 65%;           /* Bright phosphor green */
+    --primary-foreground: 140 100% 4%; /* Near-black for contrast on buttons */
 
-    --secondary: 230 25% 20%;
-    --secondary-foreground: 210 40% 98%;
+    /* Secondary: Deep terminal background panels */
+    --secondary: 140 80% 8%;
+    --secondary-foreground: 140 80% 82%;
 
-    --muted: 230 25% 25%;
-    --muted-foreground: 215 20.2% 65.1%;
+    /* Muted: Dimmed text and inactive elements */
+    --muted: 140 60% 12%;
+    --muted-foreground: 140 50% 45%;
 
-    --accent: 230 25% 20%;
-    --accent-foreground: 185 90% 50%; /* Cyan accent */
+    /* Accent: Used for highlights, hovers, subtle glows */
+    --accent: 140 90% 10%;
+    --accent-foreground: 140 100% 65%;
 
-    --destructive: 350 90% 50%; /* Neon Red */
-    --destructive-foreground: 210 40% 98%;
+    /* Destructive / Alert: Amber-Orange (classic warning color on old terminals) */
+    --destructive: 35 90% 65%;         /* Retro amber/orange */
+    --destructive-foreground: 140 100% 4%;
 
-    --border: 230 25% 30%;
-    --input: 230 25% 30%;
-    --ring: 185 90% 50%; /* Cyan ring */
+    /* Borders & Inputs: Subtle green-tinted edges */
+    --border: 140 70% 15%;
+    --input: 140 70% 15%;
+    --ring: 140 100% 65%;             /* Bright green focus ring */
 
-    --radius: 0.5rem;
+    --radius: 0.375rem;               /* Slightly sharper for retro feel */
 
-    /* Sidebar variables (adjusting to fit dark theme) */
-    --sidebar-background: 230 25% 10%;
-    --sidebar-foreground: 210 40% 98%;
-    --sidebar-primary: 185 90% 50%;
-    --sidebar-primary-foreground: 230 25% 10%;
-    --sidebar-accent: 230 25% 20%;
-    --sidebar-accent-foreground: 185 90% 50%;
-    --sidebar-border: 230 25% 30%;
-    --sidebar-ring: 185 90% 50%;
+    /* Sidebar (if used in layout) */
+    --sidebar-background: 140 100% 4%;
+    --sidebar-foreground: 140 80% 82%;
+    --sidebar-primary: 140 100% 65%;
+    --sidebar-primary-foreground: 140 100% 4%;
+    --sidebar-accent: 140 90% 10%;
+    --sidebar-accent-foreground: 140 100% 65%;
+    --sidebar-border: 140 70% 15%;
+    --sidebar-ring: 140 100% 65%;
   }
 
+  /* Dark mode — reinforced for full terminal immersion */
   .dark {
-    /* Ensure dark class uses the same values for consistency in this aesthetic */
-    --background: 230 25% 10%;
-    --foreground: 210 40% 98%;
+    --background: 140 100% 4%;
+    --foreground: 140 80% 82%;
 
-    --card: 230 25% 15%;
-    --card-foreground: 210 40% 98%;
+    --card: 140 100% 6%;
+    --card-foreground: 140 80% 82%;
 
-    --popover: 230 25% 15%;
-    --popover-foreground: 210 40% 98%;
+    --popover: 140 100% 6%;
+    --popover-foreground: 140 80% 82%;
 
-    --primary: 185 90% 50%;
-    --primary-foreground: 230 25% 10%;
+    --primary: 140 100% 65%;
+    --primary-foreground: 140 100% 4%;
 
-    --secondary: 230 25% 20%;
-    --secondary-foreground: 210 40% 98%;
+    --secondary: 140 80% 8%;
+    --secondary-foreground: 140 80% 82%;
 
-    --muted: 230 25% 25%;
-    --muted-foreground: 215 20.2% 65.1%;
+    --muted: 140 60% 12%;
+    --muted-foreground: 140 50% 45%;
 
-    --accent: 230 25% 20%;
-    --accent-foreground: 185 90% 50%;
+    --accent: 140 90% 10%;
+    --accent-foreground: 140 100% 65%;
 
-    --destructive: 350 90% 50%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive: 35 90% 65%;
+    --destructive-foreground: 140 100% 4%;
 
-    --border: 230 25% 30%;
-    --input: 230 25% 30%;
-    --ring: 185 90% 50%;
-    
-    --sidebar-background: 230 25% 10%;
-    --sidebar-foreground: 210 40% 98%;
-    --sidebar-primary: 185 90% 50%;
-    --sidebar-primary-foreground: 230 25% 10%;
-    --sidebar-accent: 230 25% 20%;
-    --sidebar-accent-foreground: 185 90% 50%;
-    --sidebar-border: 230 25% 30%;
-    --sidebar-ring: 185 90% 50%;
+    --border: 140 70% 15%;
+    --input: 140 70% 15%;
+    --ring: 140 100% 65%;
+
+    --sidebar-background: 140 100% 4%;
+    --sidebar-foreground: 140 80% 82%;
+    --sidebar-primary: 140 100% 65%;
+    --sidebar-primary-foreground: 140 100% 4%;
+    --sidebar-accent: 140 90% 10%;
+    --sidebar-accent-foreground: 140 100% 65%;
+    --sidebar-border: 140 70% 15%;
+    --sidebar-ring: 140 100% 65%;
   }
 }
+
+/* ==============================================
+   Global Enhancements for CRT / Terminal Feel
+   ============================================== */
 
 @layer base {
   * {
@@ -93,6 +109,82 @@
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground font-mono;
+    background-color: hsl(var(--background));
+    /* Optional: Add subtle noise or scanline texture via inline style or external */
+  }
+
+  /* Monospace enforcement for that terminal authenticity */
+  h1, h2, h3, h4, h5, h6,
+  .font-mono {
+    font-feature-settings: "liga" 0, "calt" 0; /* Cleaner mono look */
+  }
+
+  /* Selection highlight in phosphor green */
+  ::selection {
+    background-color: hsl(140 100% 65% / 0.4);
+    color: hsl(140 100% 95%);
+  }
+
+  /* Focus rings with glow */
+  *:focus-visible {
+    outline: 2px solid hsl(var(--ring));
+    outline-offset: 2px;
+    box-shadow: 0 0 0 4px hsl(var(--ring) / 0.3);
+  }
+}
+
+/* ==============================================
+   Utility Classes for Enhanced Retro Effects
+   ============================================== */
+
+@layer components {
+  /* CRT-style text glow */
+  .text-glow {
+    text-shadow: 0 0 8px hsl(140 100% 65% / 0.8),
+                 0 0 16px hsl(140 100% 65% / 0.5);
+  }
+
+  .text-glow-intense {
+    text-shadow: 0 0 12px hsl(140 100% 65%),
+                 0 0 24px hsl(140 100% 65% / 0.7),
+                 0 0 40px hsl(140 100% 65% / 0.4);
+  }
+
+  /* Amber alert glow */
+  .text-amber-glow {
+    text-shadow: 0 0 10px hsl(35 90% 65% / 0.9);
+  }
+
+  /* Subtle inner border for panels */
+  .panel-glow {
+    box-shadow: 
+      inset 0 0 20px hsl(140 100% 65% / 0.1),
+      0 0 20px hsl(140 100% 65% / 0.2);
+  }
+
+  /* Blinking cursor effect (for prompts or status) */
+  .blink {
+    animation: blink 1s steps(2, start) infinite;
+  }
+
+  @keyframes blink {
+    to {
+      visibility: hidden;
+    }
+  }
+
+  /* Scanline overlay (add to full-screen container if desired) */
+  .scanlines::before {
+    content: "";
+    @apply absolute inset-0 pointer-events-none opacity-10;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      hsl(140 100% 50% / 0.03) 2px,
+      hsl(140 100% 50% / 0.03) 4px
+    );
+    mix-blend-mode: overlay;
   }
 }
