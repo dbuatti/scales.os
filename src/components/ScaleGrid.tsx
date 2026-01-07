@@ -18,24 +18,24 @@ import ScaleDetailDialog from './ScaleDetailDialog';
 const getStatusIcon = (status: ScaleStatus) => {
   switch (status) {
     case 'mastered':
-      return <Check className="w-4 h-4 text-white" />;
+      return <Check className="w-4 h-4 text-success-foreground" />;
     case 'practiced':
-      return <Clock className="w-4 h-4 text-white" />;
+      return <Clock className="w-4 h-4 text-warning-foreground" />;
     case 'untouched':
     default:
-      return <X className="w-4 h-4 text-gray-400" />;
+      return <X className="w-4 h-4 text-muted-foreground" />;
   }
 };
 
 const getStatusClasses = (status: ScaleStatus) => {
   switch (status) {
     case 'mastered':
-      return 'bg-green-600 hover:bg-green-700';
+      return 'bg-success hover:bg-success/90';
     case 'practiced':
-      return 'bg-yellow-600 hover:bg-yellow-700';
+      return 'bg-warning hover:bg-warning/90';
     case 'untouched':
     default:
-      return 'bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600';
+      return 'bg-muted/20 hover:bg-muted/40';
   }
 };
 
@@ -116,8 +116,8 @@ const ScaleCell = React.forwardRef<HTMLButtonElement, { item: ScaleItem; status:
       )}
       aria-label={`${item.key} ${item.type} status: ${statusText}. Click for details.`}
     >
-      <Eye className="w-4 h-4 mr-2 text-white" />
-      <span className="text-xs font-medium text-white hidden sm:inline">{statusText.split(' ')[0]}</span>
+      <Eye className="w-4 h-4 mr-2 text-foreground" />
+      <span className="text-xs font-medium text-foreground hidden sm:inline">{statusText.split(' ')[0]}</span>
     </Button>
   );
 });

@@ -28,24 +28,24 @@ const DEFAULT_OCTAVES = OCTAVE_CONFIGURATIONS[1]; // "2 Octaves (Standard)"
 const getStatusIcon = (status: ScaleStatus) => {
   switch (status) {
     case 'mastered':
-      return <Check className="w-4 h-4 text-white" />;
+      return <Check className="w-4 h-4 text-success-foreground" />;
     case 'practiced':
-      return <Clock className="w-4 h-4 text-white" />;
+      return <Clock className="w-4 h-4 text-warning-foreground" />;
     case 'untouched':
     default:
-      return <X className="w-4 h-4 text-gray-400" />;
+      return <X className="w-4 h-4 text-muted-foreground" />;
   }
 };
 
 const getStatusClasses = (status: ScaleStatus) => {
   switch (status) {
     case 'mastered':
-      return 'bg-green-600 hover:bg-green-700';
+      return 'bg-success hover:bg-success/90';
     case 'practiced':
-      return 'bg-yellow-600 hover:bg-yellow-700';
+      return 'bg-warning hover:bg-warning/90';
     case 'untouched':
     default:
-      return 'bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600';
+      return 'bg-muted/20 hover:bg-muted/40';
   }
 };
 
@@ -155,7 +155,7 @@ const ScaleDetailDialog: React.FC<ScaleDetailDialogProps> = ({ scaleItem, childr
           <DialogTitle>{scaleItem.key} {scaleItem.type} - Detailed Mastery</DialogTitle>
         </DialogHeader>
         
-        <p className="text-sm text-yellow-500 mb-4">
+        <p className="text-sm text-warning mb-4">
           Note: This matrix tracks the default permutation: {DEFAULT_DIRECTION}, {DEFAULT_HAND_CONFIG}, {DEFAULT_RHYTHM}, {DEFAULT_ACCENT}, {DEFAULT_OCTAVES}.
         </p>
 
@@ -213,7 +213,7 @@ const ScaleDetailDialog: React.FC<ScaleDetailDialogProps> = ({ scaleItem, childr
                           }}
                           className={cn(
                             "w-full h-10 flex flex-col items-center justify-center rounded-md transition-colors duration-150",
-                            status === 'mastered' ? 'bg-green-600 hover:bg-green-700' : status === 'practiced' ? 'bg-yellow-600 hover:bg-yellow-700' : getStatusClasses(status),
+                            status === 'mastered' ? 'bg-success hover:bg-success/90' : status === 'practiced' ? 'bg-warning hover:bg-warning/90' : getStatusClasses(status),
                             // Highlight the currently selected cell for reset button context
                             articulation === selectedArticulation && tempo === selectedTempo && "ring-2 ring-offset-2 ring-primary ring-offset-background"
                           )}
@@ -221,7 +221,7 @@ const ScaleDetailDialog: React.FC<ScaleDetailDialogProps> = ({ scaleItem, childr
                           aria-label={`${articulation} at ${tempo} status: ${statusText}. Click to cycle status.`}
                         >
                           {getStatusIcon(status)}
-                          <span className="text-xs font-mono mt-1 text-white/80">
+                          <span className="text-xs font-mono mt-1 text-foreground/80">
                             {currentHighestBPM > 0 ? `${currentHighestBPM} BPM` : ''}
                           </span>
                         </Button>
@@ -241,7 +241,7 @@ const ScaleDetailDialog: React.FC<ScaleDetailDialogProps> = ({ scaleItem, childr
             {/* Removed Reset Permutation Status button */}
         </div>
         <p className="text-xs text-muted-foreground">
-            Currently selected permutation: <span className="font-mono text-foreground">{selectedArticulation}</span>. Highest BPM: <span className={cn("font-mono font-bold", highestBPM >= getTempoLevelBPMThreshold(TEMPO_LEVELS[3]) ? 'text-green-400' : highestBPM > 0 ? 'text-yellow-400' : 'text-gray-400')}>{highestBPM} BPM</span>
+            Currently selected permutation: <span className="font-mono text-foreground">{selectedArticulation}</span>. Highest BPM: <span className={cn("font-mono font-bold", highestBPM >= getTempoLevelBPMThreshold(TEMPO_LEVELS[3]) ? 'text-success' : highestBPM > 0 ? 'text-warning' : 'text-muted-foreground')}>{highestBPM} BPM</span>
         </p>
       </DialogContent>
     </Dialog>

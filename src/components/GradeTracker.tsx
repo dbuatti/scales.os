@@ -87,7 +87,7 @@ const GradeTracker: React.FC = () => {
             <CardHeader className="p-4 pb-2">
                 <CardTitle className="font-mono text-primary text-xl flex items-center justify-between">
                     GRADE TRACKER 
-                    <span className="text-sm text-yellow-400">
+                    <span className="text-sm text-warning">
                         {nextGrade ? `Working on Grade ${nextGrade.id}` : 'Mastery Achieved'}
                     </span>
                 </CardTitle>
@@ -117,8 +117,8 @@ const GradeTracker: React.FC = () => {
                         {gradeStats.map(grade => (
                             <div key={grade.id} className="space-y-1">
                                 <div className="flex justify-between text-sm font-mono font-medium">
-                                    <span className={cn(grade.completion === 100 ? 'text-green-400' : 'text-foreground')}>{grade.name}</span>
-                                    <span className={cn(grade.completion === 100 ? 'text-green-400' : 'text-primary')}>{grade.completion}%</span>
+                                    <span className={cn(grade.completion === 100 ? 'text-success' : 'text-foreground')}>{grade.name}</span>
+                                    <span className={cn(grade.completion === 100 ? 'text-success' : 'text-primary')}>{grade.completion}%</span>
                                 </div>
                                 <Progress value={grade.completion} className="h-2 [&>div]:bg-primary" />
                                 <p className="text-xs text-muted-foreground italic">{grade.description}</p>

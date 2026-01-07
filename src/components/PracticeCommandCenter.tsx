@@ -97,27 +97,27 @@ const PracticeCommandCenter: React.FC = () => {
     : 'None';
 
   return (
-    <div className="min-h-screen bg-black text-green-400 font-mono flex items-center justify-center p-4 overflow-hidden relative">
+    <div className="min-h-screen bg-black text-foreground font-mono flex items-center justify-center p-4 overflow-hidden relative">
       {/* CRT Scanlines Effect */}
       <div className="absolute inset-0 pointer-events-none opacity-20">
-        <div className="h-full w-full bg-repeat-y" style={{ backgroundImage: 'linear-gradient(transparent 50%, rgba(0,255,0,0.05) 50%)', backgroundSize: '100% 4px' }} />
+        <div className="h-full w-full bg-repeat-y" style={{ backgroundImage: 'linear-gradient(transparent 50%, hsl(var(--primary)) / 0.05) 50%)', backgroundSize: '100% 4px' }} />
       </div>
 
       <div className="w-full max-w-6xl relative">
         {/* Terminal Glow Border */}
-        <div className="absolute -inset-4 bg-green-500/20 blur-3xl animate-pulse" />
+        <div className="absolute -inset-4 bg-primary/20 blur-3xl animate-pulse" />
 
-        <Card className="relative border-4 border-green-500/80 bg-black/95 shadow-2xl">
-          <CardHeader className="border-b-2 border-green-600/50 pb-6">
+        <Card className="relative border-4 border-primary/80 bg-black/95 shadow-2xl">
+          <CardHeader className="border-b-2 border-primary/50 pb-6">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <Terminal className="w-8 h-8 text-green-400" />
-                <CardTitle className="text-3xl tracking-widest text-green-400 drop-shadow-[0_0_8px_rgba(74,222,128,0.8)]">
+                <Terminal className="w-8 h-8 text-primary" />
+                <CardTitle className="text-3xl tracking-widest text-primary drop-shadow-[0_0_8px_hsl(var(--primary)/0.8)]">
                   PRACTICE COMMAND CENTER
                 </CardTitle>
               </div>
               <div className="flex items-center gap-2 text-xs">
-                <Zap className="w-4 h-4 animate-pulse" />
+                <Zap className="w-4 h-4 animate-pulse text-primary" />
                 <span>ONLINE</span>
               </div>
             </div>
@@ -127,65 +127,65 @@ const PracticeCommandCenter: React.FC = () => {
             {/* Status Readout */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
-                <div className="text-xs text-green-600 uppercase">Last Transmission</div>
+                <div className="text-xs text-primary/70 uppercase">Last Transmission</div>
                 {lastLogEntry ? (
                   <p className="text-sm">
                     {formatDistanceToNow(lastLogEntry.timestamp, { addSuffix: true })} →{' '}
                     {lastLogEntry.lastBPM ? (
-                      <span className="text-yellow-400 font-bold">TARGET BPM: {lastLogEntry.lastBPM}</span>
+                      <span className="text-warning font-bold">TARGET BPM: {lastLogEntry.lastBPM}</span>
                     ) : (
-                      <span className="text-cyan-400">SESSION: {lastLogEntry.duration} min</span>
+                      <span className="text-success">SESSION: {lastLogEntry.duration} min</span>
                     )}
                   </p>
                 ) : (
-                  <p className="text-gray-600">No recent activity detected.</p>
+                  <p className="text-muted-foreground">No recent activity detected.</p>
                 )}
               </div>
 
               <div className="space-y-2 text-right md:text-left">
-                <div className="text-xs text-green-600 uppercase">Priority Target</div>
+                <div className="text-xs text-primary/70 uppercase">Priority Target</div>
                 {nextFocus ? (
                   <div className="flex items-center justify-end md:justify-start gap-3">
-                    <span className="font-bold text-yellow-300 blinking">► {suggestedLabel}</span>
+                    <span className="font-bold text-warning blinking">► {suggestedLabel}</span>
                     <Button
                       onClick={() => handleLoadSuggestion(nextFocus)}
                       size="sm"
                       variant="outline"
-                      className="border-green-500 text-green-400 hover:bg-green-500/20 hover:text-white transition-all"
+                      className="border-primary text-primary hover:bg-primary/20 hover:text-foreground transition-all"
                     >
                       <Target className="w-4 h-4 mr-1" />
                       ENGAGE
                     </Button>
                   </div>
                 ) : (
-                  <span className="text-gray-600">Awaiting directive...</span>
+                  <span className="text-muted-foreground">Awaiting directive...</span>
                 )}
               </div>
             </div>
 
             {/* Practice Summary */}
-            <div className="border-t border-green-900/50 pt-6">
+            <div className="border-t border-primary/50 pt-6">
               <PracticeSummaryPanel />
             </div>
 
             {/* BPM Mastery Control */}
-            <div className="space-y-4 border border-green-800/50 rounded-lg p-6 bg-black/40">
+            <div className="space-y-4 border border-primary/50 rounded-lg p-6 bg-black/40">
               <div className="flex items-center justify-between">
-                <Label className="text-green-400 text-lg tracking-wider">METRONOME OVERRIDE</Label>
-                <span className="text-2xl font-bold text-yellow-300">{currentBPM}</span>
+                <Label className="text-primary text-lg tracking-wider">METRONOME OVERRIDE</Label>
+                <span className="text-2xl font-bold text-warning">{currentBPM}</span>
               </div>
 
               <div className="relative">
                 {/* Retro Progress Bar Background */}
-                <div className="h-10 bg-gradient-to-r from-black via-green-900/30 to-black border border-green-700/70 rounded overflow-hidden">
+                <div className="h-10 bg-gradient-to-r from-black via-primary/30 to-black border border-primary/70 rounded overflow-hidden">
                   {/* Mastered Zone */}
                   <div
-                    className="h-full bg-gradient-to-r from-transparent via-green-600/40 to-green-500/60 transition-all duration-1000 ease-out"
+                    className="h-full bg-gradient-to-r from-transparent via-primary/40 to-primary/60 transition-all duration-1000 ease-out"
                     style={{ width: `${masteredRangePercentage}%` }}
                   />
                   {/* Current BPM Marker */}
                   <div
-                    className="absolute top-0 h-full w-1 bg-yellow-400 shadow-[0_0_10px_#fff] animate-pulse"
+                    className="absolute top-0 h-full w-1 bg-warning shadow-[0_0_10px_hsl(var(--warning))] animate-pulse"
                     style={{ left: `${((currentBPM - MIN_BPM) / (MAX_BPM - MIN_BPM)) * 100}%` }}
                   />
                 </div>
@@ -202,10 +202,10 @@ const PracticeCommandCenter: React.FC = () => {
                 />
               </div>
 
-              <div className="flex justify-between text-xs text-green-600">
+              <div className="flex justify-between text-xs text-primary/70">
                 <span>{MIN_BPM} BPM</span>
                 {activePermutationHighestBPM > MIN_BPM && (
-                  <span className="text-cyan-400 animate-pulse">
+                  <span className="text-success animate-pulse">
                     MASTERED → {activePermutationHighestBPM} BPM
                   </span>
                 )}
@@ -224,22 +224,22 @@ const PracticeCommandCenter: React.FC = () => {
               }}
               className="w-full"
             >
-              <TabsList className="grid grid-cols-3 bg-black/60 border-2 border-green-700/70 h-14">
+              <TabsList className="grid grid-cols-3 bg-black/60 border-2 border-primary/70 h-14">
                 <TabsTrigger
                   value="scales"
-                  className="text-green-400 data-[state=active]:bg-green-600 data-[state=active]:text-black data-[state=active]:shadow-[0_0_15px_rgba(74,222,128,0.8)] transition-all text-lg tracking-wider"
+                  className="text-primary data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-[0_0_15px_hsl(var(--primary)/0.8)] transition-all text-lg tracking-wider"
                 >
                   SCALES
                 </TabsTrigger>
                 <TabsTrigger
                   value="dohnanyi"
-                  className="text-green-400 data-[state=active]:bg-green-600 data-[state=active]:text-black data-[state=active]:shadow-[0_0_15px_rgba(74,222,128,0.8)] transition-all text-lg tracking-wider"
+                  className="text-primary data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-[0_0_15px_hsl(var(--primary)/0.8)] transition-all text-lg tracking-wider"
                 >
                   DOHNÁNYI
                 </TabsTrigger>
                 <TabsTrigger
                   value="hanon"
-                  className="text-green-400 data-[state=active]:bg-green-600 data-[state=active]:text-black data-[state=active]:shadow-[0_0_15px_rgba(74,222,128,0.8)] transition-all text-lg tracking-wider"
+                  className="text-primary data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-[0_0_15px_hsl(var(--primary)/0.8)] transition-all text-lg tracking-wider"
                 >
                   HANON
                 </TabsTrigger>
@@ -282,11 +282,11 @@ const PracticeCommandCenter: React.FC = () => {
             </Tabs>
 
             {/* Refresh Control */}
-            <div className="flex justify-center pt-6 border-t border-green-900/50">
+            <div className="flex justify-center pt-6 border-t border-primary/50">
               <Button
                 onClick={refetchData}
                 variant="outline"
-                className="border-green-600 text-green-400 hover:bg-green-600/20 hover:text-white transition-all"
+                className="border-primary/70 text-primary hover:bg-primary/20 hover:text-foreground transition-all"
               >
                 <RefreshCw className="w-5 h-5 mr-2" />
                 SYNC DATA CORE
@@ -296,20 +296,10 @@ const PracticeCommandCenter: React.FC = () => {
         </Card>
 
         {/* Footer Status */}
-        <div className="text-center mt-6 text-xs text-green-800 opacity-70">
+        <div className="text-center mt-6 text-primary/70 opacity-70">
           SYSTEM READY • {new Date().toLocaleDateString()} • v4.0 "RETRO COMMAND"
         </div>
       </div>
-
-      <style jsx>{`
-        @keyframes blink {
-          0%, 100% { opacity: 1; }
-          50% { opacity: 0.3; }
-        }
-        .blinking {
-          animation: blink 1.5s infinite;
-        }
-      `}</style>
     </div>
   );
 };

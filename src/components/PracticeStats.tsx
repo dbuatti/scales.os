@@ -165,12 +165,12 @@ const PracticeStats = () => {
           <Progress value={stats.completionPercentage} className="h-3 [&>div]:bg-primary" />
           <div className="grid grid-cols-3 gap-4 text-center">
             <div className="flex flex-col items-center">
-              <Check className="w-5 h-5 text-green-400" />
+              <Check className="w-5 h-5 text-success" />
               <span className="text-xl font-bold mt-1 font-mono">{stats.masteredCount}</span>
               <span className="text-xs text-muted-foreground font-mono">Mastered Goals</span>
             </div>
             <div className="flex flex-col items-center">
-              <Clock className="w-5 h-5 text-yellow-400" />
+              <Clock className="w-5 h-5 text-warning" />
               <span className="text-xl font-bold mt-1 font-mono">{stats.practicedCount}</span>
               <span className="text-xs text-muted-foreground font-mono">In Progress Goals</span>
             </div>
@@ -194,7 +194,7 @@ const PracticeStats = () => {
               <p className="text-lg font-semibold text-primary">
                 {nextFocus.type === 'Scale' ? `${nextFocus.key} ${nextFocus.scaleType}` : nextFocus.name}
               </p>
-              <p className="text-sm font-bold text-yellow-400 mb-2">
+              <p className="text-sm font-bold text-warning mb-2">
                 GRADE {nextFocus.grade} GOAL
               </p>
               

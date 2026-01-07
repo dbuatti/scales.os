@@ -40,6 +40,14 @@
     --destructive: 35 90% 65%;         /* Retro amber/orange */
     --destructive-foreground: 140 100% 4%;
 
+    /* New: Warning/In-Progress (Yellow/Amber) */
+    --warning: 45 100% 60%;            /* Bright yellow for warnings/progress */
+    --warning-foreground: 140 100% 4%;
+
+    /* New: Success/Mastered (Cyan/Aqua) */
+    --success: 180 100% 60%;           /* Bright cyan for success/mastery */
+    --success-foreground: 140 100% 4%;
+
     /* Borders & Inputs: Subtle green-tinted edges */
     --border: 140 70% 15%;
     --input: 140 70% 15%;
@@ -84,6 +92,14 @@
     --destructive: 35 90% 65%;
     --destructive-foreground: 140 100% 4%;
 
+    /* New: Warning/In-Progress (Yellow/Amber) */
+    --warning: 45 100% 60%;
+    --warning-foreground: 140 100% 4%;
+
+    /* New: Success/Mastered (Cyan/Aqua) */
+    --success: 180 100% 60%;
+    --success-foreground: 140 100% 4%;
+
     --border: 140 70% 15%;
     --input: 140 70% 15%;
     --ring: 140 100% 65%;
@@ -122,7 +138,7 @@
 
   /* Selection highlight in phosphor green */
   ::selection {
-    background-color: hsl(140 100% 65% / 0.4);
+    background-color: hsl(var(--primary) / 0.4);
     color: hsl(140 100% 95%);
   }
 
@@ -141,26 +157,26 @@
 @layer components {
   /* CRT-style text glow */
   .text-glow {
-    text-shadow: 0 0 8px hsl(140 100% 65% / 0.8),
-                 0 0 16px hsl(140 100% 65% / 0.5);
+    text-shadow: 0 0 8px hsl(var(--primary) / 0.8),
+                 0 0 16px hsl(var(--primary) / 0.5);
   }
 
   .text-glow-intense {
-    text-shadow: 0 0 12px hsl(140 100% 65%),
-                 0 0 24px hsl(140 100% 65% / 0.7),
-                 0 0 40px hsl(140 100% 65% / 0.4);
+    text-shadow: 0 0 12px hsl(var(--primary)),
+                 0 0 24px hsl(var(--primary) / 0.7),
+                 0 0 40px hsl(var(--primary) / 0.4);
   }
 
   /* Amber alert glow */
   .text-amber-glow {
-    text-shadow: 0 0 10px hsl(35 90% 65% / 0.9);
+    text-shadow: 0 0 10px hsl(var(--destructive) / 0.9);
   }
 
   /* Subtle inner border for panels */
   .panel-glow {
     box-shadow: 
-      inset 0 0 20px hsl(140 100% 65% / 0.1),
-      0 0 20px hsl(140 100% 65% / 0.2);
+      inset 0 0 20px hsl(var(--primary) / 0.1),
+      0 0 20px hsl(var(--primary) / 0.2);
   }
 
   /* Blinking cursor effect (for prompts or status) */
@@ -182,9 +198,18 @@
       0deg,
       transparent,
       transparent 2px,
-      hsl(140 100% 50% / 0.03) 2px,
-      hsl(140 100% 50% / 0.03) 4px
+      hsl(var(--primary) / 0.03) 2px,
+      hsl(var(--primary) / 0.03) 4px
     );
     mix-blend-mode: overlay;
+  }
+
+  /* Pulse Glow for active elements */
+  @keyframes pulse-glow {
+    0%, 100% { filter: brightness(1); }
+    50% { filter: brightness(1.4); }
+  }
+  .animate-pulse-glow {
+    animation: pulse-glow 2s infinite;
   }
 }

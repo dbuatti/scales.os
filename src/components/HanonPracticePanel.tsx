@@ -173,11 +173,11 @@ const HanonPracticePanel: React.FC<HanonPracticePanelProps> = ({
                 <p className="text-sm text-muted-foreground font-mono">
                     Highest Mastered BPM: <span className="font-bold text-primary">{highestMasteredBPM}</span>
                 </p>
-                <p className="text-sm text-yellow-400 font-mono">
+                <p className="text-sm text-warning font-mono">
                     Next Goal: <span className="font-bold">{nextBPMGoal} BPM</span>
                 </p>
                 {highestMasteredBPM >= HANON_BPM_TARGETS[HANON_BPM_TARGETS.length - 1] && (
-                    <div className="flex items-center text-green-400 font-mono text-sm mt-2">
+                    <div className="flex items-center text-success font-mono text-sm mt-2">
                         <Check className="w-4 h-4 mr-1" /> FULLY MASTERED!
                     </div>
                 )}
