@@ -66,50 +66,50 @@
 
   /* Modern Light Theme */
   [data-theme="modern-light"] {
-    --background: 0 0% 100%;
-    --foreground: 240 10% 3.9%;
+    --background: 0 0% 100%;           /* White */
+    --foreground: 240 10% 3.9%;        /* Dark grey */
 
-    --card: 0 0% 100%;
-    --card-foreground: 240 10% 3.9%;
+    --card: 0 0% 100%;                 /* White */
+    --card-foreground: 240 10% 3.9%;   /* Dark grey */
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 240 10% 3.9%;
+    --popover: 0 0% 100%;              /* White */
+    --popover-foreground: 240 10% 3.9%;/* Dark grey */
 
-    --primary: 240 5.9% 10%;
-    --primary-foreground: 0 0% 98%;
+    --primary: 210 90% 40%;            /* Medium Blue */
+    --primary-foreground: 0 0% 100%;   /* White */
 
-    --secondary: 240 4.8% 95.9%;
-    --secondary-foreground: 240 5.9% 10%;
+    --secondary: 210 20% 95%;          /* Very light grey-blue */
+    --secondary-foreground: 240 10% 3.9%; /* Dark grey */
 
-    --muted: 240 4.8% 95.9%;
-    --muted-foreground: 240 3.8% 46.1%;
+    --muted: 210 20% 95%;              /* Very light grey-blue */
+    --muted-foreground: 210 10% 45%;   /* Medium grey */
 
-    --accent: 240 4.8% 95.9%;
-    --accent-foreground: 240 5.9% 10%;
+    --accent: 210 90% 90%;             /* Very light blue for hover */
+    --accent-foreground: 210 90% 40%;  /* Medium Blue */
 
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 0 0% 98%;
+    --destructive: 0 84.2% 60.2%;      /* Red */
+    --destructive-foreground: 0 0% 98%;/* Near white */
 
-    --warning: 40 100% 50%; /* Orange-yellow */
-    --warning-foreground: 240 10% 3.9%;
+    --warning: 40 100% 50%;            /* Orange-yellow */
+    --warning-foreground: 240 10% 3.9%;/* Dark grey */
 
-    --success: 142 71% 45%; /* Green */
-    --success-foreground: 0 0% 98%;
+    --success: 142 71% 45%;            /* Green */
+    --success-foreground: 0 0% 98%;    /* Near white */
 
-    --border: 240 5.9% 90%;
-    --input: 240 5.9% 90%;
-    --ring: 240 5.9% 10%;
+    --border: 210 20% 88%;             /* Light grey-blue border */
+    --input: 210 20% 88%;              /* Light grey-blue input */
+    --ring: 210 90% 40%;               /* Medium Blue focus ring */
 
     --radius: 0.5rem;
 
     --sidebar-background: 0 0% 100%;
     --sidebar-foreground: 240 10% 3.9%;
-    --sidebar-primary: 240 5.9% 10%;
-    --sidebar-primary-foreground: 0 0% 98%;
-    --sidebar-accent: 240 4.8% 95.9%;
-    --sidebar-accent-foreground: 240 5.9% 10%;
-    --sidebar-border: 240 5.9% 90%;
-    --sidebar-ring: 240 5.9% 10%;
+    --sidebar-primary: 210 90% 40%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 210 90% 90%;
+    --sidebar-accent-foreground: 210 90% 40%;
+    --sidebar-border: 210 20% 88%;
+    --sidebar-ring: 210 90% 40%;
   }
 
   /* Vibrant Dark Theme */
