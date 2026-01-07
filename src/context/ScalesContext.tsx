@@ -58,9 +58,9 @@ export interface PracticeLogItem {
 export interface PracticeLogEntry {
   id: string;
   timestamp: number;
-  durationMinutes: number;
   itemsPracticed: PracticeLogItem[]; // Renamed from scalesPracticed
   notes: string;
+  durationMinutes: number;
 }
 
 export type NextFocus = 
@@ -116,6 +116,7 @@ interface ScalesContextType {
   refetchData: () => Promise<void>; // New: Function to manually refetch data
   clearExerciseMastery: () => Promise<void>; // New: Function to clear Dohnanyi/Hanon mastery
   clearScaleMastery: () => Promise<void>; // NEW: Function to clear all scale mastery
+  clearAllLogs: () => Promise<void>; // NEW: Function to clear all practice logs
 }
 
 // --- Context and Provider ---
@@ -226,7 +227,7 @@ export const ScalesProvider: React.FC<React.PropsWithChildren> = ({ children }) 
 
     setIsDataLoading(false);
     console.log("[ScalesContext] Finished fetchData.");
-  }, []);
+  }, [supabase]); // Added supabase to dependency array
 
   useEffect(() => {
     if (userId) {
@@ -288,7 +289,7 @@ export const ScalesProvider: React.FC<React.PropsWithChildren> = ({ children }) 
 
     showSuccess("Dohnányi and Hanon mastery data cleared successfully!");
     await refetchData(); // Refresh data to update UI
-  }, [userId, refetchData]);
+  }, [userId, refetchData, supabase]); // Added supabase to dependency array
 
   // NEW: Function to clear all scale mastery
   const clearScaleMastery = useCallback(async () => {
@@ -310,7 +311,29 @@ export const ScalesProvider: React.FC<React.PropsWithChildren> = ({ children }) 
 
     showSuccess("All scale mastery data cleared successfully!");
     await refetchData(); // Refresh data to update UI
-  }, [userId, refetchData]);
+  }, [userId, refetchData, supabase]); // Added supabase to dependency array
+
+  // NEW: Function to clear all practice logs
+  const clearAllLogs = useCallback(async () => {
+    if (!userId) {
+      showError("You must be logged in to clear data.");
+      return;
+    }
+
+    const { error } = await supabase
+      .from('practice_logs')
+      .delete()
+      .eq('user_id', userId);
+
+    if (error) {
+      showError("Failed to clear practice logs.");
+      console.error("[ScalesContext] Error clearing practice logs:", error);
+      return;
+    }
+
+    showSuccess("All practice logs cleared successfully!");
+    await refetchData(); // Refresh data to update UI
+  }, [userId, refetchData, supabase]); // Added supabase to dependency array
 
 
   // 1.5 Calculate Next Focus (Enhanced Logic)
@@ -505,7 +528,7 @@ export const ScalesProvider: React.FC<React.PropsWithChildren> = ({ children }) 
         [practiceId]: status,
       }));
     }
-  }, [userId]);
+  }, [userId, supabase]); // Added supabase to dependency array
   
   // 3. Update Scale Mastery BPM (Upsert to Supabase - used for granular scale tracking)
   const updateScaleMasteryBPM = useCallback(async (scalePermutationId: string, newBPM: number) => {
@@ -536,7 +559,7 @@ export const ScalesProvider: React.FC<React.PropsWithChildren> = ({ children }) 
         [scalePermutationId]: newBPM,
     }));
     
-  }, [userId]);
+  }, [userId, supabase]); // Added supabase to dependency array
 
   // 4. Update Exercise Mastery BPM (NEW: Upsert to Supabase - for Dohnanyi/Hanon granular tracking)
   const updateExerciseMasteryBPM = useCallback(async (exerciseId: string, newBPM: number) => {
@@ -564,7 +587,7 @@ export const ScalesProvider: React.FC<React.PropsWithChildren> = ({ children }) 
         ...prev,
         [exerciseId]: newBPM,
     }));
-  }, [userId]);
+  }, [userId, supabase]); // Added supabase to dependency array
 
 
   // 5. Add Log Entry (Insert to Supabase)
@@ -606,7 +629,7 @@ export const ScalesProvider: React.FC<React.PropsWithChildren> = ({ children }) 
     };
 
     setLog(prev => [finalEntry, ...prev]);
-  }, [userId]);
+  }, [userId, supabase]); // Added supabase to dependency array
 
 
   const contextValue = useMemo(() => ({
@@ -628,9 +651,10 @@ export const ScalesProvider: React.FC<React.PropsWithChildren> = ({ children }) 
     refetchData, // Expose refetchData
     clearExerciseMastery, // Expose clearExerciseMastery
     clearScaleMastery, // Expose clearScaleMastery
+    clearAllLogs, // Expose clearAllLogs
   }), [
     progressMap, scaleMasteryBPMMap, exerciseMasteryBPMMap, log, isLoading, nextFocus, 
-    updatePracticeStatus, updateScaleMasteryBPM, updateExerciseMasteryBPM, addLogEntry, refetchData, clearExerciseMastery, clearScaleMastery
+    updatePracticeStatus, updateScaleMasteryBPM, updateExerciseMasteryBPM, addLogEntry, refetchData, clearExerciseMastery, clearScaleMastery, clearAllLogs
   ]);
 
   return (

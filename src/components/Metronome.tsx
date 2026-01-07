@@ -14,7 +14,8 @@ const Metronome: React.FC<MetronomeProps> = ({ bpm }) => {
   const [isRunning, setIsRunning] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
   const [division, setDivision] = useState<NoteDivision>('quarter');
-  const [currentBeatVisual, setCurrentBeatVisual] = useState(0); // For visual indicator only
+  const [isBeatActive, setIsBeatActive] = useState(false); // New state for visual pulse
+  const [isAccentBeat, setIsAccentBeat] = useState(false); // New state for accent visual
   
   const audioContextRef = useRef<AudioContext | null>(null);
   const timerRef = useRef<number | null>(null);
@@ -74,10 +75,13 @@ const Metronome: React.FC<MetronomeProps> = ({ bpm }) => {
 
       playClick(nextNoteTimeRef.current, isAccent);
       
+      // Visual feedback: Set active state for a short duration
+      setIsBeatActive(true);
+      setIsAccentBeat(isAccent);
+      setTimeout(() => setIsBeatActive(false), 100); // Reset after 100ms for a quick pulse
+
       // Update beat for scheduling logic
       currentBeatRef.current++;
-      // Update beat state for visual indicator
-      setCurrentBeatVisual(currentBeatRef.current); 
 
       // Advance time
       nextNoteTimeRef.current += interval;
@@ -93,7 +97,6 @@ const Metronome: React.FC<MetronomeProps> = ({ bpm }) => {
       
       // Reset beat counters and set initial time
       currentBeatRef.current = 0; // Reset ref
-      setCurrentBeatVisual(0); // Reset visual state
       nextNoteTimeRef.current = context.currentTime; // Start immediately
       
       // Start scheduling loop
@@ -104,7 +107,8 @@ const Metronome: React.FC<MetronomeProps> = ({ bpm }) => {
         timerRef.current = null;
       }
       currentBeatRef.current = 0; // Reset ref
-      setCurrentBeatVisual(0); // Reset visual state
+      setIsBeatActive(false); // Ensure visual is off
+      setIsAccentBeat(false); // Ensure visual is off
     }
 
     return () => {
@@ -119,7 +123,8 @@ const Metronome: React.FC<MetronomeProps> = ({ bpm }) => {
   useEffect(() => {
       if (isRunning) {
           currentBeatRef.current = 0; // Reset ref
-          setCurrentBeatVisual(0); // Reset visual state
+          setIsBeatActive(false); // Reset visual state
+          setIsAccentBeat(false); // Reset visual state
       }
   }, [division, isRunning]);
 
@@ -184,19 +189,16 @@ const Metronome: React.FC<MetronomeProps> = ({ bpm }) => {
       </ToggleGroup>
       
       {/* Beat Indicator (Visual feedback) */}
-      <div className="flex space-x-1">
-        {[0, 1, 2, 3].map(index => (
-          <div 
-            key={index} 
-            className={cn(
-              "w-3 h-3 rounded-full transition-all duration-100",
-              isRunning && (currentBeatVisual % 4) === index 
-                ? "bg-warning shadow-md shadow-warning/50 scale-125" // Added scale-125 for pulse effect
-                : "bg-muted-foreground/30"
-            )}
-          />
-        ))}
-      </div>
+      <div 
+        className={cn(
+          "w-6 h-6 rounded-full transition-all duration-100",
+          isRunning && isBeatActive
+            ? isAccentBeat
+              ? "bg-warning shadow-md shadow-warning/50 scale-125" // Accent beat
+              : "bg-primary shadow-md shadow-primary/50 scale-110" // Regular beat
+            : "bg-muted-foreground/30"
+        )}
+      />
     </div>
   );
 };

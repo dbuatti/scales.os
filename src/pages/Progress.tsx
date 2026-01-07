@@ -22,7 +22,7 @@ import {
 } from "@/components/ui/alert-dialog";
 
 const ProgressPage: React.FC = () => {
-  const { isLoading, clearExerciseMastery, clearScaleMastery, refetchData } = useScales();
+  const { isLoading, clearExerciseMastery, clearScaleMastery, clearAllLogs, refetchData } = useScales();
   const [isRefreshing, setIsRefreshing] = React.useState(false);
 
   const handleRefresh = async () => {
@@ -86,6 +86,35 @@ const ProgressPage: React.FC = () => {
           )}
           Refresh Data
         </Button>
+
+        {/* Clear All Logs Button */}
+        <AlertDialog>
+          <AlertDialogTrigger asChild>
+            <Button 
+              variant="destructive" 
+              className="bg-destructive hover:bg-destructive/90 text-destructive-foreground"
+            >
+              <Trash2 className="w-4 h-4 mr-2" /> Clear All Practice Logs
+            </Button>
+          </AlertDialogTrigger>
+          <AlertDialogContent className="bg-card border-primary/50 shadow-2xl shadow-primary/30">
+            <AlertDialogHeader>
+              <AlertDialogTitle className="text-primary font-mono">Are you absolutely sure?</AlertDialogTitle>
+              <AlertDialogDescription className="text-muted-foreground">
+                This action cannot be undone. This will permanently delete ALL your practice log entries. Your mastery progress will remain.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel className="border-muted-foreground text-muted-foreground hover:bg-accent">Cancel</AlertDialogCancel>
+              <AlertDialogAction 
+                onClick={clearAllLogs} 
+                className="bg-destructive hover:bg-destructive/90 text-destructive-foreground"
+              >
+                Continue
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
 
         {/* Clear Dohnányi & Hanon Progress */}
         <AlertDialog>

@@ -46,11 +46,13 @@ const PracticeSummaryPanel: React.FC = () => {
       if (currentBPM > highestBPM)
         return { text: 'NEW RECORD', color: 'text-warning', icon: Zap, pulse: true };
       return { text: 'IN TRAINING', color: 'text-primary/70', icon: Target, pulse: false };
-    } else {
-      const isMastered = (activePracticeItem as any).isMastered;
-      return isMastered
-        ? { text: 'EXERCISE MASTERED', color: 'text-success', icon: CheckCircle2, pulse: true }
-        : { text: 'TARGET LOCKED', color: 'text-warning', icon: Target, pulse: false };
+    } else { // Dohnanyi or Hanon
+      const { currentHighestBPM, nextTargetBPM } = activePracticeItem as any;
+      if (currentBPM >= nextTargetBPM)
+        return { text: 'GOAL SURPASSED', color: 'text-success', icon: CheckCircle2, pulse: true };
+      if (currentBPM > currentHighestBPM)
+        return { text: 'NEW RECORD', color: 'text-warning', icon: Zap, pulse: true };
+      return { text: 'IN TRAINING', color: 'text-primary/70', icon: Target, pulse: false };
     }
   };
 
@@ -61,9 +63,13 @@ const PracticeSummaryPanel: React.FC = () => {
       const { highestBPM, nextGoalBPM } = activePracticeItem;
       const base = highestBPM;
       const target = nextGoalBPM;
+      // Avoid division by zero if target is same as base
+      if (target === base) return currentBPM >= target ? 100 : 0;
       return Math.min(100, ((currentBPM - base) / (target - base)) * 100);
-    } else {
+    } else { // Dohnanyi or Hanon
       const { currentHighestBPM, nextTargetBPM } = activePracticeItem as any;
+      // Avoid division by zero if target is same as base
+      if (nextTargetBPM === currentHighestBPM) return currentBPM >= nextTargetBPM ? 100 : 0;
       return Math.min(100, ((currentBPM - currentHighestBPM) / (nextTargetBPM - currentHighestBPM)) * 100);
     }
   })();
