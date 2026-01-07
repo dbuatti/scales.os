@@ -4,12 +4,12 @@ import { Button } from '@/components/ui/button';
 import { 
   ScaleItem, ARTICULATIONS, TEMPO_LEVELS, Articulation, TempoLevel,
   DIRECTION_TYPES, HAND_CONFIGURATIONS, RHYTHMIC_PERMUTATIONS, ACCENT_DISTRIBUTIONS, OCTAVE_CONFIGURATIONS,
-  getScalePermutationId, getTempoLevelBPMThreshold, parseScalePermutationId,
-  DirectionType, HandConfiguration, RhythmicPermutation, AccentDistribution, OctaveConfiguration, cleanString // Added cleanString and missing types
+  getScalePermutationId, getTempoLevelBPMThreshold, parseScalePermutationId, cleanString,
+  DirectionType, HandConfiguration, RhythmicPermutation, AccentDistribution, OctaveConfiguration
 } from '@/lib/scales';
 import { useScales, ScaleStatus } from '../context/ScalesContext';
 import { cn } from '@/lib/utils';
-import { Check, Clock, X, Music, Gauge, Repeat, Hand, Target } from 'lucide-react'; // Removed RotateCcw
+import { Check, Clock, X, Music, Gauge, Repeat, Hand, Target, Zap, Palette } from 'lucide-react';
 import { showError, showSuccess } from '@/utils/toast';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { Label } from '@/components/ui/label';
@@ -57,7 +57,7 @@ interface PermutationSectionProps<T extends string> {
     options: readonly T[];
     selectedValue: T;
     onValueChange: (value: T) => void;
-    icon: React.ReactNode; // Added icon prop
+    icon: React.ReactNode;
 }
 
 const PermutationSection = <T extends string>({ title, description, options, selectedValue, onValueChange, icon }: PermutationSectionProps<T>) => (
@@ -234,13 +234,21 @@ const ScaleDetailDialog: React.FC<ScaleDetailDialogProps> = ({ scaleItem, childr
                 onValueChange={setSelectedAccent as (value: AccentDistribution) => void}
                 icon={<Target className="w-5 h-5 text-primary/70" />}
             />
+            <PermutationSection
+                title="ARTICULATION"
+                description="Focus on different touch and sound qualities."
+                options={ARTICULATIONS}
+                selectedValue={selectedArticulation}
+                onValueChange={setSelectedArticulation as (value: Articulation) => void}
+                icon={<Palette className="w-5 h-5 text-primary/70" />}
+            />
         </div>
 
         <div className="overflow-x-auto mt-6 relative z-10">
           <table className="w-full divide-y divide-border">
             <thead>
               <tr className="bg-secondary/50">
-                <th className="px-4 py-2 text-left text-xs font-medium text-foreground/70 min-w-[150px] text-primary/80">Articulation</th>
+                <th className="px-4 py-2 text-left text-xs font-medium text-foreground/70 min-w-[150px] text-primary/80">Tempo Level</th>
                 {TEMPO_LEVELS.map(tempo => (
                   <th key={tempo} className="px-4 py-2 text-center text-xs font-medium text-foreground/70 min-w-[100px] text-primary/80">
                     {tempo.split(' ')[0]}
@@ -249,6 +257,11 @@ const ScaleDetailDialog: React.FC<ScaleDetailDialogProps> = ({ scaleItem, childr
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
+              {/* Articulation is now selected via the PermutationSection above, 
+                  so the rows here represent Tempo Levels for the *selected* articulation.
+                  However, the original design had Articulations as rows and Tempo Levels as columns.
+                  To maintain the matrix, we'll keep Articulations as rows and Tempo Levels as columns,
+                  but the other permutations are now selected globally for this dialog. */}
               {ARTICULATIONS.map(articulation => (
                 <tr key={articulation} className="hover:bg-accent/50 transition-colors">
                   <td className="px-4 py-2 whitespace-nowrap text-sm font-medium text-primary/90">
@@ -274,8 +287,8 @@ const ScaleDetailDialog: React.FC<ScaleDetailDialogProps> = ({ scaleItem, childr
                         <Button
                           onClick={() => {
                             handleToggleStatus(articulation, tempo);
-                            setSelectedArticulation(articulation);
-                            setSelectedTempo(tempo);
+                            setSelectedArticulation(articulation); // Keep this to highlight the cell
+                            setSelectedTempo(tempo); // Keep this to highlight the cell
                           }}
                           className={cn(
                             "w-full h-10 flex flex-col items-center justify-center rounded-md transition-colors duration-150 border border-primary/30",

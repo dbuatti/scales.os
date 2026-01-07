@@ -88,31 +88,28 @@ const PracticeLog = () => {
                         {item.type === 'scale' && item.scaleId && (
                             <>
                                 <span className="font-bold text-primary text-glow">{scaleMap[item.scaleId] || item.scaleId}</span>
-                                <span className="text-xs font-normal mt-1 text-foreground/80 text-primary/70">
-                                    BPM: {item.practicedBPM || 'N/A'} | Art: {item.articulation} | Octaves: {item.octaves?.split(' ')[0]}
-                                </span>
-                                <span className="text-xs font-normal text-foreground/80 text-primary/70">
-                                    Dir: {item.direction} | Hands: {item.handConfig}
-                                </span>
-                                <span className="text-xs font-normal text-foreground/80 text-primary/70">
-                                    Rhythm: {item.rhythm} | Accent: {item.accent}
-                                </span>
+                                <div className="text-xs font-normal mt-1 text-foreground/80 text-primary/70 space-y-0.5">
+                                    <p>BPM: {item.practicedBPM || 'N/A'}</p>
+                                    <p>Art: {item.articulation?.split(' ')[0] || 'N/A'} | Oct: {item.octaves?.split(' ')[0] || 'N/A'}</p>
+                                    <p>Dir: {item.direction?.split(' ')[0] || 'N/A'} | Hands: {item.handConfig?.split(' ')[0] || 'N/A'}</p>
+                                    <p>Rhythm: {item.rhythm?.split(' ')[0] || 'N/A'} | Accent: {item.accent?.split(' ')[0] || 'N/A'}</p>
+                                </div>
                             </>
                         )}
                         {item.type === 'dohnanyi' && item.dohnanyiName && (
                             <>
                                 <span className="font-bold text-primary text-glow">{item.dohnanyiName}</span>
-                                <span className="text-xs font-normal mt-1 text-foreground/80 text-primary/70">
+                                <p className="text-xs font-normal mt-1 text-foreground/80 text-primary/70">
                                     Logged BPM: {item.bpmTarget || 'N/A'}
-                                </span>
+                                </p>
                             </>
                         )}
                         {item.type === 'hanon' && item.hanonName && (
                             <>
                                 <span className="font-bold text-primary text-glow">{item.hanonName}</span>
-                                <span className="text-xs font-normal mt-1 text-foreground/80 text-primary/70">
+                                <p className="text-xs font-normal mt-1 text-foreground/80 text-primary/70">
                                     Logged BPM: {item.hanonBpmTarget || 'N/A'}
-                                </span>
+                                </p>
                             </>
                         )}
                       </Badge>

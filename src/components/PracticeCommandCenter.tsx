@@ -54,7 +54,7 @@ const PracticeCommandCenter: React.FC = () => {
       if (!item) return;
 
       setIsEngagingSuggestion(true);
-      setIsPermutationManuallyAdjusted(false);
+      setIsPermutationManuallyAdjusted(false); // Reset manual adjustment when engaging suggestion
       setIsTabManuallySelected(false);
 
       const targetTab = item.type === 'scale' ? 'scales' : item.type;
@@ -229,7 +229,7 @@ const PracticeCommandCenter: React.FC = () => {
               onValueChange={(v) => {
                 setActiveTab(v as any);
                 setActivePermutationHighestBPM(0);
-                setIsPermutationManuallyAdjusted(false);
+                setIsPermutationManuallyAdjusted(false); // Reset when tab changes
                 setIsTabManuallySelected(true);
               }}
               className="w-full"
