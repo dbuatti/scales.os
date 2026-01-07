@@ -10,7 +10,7 @@ const PracticeSummaryPanel: React.FC = () => {
 
   if (!activePracticeItem) {
     return (
-      <Card className="w-full bg-black/90 border-2 border-primary/60 shadow-2xl shadow-primary/20">
+      <Card className="w-full bg-card/90 border-2 border-primary/60 shadow-2xl shadow-primary/20"> {/* Changed bg-black/90 to bg-card/90 */}
         <CardHeader className="p-4 border-b-2 border-primary/50">
           <CardTitle className="text-center text-xl font-mono tracking-widest text-primary drop-shadow-[0_0_8px_hsl(var(--primary)/0.6)]">
             ► CURRENT FOCUS
@@ -77,7 +77,7 @@ const PracticeSummaryPanel: React.FC = () => {
   const StatusIcon = status.icon;
 
   return (
-    <Card className="w-full bg-black/95 border-4 border-primary/80 shadow-2xl shadow-primary/40 relative overflow-hidden">
+    <Card className="w-full bg-card/95 border-4 border-primary/80 shadow-2xl shadow-primary/40 relative overflow-hidden"> {/* Changed bg-black/95 to bg-card/95 */}
       {/* Subtle CRT glow overlay */}
       <div className="absolute inset-0 pointer-events-none opacity-30">
         <div className="h-full w-full bg-gradient-to-b from-transparent via-primary/5 to-transparent" />
@@ -87,7 +87,7 @@ const PracticeSummaryPanel: React.FC = () => {
         <CardTitle className="text-center text-2xl font-mono tracking-widest text-primary drop-shadow-[0_0_12px_hsl(var(--primary)/0.8)] flex items-center justify-center gap-4">
           <Radio className="w-6 h-6 animate-pulse" />
           CURRENT FOCUS
-          <Radio className="w-6 h-6 animate-pulse" />
+          <Radio className="w-6 h-6 ml-3 animate-pulse" />
         </CardTitle>
       </CardHeader>
 
@@ -123,7 +123,7 @@ const PracticeSummaryPanel: React.FC = () => {
         {/* Mastery Progress Bar */}
         <div className="space-y-2">
           <div className="text-xs text-primary/70 uppercase tracking-wider text-center">Performance Vector</div>
-          <div className="h-8 bg-black border-2 border-primary/70 rounded overflow-hidden relative">
+          <div className="h-8 bg-background border-2 border-primary/70 rounded overflow-hidden relative"> {/* Changed bg-black to bg-background */}
             <div
               className="h-full bg-gradient-to-r from-primary/90 via-primary/60 to-success transition-all duration-1000 ease-out shadow-[0_0_15px_hsl(var(--primary)/0.6)]"
               style={{ width: `${Math.max(5, masteryPercentage)}%` }}
