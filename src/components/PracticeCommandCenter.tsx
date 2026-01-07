@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { useScales, NextFocus } from '../context/ScalesContext';
@@ -13,233 +13,303 @@ import { formatDistanceToNow } from 'date-fns';
 import PracticeSummaryPanel from './PracticeSummaryPanel';
 import { Button } from '@/components/ui/button';
 import { showSuccess } from '@/utils/toast';
-import { RefreshCw } from 'lucide-react'; // Import the refresh icon
+import { RefreshCw, Zap, Target, Terminal } from 'lucide-react';
 
 const PracticeCommandCenter: React.FC = () => {
-  const { addLogEntry, allScales, log, progressMap, updatePracticeStatus, updateScaleMasteryBPM, scaleMasteryBPMMap, nextFocus, refetchData } = useScales();
-  const { currentBPM, activePermutationHighestBPM, setCurrentBPM, setActivePermutationHighestBPM, setIsPermutationManuallyAdjusted } = useGlobalBPM();
-  
+  const {
+    addLogEntry,
+    allScales,
+    log,
+    progressMap,
+    updatePracticeStatus,
+    updateScaleMasteryBPM,
+    scaleMasteryBPMMap,
+    nextFocus,
+    refetchData,
+  } = useScales();
+
+  const {
+    currentBPM,
+    activePermutationHighestBPM,
+    setCurrentBPM,
+    setActivePermutationHighestBPM,
+    setIsPermutationManuallyAdjusted,
+  } = useGlobalBPM();
+
   const [activeTab, setActiveTab] = useState<'scales' | 'dohnanyi' | 'hanon'>('scales');
-  const [isTabManuallySelected, setIsTabManuallySelected] = useState(false); // New state to track manual tab selection
-  
-  // Set initial active tab based on nextFocus when data loads, but only if not manually selected
+  const [isTabManuallySelected, setIsTabManuallySelected] = useState(false);
+
+  // Auto-load suggested focus on mount or when nextFocus changes
   useEffect(() => {
     if (nextFocus && !isTabManuallySelected) {
-        if (nextFocus.type === 'scale') {
-            setActiveTab('scales');
-        } else if (nextFocus.type === 'dohnanyi' || nextFocus.type === 'hanon') {
-            setActiveTab(nextFocus.type);
-        }
+      const targetTab = nextFocus.type === 'scale' ? 'scales' : nextFocus.type;
+      setActiveTab(targetTab as any);
     }
-  }, [nextFocus, isTabManuallySelected]); 
+  }, [nextFocus, isTabManuallySelected]);
 
-  // Function to apply the suggested item by setting the active tab
-  const handleLoadSuggestion = useCallback((item: NextFocus) => {
-    if (!item) return;
+  const handleLoadSuggestion = useCallback(
+    (item: NextFocus) => {
+      if (!item) return;
 
-    // Reset manual adjustment flag so the suggestion can be applied
-    setIsPermutationManuallyAdjusted(false);
-    setIsTabManuallySelected(false); // Reset manual tab selection to allow suggestion to change tab
+      setIsPermutationManuallyAdjusted(false);
+      setIsTabManuallySelected(false);
 
-    if (item.type === 'scale') {
-        setActiveTab('scales');
-    } else if (item.type === 'dohnanyi') {
-        setActiveTab('dohnanyi');
-    } else if (item.type === 'hanon') {
-        setActiveTab('hanon');
-    }
-    showSuccess(`Loaded suggested: ${item.type === 'scale' ? `${item.scaleItem.key} ${item.scaleItem.type}` : item.name}`);
-  }, [setIsPermutationManuallyAdjusted]);
+      const targetTab = item.type === 'scale' ? 'scales' : item.type;
+      setActiveTab(targetTab as any);
+      setActivePermutationHighestBPM(0); // Reset for fresh load feel
 
-  // Find the most recent log entry that includes BPM information
+      showSuccess(
+        `► LOADED PRIORITY TARGET: ${
+          item.type === 'scale'
+            ? `${item.scaleItem.key} ${item.scaleItem.type}`
+            : item.name
+        }`
+      );
+    },
+    [setIsPermutationManuallyAdjusted]
+  );
+
   const lastLogEntry = useMemo(() => {
-    const entry = log.find(logEntry => logEntry.notes.includes("BPM:"));
-    
-    if (entry) {
-        const bpmMatch = entry.notes.match(/BPM: (\d+)/);
-        const lastBPM = bpmMatch ? parseInt(bpmMatch[1], 10) : null;
-        
-        return {
-            timestamp: entry.timestamp,
-            lastBPM: lastBPM,
-            duration: entry.durationMinutes,
-        };
-    }
-    return null;
+    const entry = log.find((e) => e.notes.includes('BPM:'));
+    if (!entry) return null;
+
+    const bpmMatch = entry.notes.match(/BPM: (\d+)/);
+    const bpm = bpmMatch ? parseInt(bpmMatch[1], 10) : null;
+
+    return {
+      timestamp: entry.timestamp,
+      lastBPM: bpm,
+      duration: entry.durationMinutes,
+    };
   }, [log]);
-  
-  // Calculate the percentage for the mastered range visualization
+
   const masteredRangePercentage = useMemo(() => {
-    if (activePermutationHighestBPM === 0) return 0;
-    // Map the highest mastered BPM to a percentage of the MAX_BPM range (40 to 250)
+    if (activePermutationHighestBPM <= MIN_BPM) return 0;
     const range = MAX_BPM - MIN_BPM;
-    const masteredBPMAdjusted = activePermutationHighestBPM - MIN_BPM;
-    return Math.min(100, (masteredBPMAdjusted / range) * 100);
+    const adjusted = Math.max(0, activePermutationHighestBPM - MIN_BPM);
+    return Math.min(100, (adjusted / range) * 100);
   }, [activePermutationHighestBPM]);
 
+  const suggestedLabel = nextFocus
+    ? nextFocus.type === 'scale'
+      ? `${nextFocus.scaleItem.key} ${nextFocus.scaleItem.type}`
+      : nextFocus.name
+    : 'None';
+
   return (
-    <div className="p-4 md:p-8 min-h-[calc(100vh-64px)] flex flex-col items-center justify-start bg-background">
-      <Card className="w-full max-w-6xl bg-card border-2 border-primary shadow-2xl shadow-primary/50 transition-all duration-500">
-        <CardHeader className="p-4 border-b border-primary/50">
-          <CardTitle className="text-2xl font-mono tracking-widest text-primary text-center">
-            PRACTICE CONTROL PANEL
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="p-6 space-y-6">
-          
-          {/* Last Practiced Message - Now full width */}
-          <div className="w-full h-10 flex items-center justify-center">
-              {lastLogEntry ? (
-                  <p className="text-sm text-yellow-400 font-mono text-center">
-                      LAST LOG ({formatDistanceToNow(lastLogEntry.timestamp, { addSuffix: true })}): 
-                      {lastLogEntry.lastBPM ? (
-                          <span className="font-bold ml-1">Targeted {lastLogEntry.lastBPM} BPM.</span>
-                      ) : (
-                          <span className="font-bold ml-1">Logged {lastLogEntry.duration} min.</span>
-                      )}
-                  </p>
-              ) : (
-                  <p className="text-sm text-muted-foreground font-mono text-center">
-                      No recent practice log found.
-                  </p>
-              )}
-          </div>
+    <div className="min-h-screen bg-black text-green-400 font-mono flex items-center justify-center p-4 overflow-hidden relative">
+      {/* CRT Scanlines Effect */}
+      <div className="absolute inset-0 pointer-events-none opacity-20">
+        <div className="h-full w-full bg-repeat-y" style={{ backgroundImage: 'linear-gradient(transparent 50%, rgba(0,255,0,0.05) 50%)', backgroundSize: '100% 4px' }} />
+      </div>
 
-          {/* Practice Summary Panel and Next Suggested (now full width) */}
-          <div className="space-y-4">
-              <PracticeSummaryPanel />
-              {nextFocus && (
-                  <div className="p-3 border border-dashed border-primary/50 rounded-lg bg-accent/20 flex items-center justify-between">
-                      <p className="text-sm text-primary font-mono">
-                          Next Suggested: <span className="font-bold">
-                              {nextFocus.type === 'scale' ? `${nextFocus.scaleItem.key} ${nextFocus.scaleItem.type}` : nextFocus.name}
-                          </span>
-                          <span className="text-xs text-muted-foreground ml-2">({nextFocus.description})</span>
-                      </p>
-                      <Button 
-                          onClick={() => handleLoadSuggestion(nextFocus)} 
-                          variant="secondary" 
-                          size="sm"
-                          className="bg-primary text-primary-foreground hover:bg-primary/90"
-                      >
-                          Load Suggestion
-                      </Button>
-                  </div>
-              )}
-          </div>
-          
-          {/* BPM Slider (Fine-tuned control) */}
-          <div className="space-y-4 pt-4 border-t border-border">
-            <Label className="text-sm font-semibold text-muted-foreground block font-mono">BPM Fine Control</Label>
-            <div className="flex items-center space-x-4">
-                <span className="text-sm text-muted-foreground font-mono">{MIN_BPM}</span>
-                <div className="flex-1 relative">
-                    {/* Visual indicator for mastered range */}
-                    <div 
-                        className={cn(
-                            "absolute top-1/2 -translate-y-1/2 h-2 rounded-lg bg-green-600/50 transition-all duration-300 pointer-events-none",
-                            activePermutationHighestBPM > 0 ? "opacity-100" : "opacity-0"
-                        )}
-                        style={{ width: `${masteredRangePercentage}%` }}
-                    />
-                    <input
-                        type="range"
-                        min={MIN_BPM}
-                        max={MAX_BPM}
-                        step={1}
-                        value={currentBPM}
-                        onChange={(e) => setCurrentBPM(parseInt(e.target.value))}
-                        className="w-full h-2 bg-secondary rounded-lg appearance-none cursor-pointer range-lg dark:bg-muted relative z-10"
-                    />
-                </div>
-                <span className="text-sm text-muted-foreground font-mono">{MAX_BPM}</span>
+      <div className="w-full max-w-6xl relative">
+        {/* Terminal Glow Border */}
+        <div className="absolute -inset-4 bg-green-500/20 blur-3xl animate-pulse" />
+
+        <Card className="relative border-4 border-green-500/80 bg-black/95 shadow-2xl">
+          <CardHeader className="border-b-2 border-green-600/50 pb-6">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <Terminal className="w-8 h-8 text-green-400" />
+                <CardTitle className="text-3xl tracking-widest text-green-400 drop-shadow-[0_0_8px_rgba(74,222,128,0.8)]">
+                  PRACTICE COMMAND CENTER
+                </CardTitle>
+              </div>
+              <div className="flex items-center gap-2 text-xs">
+                <Zap className="w-4 h-4 animate-pulse" />
+                <span>ONLINE</span>
+              </div>
             </div>
-            {activePermutationHighestBPM > 0 && (
-                <p className="text-xs text-green-400 font-mono text-center">
-                    Mastered up to {activePermutationHighestBPM} BPM for the current selection.
-                </p>
-            )}
-          </div>
+          </CardHeader>
 
-          {/* Tabbed Practice Panels */}
-          <Tabs 
-            defaultValue="scales" 
-            value={activeTab} 
-            onValueChange={(v) => {
-                setActiveTab(v as 'scales' | 'dohnanyi' | 'hanon');
-                setActivePermutationHighestBPM(0); // Reset BPM visualization when switching tabs
-                setIsPermutationManuallyAdjusted(false); // Reset permutation adjustment flag when switching tabs
-                setIsTabManuallySelected(true); // Mark tab as manually selected
-            }} 
-            className="w-full pt-4"
-          >
-            <TabsList className="grid w-full grid-cols-3 bg-secondary/50 border border-primary/30">
-              <TabsTrigger 
-                value="scales" 
-                className="font-mono text-primary data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
-              >
-                Scales
-              </TabsTrigger>
-              <TabsTrigger 
-                value="dohnanyi" 
-                className="font-mono text-primary data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
-              >
-                Dohnányi
-              </TabsTrigger>
-            <TabsTrigger 
-                value="hanon" 
-                className="font-mono text-primary data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
-              >
-                Hanon
-              </TabsTrigger>
-            </TabsList>
-            <TabsContent value="scales" className="mt-4">
-              <ScalePracticePanel 
-                suggestedScalePermutation={nextFocus?.type === 'scale' ? nextFocus : undefined}
-                currentBPM={currentBPM} 
-                addLogEntry={addLogEntry} 
-                updatePracticeStatus={updatePracticeStatus} 
-                updateScaleMasteryBPM={updateScaleMasteryBPM}
-                scaleMasteryBPMMap={scaleMasteryBPMMap}
-                allScales={allScales} 
-                activeTab={activeTab}
-              />
-            </TabsContent>
-            <TabsContent value="dohnanyi" className="mt-4">
-              <DohnanyiPracticePanel 
-                suggestedDohnanyi={nextFocus?.type === 'dohnanyi' ? nextFocus : undefined}
-                currentBPM={currentBPM} 
-                addLogEntry={addLogEntry} 
-                updatePracticeStatus={updatePracticeStatus} 
-                progressMap={progressMap} 
-                activeTab={activeTab}
-              />
-            </TabsContent>
-            <TabsContent value="hanon" className="mt-4">
-              <HanonPracticePanel 
-                suggestedHanon={nextFocus?.type === 'hanon' ? nextFocus : undefined}
-                currentBPM={currentBPM} 
-                addLogEntry={addLogEntry} 
-                updatePracticeStatus={updatePracticeStatus} 
-                progressMap={progressMap} 
-                activeTab={activeTab}
-              />
-            </TabsContent>
-          </Tabs>
-          
-          {/* Refresh Data Button */}
-          <div className="pt-6 border-t border-border flex justify-center">
-            <Button 
-              onClick={refetchData} 
-              variant="outline" 
-              className="text-primary border-primary/50 hover:bg-primary/20"
+          <CardContent className="pt-8 space-y-8 pb-10">
+            {/* Status Readout */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-2">
+                <div className="text-xs text-green-600 uppercase">Last Transmission</div>
+                {lastLogEntry ? (
+                  <p className="text-sm">
+                    {formatDistanceToNow(lastLogEntry.timestamp, { addSuffix: true })} →{' '}
+                    {lastLogEntry.lastBPM ? (
+                      <span className="text-yellow-400 font-bold">TARGET BPM: {lastLogEntry.lastBPM}</span>
+                    ) : (
+                      <span className="text-cyan-400">SESSION: {lastLogEntry.duration} min</span>
+                    )}
+                  </p>
+                ) : (
+                  <p className="text-gray-600">No recent activity detected.</p>
+                )}
+              </div>
+
+              <div className="space-y-2 text-right md:text-left">
+                <div className="text-xs text-green-600 uppercase">Priority Target</div>
+                {nextFocus ? (
+                  <div className="flex items-center justify-end md:justify-start gap-3">
+                    <span className="font-bold text-yellow-300 blinking">► {suggestedLabel}</span>
+                    <Button
+                      onClick={() => handleLoadSuggestion(nextFocus)}
+                      size="sm"
+                      variant="outline"
+                      className="border-green-500 text-green-400 hover:bg-green-500/20 hover:text-white transition-all"
+                    >
+                      <Target className="w-4 h-4 mr-1" />
+                      ENGAGE
+                    </Button>
+                  </div>
+                ) : (
+                  <span className="text-gray-600">Awaiting directive...</span>
+                )}
+              </div>
+            </div>
+
+            {/* Practice Summary */}
+            <div className="border-t border-green-900/50 pt-6">
+              <PracticeSummaryPanel />
+            </div>
+
+            {/* BPM Mastery Control */}
+            <div className="space-y-4 border border-green-800/50 rounded-lg p-6 bg-black/40">
+              <div className="flex items-center justify-between">
+                <Label className="text-green-400 text-lg tracking-wider">METRONOME OVERRIDE</Label>
+                <span className="text-2xl font-bold text-yellow-300">{currentBPM}</span>
+              </div>
+
+              <div className="relative">
+                {/* Retro Progress Bar Background */}
+                <div className="h-10 bg-gradient-to-r from-black via-green-900/30 to-black border border-green-700/70 rounded overflow-hidden">
+                  {/* Mastered Zone */}
+                  <div
+                    className="h-full bg-gradient-to-r from-transparent via-green-600/40 to-green-500/60 transition-all duration-1000 ease-out"
+                    style={{ width: `${masteredRangePercentage}%` }}
+                  />
+                  {/* Current BPM Marker */}
+                  <div
+                    className="absolute top-0 h-full w-1 bg-yellow-400 shadow-[0_0_10px_#fff] animate-pulse"
+                    style={{ left: `${((currentBPM - MIN_BPM) / (MAX_BPM - MIN_BPM)) * 100}%` }}
+                  />
+                </div>
+
+                {/* Slider */}
+                <input
+                  type="range"
+                  min={MIN_BPM}
+                  max={MAX_BPM}
+                  step={1}
+                  value={currentBPM}
+                  onChange={(e) => setCurrentBPM(parseInt(e.target.value))}
+                  className="absolute inset-x-0 -top-1 h-12 opacity-0 cursor-pointer"
+                />
+              </div>
+
+              <div className="flex justify-between text-xs text-green-600">
+                <span>{MIN_BPM} BPM</span>
+                {activePermutationHighestBPM > MIN_BPM && (
+                  <span className="text-cyan-400 animate-pulse">
+                    MASTERED → {activePermutationHighestBPM} BPM
+                  </span>
+                )}
+                <span>{MAX_BPM} BPM</span>
+              </div>
+            </div>
+
+            {/* Main Practice Tabs */}
+            <Tabs
+              value={activeTab}
+              onValueChange={(v) => {
+                setActiveTab(v as any);
+                setActivePermutationHighestBPM(0);
+                setIsPermutationManuallyAdjusted(false);
+                setIsTabManuallySelected(true);
+              }}
+              className="w-full"
             >
-              <RefreshCw className="w-4 h-4 mr-2" /> Refresh All Data
-            </Button>
-          </div>
+              <TabsList className="grid grid-cols-3 bg-black/60 border-2 border-green-700/70 h-14">
+                <TabsTrigger
+                  value="scales"
+                  className="text-green-400 data-[state=active]:bg-green-600 data-[state=active]:text-black data-[state=active]:shadow-[0_0_15px_rgba(74,222,128,0.8)] transition-all text-lg tracking-wider"
+                >
+                  SCALES
+                </TabsTrigger>
+                <TabsTrigger
+                  value="dohnanyi"
+                  className="text-green-400 data-[state=active]:bg-green-600 data-[state=active]:text-black data-[state=active]:shadow-[0_0_15px_rgba(74,222,128,0.8)] transition-all text-lg tracking-wider"
+                >
+                  DOHNÁNYI
+                </TabsTrigger>
+                <TabsTrigger
+                  value="hanon"
+                  className="text-green-400 data-[state=active]:bg-green-600 data-[state=active]:text-black data-[state=active]:shadow-[0_0_15px_rgba(74,222,128,0.8)] transition-all text-lg tracking-wider"
+                >
+                  HANON
+                </TabsTrigger>
+              </TabsList>
 
-        </CardContent>
-      </Card>
+              <TabsContent value="scales" className="mt-8">
+                <ScalePracticePanel
+                  suggestedScalePermutation={nextFocus?.type === 'scale' ? nextFocus : undefined}
+                  currentBPM={currentBPM}
+                  addLogEntry={addLogEntry}
+                  updatePracticeStatus={updatePracticeStatus}
+                  updateScaleMasteryBPM={updateScaleMasteryBPM}
+                  scaleMasteryBPMMap={scaleMasteryBPMMap}
+                  allScales={allScales}
+                  activeTab={activeTab}
+                />
+              </TabsContent>
+
+              <TabsContent value="dohnanyi" className="mt-8">
+                <DohnanyiPracticePanel
+                  suggestedDohnanyi={nextFocus?.type === 'dohnanyi' ? nextFocus : undefined}
+                  currentBPM={currentBPM}
+                  addLogEntry={addLogEntry}
+                  updatePracticeStatus={updatePracticeStatus}
+                  progressMap={progressMap}
+                  activeTab={activeTab}
+                />
+              </TabsContent>
+
+              <TabsContent value="hanon" className="mt-8">
+                <HanonPracticePanel
+                  suggestedHanon={nextFocus?.type === 'hanon' ? nextFocus : undefined}
+                  currentBPM={currentBPM}
+                  addLogEntry={addLogEntry}
+                  updatePracticeStatus={updatePracticeStatus}
+                  progressMap={progressMap}
+                  activeTab={activeTab}
+                />
+              </TabsContent>
+            </Tabs>
+
+            {/* Refresh Control */}
+            <div className="flex justify-center pt-6 border-t border-green-900/50">
+              <Button
+                onClick={refetchData}
+                variant="outline"
+                className="border-green-600 text-green-400 hover:bg-green-600/20 hover:text-white transition-all"
+              >
+                <RefreshCw className="w-5 h-5 mr-2" />
+                SYNC DATA CORE
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Footer Status */}
+        <div className="text-center mt-6 text-xs text-green-800 opacity-70">
+          SYSTEM READY • {new Date().toLocaleDateString()} • v4.0 "RETRO COMMAND"
+        </div>
+      </div>
+
+      <style jsx>{`
+        @keyframes blink {
+          0%, 100% { opacity: 1; }
+          50% { opacity: 0.3; }
+        }
+        .blinking {
+          animation: blink 1.5s infinite;
+        }
+      `}</style>
     </div>
   );
 };
