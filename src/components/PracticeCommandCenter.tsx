@@ -26,6 +26,7 @@ const PracticeCommandCenter: React.FC = () => {
     scaleMasteryBPMMap,
     nextFocus,
     refetchData,
+    isLoading: isScalesContextLoading,
   } = useScales();
 
   const {
@@ -38,25 +39,27 @@ const PracticeCommandCenter: React.FC = () => {
 
   const [activeTab, setActiveTab] = useState<'scales' | 'dohnanyi' | 'hanon'>('scales');
   const [isTabManuallySelected, setIsTabManuallySelected] = useState(false);
+  const [isEngagingSuggestion, setIsEngagingSuggestion] = useState(false);
 
   // Auto-load suggested focus on mount or when nextFocus changes
   useEffect(() => {
-    if (nextFocus && !isTabManuallySelected) {
+    if (nextFocus && !isTabManuallySelected && !isEngagingSuggestion) {
       const targetTab = nextFocus.type === 'scale' ? 'scales' : nextFocus.type;
       setActiveTab(targetTab as any);
     }
-  }, [nextFocus, isTabManuallySelected]);
+  }, [nextFocus, isTabManuallySelected, isEngagingSuggestion]);
 
   const handleLoadSuggestion = useCallback(
-    (item: NextFocus) => {
+    async (item: NextFocus) => {
       if (!item) return;
 
+      setIsEngagingSuggestion(true);
       setIsPermutationManuallyAdjusted(false);
       setIsTabManuallySelected(false);
 
       const targetTab = item.type === 'scale' ? 'scales' : item.type;
       setActiveTab(targetTab as any);
-      setActivePermutationHighestBPM(0); // Reset for fresh load feel
+      setActivePermutationHighestBPM(0);
 
       showSuccess(
         `► LOADED PRIORITY TARGET: ${
@@ -65,8 +68,11 @@ const PracticeCommandCenter: React.FC = () => {
             : item.name
         }`
       );
+      // Simulate a small delay for UI feedback
+      await new Promise(resolve => setTimeout(resolve, 500)); 
+      setIsEngagingSuggestion(false);
     },
-    [setIsPermutationManuallyAdjusted]
+    [setIsPermutationManuallyAdjusted, setActivePermutationHighestBPM]
   );
 
   const lastLogEntry = useMemo(() => {
@@ -152,8 +158,13 @@ const PracticeCommandCenter: React.FC = () => {
                       size="sm"
                       variant="outline"
                       className="border-primary text-primary hover:bg-primary/20 hover:text-foreground transition-all"
+                      disabled={isEngagingSuggestion || isScalesContextLoading}
                     >
-                      <Target className="w-4 h-4 mr-1" />
+                      {isEngagingSuggestion ? (
+                        <RefreshCw className="w-4 h-4 mr-1 animate-spin" />
+                      ) : (
+                        <Target className="w-4 h-4 mr-1" />
+                      )}
                       ENGAGE
                     </Button>
                   </div>
@@ -287,8 +298,13 @@ const PracticeCommandCenter: React.FC = () => {
                 onClick={refetchData}
                 variant="outline"
                 className="border-primary/70 text-primary hover:bg-primary/20 hover:text-foreground transition-all"
+                disabled={isScalesContextLoading}
               >
-                <RefreshCw className="w-5 h-5 mr-2" />
+                {isScalesContextLoading ? (
+                  <RefreshCw className="w-5 h-5 mr-2 animate-spin" />
+                ) : (
+                  <RefreshCw className="w-5 h-5 mr-2" />
+                )}
                 SYNC DATA CORE
               </Button>
             </div>

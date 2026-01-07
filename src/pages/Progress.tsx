@@ -8,7 +8,7 @@ import { useScales } from '@/context/ScalesContext';
 import { Skeleton } from '@/components/ui/skeleton';
 import GradeTracker from '@/components/GradeTracker';
 import { Button } from '@/components/ui/button';
-import { Trash2 } from 'lucide-react';
+import { Trash2, RefreshCw } from 'lucide-react';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -22,7 +22,14 @@ import {
 } from "@/components/ui/alert-dialog";
 
 const ProgressPage: React.FC = () => {
-  const { isLoading, clearExerciseMastery, clearScaleMastery } = useScales(); // Added clearScaleMastery
+  const { isLoading, clearExerciseMastery, clearScaleMastery, refetchData } = useScales();
+  const [isRefreshing, setIsRefreshing] = React.useState(false);
+
+  const handleRefresh = async () => {
+    setIsRefreshing(true);
+    await refetchData();
+    setIsRefreshing(false);
+  };
 
   if (isLoading) {
     return (
@@ -65,6 +72,21 @@ const ProgressPage: React.FC = () => {
 
       {/* Buttons to clear progress with confirmation dialogs */}
       <div className="flex flex-col sm:flex-row justify-center gap-4 mt-10">
+        {/* Refresh Data Button */}
+        <Button 
+          onClick={handleRefresh} 
+          disabled={isRefreshing || isLoading}
+          variant="outline" 
+          className="border-primary/70 text-primary hover:bg-primary/20 hover:text-foreground transition-all"
+        >
+          {isRefreshing ? (
+            <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+          ) : (
+            <RefreshCw className="w-4 h-4 mr-2" />
+          )}
+          Refresh Data
+        </Button>
+
         {/* Clear Dohnányi & Hanon Progress */}
         <AlertDialog>
           <AlertDialogTrigger asChild>
