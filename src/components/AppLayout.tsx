@@ -6,7 +6,8 @@ import { Button } from '@/components/ui/button';
 import { useSupabaseSession } from '@/hooks/use-supabase-session';
 import { supabase } from '@/integrations/supabase/client';
 import { showSuccess, showError } from '@/utils/toast';
-import ScrollToTopButton from './ScrollToTopButton'; // Import the new component
+import ScrollToTopButton from './ScrollToTopButton';
+import ThemeSwitcher from './ThemeSwitcher'; // Import the new ThemeSwitcher
 
 interface NavLinkProps {
     to: string;
@@ -39,7 +40,7 @@ const NavLink: React.FC<NavLinkProps> = ({ to, icon, label }) => {
 
 interface AppLayoutProps {
     children: React.ReactNode;
-    headerRightContent?: React.ReactNode; // New prop for dynamic content on the right side of the header
+    headerRightContent?: React.ReactNode;
 }
 
 const AppLayout: React.FC<AppLayoutProps> = ({ children, headerRightContent }) => {
@@ -65,9 +66,12 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children, headerRightContent }) =
                         SCALES.OS
                     </h1>
                     <nav className="flex items-center space-x-4">
-                        {headerRightContent ? ( // Render dynamic content if provided
-                            headerRightContent
-                        ) : ( // Otherwise, render default public/unauthenticated links
+                        {headerRightContent ? (
+                            <>
+                                {headerRightContent}
+                                <ThemeSwitcher /> {/* Add ThemeSwitcher here */}
+                            </>
+                        ) : (
                             <>
                                 <NavLink to="/landing" icon={<Home className="w-5 h-5" />} label="Home" />
                                 <Button asChild variant="ghost" className="text-primary hover:bg-primary/20">
@@ -75,6 +79,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children, headerRightContent }) =
                                         <User className="w-5 h-5 mr-2" /> Login / Sign Up
                                     </Link>
                                 </Button>
+                                <ThemeSwitcher /> {/* Add ThemeSwitcher here for public routes too */}
                             </>
                         )}
                     </nav>
