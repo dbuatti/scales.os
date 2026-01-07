@@ -7,8 +7,8 @@
    ============================================== */
 
 @layer base {
-  :root {
-    /* Retro Terminal / CRT Phosphor Theme (Default) */
+  /* Retro Terminal / CRT Phosphor Theme (Default) */
+  html[data-theme="retro-terminal"] {
     --background: 140 100% 4%;        /* Almost pure black with subtle green tint */
     --foreground: 140 80% 82%;        /* Classic phosphor green (P1 green) */
 
@@ -65,7 +65,7 @@
   }
 
   /* Modern Light Theme */
-  [data-theme="modern-light"] {
+  html[data-theme="modern-light"] {
     --background: 0 0% 100%;           /* White */
     --foreground: 240 10% 3.9%;        /* Dark grey */
 
@@ -113,7 +113,7 @@
   }
 
   /* Vibrant Dark Theme */
-  [data-theme="vibrant-dark"] {
+  html[data-theme="vibrant-dark"] {
     --background: 220 15% 10%; /* Deep blue-grey */
     --foreground: 210 50% 95%; /* Off-white */
 
@@ -171,9 +171,10 @@
   }
 
   body {
-    @apply bg-background text-foreground font-mono;
+    /* Ensure body inherits from html and applies font */
     background-color: hsl(var(--background));
-    /* Optional: Add subtle noise or scanline texture via inline style or external */
+    color: hsl(var(--foreground));
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; /* Explicitly set font-mono */
   }
 
   /* Monospace enforcement for that terminal authenticity */
