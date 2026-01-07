@@ -87,64 +87,45 @@ const PracticeCommandCenter: React.FC = () => {
         </CardHeader>
         <CardContent className="p-6 space-y-6">
           
-          {/* Top Row: BPM Display & Summary Panel */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
-            
-            {/* Column 1: Tempo Display */}
-            <div className="lg:col-span-1 space-y-2">
-                {/* Last Practiced Message */}
-                <div className="h-10 flex items-center justify-center lg:justify-start">
-                    {lastLogEntry ? (
-                        <p className="text-sm text-yellow-400 font-mono text-center lg:text-left">
-                            LAST LOG ({formatDistanceToNow(lastLogEntry.timestamp, { addSuffix: true })}): 
-                            {lastLogEntry.lastBPM ? (
-                                <span className="font-bold ml-1">Targeted {lastLogEntry.lastBPM} BPM.</span>
-                            ) : (
-                                <span className="font-bold ml-1">Logged {lastLogEntry.duration} min.</span>
-                            )}
-                        </p>
-                    ) : (
-                        <p className="text-sm text-muted-foreground font-mono text-center lg:text-left">
-                            No recent practice log found.
-                        </p>
-                    )}
-                </div>
-                
-                <Label className="text-lg font-semibold text-primary block font-mono text-center lg:text-left">
-                    CURRENT TEMPO (BPM)
-                </Label>
-                <div className="flex items-center justify-center lg:justify-start space-x-4">
-                    <div className="text-7xl font-mono font-extrabold text-primary tracking-tighter min-w-[120px] text-center">
-                        {currentBPM}
-                    </div>
-                </div>
-                <p className="text-sm text-muted-foreground font-mono text-center lg:text-left">
-                    Use controls in the header or the slider below to set BPM.
-                </p>
-            </div>
+          {/* Last Practiced Message - Now full width */}
+          <div className="w-full h-10 flex items-center justify-center">
+              {lastLogEntry ? (
+                  <p className="text-sm text-yellow-400 font-mono text-center">
+                      LAST LOG ({formatDistanceToNow(lastLogEntry.timestamp, { addSuffix: true })}): 
+                      {lastLogEntry.lastBPM ? (
+                          <span className="font-bold ml-1">Targeted {lastLogEntry.lastBPM} BPM.</span>
+                      ) : (
+                          <span className="font-bold ml-1">Logged {lastLogEntry.duration} min.</span>
+                      )}
+                  </p>
+              ) : (
+                  <p className="text-sm text-muted-foreground font-mono text-center">
+                      No recent practice log found.
+                  </p>
+              )}
+          </div>
 
-            {/* Column 2 & 3: Practice Summary Panel and Next Suggested */}
-            <div className="lg:col-span-2 space-y-4">
-                <PracticeSummaryPanel />
-                {nextFocus && (
-                    <div className="p-3 border border-dashed border-primary/50 rounded-lg bg-accent/20 flex items-center justify-between">
-                        <p className="text-sm text-primary font-mono">
-                            Next Suggested: <span className="font-bold">
-                                {nextFocus.type === 'scale' ? `${nextFocus.scaleItem.key} ${nextFocus.scaleItem.type}` : nextFocus.name}
-                            </span>
-                            <span className="text-xs text-muted-foreground ml-2">({nextFocus.description})</span>
-                        </p>
-                        <Button 
-                            onClick={() => handleLoadSuggestion(nextFocus)} 
-                            variant="secondary" 
-                            size="sm"
-                            className="bg-primary text-primary-foreground hover:bg-primary/90"
-                        >
-                            Load Suggestion
-                        </Button>
-                    </div>
-                )}
-            </div>
+          {/* Practice Summary Panel and Next Suggested (now full width) */}
+          <div className="space-y-4">
+              <PracticeSummaryPanel />
+              {nextFocus && (
+                  <div className="p-3 border border-dashed border-primary/50 rounded-lg bg-accent/20 flex items-center justify-between">
+                      <p className="text-sm text-primary font-mono">
+                          Next Suggested: <span className="font-bold">
+                              {nextFocus.type === 'scale' ? `${nextFocus.scaleItem.key} ${nextFocus.scaleItem.type}` : nextFocus.name}
+                          </span>
+                          <span className="text-xs text-muted-foreground ml-2">({nextFocus.description})</span>
+                      </p>
+                      <Button 
+                          onClick={() => handleLoadSuggestion(nextFocus)} 
+                          variant="secondary" 
+                          size="sm"
+                          className="bg-primary text-primary-foreground hover:bg-primary/90"
+                      >
+                          Load Suggestion
+                      </Button>
+                  </div>
+              )}
           </div>
           
           {/* BPM Slider (Fine-tuned control) */}

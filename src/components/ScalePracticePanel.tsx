@@ -269,6 +269,7 @@ const ScalePracticePanel: React.FC<ScalePracticePanelProps> = ({
         scaleType: result.scaleItem.type,
         articulation: selectedArticulation,
         octaves: selectedOctaves,
+        handConfig: selectedHandConfig, // Pass handConfig here
         highestBPM: currentHighestBPMForActivePermutation,
         nextGoalBPM: nextBPMGoal,
     } : null;
@@ -284,6 +285,7 @@ const ScalePracticePanel: React.FC<ScalePracticePanelProps> = ({
     result, 
     selectedArticulation, 
     selectedOctaves, 
+    selectedHandConfig, // Added selectedHandConfig to dependencies
     nextBPMGoal,
     globalActivePracticeItem,
     getHighestBPMForCurrentPermutation

@@ -1,7 +1,7 @@
 import React from 'react';
 import { useGlobalBPM, ActivePracticeItem } from '@/context/GlobalBPMContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Check, Clock, Target, LogIn, Gauge, Hand, Repeat, Zap, Drumstick, Music } from 'lucide-react';
+import { Check, Clock, Target, LogIn, Gauge, Hand, Repeat, Zap, Drumstick, Music, Piano } from 'lucide-react'; // Added Piano icon
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 
@@ -38,31 +38,55 @@ const PracticeSummaryPanel: React.FC = () => {
 
     return (
       <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <p className="text-2xl font-bold text-primary font-mono">
+        <div className="flex flex-col sm:flex-row items-center justify-between mb-4">
+          <p className="text-3xl md:text-4xl font-extrabold text-primary font-mono text-center sm:text-left">
             {item.key} {item.scaleType}
           </p>
-          <span className={cn("text-sm font-mono font-semibold px-2 py-1 rounded-full", statusColor)}>
-            {statusText}
-          </span>
+          <div className="flex items-center space-x-2 mt-2 sm:mt-0">
+            <span className={cn("text-sm font-mono font-semibold px-3 py-1 rounded-full", statusColor, "bg-primary/10 border border-primary/30")}>
+              {statusText}
+            </span>
+            <div className="text-3xl font-mono font-extrabold text-primary tracking-tighter">
+              {currentBPM} BPM
+            </div>
+          </div>
         </div>
         
-        <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm font-mono">
-          <div className="flex items-center">
-            <Zap className="w-4 h-4 mr-2 text-primary/70" />
-            <span className="text-muted-foreground">Articulation:</span> <span className="ml-1 text-foreground font-semibold">{item.articulation}</span>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-4 text-sm font-mono">
+          <div className="flex items-center p-2 bg-secondary/50 rounded-md border border-border">
+            <Zap className="w-5 h-5 mr-3 text-primary" />
+            <div>
+              <span className="text-muted-foreground block text-xs">Articulation</span> 
+              <span className="text-foreground font-semibold">{item.articulation}</span>
+            </div>
           </div>
-          <div className="flex items-center">
-            <Music className="w-4 h-4 mr-2 text-primary/70" />
-            <span className="text-muted-foreground">Octaves:</span> <span className="ml-1 text-foreground font-semibold">{item.octaves}</span>
+          <div className="flex items-center p-2 bg-secondary/50 rounded-md border border-border">
+            <Music className="w-5 h-5 mr-3 text-primary" />
+            <div>
+              <span className="text-muted-foreground block text-xs">Octaves</span> 
+              <span className="text-foreground font-semibold">{item.octaves}</span>
+            </div>
           </div>
-          <div className="flex items-center">
-            <Gauge className="w-4 h-4 mr-2 text-primary/70" />
-            <span className="text-muted-foreground">Highest BPM:</span> <span className="ml-1 font-bold text-yellow-400">{item.highestBPM}</span>
+          <div className="flex items-center p-2 bg-secondary/50 rounded-md border border-border">
+            <Hand className="w-5 h-5 mr-3 text-primary" />
+            <div>
+              <span className="text-muted-foreground block text-xs">Hands</span> 
+              <span className="text-foreground font-semibold">{item.handConfig}</span>
+            </div>
           </div>
-          <div className="flex items-center">
-            <Target className="w-4 h-4 mr-2 text-primary/70" />
-            <span className="text-muted-foreground">Next Goal:</span> <span className="ml-1 font-bold text-green-400">{item.nextGoalBPM} BPM</span>
+          <div className="flex items-center p-2 bg-secondary/50 rounded-md border border-border">
+            <Gauge className="w-5 h-5 mr-3 text-yellow-400" />
+            <div>
+              <span className="text-muted-foreground block text-xs">Highest Mastered</span> 
+              <span className="font-bold text-yellow-400">{item.highestBPM} BPM</span>
+            </div>
+          </div>
+          <div className="flex items-center p-2 bg-secondary/50 rounded-md border border-border">
+            <Target className="w-5 h-5 mr-3 text-green-400" />
+            <div>
+              <span className="text-muted-foreground block text-xs">Next Goal</span> 
+              <span className="font-bold text-green-400">{item.nextGoalBPM} BPM</span>
+            </div>
           </div>
         </div>
       </div>
@@ -76,27 +100,41 @@ const PracticeSummaryPanel: React.FC = () => {
 
     return (
       <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <p className="text-2xl font-bold text-primary font-mono">
+        <div className="flex flex-col sm:flex-row items-center justify-between mb-4">
+          <p className="text-3xl md:text-4xl font-extrabold text-primary font-mono text-center sm:text-left">
             {item.name}
           </p>
-          <span className={cn("text-sm font-mono font-semibold px-2 py-1 rounded-full", statusColor)}>
-            {statusText}
-          </span>
+          <div className="flex items-center space-x-2 mt-2 sm:mt-0">
+            <span className={cn("text-sm font-mono font-semibold px-3 py-1 rounded-full", statusColor, "bg-primary/10 border border-primary/30")}>
+              {statusText}
+            </span>
+            <div className="text-3xl font-mono font-extrabold text-primary tracking-tighter">
+              {currentBPM} BPM
+            </div>
+          </div>
         </div>
         
-        <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm font-mono">
-          <div className="flex items-center">
-            <Gauge className="w-4 h-4 mr-2 text-primary/70" />
-            <span className="text-muted-foreground">Highest BPM:</span> <span className="ml-1 font-bold text-yellow-400">{item.currentHighestBPM}</span>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-4 text-sm font-mono">
+          <div className="flex items-center p-2 bg-secondary/50 rounded-md border border-border">
+            <Piano className="w-5 h-5 mr-3 text-primary" />
+            <div>
+              <span className="text-muted-foreground block text-xs">Exercise Type</span> 
+              <span className="text-foreground font-semibold">{item.type === 'dohnanyi' ? 'Dohnányi' : 'Hanon'}</span>
+            </div>
           </div>
-          <div className="flex items-center">
-            <Target className="w-4 h-4 mr-2 text-primary/70" />
-            <span className="text-muted-foreground">Next Goal:</span> <span className="ml-1 font-bold text-green-400">{item.nextTargetBPM} BPM</span>
+          <div className="flex items-center p-2 bg-secondary/50 rounded-md border border-border">
+            <Gauge className="w-5 h-5 mr-3 text-yellow-400" />
+            <div>
+              <span className="text-muted-foreground block text-xs">Highest Mastered</span> 
+              <span className="font-bold text-yellow-400">{item.currentHighestBPM} BPM</span>
+            </div>
           </div>
-          <div className="flex items-center col-span-2">
-            <Clock className="w-4 h-4 mr-2 text-primary/70" />
-            <span className="text-muted-foreground">Current Tempo:</span> <span className="ml-1 font-bold text-primary">{currentBPM} BPM</span>
+          <div className="flex items-center p-2 bg-secondary/50 rounded-md border border-border">
+            <Target className="w-5 h-5 mr-3 text-green-400" />
+            <div>
+              <span className="text-muted-foreground block text-xs">Next Goal</span> 
+              <span className="font-bold text-green-400">{item.nextTargetBPM} BPM</span>
+            </div>
           </div>
         </div>
       </div>
