@@ -9,7 +9,7 @@ import {
 } from '@/lib/scales';
 import { useScales, ScaleStatus } from '../context/ScalesContext';
 import { cn } from '@/lib/utils';
-import { Check, Clock, X } from 'lucide-react'; // Removed RotateCcw
+import { Check, Clock, X, Music, Gauge, Repeat, Hand, Target } from 'lucide-react'; // Removed RotateCcw
 import { showError, showSuccess } from '@/utils/toast';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { Label } from '@/components/ui/label';
@@ -57,12 +57,16 @@ interface PermutationSectionProps<T extends string> {
     options: readonly T[];
     selectedValue: T;
     onValueChange: (value: T) => void;
+    icon: React.ReactNode; // Added icon prop
 }
 
-const PermutationSection = <T extends string>({ title, description, options, selectedValue, onValueChange }: PermutationSectionProps<T>) => (
-    <div className="space-y-3">
-        <Label className="text-md font-semibold text-primary block font-mono">{title}</Label>
-        <p className="text-xs text-muted-foreground italic mb-2">{description}</p>
+const PermutationSection = <T extends string>({ title, description, options, selectedValue, onValueChange, icon }: PermutationSectionProps<T>) => (
+    <div className="space-y-3 p-3 rounded-lg border border-primary/30 bg-secondary/50">
+        <div className="flex items-center gap-2 mb-2">
+            {icon}
+            <Label className="text-md font-semibold text-primary block font-mono text-glow">{title}</Label>
+        </div>
+        <p className="text-xs text-muted-foreground italic mb-2 text-primary/70">{description}</p>
         <ToggleGroup 
             type="single" 
             value={selectedValue} 
@@ -177,21 +181,26 @@ const ScaleDetailDialog: React.FC<ScaleDetailDialogProps> = ({ scaleItem, childr
       <DialogTrigger asChild>
         {children}
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[1000px] max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="text-primary font-mono text-2xl">
+      <DialogContent className="sm:max-w-[1000px] max-h-[90vh] overflow-y-auto bg-card/95 border-4 border-primary/80 shadow-2xl shadow-primary/40 relative overflow-hidden">
+        {/* Subtle CRT glow overlay */}
+        <div className="absolute inset-0 pointer-events-none opacity-30">
+          <div className="h-full w-full bg-gradient-to-b from-transparent via-primary/5 to-transparent" />
+        </div>
+        <DialogHeader className="p-4 border-b-2 border-primary/50 relative z-10">
+          <DialogTitle className="text-primary font-mono text-2xl text-glow">
             {scaleItem.key} {scaleItem.type} - Detailed Mastery
           </DialogTitle>
         </DialogHeader>
         
         {/* Permutation Selection Sections */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-4 border rounded-lg border-primary/30 bg-secondary/50">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-4 relative z-10">
             <PermutationSection
                 title="OCTAVE RANGE"
                 description="Increase range to test consistency and endurance."
                 options={OCTAVE_CONFIGURATIONS}
                 selectedValue={selectedOctaves}
                 onValueChange={setSelectedOctaves as (value: OctaveConfiguration) => void}
+                icon={<Music className="w-5 h-5 text-primary/70" />}
             />
             <PermutationSection
                 title="DIRECTION & STARTING POINT"
@@ -199,6 +208,7 @@ const ScaleDetailDialog: React.FC<ScaleDetailDialogProps> = ({ scaleItem, childr
                 options={DIRECTION_TYPES}
                 selectedValue={selectedDirection}
                 onValueChange={setSelectedDirection as (value: DirectionType) => void}
+                icon={<Repeat className="w-5 h-5 text-primary/70" />}
             />
             <PermutationSection
                 title="HAND CONFIGURATION"
@@ -206,6 +216,7 @@ const ScaleDetailDialog: React.FC<ScaleDetailDialogProps> = ({ scaleItem, childr
                 options={HAND_CONFIGURATIONS}
                 selectedValue={selectedHandConfig}
                 onValueChange={setSelectedHandConfig as (value: HandConfiguration) => void}
+                icon={<Hand className="w-5 h-5 text-primary/70" />}
             />
             <PermutationSection
                 title="RHYTHMIC PERMUTATIONS"
@@ -213,6 +224,7 @@ const ScaleDetailDialog: React.FC<ScaleDetailDialogProps> = ({ scaleItem, childr
                 options={RHYTHMIC_PERMUTATIONS}
                 selectedValue={selectedRhythm}
                 onValueChange={setSelectedRhythm as (value: RhythmicPermutation) => void}
+                icon={<Gauge className="w-5 h-5 text-primary/70" />}
             />
             <PermutationSection
                 title="ACCENT & WEIGHT DISTRIBUTION"
@@ -220,16 +232,17 @@ const ScaleDetailDialog: React.FC<ScaleDetailDialogProps> = ({ scaleItem, childr
                 options={ACCENT_DISTRIBUTIONS}
                 selectedValue={selectedAccent}
                 onValueChange={setSelectedAccent as (value: AccentDistribution) => void}
+                icon={<Target className="w-5 h-5 text-primary/70" />}
             />
         </div>
 
-        <div className="overflow-x-auto mt-6">
+        <div className="overflow-x-auto mt-6 relative z-10">
           <table className="w-full divide-y divide-border">
             <thead>
               <tr className="bg-secondary/50">
-                <th className="px-4 py-2 text-left text-xs font-medium text-foreground/70 min-w-[150px]">Articulation</th>
+                <th className="px-4 py-2 text-left text-xs font-medium text-foreground/70 min-w-[150px] text-primary/80">Articulation</th>
                 {TEMPO_LEVELS.map(tempo => (
-                  <th key={tempo} className="px-4 py-2 text-center text-xs font-medium text-foreground/70 min-w-[100px]">
+                  <th key={tempo} className="px-4 py-2 text-center text-xs font-medium text-foreground/70 min-w-[100px] text-primary/80">
                     {tempo.split(' ')[0]}
                   </th>
                 ))}
@@ -238,7 +251,7 @@ const ScaleDetailDialog: React.FC<ScaleDetailDialogProps> = ({ scaleItem, childr
             <tbody className="divide-y divide-border">
               {ARTICULATIONS.map(articulation => (
                 <tr key={articulation} className="hover:bg-accent/50 transition-colors">
-                  <td className="px-4 py-2 whitespace-nowrap text-sm font-medium">
+                  <td className="px-4 py-2 whitespace-nowrap text-sm font-medium text-primary/90">
                     {articulation}
                   </td>
                   {TEMPO_LEVELS.map(tempo => {
@@ -265,8 +278,8 @@ const ScaleDetailDialog: React.FC<ScaleDetailDialogProps> = ({ scaleItem, childr
                             setSelectedTempo(tempo);
                           }}
                           className={cn(
-                            "w-full h-10 flex flex-col items-center justify-center rounded-md transition-colors duration-150",
-                            status === 'mastered' ? 'bg-success hover:bg-success/90' : status === 'practiced' ? 'bg-warning hover:bg-warning/90' : getStatusClasses(status),
+                            "w-full h-10 flex flex-col items-center justify-center rounded-md transition-colors duration-150 border border-primary/30",
+                            status === 'mastered' ? 'bg-success hover:bg-success/90 shadow-md shadow-success/30' : status === 'practiced' ? 'bg-warning hover:bg-warning/90 shadow-md shadow-warning/30' : getStatusClasses(status),
                             // Highlight the currently selected cell for reset button context
                             articulation === selectedArticulation && tempo === selectedTempo && "ring-2 ring-offset-2 ring-primary ring-offset-background"
                           )}
@@ -274,7 +287,7 @@ const ScaleDetailDialog: React.FC<ScaleDetailDialogProps> = ({ scaleItem, childr
                           aria-label={`${articulation} at ${tempo} status: ${statusText}. Click to cycle status.`}
                         >
                           {getStatusIcon(status)}
-                          <span className="text-xs font-mono mt-1 text-foreground/80">
+                          <span className="text-xs font-mono mt-1 text-foreground/80 text-primary/70">
                             {currentHighestBPM > 0 ? `${currentHighestBPM} BPM` : ''}
                           </span>
                         </Button>
@@ -287,14 +300,14 @@ const ScaleDetailDialog: React.FC<ScaleDetailDialogProps> = ({ scaleItem, childr
           </table>
         </div>
         
-        <div className="flex justify-between items-center mt-4 pt-4 border-t border-border">
-            <p className="text-sm text-muted-foreground">
+        <div className="flex flex-col gap-2 mt-4 pt-4 border-t border-primary/30 relative z-10">
+            <p className="text-sm text-muted-foreground text-primary/70">
               Click a cell to toggle its mastery: Untouched/Practiced → Mastered ({getTempoLevelBPMThreshold(selectedTempo)} BPM) / Mastered → Untouched.
             </p>
+            <p className="text-xs text-muted-foreground text-primary/70">
+                Currently selected permutation: <span className="font-mono text-foreground text-primary/90">{selectedArticulation}, {selectedDirection}, {selectedHandConfig}, {selectedRhythm}, {selectedAccent}, {selectedOctaves}</span>. Highest BPM: <span className={cn("font-mono font-bold", currentHighestBPMForSelectedPermutation >= getTempoLevelBPMThreshold(TEMPO_LEVELS[3]) ? 'text-success text-glow' : currentHighestBPMForSelectedPermutation > 0 ? 'text-warning text-glow' : 'text-muted-foreground')}>{currentHighestBPMForSelectedPermutation} BPM</span>
+            </p>
         </div>
-        <p className="text-xs text-muted-foreground">
-            Currently selected permutation: <span className="font-mono text-foreground">{selectedArticulation}, {selectedDirection}, {selectedHandConfig}, {selectedRhythm}, {selectedAccent}, {selectedOctaves}</span>. Highest BPM: <span className={cn("font-mono font-bold", currentHighestBPMForSelectedPermutation >= getTempoLevelBPMThreshold(TEMPO_LEVELS[3]) ? 'text-success' : currentHighestBPMForSelectedPermutation > 0 ? 'text-warning' : 'text-muted-foreground')}>{currentHighestBPMForSelectedPermutation} BPM</span>
-        </p>
       </DialogContent>
     </Dialog>
   );
