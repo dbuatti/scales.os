@@ -58,7 +58,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children, headerRightContent }) =
     };
 
     return (
-        <div className="min-h-screen flex flex-col bg-background">
+        <div className="min-h-screen flex flex-col bg-background scanlines"> {/* Added scanlines class here */}
             {/* Header/Navigation Bar */}
             <header className="sticky top-0 z-50 w-full border-b border-primary/50 bg-card/90 backdrop-blur-sm">
                 <div className="container mx-auto flex h-16 items-center justify-between px-4 md:px-8">

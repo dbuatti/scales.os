@@ -238,6 +238,11 @@
   }
 
   /* Scanline overlay (add to full-screen container if desired) */
+  .scanlines {
+    position: relative; /* Ensure pseudo-element is positioned relative to this */
+    overflow: hidden; /* Hide scanlines outside the element */
+  }
+
   .scanlines::before {
     content: "";
     @apply absolute inset-0 pointer-events-none opacity-10;
@@ -249,6 +254,7 @@
       hsl(var(--primary) / 0.03) 4px
     );
     mix-blend-mode: overlay;
+    z-index: 10; /* Ensure it's above content but below modals/tooltips */
   }
 
   /* Pulse Glow for active elements */

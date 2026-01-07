@@ -104,16 +104,13 @@ const PracticeCommandCenter: React.FC = () => {
 
   return (
     <div className="min-h-screen text-foreground font-mono flex items-center justify-center p-4 overflow-hidden relative">
-      {/* CRT Scanlines Effect */}
-      <div className="absolute inset-0 pointer-events-none opacity-20">
-        <div className="h-full w-full bg-repeat-y" style={{ backgroundImage: 'linear-gradient(transparent 50%, hsl(var(--primary)) / 0.05) 50%)', backgroundSize: '100% 4px' }} />
-      </div>
+      {/* Removed inline scanlines, now handled by AppLayout */}
 
       <div className="w-full max-w-6xl relative">
         {/* Terminal Glow Border */}
         <div className="absolute -inset-4 bg-primary/20 blur-3xl animate-pulse" />
 
-        <Card className="relative border-4 border-primary/80 bg-card/95 shadow-2xl"> {/* Changed bg-black/95 to bg-card/95 */}
+        <Card className="relative border-4 border-primary/80 bg-card/95 shadow-2xl">
           <CardHeader className="border-b-2 border-primary/50 pb-6">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
@@ -180,7 +177,7 @@ const PracticeCommandCenter: React.FC = () => {
             </div>
 
             {/* BPM Mastery Control */}
-            <div className="space-y-4 border border-primary/50 rounded-lg p-6 bg-card/40"> {/* Changed bg-black/40 to bg-card/40 */}
+            <div className="space-y-4 border border-primary/50 rounded-lg p-6 bg-card/40">
               <div className="flex items-center justify-between">
                 <Label className="text-primary text-lg tracking-wider">METRONOME OVERRIDE</Label>
                 <span className="text-2xl font-bold text-warning">{currentBPM}</span>
@@ -188,7 +185,7 @@ const PracticeCommandCenter: React.FC = () => {
 
               <div className="relative">
                 {/* Retro Progress Bar Background */}
-                <div className="h-10 bg-gradient-to-r from-background via-primary/30 to-background border border-primary/70 rounded overflow-hidden"> {/* Changed from-black to from-background */}
+                <div className="h-10 bg-gradient-to-r from-background via-primary/30 to-background border border-primary/70 rounded overflow-hidden">
                   {/* Mastered Zone */}
                   <div
                     className="h-full bg-gradient-to-r from-transparent via-primary/40 to-primary/60 transition-all duration-1000 ease-out"
@@ -209,7 +206,9 @@ const PracticeCommandCenter: React.FC = () => {
                   step={1}
                   value={currentBPM}
                   onChange={(e) => setCurrentBPM(parseInt(e.target.value))}
-                  className="absolute inset-x-0 -top-1 h-12 opacity-0 cursor-pointer"
+                  className="absolute inset-x-0 -top-1 h-12 opacity-0 cursor-pointer
+                             [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-5 [&::-webkit-slider-thumb]:h-5 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-primary [&::-webkit-slider-thumb]:shadow-[0_0_10px_hsl(var(--primary))] [&::-webkit-slider-thumb]:cursor-grab
+                             [&::-moz-range-thumb]:w-5 [&::-moz-range-thumb]:h-5 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-primary [&::-moz-range-thumb]:shadow-[0_0_10px_hsl(var(--primary))] [&::-moz-range-thumb]:cursor-grab"
                 />
               </div>
 
@@ -235,7 +234,7 @@ const PracticeCommandCenter: React.FC = () => {
               }}
               className="w-full"
             >
-              <TabsList className="grid grid-cols-3 bg-card/60 border-2 border-primary/70 h-14"> {/* Changed bg-black/60 to bg-card/60 */}
+              <TabsList className="grid grid-cols-3 bg-card/60 border-2 border-primary/70 h-14">
                 <TabsTrigger
                   value="scales"
                   className="text-primary data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-[0_0_15px_hsl(var(--primary)/0.8)] transition-all text-lg tracking-wider"
