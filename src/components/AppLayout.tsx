@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { useSupabaseSession } from '@/hooks/use-supabase-session';
 import { supabase } from '@/integrations/supabase/client';
 import { showSuccess, showError } from '@/utils/toast';
+import ScrollToTopButton from './ScrollToTopButton'; // Import the new component
 
 interface NavLinkProps {
     to: string;
@@ -84,6 +85,9 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children, headerRightContent }) =
             <main className="flex-grow">
                 {children}
             </main>
+
+            {/* Scroll to Top Button */}
+            <ScrollToTopButton />
         </div>
     );
 };
