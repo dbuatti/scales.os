@@ -31,6 +31,12 @@ const ProgressPage: React.FC = () => {
     setIsRefreshing(false);
   };
 
+  const handleClearAllData = async () => {
+    await clearAllLogs();
+    await clearExerciseMastery();
+    await clearScaleMastery();
+  };
+
   if (isLoading) {
     return (
       <div className="container mx-auto p-4 md:p-8 space-y-10">
@@ -166,6 +172,35 @@ const ProgressPage: React.FC = () => {
               <AlertDialogCancel className="border-muted-foreground text-muted-foreground hover:bg-accent">Cancel</AlertDialogCancel>
               <AlertDialogAction 
                 onClick={clearScaleMastery} 
+                className="bg-destructive hover:bg-destructive/90 text-destructive-foreground"
+              >
+                Continue
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+
+        {/* Clear All Data Button */}
+        <AlertDialog>
+          <AlertDialogTrigger asChild>
+            <Button 
+              variant="destructive" 
+              className="bg-destructive hover:bg-destructive/90 text-destructive-foreground"
+            >
+              <Trash2 className="w-4 h-4 mr-2" /> Clear ALL Data
+            </Button>
+          </AlertDialogTrigger>
+          <AlertDialogContent className="bg-card border-primary/50 shadow-2xl shadow-primary/30">
+            <AlertDialogHeader>
+              <AlertDialogTitle className="text-primary font-mono">Are you absolutely sure?</AlertDialogTitle>
+              <AlertDialogDescription className="text-muted-foreground">
+                This action cannot be undone. This will permanently delete ALL your practice logs, scale mastery, and Dohnányi/Hanon exercise progress.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel className="border-muted-foreground text-muted-foreground hover:bg-accent">Cancel</AlertDialogCancel>
+              <AlertDialogAction 
+                onClick={handleClearAllData} 
                 className="bg-destructive hover:bg-destructive/90 text-destructive-foreground"
               >
                 Continue

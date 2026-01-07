@@ -11,6 +11,8 @@ import { useScales, ScaleStatus } from '../context/ScalesContext';
 import { cn } from '@/lib/utils';
 import { Check, Clock, X } from 'lucide-react'; // Removed RotateCcw
 import { showError, showSuccess } from '@/utils/toast';
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
+import { Label } from '@/components/ui/label';
 
 interface ScaleDetailDialogProps {
   scaleItem: ScaleItem;
@@ -49,22 +51,54 @@ const getStatusClasses = (status: ScaleStatus) => {
   }
 };
 
+interface PermutationSectionProps<T extends string> {
+    title: string;
+    description: string;
+    options: readonly T[];
+    selectedValue: T;
+    onValueChange: (value: T) => void;
+}
+
+const PermutationSection = <T extends string>({ title, description, options, selectedValue, onValueChange }: PermutationSectionProps<T>) => (
+    <div className="space-y-3">
+        <Label className="text-md font-semibold text-primary block font-mono">{title}</Label>
+        <p className="text-xs text-muted-foreground italic mb-2">{description}</p>
+        <ToggleGroup 
+            type="single" 
+            value={selectedValue} 
+            onValueChange={(value) => value && onValueChange(value as T)}
+            className="flex flex-wrap justify-start gap-2 w-full"
+        >
+            {options.map(option => (
+                <ToggleGroupItem 
+                    key={option} 
+                    value={option} 
+                    aria-label={`Select ${option}`}
+                    className={cn(
+                        "data-[state=on]:bg-primary data-[state=on]:text-primary-foreground data-[state=on]:shadow-md data-[state=on]:border-primary/80 border border-border text-xs px-2 py-1 h-auto font-mono",
+                        selectedValue === option ? "bg-primary text-primary-foreground" : "bg-card text-foreground"
+                    )}
+                >
+                    {option.split(' ')[0]}
+                </ToggleGroupItem>
+            ))}
+        </ToggleGroup>
+    </div>
+);
+
+
 const ScaleDetailDialog: React.FC<ScaleDetailDialogProps> = ({ scaleItem, children }) => {
   const { scaleMasteryBPMMap, updateScaleMasteryBPM } = useScales();
   const [selectedArticulation, setSelectedArticulation] = React.useState<Articulation>(ARTICULATIONS[0]);
-  const [selectedTempo, setSelectedTempo] = React.useState<TempoLevel>(TEMPO_LEVELS[0]);
+  const [selectedTempo, setSelectedTempo] = React.useState<TempoLevel>(TEMPO_LEVELS[0]); // This is for the matrix view
   
-  // Determine the permutation ID for the currently selected combination in the dialog
-  const currentPermutationId = getScalePermutationId(
-    scaleItem.id, 
-    selectedArticulation, 
-    DEFAULT_DIRECTION,
-    DEFAULT_HAND_CONFIG,
-    DEFAULT_RHYTHM,
-    DEFAULT_ACCENT,
-    DEFAULT_OCTAVES
-  );
-  
+  // New states for other permutation parameters
+  const [selectedDirection, setSelectedDirection] = React.useState<DirectionType>(DEFAULT_DIRECTION);
+  const [selectedHandConfig, setSelectedHandConfig] = React.useState<HandConfiguration>(DEFAULT_HAND_CONFIG);
+  const [selectedRhythm, setSelectedRhythm] = React.useState<RhythmicPermutation>(DEFAULT_RHYTHM);
+  const [selectedAccent, setSelectedAccent] = React.useState<AccentDistribution>(DEFAULT_ACCENT);
+  const [selectedOctaves, setSelectedOctaves] = React.useState<OctaveConfiguration>(DEFAULT_OCTAVES);
+
   // Function to get the highest BPM for a given permutation, considering legacy "Hands separately"
   const getHighestBPMForPermutation = (
     scaleId: string, 
@@ -89,41 +123,36 @@ const ScaleDetailDialog: React.FC<ScaleDetailDialogProps> = ({ scaleItem, childr
     return highestBPM;
   };
 
-  const highestBPM = getHighestBPMForPermutation(
+  const currentHighestBPMForSelectedPermutation = getHighestBPMForPermutation(
     scaleItem.id, 
     selectedArticulation, 
-    DEFAULT_DIRECTION,
-    DEFAULT_HAND_CONFIG,
-    DEFAULT_RHYTHM,
-    DEFAULT_ACCENT,
-    DEFAULT_OCTAVES
+    selectedDirection,
+    selectedHandConfig,
+    selectedRhythm,
+    selectedAccent,
+    selectedOctaves
   );
-
-  const requiredBPM = getTempoLevelBPMThreshold(selectedTempo);
-  
-  const currentStatus: ScaleStatus = highestBPM >= requiredBPM ? 'mastered' : (highestBPM > 0 ? 'practiced' : 'untouched');
-
 
   const handleToggleStatus = (articulation: Articulation, tempo: TempoLevel) => {
     const permutationId = getScalePermutationId(
       scaleItem.id, 
       articulation, 
-      DEFAULT_DIRECTION,
-      DEFAULT_HAND_CONFIG,
-      DEFAULT_RHYTHM,
-      DEFAULT_ACCENT,
-      DEFAULT_OCTAVES
+      selectedDirection, // Use selected direction
+      selectedHandConfig, // Use selected hand config
+      selectedRhythm, // Use selected rhythm
+      selectedAccent, // Use selected accent
+      selectedOctaves // Use selected octaves
     );
     
     const requiredBPM = getTempoLevelBPMThreshold(tempo);
     const currentHighestBPM = getHighestBPMForPermutation(
       scaleItem.id, 
       articulation, 
-      DEFAULT_DIRECTION,
-      DEFAULT_HAND_CONFIG,
-      DEFAULT_RHYTHM,
-      DEFAULT_ACCENT,
-      DEFAULT_OCTAVES
+      selectedDirection,
+      selectedHandConfig,
+      selectedRhythm,
+      selectedAccent,
+      selectedOctaves
     );
     
     let nextBPM: number;
@@ -143,23 +172,58 @@ const ScaleDetailDialog: React.FC<ScaleDetailDialogProps> = ({ scaleItem, childr
     showSuccess(`Status for ${scaleItem.key} ${scaleItem.type} (${articulation}, ${tempo.split(' ')[0]}) set to ${nextStatusText}. Highest BPM: ${nextBPM}`);
   };
   
-  // Removed handleResetStatus as toggle now handles reset
-
   return (
     <Dialog>
       <DialogTrigger asChild>
         {children}
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[800px]">
+      <DialogContent className="sm:max-w-[1000px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>{scaleItem.key} {scaleItem.type} - Detailed Mastery</DialogTitle>
+          <DialogTitle className="text-primary font-mono text-2xl">
+            {scaleItem.key} {scaleItem.type} - Detailed Mastery
+          </DialogTitle>
         </DialogHeader>
         
-        <p className="text-sm text-warning mb-4">
-          Note: This matrix tracks the default permutation: {DEFAULT_DIRECTION}, {DEFAULT_HAND_CONFIG}, {DEFAULT_RHYTHM}, {DEFAULT_ACCENT}, {DEFAULT_OCTAVES}.
-        </p>
+        {/* Permutation Selection Sections */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-4 border rounded-lg border-primary/30 bg-secondary/50">
+            <PermutationSection
+                title="OCTAVE RANGE"
+                description="Increase range to test consistency and endurance."
+                options={OCTAVE_CONFIGURATIONS}
+                selectedValue={selectedOctaves}
+                onValueChange={setSelectedOctaves as (value: OctaveConfiguration) => void}
+            />
+            <PermutationSection
+                title="DIRECTION & STARTING POINT"
+                description="Removes 'muscle-memory autopilot' and tests mental mapping."
+                options={DIRECTION_TYPES}
+                selectedValue={selectedDirection}
+                onValueChange={setSelectedDirection as (value: DirectionType) => void}
+            />
+            <PermutationSection
+                title="HAND CONFIGURATION"
+                description="Professional expectation: tests coordination and integration."
+                options={HAND_CONFIGURATIONS}
+                selectedValue={selectedHandConfig}
+                onValueChange={setSelectedHandConfig as (value: HandConfiguration) => void}
+            />
+            <PermutationSection
+                title="RHYTHMIC PERMUTATIONS"
+                description="High value, low time: reveals weak fingers and hidden tension."
+                options={RHYTHMIC_PERMUTATIONS}
+                selectedValue={selectedRhythm}
+                onValueChange={setSelectedRhythm as (value: RhythmicPermutation) => void}
+            />
+            <PermutationSection
+                title="ACCENT & WEIGHT DISTRIBUTION"
+                description="Quietly professional: ensures neutral evenness and control."
+                options={ACCENT_DISTRIBUTIONS}
+                selectedValue={selectedAccent}
+                onValueChange={setSelectedAccent as (value: AccentDistribution) => void}
+            />
+        </div>
 
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto mt-6">
           <table className="w-full divide-y divide-border">
             <thead>
               <tr className="bg-secondary/50">
@@ -178,26 +242,15 @@ const ScaleDetailDialog: React.FC<ScaleDetailDialogProps> = ({ scaleItem, childr
                     {articulation}
                   </td>
                   {TEMPO_LEVELS.map(tempo => {
-                    // Calculate permutationId (excluding tempo)
-                    const permutationId = getScalePermutationId(
-                      scaleItem.id, 
-                      articulation, 
-                      DEFAULT_DIRECTION,
-                      DEFAULT_HAND_CONFIG,
-                      DEFAULT_RHYTHM,
-                      DEFAULT_ACCENT,
-                      DEFAULT_OCTAVES
-                    );
-                    
                     const requiredBPM = getTempoLevelBPMThreshold(tempo);
                     const currentHighestBPM = getHighestBPMForPermutation(
                       scaleItem.id, 
                       articulation, 
-                      DEFAULT_DIRECTION,
-                      DEFAULT_HAND_CONFIG,
-                      DEFAULT_RHYTHM,
-                      DEFAULT_ACCENT,
-                      DEFAULT_OCTAVES
+                      selectedDirection,
+                      selectedHandConfig,
+                      selectedRhythm,
+                      selectedAccent,
+                      selectedOctaves
                     );
                     
                     const status: ScaleStatus = currentHighestBPM >= requiredBPM ? 'mastered' : (currentHighestBPM > 0 ? 'practiced' : 'untouched');
@@ -238,10 +291,9 @@ const ScaleDetailDialog: React.FC<ScaleDetailDialogProps> = ({ scaleItem, childr
             <p className="text-sm text-muted-foreground">
               Click a cell to toggle its mastery: Untouched/Practiced → Mastered ({getTempoLevelBPMThreshold(selectedTempo)} BPM) / Mastered → Untouched.
             </p>
-            {/* Removed Reset Permutation Status button */}
         </div>
         <p className="text-xs text-muted-foreground">
-            Currently selected permutation: <span className="font-mono text-foreground">{selectedArticulation}</span>. Highest BPM: <span className={cn("font-mono font-bold", highestBPM >= getTempoLevelBPMThreshold(TEMPO_LEVELS[3]) ? 'text-success' : highestBPM > 0 ? 'text-warning' : 'text-muted-foreground')}>{highestBPM} BPM</span>
+            Currently selected permutation: <span className="font-mono text-foreground">{selectedArticulation}, {selectedDirection}, {selectedHandConfig}, {selectedRhythm}, {selectedAccent}, {selectedOctaves}</span>. Highest BPM: <span className={cn("font-mono font-bold", currentHighestBPMForSelectedPermutation >= getTempoLevelBPMThreshold(TEMPO_LEVELS[3]) ? 'text-success' : currentHighestBPMForSelectedPermutation > 0 ? 'text-warning' : 'text-muted-foreground')}>{currentHighestBPMForSelectedPermutation} BPM</span>
         </p>
       </DialogContent>
     </Dialog>

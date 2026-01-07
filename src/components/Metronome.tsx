@@ -144,7 +144,7 @@ const Metronome: React.FC<MetronomeProps> = ({ bpm }) => {
         onClick={handleToggleRun} 
         size="sm" 
         className={cn(
-          "w-20 font-mono transition-colors",
+          "w-20 font-mono transition-colors text-lg font-bold",
           isRunning ? "bg-destructive hover:bg-destructive/90 text-destructive-foreground" : "bg-primary hover:bg-primary/90 text-primary-foreground"
         )}
       >
@@ -170,7 +170,7 @@ const Metronome: React.FC<MetronomeProps> = ({ bpm }) => {
             setDivision(value as NoteDivision);
           }
         }}
-        className="bg-secondary/50 rounded-md p-1"
+        className="bg-secondary/50 rounded-md p-1 flex-shrink-0"
       >
         <ToggleGroupItem 
           value="quarter" 
@@ -191,7 +191,7 @@ const Metronome: React.FC<MetronomeProps> = ({ bpm }) => {
       {/* Beat Indicator (Visual feedback) */}
       <div 
         className={cn(
-          "w-6 h-6 rounded-full transition-all duration-100",
+          "w-8 h-8 rounded-full transition-all duration-100 flex-shrink-0",
           isRunning && isBeatActive
             ? isAccentBeat
               ? "bg-warning shadow-md shadow-warning/50 scale-125" // Accent beat
