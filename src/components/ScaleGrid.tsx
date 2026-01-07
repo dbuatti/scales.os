@@ -111,13 +111,13 @@ const ScaleCell = React.forwardRef<HTMLButtonElement, { item: ScaleItem; status:
       ref={ref}
       variant="outline"
       className={cn(
-        "w-full h-10 flex items-center justify-center rounded-md transition-colors duration-150",
+        "w-full h-10 flex items-center justify-center rounded-md transition-colors duration-150 border border-primary/30",
         getStatusClasses(status)
       )}
       aria-label={`${item.key} ${item.type} status: ${statusText}. Click for details.`}
     >
-      <Eye className="w-4 h-4 mr-2 text-foreground" />
-      <span className="text-xs font-medium text-foreground hidden sm:inline">{statusText.split(' ')[0]}</span>
+      {getStatusIcon(status)}
+      <span className="text-xs font-medium text-foreground hidden sm:inline ml-2 text-primary/80">{statusText.split(' ')[0]}</span>
     </Button>
   );
 });
@@ -141,13 +141,13 @@ const ScaleGrid = () => {
 
   return (
     <div className="overflow-x-auto">
-      <table className="min-w-full divide-y divide-border">
+      <table className="min-w-full divide-y divide-border border border-primary/50 rounded-lg overflow-hidden">
         <thead>
           <tr className="bg-secondary/50">
-            <th className="sticky left-0 z-10 px-4 py-2 text-left text-xs font-medium text-foreground/70 bg-secondary/50">Key</th>
+            <th className="sticky left-0 z-10 px-4 py-2 text-left text-xs font-medium text-primary/70 bg-secondary/50 border-r border-primary/30">Key</th>
             {scaleTypes.map(type => (
-              <th key={type} className="px-4 py-2 text-center text-xs font-medium text-foreground/70 min-w-[120px]">
-                {type}
+              <th key={type} className="px-4 py-2 text-center text-xs font-medium text-primary/70 min-w-[120px]">
+                {type.replace(' Minor', ' Min').replace(' Major', ' Maj').replace(' Arpeggio', ' Arp')}
               </th>
             ))}
           </tr>
@@ -155,7 +155,7 @@ const ScaleGrid = () => {
         <tbody className="divide-y divide-border">
           {KEYS.map(key => (
             <tr key={key} className="hover:bg-accent/50 transition-colors">
-              <td className="sticky left-0 z-10 px-4 py-2 whitespace-nowrap text-sm font-medium bg-background dark:bg-card/50">
+              <td className="sticky left-0 z-10 px-4 py-2 whitespace-nowrap text-sm font-medium bg-card/50 border-r border-primary/30 text-primary/90">
                 {key}
               </td>
               {scaleTypes.map(type => {
@@ -182,10 +182,10 @@ const ScaleGrid = () => {
                             status={status}
                           />
                         </TooltipTrigger>
-                        <TooltipContent>
-                          <p>{item.key} {item.type}</p>
-                          <p>Overall Status: {statusText}</p>
-                          <p className="text-xs text-muted-foreground">Click to view/edit Articulation & Tempo details.</p>
+                        <TooltipContent className="bg-card border-primary/50 shadow-lg text-primary/90 font-mono">
+                          <p className="font-bold">{item.key} {item.type}</p>
+                          <p>Overall Status: <span className={cn(status === 'mastered' ? 'text-success' : status === 'practiced' ? 'text-warning' : 'text-muted-foreground')}>{statusText}</span></p>
+                          <p className="text-xs text-muted-foreground mt-1">Click to view/edit Articulation & Tempo details.</p>
                         </TooltipContent>
                       </Tooltip>
                     </ScaleDetailDialog>
