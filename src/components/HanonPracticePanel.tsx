@@ -117,13 +117,15 @@ const HanonPracticePanel: React.FC<HanonPracticePanelProps> = ({
       const newActivePracticeItem: ActivePracticeItem = {
           type: 'hanon',
           name: selectedExercise,
+          exerciseId: currentExerciseBaseId, // Pass exerciseId
           nextTargetBPM: nextBPMGoal,
+          currentHighestBPM: highestMasteredBPM, // Pass currentHighestBPM
           isMastered: highestMasteredBPM >= HANON_BPM_TARGETS[HANON_BPM_TARGETS.length - 1], // Check against max target
       };
       if (!shallowEqual(globalActivePracticeItem, newActivePracticeItem)) {
         setActivePracticeItem(newActivePracticeItem);
       }
-  }, [selectedExercise, nextBPMGoal, highestMasteredBPM, setActivePracticeItem, globalActivePracticeItem]);
+  }, [selectedExercise, nextBPMGoal, highestMasteredBPM, setActivePracticeItem, globalActivePracticeItem, currentExerciseBaseId]);
 
 
   const handleToggleMastery = (targetBPM: HanonBPMTarget) => {
