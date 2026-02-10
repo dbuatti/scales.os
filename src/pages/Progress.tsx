@@ -9,6 +9,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import GradeTracker from '@/components/GradeTracker';
 import { Button } from '@/components/ui/button';
 import { Trash2, RefreshCw, PlayCircle, AlertCircle } from 'lucide-react';
+import { cn } from '@/lib/utils';
 import {
   AlertDialog,
   AlertDialogAction,
