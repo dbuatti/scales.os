@@ -1,13 +1,13 @@
 import React, { useState, useMemo, useEffect, useCallback, useRef } from 'react';
 import { CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { LogIn } from 'lucide-react';
+import { RotateCcw } from 'lucide-react';
 import { 
   KEYS, SCALE_TYPES, ARPEGGIO_TYPES, ARTICULATIONS, 
   Key, Articulation, TempoLevel,
   DIRECTION_TYPES, HAND_CONFIGURATIONS, RHYTHMIC_PERMUTATIONS, ACCENT_DISTRIBUTIONS, OCTAVE_CONFIGURATIONS,
   DirectionType, HandConfiguration, RhythmicPermutation, AccentDistribution, OctaveConfiguration, TEMPO_LEVELS,
-  getScalePermutationId, parseScalePermutationId, cleanString // Added cleanString
+  getScalePermutationId, parseScalePermutationId, cleanString
 } from '@/lib/scales';
 import { useScales, NextFocus } from '../context/ScalesContext';
 import { showSuccess, showError } from '@/utils/toast';
@@ -16,12 +16,11 @@ import { cn, shallowEqual } from '@/lib/utils';
 import { Label } from '@/components/ui/label';
 import { useGlobalBPM, SNAPSHOT_DEBOUNCE_MS, ActivePracticeItem } from '@/context/GlobalBPMContext';
 
-// Helper function to map BPM to TempoLevel string for progress ID compatibility (kept for logging)
 const mapBPMToTempoLevel = (bpm: number): TempoLevel => {
-  if (bpm < 80) return TEMPO_LEVELS[0]; // Slow
-  if (bpm <= 100) return TEMPO_LEVELS[1]; // Moderate
-  if (bpm <= 120) return TEMPO_LEVELS[2]; // Fast
-  return TEMPO_LEVELS[3]; // Professional
+  if (bpm < 80) return TEMPO_LEVELS[0];
+  if (bpm <= 100) return TEMPO_LEVELS[1];
+  if (bpm <= 120) return TEMPO_LEVELS[2];
+  return TEMPO_LEVELS[3];
 };
 
 interface PermutationSectionProps<T extends string> {
@@ -33,25 +32,19 @@ interface PermutationSectionProps<T extends string> {
 }
 
 const PermutationSection = <T extends string>({ title, description, options, selectedValue, onValueChange }: PermutationSectionProps<T>) => (
-    <div className="space-y-3 border p-4 rounded-lg border-primary/30 bg-secondary/50">
-        <Label className="text-lg font-semibold text-primary block mb-2 font-mono">{title}</Label>
-        <p className="text-xs text-muted-foreground italic mb-4">{description}</p>
+    <div className="space-y-3">
+        <Label className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">{title}</Label>
         <ToggleGroup 
             type="single" 
             value={selectedValue} 
             onValueChange={(value) => value && onValueChange(value as T)}
-            className="flex flex-col space-y-2 w-full"
+            className="flex flex-wrap gap-2"
         >
             {options.map(option => (
                 <ToggleGroupItem 
                     key={option} 
                     value={option} 
-                    aria-label={`Select ${option}`}
-                    className={cn(
-                        "w-full justify-start data-[state=on]:bg-primary data-[state=on]:text-primary-foreground data-[state=on]:shadow-md data-[state=on]:border-primary/80 border border-border text-sm px-4 py-2 h-auto font-mono transition-all duration-150",
-                        "hover:bg-accent/50",
-                        selectedValue === option ? "bg-primary text-primary-foreground" : "bg-card text-foreground"
-                    )}
+                    className="h-8 px-3 text-xs data-[state=on]:bg-primary data-[state=on]:text-primary-foreground"
                 >
                     {option}
                 </ToggleGroupItem>
@@ -84,24 +77,35 @@ const ScalePracticePanel: React.FC<ScalePracticePanelProps> = ({
     activePermutationHighestBPM: globalActivePermutationHighestBPM,
     activePracticeItem: globalActivePracticeItem,
     setCurrentBPM,
-    isPermutationManuallyAdjusted, // New
-    setIsPermutationManuallyAdjusted // New
+    isPermutationManuallyAdjusted,
+    setIsPermutationManuallyAdjusted
   } = useGlobalBPM();
   
   const lastSnapshotTimestampRef = useRef<number>(0); 
   const lastSuccessfulCallKeyRef = useRef<string>(''); 
   
   const ALL_COMBINED_TYPES = useMemo(() => [...SCALE_TYPES, ...ARPEGGIO_TYPES], []);
+  
   const [selectedKey, setSelectedKey] = useState<Key>(KEYS[0]);
   const [selectedType, setSelectedType] = useState<string>(SCALE_TYPES[0]); 
   const [selectedArticulation, setSelectedArticulation] = useState<Articulation>(ARTICULATIONS[0]);
   const [selectedDirection, setSelectedDirection] = useState<DirectionType>(DIRECTION_TYPES[2]);
-  const [selectedHandConfig, setSelectedHandConfig] = useState<HandConfiguration>(HAND_CONFIGURATIONS[0]); // Default to "Hands together"
+  const [selectedHandConfig, setSelectedHandConfig] = useState<HandConfiguration>(HAND_CONFIGURATIONS[0]);
   const [selectedRhythm, setSelectedRhythm] = useState<RhythmicPermutation>(RHYTHMIC_PERMUTATIONS[0]);
   const [selectedAccent, setSelectedAccent] = useState<AccentDistribution>(ACCENT_DISTRIBUTIONS[3]);
   const [selectedOctaves, setSelectedOctaves] = useState<OctaveConfiguration>(OCTAVE_CONFIGURATIONS[1]);
 
-  // Effect to apply the suggested permutation when it changes and the tab is active
+  const handleResetToStandard = () => {
+    setSelectedArticulation(ARTICULATIONS[0]);
+    setSelectedDirection(DIRECTION_TYPES[2]);
+    setSelectedHandConfig(HAND_CONFIGURATIONS[0]);
+    setSelectedRhythm(RHYTHMIC_PERMUTATIONS[0]);
+    setSelectedAccent(ACCENT_DISTRIBUTIONS[3]);
+    setSelectedOctaves(OCTAVE_CONFIGURATIONS[1]);
+    setIsPermutationManuallyAdjusted(false);
+    showSuccess("Reset to standard permutations.");
+  };
+
   useEffect(() => {
     if (activeTab === 'scales' && suggestedScalePermutation && !isPermutationManuallyAdjusted) {
         const parsed = parseScalePermutationId(suggestedScalePermutation.scalePermutationId);
@@ -109,12 +113,10 @@ const ScalePracticePanel: React.FC<ScalePracticePanelProps> = ({
             const [key, typeId] = parsed.scaleId.split('-');
             const fullType = ALL_COMBINED_TYPES.find(t => t.replace(/\s/g, "") === typeId) || SCALE_TYPES[0];
             
-            // Handle legacy 'Hands separately' from parsed data
             let newHandConfig: HandConfiguration = parsed.handConfig === 'Hands separately' 
-                ? HAND_CONFIGURATIONS[0] // Default to 'Hands together' for display if legacy
+                ? HAND_CONFIGURATIONS[0] 
                 : parsed.handConfig as HandConfiguration;
 
-            // Only update if the current selection is different from the suggestion
             if (
                 selectedKey !== (key as Key) ||
                 selectedType !== fullType ||
@@ -133,8 +135,7 @@ const ScalePracticePanel: React.FC<ScalePracticePanelProps> = ({
                 setSelectedRhythm(parsed.rhythm);
                 setSelectedAccent(parsed.accent);
                 setSelectedOctaves(parsed.octaves);
-                
-                lastSuccessfulCallKeyRef.current = ''; // Reset last successful call key to allow new snapshot
+                lastSuccessfulCallKeyRef.current = '';
             }
         }
     }
@@ -143,9 +144,6 @@ const ScalePracticePanel: React.FC<ScalePracticePanelProps> = ({
     selectedKey, selectedType, selectedArticulation, selectedDirection, selectedHandConfig, 
     selectedRhythm, selectedAccent, selectedOctaves
   ]);
-
-
-  const selectedTempoLevel = useMemo(() => mapBPMToTempoLevel(currentBPM), [currentBPM]);
 
   const getScaleItemAndPermutationId = useCallback(() => {
     let scaleItem;
@@ -158,9 +156,7 @@ const ScalePracticePanel: React.FC<ScalePracticePanelProps> = ({
         scaleItem = allScales.find(s => s.key === selectedKey && s.id === `${selectedKey}-${selectedTypeId}`);
     }
 
-    if (!scaleItem) {
-      return null;
-    }
+    if (!scaleItem) return null;
 
     const scalePermutationId = getScalePermutationId(
       scaleItem.id, 
@@ -173,29 +169,15 @@ const ScalePracticePanel: React.FC<ScalePracticePanelProps> = ({
     );
     
     return { scaleItem, scalePermutationId };
-  }, [
-    selectedKey,
-    selectedType,
-    allScales,
-    selectedArticulation,
-    selectedDirection,
-    selectedHandConfig,
-    selectedRhythm,
-    selectedAccent,
-    selectedOctaves
-  ]);
+  }, [selectedKey, selectedType, allScales, selectedArticulation, selectedDirection, selectedHandConfig, selectedRhythm, selectedAccent, selectedOctaves]);
   
   const result = useMemo(() => getScaleItemAndPermutationId(), [getScaleItemAndPermutationId]);
-  const currentPermutationId = result?.scalePermutationId;
   
-  // Function to get the highest BPM for a given permutation, considering legacy "Hands separately"
   const getHighestBPMForCurrentPermutation = useCallback((): number => {
     if (!result) return 0;
     const { scaleItem, scalePermutationId } = result;
     let highestBPM = scaleMasteryBPMMap[scalePermutationId] || 0;
 
-    // If the current handConfig is 'Left hand only' or 'Right hand only',
-    // also check for legacy 'Hands separately' and use its BPM if higher.
     if (selectedHandConfig === "Left hand only" || selectedHandConfig === "Right hand only") {
       const legacyHandConfig = "Hands separately";
       const legacyId = `${scaleItem.id}-${cleanString(selectedArticulation)}-${cleanString(selectedDirection)}-${cleanString(legacyHandConfig)}-${cleanString(selectedRhythm)}-${cleanString(selectedAccent)}-${cleanString(selectedOctaves)}`;
@@ -210,31 +192,23 @@ const ScalePracticePanel: React.FC<ScalePracticePanelProps> = ({
 
   const handleSaveSnapshot = useCallback(() => {
     const now = Date.now();
-    if (now - lastSnapshotTimestampRef.current < SNAPSHOT_DEBOUNCE_MS) {
-      return;
-    }
-    
+    if (now - lastSnapshotTimestampRef.current < SNAPSHOT_DEBOUNCE_MS) return;
     if (!result) {
         showError("Please select a valid scale/arpeggio combination.");
         return;
     }
     const { scaleItem, scalePermutationId } = result;
-
     const currentCallKey = `${scalePermutationId}-${currentBPM}`;
-    if (lastSuccessfulCallKeyRef.current === currentCallKey) {
-        return;
-    }
+    if (lastSuccessfulCallKeyRef.current === currentCallKey) return;
 
     lastSnapshotTimestampRef.current = now;
     lastSuccessfulCallKeyRef.current = currentCallKey;
 
-    let message = `Snapshot logged at ${currentBPM} BPM.`;
-    
     if (currentBPM > highestMasteredBPM) {
         updateScaleMasteryBPM(scalePermutationId, currentBPM);
-        message = `Mastery updated! Highest BPM for this permutation is now ${currentBPM}. Next goal: ${currentBPM + 3} BPM.`;
+        showSuccess(`Mastery updated to ${currentBPM} BPM!`);
     } else {
-        message = `Snapshot logged at ${currentBPM} BPM. Highest mastered BPM remains ${highestMasteredBPM}.`;
+        showSuccess(`Snapshot logged at ${currentBPM} BPM.`);
     }
 
     addLogEntry({
@@ -251,10 +225,8 @@ const ScalePracticePanel: React.FC<ScalePracticePanelProps> = ({
         practicedBPM: currentBPM,
         scalePermutationId: scalePermutationId,
       }],
-      notes: `Snapshot: ${scaleItem.key} ${scaleItem.type} (${selectedArticulation}, ${selectedDirection}, ${selectedHandConfig}, ${selectedRhythm}, ${selectedAccent}, ${selectedOctaves}). Logged BPM: ${currentBPM}`,
+      notes: `Snapshot: ${scaleItem.key} ${scaleItem.type} at ${currentBPM} BPM`,
     });
-
-    showSuccess(message);
   }, [currentBPM, result, highestMasteredBPM, updateScaleMasteryBPM, addLogEntry, selectedArticulation, selectedDirection, selectedHandConfig, selectedRhythm, selectedAccent, selectedOctaves]);
 
   useEffect(() => {
@@ -269,7 +241,7 @@ const ScalePracticePanel: React.FC<ScalePracticePanelProps> = ({
         scaleType: result.scaleItem.type,
         articulation: selectedArticulation,
         octaves: selectedOctaves,
-        handConfig: selectedHandConfig, // Pass handConfig here
+        handConfig: selectedHandConfig,
         highestBPM: currentHighestBPMForActivePermutation,
         nextGoalBPM: nextBPMGoal,
     } : null;
@@ -277,238 +249,79 @@ const ScalePracticePanel: React.FC<ScalePracticePanelProps> = ({
     if (!shallowEqual(globalActivePracticeItem, newActivePracticeItem)) {
         setActivePracticeItem(newActivePracticeItem);
     }
-  }, [
-    highestMasteredBPM, 
-    globalActivePermutationHighestBPM,
-    setActivePermutationHighestBPM, 
-    setActivePracticeItem, 
-    result, 
-    selectedArticulation, 
-    selectedOctaves, 
-    selectedHandConfig, // Added selectedHandConfig to dependencies
-    nextBPMGoal,
-    globalActivePracticeItem,
-    getHighestBPMForCurrentPermutation
-  ]);
+  }, [highestMasteredBPM, globalActivePermutationHighestBPM, setActivePermutationHighestBPM, setActivePracticeItem, result, selectedArticulation, selectedOctaves, selectedHandConfig, nextBPMGoal, globalActivePracticeItem, getHighestBPMForCurrentPermutation]);
 
   useEffect(() => {
     setActiveLogSnapshotFunction(() => handleSaveSnapshot);
-    
-    return () => {
-        setActiveLogSnapshotFunction(null);
-    };
+    return () => setActiveLogSnapshotFunction(null);
   }, [setActiveLogSnapshotFunction, handleSaveSnapshot]);
 
   const isChromatic = selectedType === "Chromatic";
   const availableKeys = isChromatic ? ["C"] : KEYS;
 
-  // Helper to set state and mark as manually adjusted
-  const setKeyAndAdjust = useCallback((key: Key) => {
-    setSelectedKey(key);
-    setIsPermutationManuallyAdjusted(true);
-  }, [setIsPermutationManuallyAdjusted]);
-
-  const setTypeAndAdjust = useCallback((type: string) => {
-    setSelectedType(type);
-    if (type === "Chromatic") {
-        setSelectedKey("C"); // Chromatic is always C
-    }
-    setIsPermutationManuallyAdjusted(true);
-  }, [setIsPermutationManuallyAdjusted]);
-
-  const setArticulationAndAdjust = useCallback((articulation: Articulation) => {
-    setSelectedArticulation(articulation);
-    setIsPermutationManuallyAdjusted(true);
-  }, [setIsPermutationManuallyAdjusted]);
-
-  const setDirectionAndAdjust = useCallback((direction: DirectionType) => {
-    setSelectedDirection(direction);
-    setIsPermutationManuallyAdjusted(true);
-  }, [setIsPermutationManuallyAdjusted]);
-
-  const setHandConfigAndAdjust = useCallback((handConfig: HandConfiguration) => {
-    setSelectedHandConfig(handConfig);
-    setIsPermutationManuallyAdjusted(true);
-  }, [setIsPermutationManuallyAdjusted]);
-
-  const setRhythmAndAdjust = useCallback((rhythm: RhythmicPermutation) => {
-    setSelectedRhythm(rhythm);
-    setIsPermutationManuallyAdjusted(true);
-  }, [setIsPermutationManuallyAdjusted]);
-
-  const setAccentAndAdjust = useCallback((accent: AccentDistribution) => {
-    setSelectedAccent(accent);
-    setIsPermutationManuallyAdjusted(true);
-  }, [setIsPermutationManuallyAdjusted]);
-
-  const setOctavesAndAdjust = useCallback((octaves: OctaveConfiguration) => {
-    setSelectedOctaves(octaves);
-    setIsPermutationManuallyAdjusted(true);
-  }, [setIsPermutationManuallyAdjusted]);
-
+  const setKeyAndAdjust = (key: Key) => { setSelectedKey(key); setIsPermutationManuallyAdjusted(true); };
+  const setTypeAndAdjust = (type: string) => { setSelectedType(type); if (type === "Chromatic") setSelectedKey("C"); setIsPermutationManuallyAdjusted(true); };
+  const setArticulationAndAdjust = (articulation: Articulation) => { setSelectedArticulation(articulation); setIsPermutationManuallyAdjusted(true); };
+  const setDirectionAndAdjust = (direction: DirectionType) => { setSelectedDirection(direction); setIsPermutationManuallyAdjusted(true); };
+  const setHandConfigAndAdjust = (handConfig: HandConfiguration) => { setSelectedHandConfig(handConfig); setIsPermutationManuallyAdjusted(true); };
+  const setRhythmAndAdjust = (rhythm: RhythmicPermutation) => { setSelectedRhythm(rhythm); setIsPermutationManuallyAdjusted(true); };
+  const setAccentAndAdjust = (accent: AccentDistribution) => { setSelectedAccent(accent); setIsPermutationManuallyAdjusted(true); };
+  const setOctavesAndAdjust = (octaves: OctaveConfiguration) => { setSelectedOctaves(octaves); setIsPermutationManuallyAdjusted(true); };
 
   return (
-    <CardContent className="p-0 space-y-6">
-        {/* Primary Selections: Key, Type, Articulation */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            
-            {/* Key Selection */}
-            <div className="space-y-3 border p-4 rounded-lg border-primary/30 bg-secondary/50 md:col-span-1">
-              <Label className="text-lg font-semibold text-primary block mb-2 font-mono">KEY</Label>
-              <ToggleGroup 
-                type="single" 
-                value={selectedKey} 
-                onValueChange={(value) => {
-                    if (value) setKeyAndAdjust(value as Key);
-                }}
-                className="flex flex-wrap justify-center gap-2 w-full"
-                disabled={isChromatic}
-              >
-                {availableKeys.map(key => (
-                  <ToggleGroupItem 
-                    key={key} 
-                    value={key} 
-                    aria-label={`Select key ${key}`}
-                    className={cn(
-                      "data-[state=on]:bg-primary data-[state=on]:text-primary-foreground data-[state=on]:shadow-md data-[state=on]:border-primary/80 border border-border text-sm px-3 py-3 h-10 w-10 rounded-full font-mono flex items-center justify-center",
-                      isChromatic && "opacity-50 cursor-not-allowed"
-                    )}
-                  >
-                    {key.replace(/\/.*/, '')}
-                  </ToggleGroupItem>
-                ))}
-              </ToggleGroup>
-              {isChromatic && <p className="text-xs text-yellow-400 mt-2 text-center">Chromatic scale is key-independent (C selected).</p>}
-            </div>
-
-            {/* Scale/Arpeggio Type Selection */}
-            <div className="space-y-3 border p-4 rounded-lg border-primary/30 bg-secondary/50 md:col-span-1">
-              <Label className="text-lg font-semibold text-primary block mb-2 font-mono">TYPE</Label>
-              <div className="space-y-4">
-                {/* Scales Section */}
-                <div>
-                  <p className="text-sm font-semibold text-foreground/80 mb-2 font-mono">Scales</p>
-                  <ToggleGroup 
-                    type="single" 
-                    value={selectedType} 
-                    onValueChange={(value) => {
-                      if (value) {
-                        setTypeAndAdjust(value);
-                      }
-                    }}
-                    className="flex flex-wrap justify-center gap-2 w-full"
-                  >
-                    {SCALE_TYPES.map(type => (
-                      <ToggleGroupItem 
-                        key={type} 
-                        value={type} 
-                        aria-label={`Select type ${type}`}
-                        className="data-[state=on]:bg-primary data-[state=on]:text-primary-foreground data-[state=on]:shadow-md data-[state=on]:border-primary/80 border border-border text-xs px-2 py-1 h-auto font-mono flex-1 min-w-[80px]"
-                      >
-                        {type.replace(' Minor', ' Min').replace(' Major', ' Maj')}
-                      </ToggleGroupItem>
-                    ))}
-                  </ToggleGroup>
+    <CardContent className="p-0 space-y-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div className="space-y-6">
+                <div className="space-y-3">
+                    <Label className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Key</Label>
+                    <ToggleGroup 
+                        type="single" 
+                        value={selectedKey} 
+                        onValueChange={(v) => v && setKeyAndAdjust(v as Key)}
+                        className="flex flex-wrap gap-1"
+                        disabled={isChromatic}
+                    >
+                        {availableKeys.map(key => (
+                            <ToggleGroupItem key={key} value={key} className="w-10 h-10 p-0 text-xs">
+                                {key.split('/')[0]}
+                            </ToggleGroupItem>
+                        ))}
+                    </ToggleGroup>
                 </div>
 
-                {/* Arpeggios Section */}
-                <div>
-                  <p className="text-sm font-semibold text-foreground/80 mb-2 font-mono">Arpeggios</p>
-                  <ToggleGroup 
-                    type="single" 
-                    value={selectedType} 
-                    onValueChange={(value) => {
-                      if (value) setTypeAndAdjust(value);
-                    }}
-                    className="flex flex-wrap justify-center gap-2 w-full"
-                  >
-                    {ARPEGGIO_TYPES.map(type => (
-                      <ToggleGroupItem 
-                        key={type} 
-                        value={type} 
-                        aria-label={`Select type ${type}`}
-                        className="data-[state=on]:bg-primary data-[state=on]:text-primary-foreground data-[state=on]:shadow-md data-[state=on]:border-primary/80 border border-border text-xs px-2 py-1 h-auto font-mono flex-1 min-w-[80px]"
-                      >
-                        {type.replace(' Arpeggio', '')}
-                      </ToggleGroupItem>
-                    ))}
-                  </ToggleGroup>
+                <div className="space-y-3">
+                    <Label className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Type</Label>
+                    <div className="grid grid-cols-2 gap-4">
+                        <ToggleGroup type="single" value={selectedType} onValueChange={(v) => v && setTypeAndAdjust(v)} className="flex flex-col items-stretch gap-1">
+                            {SCALE_TYPES.map(t => <ToggleGroupItem key={t} value={t} className="justify-start h-8 px-3 text-xs">{t}</ToggleGroupItem>)}
+                        </ToggleGroup>
+                        <ToggleGroup type="single" value={selectedType} onValueChange={(v) => v && setTypeAndAdjust(v)} className="flex flex-col items-stretch gap-1">
+                            {ARPEGGIO_TYPES.map(t => <ToggleGroupItem key={t} value={t} className="justify-start h-8 px-3 text-xs">{t.replace(' Arpeggio', '')}</ToggleGroupItem>)}
+                        </ToggleGroup>
+                    </div>
                 </div>
-              </div>
             </div>
-            
-            {/* Articulation Selection */}
-            <div className="space-y-3 border p-4 rounded-lg border-primary/30 bg-secondary/50 md:col-span-1">
-              <Label className="text-lg font-semibold text-primary block mb-2 font-mono">ARTICULATION</Label>
-              <ToggleGroup 
-                type="single" 
-                value={selectedArticulation} 
-                onValueChange={(value) => value && setArticulationAndAdjust(value as Articulation)}
-                className="flex flex-wrap justify-center gap-2 w-full"
-              >
-                {ARTICULATIONS.map(articulation => (
-                  <ToggleGroupItem 
-                    key={articulation} 
-                    value={articulation} 
-                    aria-label={`Select articulation ${articulation}`}
-                    className="data-[state=on]:bg-primary data-[state=on]:text-primary-foreground data-[state=on]:shadow-md data-[state=on]:border-primary/80 border border-border text-xs px-2 py-1 h-auto font-mono flex-1 min-w-[80px]"
-                  >
-                    {articulation.split(' ')[0]}
-                  </ToggleGroupItem>
-                ))}
-              </ToggleGroup>
+
+            <div className="space-y-6">
+                <PermutationSection title="Articulation" options={ARTICULATIONS} selectedValue={selectedArticulation} onValueChange={setArticulationAndAdjust} />
+                <PermutationSection title="Octaves" options={OCTAVE_CONFIGURATIONS} selectedValue={selectedOctaves} onValueChange={setOctavesAndAdjust} />
             </div>
         </div>
-        
-        {/* Extra Special Edition Permutations */}
-        <div className="pt-8 space-y-6">
-            <div className="flex items-center">
-                <div className="flex-grow border-t border-dashed border-primary/50"></div>
-                <span className="flex-shrink mx-4 text-xl font-mono font-bold text-primary">
-                    SCALE PERMUTATIONS
-                </span>
-                <div className="flex-grow border-t border-dashed border-primary/50"></div>
+
+        <div className="pt-8 border-t space-y-8">
+            <div className="flex items-center justify-between">
+                <h3 className="text-lg font-semibold">Advanced Permutations</h3>
+                <Button variant="ghost" size="sm" onClick={handleResetToStandard} className="text-xs text-muted-foreground">
+                    <RotateCcw className="w-3 h-3 mr-2" />
+                    Reset to Standard
+                </Button>
             </div>
             
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <PermutationSection
-                    title="1. OCTAVE RANGE"
-                    description="Increase range to test consistency and endurance."
-                    options={OCTAVE_CONFIGURATIONS}
-                    selectedValue={selectedOctaves}
-                    onValueChange={setOctavesAndAdjust}
-                />
-                <PermutationSection
-                    title="2. DIRECTION & STARTING POINT"
-                    description="Removes 'muscle-memory autopilot' and tests mental mapping."
-                    options={DIRECTION_TYPES}
-                    selectedValue={selectedDirection}
-                    onValueChange={setDirectionAndAdjust}
-                />
-                <PermutationSection
-                    title="3. HAND CONFIGURATION"
-                    description="Professional expectation: tests coordination and integration."
-                    options={HAND_CONFIGURATIONS}
-                    selectedValue={selectedHandConfig}
-                    onValueChange={setHandConfigAndAdjust}
-                />
-            </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <PermutationSection
-                    title="4. RHYTHMIC PERMUTATIONS"
-                    description="High value, low time: reveals weak fingers and hidden tension."
-                    options={RHYTHMIC_PERMUTATIONS}
-                    selectedValue={selectedRhythm}
-                    onValueChange={setRhythmAndAdjust}
-                />
-                <PermutationSection
-                    title="5. ACCENT & WEIGHT DISTRIBUTION"
-                    description="Quietly professional: ensures neutral evenness and control."
-                    options={ACCENT_DISTRIBUTIONS}
-                    selectedValue={selectedAccent}
-                    onValueChange={setAccentAndAdjust}
-                />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <PermutationSection title="Direction" options={DIRECTION_TYPES} selectedValue={selectedDirection} onValueChange={setDirectionAndAdjust} />
+                <PermutationSection title="Hands" options={HAND_CONFIGURATIONS} selectedValue={selectedHandConfig} onValueChange={setHandConfigAndAdjust} />
+                <PermutationSection title="Rhythm" options={RHYTHMIC_PERMUTATIONS} selectedValue={selectedRhythm} onValueChange={setRhythmAndAdjust} />
+                <PermutationSection title="Accent" options={ACCENT_DISTRIBUTIONS} selectedValue={selectedAccent} onValueChange={setAccentAndAdjust} />
             </div>
         </div>
     </CardContent>

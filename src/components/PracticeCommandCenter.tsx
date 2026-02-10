@@ -1,8 +1,7 @@
 "use client";
 
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Label } from '@/components/ui/label';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useScales, NextFocus } from '../context/ScalesContext';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import ScalePracticePanel from './ScalePracticePanel';
@@ -15,8 +14,10 @@ import { formatDistanceToNow } from 'date-fns';
 import PracticeSummaryPanel from './PracticeSummaryPanel';
 import { Button } from '@/components/ui/button';
 import { showSuccess } from '@/utils/toast';
-import { RefreshCw, Target, Play, Settings2 } from 'lucide-react';
+import { RefreshCw, Target, Settings2, Keyboard } from 'lucide-react';
 import { Slider } from '@/components/ui/slider';
+
+const BPM_PRESETS = [60, 80, 100, 120, 140];
 
 const PracticeCommandCenter: React.FC = () => {
   const {
@@ -177,20 +178,55 @@ const PracticeCommandCenter: React.FC = () => {
                 <span className="text-4xl font-bold tracking-tighter">{currentBPM}</span>
                 <span className="text-sm font-medium text-muted-foreground uppercase">BPM</span>
               </div>
-              <Slider
-                value={[currentBPM]}
-                min={MIN_BPM}
-                max={MAX_BPM}
-                step={1}
-                onValueChange={([v]) => setCurrentBPM(v)}
-              />
-              <div className="flex justify-between text-xs text-muted-foreground">
-                <span>{MIN_BPM}</span>
-                <span>{MAX_BPM}</span>
+              
+              <div className="space-y-4">
+                <Slider
+                  value={[currentBPM]}
+                  min={MIN_BPM}
+                  max={MAX_BPM}
+                  step={1}
+                  onValueChange={([v]) => setCurrentBPM(v)}
+                />
+                <div className="flex justify-between text-xs text-muted-foreground">
+                  <span>{MIN_BPM}</span>
+                  <span>{MAX_BPM}</span>
+                </div>
               </div>
+
+              <div className="grid grid-cols-5 gap-1">
+                {BPM_PRESETS.map(preset => (
+                  <Button 
+                    key={preset} 
+                    variant="outline" 
+                    size="sm" 
+                    className={cn("h-8 text-[10px] px-0", currentBPM === preset && "bg-primary text-primary-foreground")}
+                    onClick={() => setCurrentBPM(preset)}
+                  >
+                    {preset}
+                  </Button>
+                ))}
+              </div>
+
+              <div className="pt-4 border-t space-y-4">
+                <div className="flex items-center gap-2 text-[10px] text-muted-foreground uppercase font-medium">
+                  <Keyboard className="w-3 h-3" />
+                  Shortcuts
+                </div>
+                <div className="grid grid-cols-2 gap-2 text-[10px]">
+                  <div className="flex items-center justify-between p-2 bg-muted rounded">
+                    <span>BPM</span>
+                    <span className="font-bold">↑/↓</span>
+                  </div>
+                  <div className="flex items-center justify-between p-2 bg-muted rounded">
+                    <span>Start/Stop</span>
+                    <span className="font-bold">Space</span>
+                  </div>
+                </div>
+              </div>
+
               <div className="pt-4 border-t flex justify-center">
-                <Button variant="outline" size="sm" onClick={refetchData} disabled={isScalesContextLoading}>
-                  <RefreshCw className={cn("w-4 h-4 mr-2", isScalesContextLoading && "animate-spin")} />
+                <Button variant="ghost" size="sm" onClick={refetchData} disabled={isScalesContextLoading} className="text-xs text-muted-foreground">
+                  <RefreshCw className={cn("w-3 h-3 mr-2", isScalesContextLoading && "animate-spin")} />
                   Sync Progress
                 </Button>
               </div>
