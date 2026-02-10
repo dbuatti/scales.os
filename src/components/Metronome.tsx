@@ -118,9 +118,14 @@ const Metronome: React.FC<MetronomeProps> = ({ bpm, onBpmChange }) => {
   // Keyboard Shortcuts
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.code === 'Space' && e.target === document.body) {
+      if (e.target !== document.body) return;
+
+      if (e.code === 'Space') {
         e.preventDefault();
         handleToggleRun();
+      } else if (e.key.toLowerCase() === 'm') {
+        e.preventDefault();
+        setIsMuted(prev => !prev);
       }
     };
     window.addEventListener('keydown', handleKeyDown);
