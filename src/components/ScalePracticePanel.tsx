@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useEffect, useCallback, useRef } from 'react';
 import { CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { RotateCcw } from 'lucide-react';
+import { RotateCcw, Music, Gauge, Repeat, Hand, Target, Zap, Palette } from 'lucide-react';
 import { 
   KEYS, SCALE_TYPES, ARPEGGIO_TYPES, ARTICULATIONS, 
   Key, Articulation, TempoLevel,
@@ -16,24 +16,26 @@ import { cn, shallowEqual } from '@/lib/utils';
 import { Label } from '@/components/ui/label';
 import { useGlobalBPM, SNAPSHOT_DEBOUNCE_MS, ActivePracticeItem } from '@/context/GlobalBPMContext';
 
-const mapBPMToTempoLevel = (bpm: number): TempoLevel => {
-  if (bpm < 80) return TEMPO_LEVELS[0];
-  if (bpm <= 100) return TEMPO_LEVELS[1];
-  if (bpm <= 120) return TEMPO_LEVELS[2];
-  return TEMPO_LEVELS[3];
-};
-
 interface PermutationSectionProps<T extends string> {
     title: string;
     description: string;
     options: readonly T[];
     selectedValue: T;
     onValueChange: (value: T) => void;
+    icon: React.ReactNode;
 }
 
-const PermutationSection = <T extends string>({ title, description, options, selectedValue, onValueChange }: PermutationSectionProps<T>) => (
-    <div className="space-y-3">
-        <Label className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">{title}</Label>
+const PermutationSection = <T extends string>({ title, description, options, selectedValue, onValueChange, icon }: PermutationSectionProps<T>) => (
+    <div className="space-y-4 p-5 rounded-xl border bg-card/50 shadow-sm transition-all hover:shadow-md">
+        <div className="flex items-center gap-3">
+            <div className="p-2 rounded-lg bg-primary/10 text-primary">
+                {icon}
+            </div>
+            <div className="space-y-0.5">
+                <Label className="text-sm font-bold uppercase tracking-wider text-foreground">{title}</Label>
+                <p className="text-[10px] text-muted-foreground leading-tight">{description}</p>
+            </div>
+        </div>
         <ToggleGroup 
             type="single" 
             value={selectedValue} 
@@ -44,7 +46,7 @@ const PermutationSection = <T extends string>({ title, description, options, sel
                 <ToggleGroupItem 
                     key={option} 
                     value={option} 
-                    className="h-8 px-3 text-xs data-[state=on]:bg-primary data-[state=on]:text-primary-foreground"
+                    className="h-9 px-4 text-xs font-medium data-[state=on]:bg-primary data-[state=on]:text-primary-foreground focus-scale"
                 >
                     {option}
                 </ToggleGroupItem>
@@ -269,59 +271,114 @@ const ScalePracticePanel: React.FC<ScalePracticePanelProps> = ({
   const setOctavesAndAdjust = (octaves: OctaveConfiguration) => { setSelectedOctaves(octaves); setIsPermutationManuallyAdjusted(true); };
 
   return (
-    <CardContent className="p-0 space-y-8">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <div className="space-y-6">
-                <div className="space-y-3">
-                    <Label className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Key</Label>
+    <CardContent className="p-0 space-y-10">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+            <div className="space-y-8">
+                <div className="space-y-4 p-5 rounded-xl border bg-card/50 shadow-sm">
+                    <div className="flex items-center gap-3">
+                        <div className="p-2 rounded-lg bg-primary/10 text-primary">
+                            <Music className="w-5 h-5" />
+                        </div>
+                        <Label className="text-sm font-bold uppercase tracking-wider text-foreground">Key Selection</Label>
+                    </div>
                     <ToggleGroup 
                         type="single" 
                         value={selectedKey} 
                         onValueChange={(v) => v && setKeyAndAdjust(v as Key)}
-                        className="flex flex-wrap gap-1"
+                        className="flex flex-wrap gap-2"
                         disabled={isChromatic}
                     >
                         {availableKeys.map(key => (
-                            <ToggleGroupItem key={key} value={key} className="w-10 h-10 p-0 text-xs">
+                            <ToggleGroupItem key={key} value={key} className="w-12 h-12 p-0 text-xs font-bold focus-scale">
                                 {key.split('/')[0]}
                             </ToggleGroupItem>
                         ))}
                     </ToggleGroup>
                 </div>
 
-                <div className="space-y-3">
-                    <Label className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Type</Label>
+                <div className="space-y-4 p-5 rounded-xl border bg-card/50 shadow-sm">
+                    <div className="flex items-center gap-3">
+                        <div className="p-2 rounded-lg bg-primary/10 text-primary">
+                            <Zap className="w-5 h-5" />
+                        </div>
+                        <Label className="text-sm font-bold uppercase tracking-wider text-foreground">Type</Label>
+                    </div>
                     <div className="grid grid-cols-2 gap-4">
-                        <ToggleGroup type="single" value={selectedType} onValueChange={(v) => v && setTypeAndAdjust(v)} className="flex flex-col items-stretch gap-1">
-                            {SCALE_TYPES.map(t => <ToggleGroupItem key={t} value={t} className="justify-start h-8 px-3 text-xs">{t}</ToggleGroupItem>)}
+                        <ToggleGroup type="single" value={selectedType} onValueChange={(v) => v && setTypeAndAdjust(v)} className="flex flex-col items-stretch gap-2">
+                            {SCALE_TYPES.map(t => <ToggleGroupItem key={t} value={t} className="justify-start h-10 px-4 text-xs font-medium focus-scale">{t}</ToggleGroupItem>)}
                         </ToggleGroup>
-                        <ToggleGroup type="single" value={selectedType} onValueChange={(v) => v && setTypeAndAdjust(v)} className="flex flex-col items-stretch gap-1">
-                            {ARPEGGIO_TYPES.map(t => <ToggleGroupItem key={t} value={t} className="justify-start h-8 px-3 text-xs">{t.replace(' Arpeggio', '')}</ToggleGroupItem>)}
+                        <ToggleGroup type="single" value={selectedType} onValueChange={(v) => v && setTypeAndAdjust(v)} className="flex flex-col items-stretch gap-2">
+                            {ARPEGGIO_TYPES.map(t => <ToggleGroupItem key={t} value={t} className="justify-start h-10 px-4 text-xs font-medium focus-scale">{t.replace(' Arpeggio', '')}</ToggleGroupItem>)}
                         </ToggleGroup>
                     </div>
                 </div>
             </div>
 
-            <div className="space-y-6">
-                <PermutationSection title="Articulation" options={ARTICULATIONS} selectedValue={selectedArticulation} onValueChange={setArticulationAndAdjust} />
-                <PermutationSection title="Octaves" options={OCTAVE_CONFIGURATIONS} selectedValue={selectedOctaves} onValueChange={setOctavesAndAdjust} />
+            <div className="space-y-8">
+                <PermutationSection 
+                    title="Articulation" 
+                    description="Focus on touch and sound quality."
+                    options={ARTICULATIONS} 
+                    selectedValue={selectedArticulation} 
+                    onValueChange={setArticulationAndAdjust}
+                    icon={<Palette className="w-5 h-5" />}
+                />
+                <PermutationSection 
+                    title="Octaves" 
+                    description="Test consistency and endurance."
+                    options={OCTAVE_CONFIGURATIONS} 
+                    selectedValue={selectedOctaves} 
+                    onValueChange={setOctavesAndAdjust}
+                    icon={<Music className="w-5 h-5" />}
+                />
             </div>
         </div>
 
-        <div className="pt-8 border-t space-y-8">
+        <div className="pt-10 border-t space-y-10">
             <div className="flex items-center justify-between">
-                <h3 className="text-lg font-semibold">Advanced Permutations</h3>
-                <Button variant="ghost" size="sm" onClick={handleResetToStandard} className="text-xs text-muted-foreground">
+                <div className="space-y-1">
+                    <h3 className="text-xl font-bold tracking-tight">Advanced Permutations</h3>
+                    <p className="text-sm text-muted-foreground">Break muscle memory and build true mastery.</p>
+                </div>
+                <Button variant="outline" size="sm" onClick={handleResetToStandard} className="text-xs font-bold focus-scale">
                     <RotateCcw className="w-3 h-3 mr-2" />
                     Reset to Standard
                 </Button>
             </div>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <PermutationSection title="Direction" options={DIRECTION_TYPES} selectedValue={selectedDirection} onValueChange={setDirectionAndAdjust} />
-                <PermutationSection title="Hands" options={HAND_CONFIGURATIONS} selectedValue={selectedHandConfig} onValueChange={setHandConfigAndAdjust} />
-                <PermutationSection title="Rhythm" options={RHYTHMIC_PERMUTATIONS} selectedValue={selectedRhythm} onValueChange={setRhythmAndAdjust} />
-                <PermutationSection title="Accent" options={ACCENT_DISTRIBUTIONS} selectedValue={selectedAccent} onValueChange={setAccentAndAdjust} />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+                <PermutationSection 
+                    title="Direction" 
+                    description="Removes muscle-memory autopilot."
+                    options={DIRECTION_TYPES} 
+                    selectedValue={selectedDirection} 
+                    onValueChange={setDirectionAndAdjust}
+                    icon={<Repeat className="w-5 h-5" />}
+                />
+                <PermutationSection 
+                    title="Hands" 
+                    description="Tests coordination and LH/RH independence."
+                    options={HAND_CONFIGURATIONS} 
+                    selectedValue={selectedHandConfig} 
+                    onValueChange={setHandConfigAndAdjust}
+                    icon={<Hand className="w-5 h-5" />}
+                />
+                <PermutationSection 
+                    title="Rhythm" 
+                    description="Reveals weak fingers and hidden tension."
+                    options={RHYTHMIC_PERMUTATIONS} 
+                    selectedValue={selectedRhythm} 
+                    onValueChange={setRhythmAndAdjust}
+                    icon={<Gauge className="w-5 h-5" />}
+                />
+                <PermutationSection 
+                    title="Accent" 
+                    description="Ensures neutral evenness and control."
+                    options={ACCENT_DISTRIBUTIONS} 
+                    selectedValue={selectedAccent} 
+                    onValueChange={setAccentAndAdjust}
+                    icon={<Target className="w-5 h-5" />}
+                />
             </div>
         </div>
     </CardContent>

@@ -160,15 +160,15 @@ const Metronome: React.FC<MetronomeProps> = ({ bpm, onBpmChange }) => {
   };
 
   return (
-    <div className="flex items-center space-x-2">
+    <div className="flex items-center space-x-4">
       <Button 
         onClick={handleToggleRun} 
-        size="sm" 
+        size="lg" 
         className={cn(
-          "w-20 font-mono transition-all text-lg font-bold shadow-lg",
+          "w-24 font-bold transition-all text-sm shadow-lg focus-scale",
           isRunning 
-            ? "bg-destructive hover:bg-destructive/90 text-destructive-foreground shadow-destructive/20" 
-            : "bg-primary hover:bg-primary/90 text-primary-foreground shadow-primary/20"
+            ? "bg-destructive hover:bg-destructive/90 text-destructive-foreground" 
+            : "bg-primary hover:bg-primary/90 text-primary-foreground"
         )}
       >
         {isRunning ? 'STOP' : 'START'}
@@ -178,16 +178,16 @@ const Metronome: React.FC<MetronomeProps> = ({ bpm, onBpmChange }) => {
         onClick={handleTap}
         variant="outline"
         size="sm"
-        className="font-mono text-xs border-primary/50 text-primary hover:bg-primary/10"
+        className="font-bold text-xs border-primary/20 text-primary hover:bg-primary/5 focus-scale"
       >
-        <Fingerprint className="w-3 h-3 mr-1" /> TAP
+        <Fingerprint className="w-3 h-3 mr-1.5" /> TAP
       </Button>
 
       <Button 
         onClick={() => setIsMuted(prev => !prev)} 
         variant="ghost" 
         size="icon"
-        className="text-primary hover:bg-primary/20"
+        className="text-primary hover:bg-primary/10 focus-scale"
       >
         {isMuted ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
       </Button>
@@ -196,32 +196,37 @@ const Metronome: React.FC<MetronomeProps> = ({ bpm, onBpmChange }) => {
         type="single" 
         value={division} 
         onValueChange={(value) => value && setDivision(value as NoteDivision)}
-        className="bg-secondary/50 rounded-md p-1 flex-shrink-0 border border-primary/20"
+        className="bg-muted/50 rounded-lg p-1 flex-shrink-0 border border-primary/10"
       >
         <ToggleGroupItem 
           value="quarter" 
-          className="data-[state=on]:bg-primary data-[state=on]:text-primary-foreground text-xs h-8 px-2 font-mono"
+          className="data-[state=on]:bg-primary data-[state=on]:text-primary-foreground text-[10px] font-bold h-8 px-3 focus-scale"
         >
-          <Clock className="w-4 h-4 mr-1" /> 1/4
+          <Clock className="w-3 h-3 mr-1.5" /> 1/4
         </ToggleGroupItem>
         <ToggleGroupItem 
           value="eighth" 
-          className="data-[state=on]:bg-primary data-[state=on]:text-primary-foreground text-xs h-8 px-2 font-mono"
+          className="data-[state=on]:bg-primary data-[state=on]:text-primary-foreground text-[10px] font-bold h-8 px-3 focus-scale"
         >
-          <Music className="w-4 h-4 mr-1" /> 1/8
+          <Music className="w-3 h-3 mr-1.5" /> 1/8
         </ToggleGroupItem>
       </ToggleGroup>
       
       <div 
         className={cn(
-          "w-8 h-8 rounded-full transition-all duration-100 flex-shrink-0 border-2 border-primary/20",
+          "w-10 h-10 rounded-xl transition-all duration-100 flex-shrink-0 border-2 border-primary/10 flex items-center justify-center",
           isRunning && isBeatActive
             ? isAccentBeat
-              ? "bg-warning shadow-[0_0_15px_hsl(var(--warning))] scale-125 border-warning"
-              : "bg-primary shadow-[0_0_15px_hsl(var(--primary))] scale-110 border-primary"
-            : "bg-muted-foreground/10"
+              ? "bg-warning border-warning shadow-[0_0_20px_hsl(var(--warning)/0.4)] scale-110"
+              : "bg-primary border-primary shadow-[0_0_20px_hsl(var(--primary)/0.4)] scale-105"
+            : "bg-muted/20"
         )}
-      />
+      >
+        <div className={cn(
+            "w-2 h-2 rounded-full transition-all duration-100",
+            isRunning && isBeatActive ? "bg-background scale-150" : "bg-muted-foreground/20"
+        )} />
+      </div>
     </div>
   );
 };
