@@ -4,7 +4,7 @@ import { ScalesProvider } from '@/context/ScalesContext';
 import AppLayout from './AppLayout';
 import AuthenticatedHeaderControls from './AuthenticatedHeaderControls';
 import { Button } from '@/components/ui/button';
-import { Gauge, Grid3x3, LogOut } from 'lucide-react';
+import { Play, BarChart2, LogOut } from 'lucide-react';
 import { useSupabaseSession } from '@/hooks/use-supabase-session';
 import { supabase } from '@/integrations/supabase/client';
 import { showSuccess, showError } from '@/utils/toast';
@@ -23,55 +23,51 @@ const NavLink: React.FC<NavLinkProps> = ({ to, icon, label }) => {
     return (
         <Button
             asChild
-            variant="ghost"
+            variant={isActive ? "secondary" : "ghost"}
             className={cn(
-                "flex flex-col items-center p-2 transition-colors duration-200 h-auto",
-                isActive
-                    ? "bg-primary/20 text-primary shadow-inner border border-primary/50"
-                    : "text-muted-foreground hover:bg-accent hover:text-primary"
+                "flex items-center gap-2 px-4 py-2 transition-all",
+                isActive ? "font-medium" : "text-muted-foreground hover:text-foreground"
             )}
         >
             <Link to={to}>
                 {icon}
-                <span className="text-xs mt-1 hidden sm:inline font-mono">{label}</span>
+                <span className="text-sm">{label}</span>
             </Link>
         </Button>
     );
 };
 
 const AuthenticatedShell: React.FC = () => {
-  const { session } = useSupabaseSession(); // Need session to handle logout
-  const navigate = useNavigate(); // Need navigate for logout
+  const navigate = useNavigate();
 
   const handleLogout = async () => {
     const { error } = await supabase.auth.signOut();
     if (error) {
         showError("Failed to log out.");
     } else {
-        showSuccess("Successfully logged out.");
-        navigate('/login'); // Redirect to login after logout
+        showSuccess("Logged out.");
+        navigate('/login');
     }
   };
 
   const authenticatedHeaderRightContent = (
-    <>
-      {/* Global Controls (BPM/Timer) */}
+    <div className="flex items-center gap-4">
       <AuthenticatedHeaderControls />
-
-      {/* Navigation Links for Authenticated Users */}
-      <NavLink to="/" icon={<Gauge className="w-5 h-5" />} label="Command Centre" />
-      <NavLink to="/progress" icon={<Grid3x3 className="w-5 h-5" />} label="Mastery Matrix" />
-
-      {/* Logout Button */}
-      <Button
-          variant="ghost"
-          onClick={handleLogout}
-          className="flex flex-col items-center p-2 transition-colors duration-200 h-auto text-destructive hover:bg-destructive/20 hover:text-destructive"
-      >
-          <LogOut className="w-5 h-5" />
-          <span className="text-xs mt-1 hidden sm:inline font-mono">Logout</span>
-      </Button>
-    </>
+      <div className="h-6 w-px bg-border mx-2 hidden md:block" />
+      <nav className="flex items-center gap-1">
+        <NavLink to="/" icon={<Play className="w-4 h-4" />} label="Practice" />
+        <NavLink to="/progress" icon={<BarChart2 className="w-4 h-4" />} label="Progress" />
+        <Button
+            variant="ghost"
+            size="icon"
+            onClick={handleLogout}
+            className="text-muted-foreground hover:text-destructive"
+        >
+            <LogOut className="w-4 h-4" />
+            <span className="sr-only">Logout</span>
+        </Button>
+      </nav>
+    </div>
   );
 
   return (

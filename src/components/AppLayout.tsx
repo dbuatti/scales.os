@@ -1,13 +1,10 @@
 import React from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Gauge, Grid3x3, LogOut, User, Home } from 'lucide-react';
+import { Link, useLocation } from 'react-router-dom';
+import { Play, BarChart2, User, Home } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
-import { useSupabaseSession } from '@/hooks/use-supabase-session';
-import { supabase } from '@/integrations/supabase/client';
-import { showSuccess, showError } from '@/utils/toast';
 import ScrollToTopButton from './ScrollToTopButton';
-import ThemeSwitcher from './ThemeSwitcher'; // Import the new ThemeSwitcher
+import ThemeSwitcher from './ThemeSwitcher';
 
 interface NavLinkProps {
     to: string;
@@ -22,17 +19,15 @@ const NavLink: React.FC<NavLinkProps> = ({ to, icon, label }) => {
     return (
         <Button
             asChild
-            variant="ghost"
+            variant={isActive ? "secondary" : "ghost"}
             className={cn(
-                "flex flex-col items-center p-2 transition-colors duration-200 h-auto",
-                isActive 
-                    ? "bg-primary/20 text-primary shadow-inner border border-primary/50" 
-                    : "text-muted-foreground hover:bg-accent hover:text-primary"
+                "flex items-center gap-2 px-4 py-2 transition-all",
+                isActive ? "font-medium" : "text-muted-foreground hover:text-foreground"
             )}
         >
             <Link to={to}>
                 {icon}
-                <span className="text-xs mt-1 hidden sm:inline font-mono">{label}</span>
+                <span className="text-sm">{label}</span>
             </Link>
         </Button>
     );
@@ -44,54 +39,49 @@ interface AppLayoutProps {
 }
 
 const AppLayout: React.FC<AppLayoutProps> = ({ children, headerRightContent }) => {
-    const { session, isLoading } = useSupabaseSession();
-    const navigate = useNavigate();
-
-    const handleLogout = async () => {
-        const { error } = await supabase.auth.signOut();
-        if (error) {
-            showError("Failed to log out.");
-        } else {
-            showSuccess("Successfully logged out.");
-            navigate('/login');
-        }
-    };
-
     return (
-        <div className="min-h-screen flex flex-col bg-background scanlines"> {/* Added scanlines class here */}
-            {/* Header/Navigation Bar */}
-            <header className="sticky top-0 z-50 w-full border-b border-primary/50 bg-card/90 backdrop-blur-sm">
-                <div className="container mx-auto flex h-16 items-center justify-between px-4 md:px-8">
-                    <h1 className="text-xl font-bold tracking-wider text-primary font-mono">
-                        SCALES.OS
-                    </h1>
-                    <nav className="flex items-center space-x-4">
+        <div className="min-h-screen flex flex-col bg-background">
+            <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+                <div className="container flex h-16 items-center justify-between">
+                    <Link to="/" className="flex items-center gap-2 font-bold text-xl tracking-tight">
+                        <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center text-primary-foreground">
+                            <Play className="w-5 h-5 fill-current" />
+                        </div>
+                        <span>Scales</span>
+                    </Link>
+                    <nav className="flex items-center gap-2">
                         {headerRightContent ? (
                             <>
                                 {headerRightContent}
-                                <ThemeSwitcher /> {/* Add ThemeSwitcher here */}
+                                <ThemeSwitcher />
                             </>
                         ) : (
                             <>
-                                <NavLink to="/landing" icon={<Home className="w-5 h-5" />} label="Home" />
-                                <Button asChild variant="ghost" className="text-primary hover:bg-primary/20">
+                                <NavLink to="/landing" icon={<Home className="w-4 h-4" />} label="Home" />
+                                <Button asChild variant="default" size="sm">
                                     <Link to="/login">
-                                        <User className="w-5 h-5 mr-2" /> Login / Sign Up
+                                        <User className="w-4 h-4 mr-2" /> Login
                                     </Link>
                                 </Button>
-                                <ThemeSwitcher /> {/* Add ThemeSwitcher here for public routes too */}
+                                <ThemeSwitcher />
                             </>
                         )}
                     </nav>
                 </div>
             </header>
             
-            {/* Main Content */}
-            <main className="flex-grow">
+            <main className="flex-grow container py-8">
                 {children}
             </main>
 
-            {/* Scroll to Top Button */}
+            <footer className="border-t py-6 md:py-0">
+                <div className="container flex flex-col items-center justify-between gap-4 md:h-24 md:flex-row">
+                    <p className="text-center text-sm leading-loose text-muted-foreground md:text-left">
+                        Built for pianists. Focused on technique.
+                    </p>
+                </div>
+            </footer>
+
             <ScrollToTopButton />
         </div>
     );
