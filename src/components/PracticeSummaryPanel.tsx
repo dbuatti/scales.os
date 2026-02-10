@@ -1,13 +1,15 @@
 import React from 'react';
 import { useGlobalBPM } from '@/context/GlobalBPMContext';
+import { useScales } from '@/context/ScalesContext';
 import { Card, CardContent } from '@/components/ui/card';
-import { Zap, Target, Gauge, Hand, Music, Piano, CheckCircle2, Save } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { Save, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
+import { showSuccess } from '@/utils/toast';
 
 const PracticeSummaryPanel: React.FC = () => {
   const { activePracticeItem, currentBPM, activeLogSnapshotFunction } = useGlobalBPM();
+  const { updatePracticeStatus } = useScales();
 
   if (!activePracticeItem) {
     return (
@@ -18,6 +20,21 @@ const PracticeSummaryPanel: React.FC = () => {
       </Card>
     );
   }
+
+  const handlePivot = () => {
+    let id = '';
+    if (activePracticeItem.type === 'scale') {
+      const { key, scaleType, articulation, octaves, handConfig } = activePracticeItem;
+      // Reconstruct ID for stasis
+      id = `${key}-${scaleType.replace(/\s/g, "")}-${articulation.replace(/\s/g, "")}-Asc+Descstandard-${handConfig.replace(/\s/g, "")}-Straight-Noaccentneutralevenness-${octaves.replace(/\s/g, "")}`;
+    } else {
+      id = activePracticeItem.exerciseId;
+    }
+    
+    updatePracticeStatus(id, 'stasis');
+    showSuccess("Item moved to stasis. The app will pivot to other tasks.");
+    window.location.reload(); // Refresh to trigger new nextFocus
+  };
 
   const masteryPercentage = (() => {
     if (activePracticeItem.type === 'scale') {
@@ -54,14 +71,24 @@ const PracticeSummaryPanel: React.FC = () => {
                 <p className="text-xs font-medium text-muted-foreground uppercase">Current Tempo</p>
                 <p className="text-3xl font-bold tracking-tighter">{currentBPM} <span className="text-sm font-normal text-muted-foreground">BPM</span></p>
               </div>
-              <Button 
-                onClick={() => activeLogSnapshotFunction?.()} 
-                disabled={!activeLogSnapshotFunction}
-                className="h-12 px-6"
-              >
-                <Save className="w-4 h-4 mr-2" />
-                Save Progress
-              </Button>
+              <div className="flex flex-col gap-2">
+                <Button 
+                  onClick={() => activeLogSnapshotFunction?.()} 
+                  disabled={!activeLogSnapshotFunction}
+                  className="h-10 px-6"
+                >
+                  <Save className="w-4 h-4 mr-2" />
+                  Save Progress
+                </Button>
+                <Button 
+                  variant="outline"
+                  onClick={handlePivot}
+                  className="h-10 px-6 text-xs text-muted-foreground hover:text-destructive"
+                >
+                  <AlertCircle className="w-3 h-3 mr-2" />
+                  Too Hard / Pivot
+                </Button>
+              </div>
             </div>
           </div>
 

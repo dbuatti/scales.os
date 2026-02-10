@@ -13,13 +13,11 @@ import { showSuccess, showError } from '@/utils/toast';
 
 // --- Types ---
 
-export type ScaleStatus = 'untouched' | 'practiced' | 'mastered';
+export type ScaleStatus = 'untouched' | 'practiced' | 'mastered' | 'stasis';
 
-// Progress is now keyed by a combination ID (Dohnanyi/Hanon/Old Grade Tracking)
-// This type is now primarily for legacy or other non-BPM tracked progress if any remain.
 export interface StoredProgressEntry {
   practice_id: string;
-  status: 'practiced' | 'mastered';
+  status: 'practiced' | 'mastered' | 'stasis';
 }
 
 export interface ScaleMasteryEntry {
@@ -27,7 +25,6 @@ export interface ScaleMasteryEntry {
   highest_mastered_bpm: number;
 }
 
-// New type for Dohnanyi/Hanon exercise mastery
 export interface ExerciseMasteryEntry {
   exercise_id: string;
   highest_mastered_bpm: number;
@@ -35,22 +32,18 @@ export interface ExerciseMasteryEntry {
 
 export interface PracticeLogItem {
   type: 'scale' | 'dohnanyi' | 'hanon';
-  // Scale specific fields
   scaleId?: string;
   articulation?: Articulation;
-  tempo?: TempoLevel; // Kept for old logs/display
+  tempo?: TempoLevel;
   direction?: DirectionType;
-  handConfig?: HandConfiguration | 'Hands separately'; // Allow legacy value in logs
+  handConfig?: HandConfiguration | 'Hands separately';
   rhythm?: RhythmicPermutation;
   accent?: AccentDistribution;
   octaves?: OctaveConfiguration;
-  // New fields for granular scale tracking
   practicedBPM?: number; 
   scalePermutationId?: string;
-  // Dohnanyi specific fields
   dohnanyiName?: DohnanyiExercise;
-  bpmTarget?: number; // The target BPM for Dohnanyi mastery step
-  // Hanon specific fields
+  bpmTarget?: number;
   hanonName?: HanonExercise;
   hanonBpmTarget?: number;
 }
@@ -58,7 +51,7 @@ export interface PracticeLogItem {
 export interface PracticeLogEntry {
   id: string;
   timestamp: number;
-  itemsPracticed: PracticeLogItem[]; // Renamed from scalesPracticed
+  itemsPracticed: PracticeLogItem[];
   notes: string;
   durationMinutes: number;
 }
@@ -77,20 +70,20 @@ export type NextFocus =
   | {
       type: 'dohnanyi';
       name: DohnanyiExercise;
-      exerciseId: string; // New: unique ID for the exercise
-      requiredBPM: number; // New: required BPM for grade
-      currentHighestBPM: number; // New: current highest BPM for this exercise
-      nextBPMGoal: number; // New: next incremental goal
+      exerciseId: string;
+      requiredBPM: number;
+      currentHighestBPM: number;
+      nextBPMGoal: number;
       grade: number;
       description: string;
     }
   | {
       type: 'hanon';
       name: HanonExercise;
-      exerciseId: string; // New: unique ID for the exercise
-      requiredBPM: number; // New: required BPM for grade
-      currentHighestBPM: number; // New: current highest BPM for this exercise
-      nextBPMGoal: number; // New: next incremental goal
+      exerciseId: string;
+      requiredBPM: number;
+      currentHighestBPM: number;
+      nextBPMGoal: number;
       grade: number;
       description: string;
     }
@@ -98,61 +91,51 @@ export type NextFocus =
 
 
 interface ScalesContextType {
-  progressMap: Record<string, 'practiced' | 'mastered'>; // Used for Dohnanyi/Hanon/Old Grade Tracking (will be phased out for Dohnanyi/Hanon)
-  scaleMasteryBPMMap: Record<string, number>; // Used for granular scale BPM tracking
-  exerciseMasteryBPMMap: Record<string, number>; // New: Used for Dohnanyi/Hanon BPM tracking
+  progressMap: Record<string, ScaleStatus>;
+  scaleMasteryBPMMap: Record<string, number>;
+  exerciseMasteryBPMMap: Record<string, number>;
   log: PracticeLogEntry[];
   isLoading: boolean;
   nextFocus: NextFocus;
-  updatePracticeStatus: (practiceId: string, status: ScaleStatus) => void; // Will be for non-BPM tracked items
+  updatePracticeStatus: (practiceId: string, status: ScaleStatus) => void;
   updateScaleMasteryBPM: (scalePermutationId: string, newBPM: number) => void;
-  updateExerciseMasteryBPM: (exerciseId: string, newBPM: number) => void; // New: for Dohnanyi/Hanon
+  updateExerciseMasteryBPM: (exerciseId: string, newBPM: number) => void;
   addLogEntry: (entry: Omit<PracticeLogEntry, 'id' | 'timestamp'>) => void;
   allScales: ScaleItem[];
   allDohnanyi: DohnanyiItem[];
   allDohnanyiCombinations: typeof ALL_DOHNANYI_COMBINATIONS;
   allHanon: HanonItem[];
   allHanonCombinations: typeof ALL_HANON_COMBINATIONS;
-  refetchData: () => Promise<void>; // New: Function to manually refetch data
-  clearExerciseMastery: () => Promise<void>; // New: Function to clear Dohnanyi/Hanon mastery
-  clearScaleMastery: () => Promise<void>; // NEW: Function to clear all scale mastery
-  clearAllLogs: () => Promise<void>; // NEW: Function to clear all practice logs
+  refetchData: () => Promise<void>;
+  clearExerciseMastery: () => Promise<void>;
+  clearScaleMastery: () => Promise<void>;
+  clearAllLogs: () => Promise<void>;
 }
-
-// --- Context and Provider ---
 
 const ScalesContext = createContext<ScalesContextType | undefined>(undefined);
 
-// Helper to convert DB array to map
-const progressArrayToMap = (arr: StoredProgressEntry[]): Record<string, 'practiced' | 'mastered'> => {
+const progressArrayToMap = (arr: StoredProgressEntry[]): Record<string, ScaleStatus> => {
   return arr.reduce((acc, item) => {
     acc[item.practice_id] = item.status;
     return acc;
-  }, {} as Record<string, 'practiced' | 'mastered'>);
+  }, {} as Record<string, ScaleStatus>);
 };
 
-// Helper to clean strings for ID generation (copied from scales.ts to avoid circular dependency)
 const cleanString = (s: string) => s.replace(/[\s\/\(\)]/g, "");
 
-// ScalesProvider now accepts and renders children
 export const ScalesProvider: React.FC<React.PropsWithChildren> = ({ children }) => {
   const { userId, isLoading: isSessionLoading } = useSupabaseSession();
-  const [progressMap, setProgressMap] = useState<Record<string, 'practiced' | 'mastered'>>({}); // Legacy for now
+  const [progressMap, setProgressMap] = useState<Record<string, ScaleStatus>>({});
   const [scaleMasteryBPMMap, setScaleMasteryBPMMap] = useState<Record<string, number>>({});
-  const [exerciseMasteryBPMMap, setExerciseMasteryBPMMap] = useState<Record<string, number>>({}); // New state
+  const [exerciseMasteryBPMMap, setExerciseMasteryBPMMap] = useState<Record<string, number>>({});
   const [log, setLog] = useState<PracticeLogEntry[]>([]);
   const [isDataLoading, setIsDataLoading] = useState(true);
 
   const isLoading = isSessionLoading || isDataLoading;
 
-  console.log("[ScalesContext] userId:", userId, "isSessionLoading:", isSessionLoading, "isDataLoading:", isDataLoading, "Overall isLoading:", isLoading);
-
-  // 1. Fetch data from Supabase
   const fetchData = useCallback(async (id: string) => {
-    console.log("[ScalesContext] Starting fetchData for userId:", id);
     setIsDataLoading(true);
     
-    // Fetch Progress (Legacy for now, might be removed if all tracking moves to BPM)
     const { data: progressData, error: progressError } = await supabase
       .from('user_progress')
       .select('practice_id, status')
@@ -160,13 +143,10 @@ export const ScalesProvider: React.FC<React.PropsWithChildren> = ({ children }) 
 
     if (progressError) {
       showError("Failed to load practice progress.");
-      console.error("[ScalesContext] Progress fetch error:", progressError);
     } else if (progressData) {
       setProgressMap(progressArrayToMap(progressData as StoredProgressEntry[]));
-      console.log("[ScalesContext] Progress data loaded:", progressData.length, "entries.");
     }
     
-    // Fetch Scale BPM Mastery
     const { data: scaleMasteryData, error: scaleMasteryError } = await supabase
       .from('scale_permutations_mastery')
       .select('scale_permutation_id, highest_mastered_bpm')
@@ -174,17 +154,14 @@ export const ScalesProvider: React.FC<React.PropsWithChildren> = ({ children }) 
 
     if (scaleMasteryError) {
       showError("Failed to load scale BPM progress.");
-      console.error("[ScalesContext] Scale mastery fetch error:", scaleMasteryError);
     } else if (scaleMasteryData) {
       const bpmMap = scaleMasteryData.reduce((acc, item) => {
         acc[item.scale_permutation_id] = item.highest_mastered_bpm;
         return acc;
       }, {} as Record<string, number>);
       setScaleMasteryBPMMap(bpmMap);
-      console.log("[ScalesContext] Scale mastery data loaded:", scaleMasteryData.length, "entries.");
     }
 
-    // Fetch Exercise BPM Mastery (NEW)
     const { data: exerciseMasteryData, error: exerciseMasteryError } = await supabase
       .from('exercise_mastery')
       .select('exercise_id, highest_mastered_bpm')
@@ -192,17 +169,14 @@ export const ScalesProvider: React.FC<React.PropsWithChildren> = ({ children }) 
 
     if (exerciseMasteryError) {
       showError("Failed to load exercise BPM progress.");
-      console.error("[ScalesContext] Exercise mastery fetch error:", exerciseMasteryError);
     } else if (exerciseMasteryData) {
       const bpmMap = exerciseMasteryData.reduce((acc, item) => {
         acc[item.exercise_id] = item.highest_mastered_bpm;
         return acc;
       }, {} as Record<string, number>);
       setExerciseMasteryBPMMap(bpmMap);
-      console.log("[ScalesContext] Exercise mastery data loaded:", exerciseMasteryData.length, "entries.");
     }
 
-    // Fetch Logs
     const { data: logData, error: logError } = await supabase
       .from('practice_logs')
       .select('id, duration_minutes, scales_practiced, notes, created_at')
@@ -211,39 +185,32 @@ export const ScalesProvider: React.FC<React.PropsWithChildren> = ({ children }) 
 
     if (logError) {
       showError("Failed to load practice logs.");
-      console.error("[ScalesContext] Log fetch error:", logError);
     } else if (logData) {
-      // Note: DB column is still named 'scales_practiced' but stores PracticeLogItem[]
       const formattedLog: PracticeLogEntry[] = logData.map(item => ({
         id: item.id,
         timestamp: new Date(item.created_at).getTime(),
         durationMinutes: item.duration_minutes,
-        itemsPracticed: item.scales_practiced || [], // Use new name internally
+        itemsPracticed: item.scales_practiced || [],
         notes: item.notes || '',
       }));
       setLog(formattedLog);
-      console.log("[ScalesContext] Log data loaded:", logData.length, "entries.");
     }
 
     setIsDataLoading(false);
-    console.log("[ScalesContext] Finished fetchData.");
-  }, [supabase]); // Added supabase to dependency array
+  }, []);
 
   useEffect(() => {
     if (userId) {
       fetchData(userId);
     } else if (!isSessionLoading) {
-      // If not logged in, clear state and stop loading
-      console.log("[ScalesContext] User not logged in, clearing state.");
       setProgressMap({});
       setScaleMasteryBPMMap({});
-      setExerciseMasteryBPMMap({}); // Clear new map
+      setExerciseMasteryBPMMap({});
       setLog([]);
       setIsDataLoading(false);
     }
   }, [userId, isSessionLoading, fetchData]);
 
-  // New: refetchData function to be exposed
   const refetchData = useCallback(async () => {
     if (userId) {
       showSuccess("Refreshing practice data...");
@@ -254,420 +221,163 @@ export const ScalesProvider: React.FC<React.PropsWithChildren> = ({ children }) 
     }
   }, [userId, fetchData]);
 
-  // New: Function to clear Dohnanyi and Hanon exercise mastery
   const clearExerciseMastery = useCallback(async () => {
-    if (!userId) {
-      showError("You must be logged in to clear data.");
-      return;
-    }
+    if (!userId) return;
+    await supabase.from('exercise_mastery').delete().eq('user_id', userId).like('exercise_id', 'Dohnanyi-%');
+    await supabase.from('exercise_mastery').delete().eq('user_id', userId).like('exercise_id', 'Hanon-%');
+    showSuccess("Exercise mastery cleared.");
+    await refetchData();
+  }, [userId, refetchData]);
 
-    // Delete all Dohnanyi entries
-    const { error: dohnanyiError } = await supabase
-      .from('exercise_mastery')
-      .delete()
-      .eq('user_id', userId)
-      .like('exercise_id', 'Dohnanyi-%'); // Match all Dohnanyi exercise IDs
-
-    if (dohnanyiError) {
-      showError("Failed to clear Dohnányi mastery data.");
-      console.error("[ScalesContext] Error clearing Dohnányi mastery:", dohnanyiError);
-      return;
-    }
-
-    // Delete all Hanon entries
-    const { error: hanonError } = await supabase
-      .from('exercise_mastery')
-      .delete()
-      .eq('user_id', userId)
-      .like('exercise_id', 'Hanon-%'); // Match all Hanon exercise IDs
-
-    if (hanonError) {
-      showError("Failed to clear Hanon mastery data.");
-      console.error("[ScalesContext] Error clearing Hanon mastery:", hanonError);
-      return;
-    }
-
-    showSuccess("Dohnányi and Hanon mastery data cleared successfully!");
-    await refetchData(); // Refresh data to update UI
-  }, [userId, refetchData, supabase]); // Added supabase to dependency array
-
-  // NEW: Function to clear all scale mastery
   const clearScaleMastery = useCallback(async () => {
-    if (!userId) {
-      showError("You must be logged in to clear scale mastery data.");
-      return;
-    }
+    if (!userId) return;
+    await supabase.from('scale_permutations_mastery').delete().eq('user_id', userId);
+    showSuccess("Scale mastery cleared.");
+    await refetchData();
+  }, [userId, refetchData]);
 
-    const { error } = await supabase
-      .from('scale_permutations_mastery')
-      .delete()
-      .eq('user_id', userId);
-
-    if (error) {
-      showError("Failed to clear scale mastery data.");
-      console.error("[ScalesContext] Error clearing scale mastery:", error);
-      return;
-    }
-
-    showSuccess("All scale mastery data cleared successfully!");
-    await refetchData(); // Refresh data to update UI
-  }, [userId, refetchData, supabase]); // Added supabase to dependency array
-
-  // NEW: Function to clear all practice logs
   const clearAllLogs = useCallback(async () => {
-    if (!userId) {
-      showError("You must be logged in to clear data.");
-      return;
-    }
+    if (!userId) return;
+    await supabase.from('practice_logs').delete().eq('user_id', userId);
+    showSuccess("Logs cleared.");
+    await refetchData();
+  }, [userId, refetchData]);
 
-    const { error } = await supabase
-      .from('practice_logs')
-      .delete()
-      .eq('user_id', userId);
-
-    if (error) {
-      showError("Failed to clear practice logs.");
-      console.error("[ScalesContext] Error clearing practice logs:", error);
-      return;
-    }
-
-    showSuccess("All practice logs cleared successfully!");
-    await refetchData(); // Refresh data to update UI
-  }, [userId, refetchData, supabase]); // Added supabase to dependency array
-
-
-  // 1.5 Calculate Next Focus (Enhanced Logic)
   const nextFocus: NextFocus = useMemo(() => {
     if (isSessionLoading || isDataLoading) return null;
     
     const nextGrade = PRACTICE_GRADES.find(grade => {
         const requirements = getGradeRequirements(grade.id);
-        
         return requirements.some(req => {
+            const id = req.type === 'scale' ? req.scalePermutationId : req.exerciseId;
+            if (progressMap[id] === 'stasis') return false;
             if (req.type === 'scale') {
-                const highestBPM = scaleMasteryBPMMap[req.scalePermutationId] || 0;
-                return highestBPM < req.requiredBPM;
-            } else { // Dohnanyi or Hanon
-                // Now check against exerciseMasteryBPMMap
-                const highestBPM = exerciseMasteryBPMMap[req.exerciseId] || 0; // Use exerciseId here
-                return highestBPM < req.requiredBPM;
+                return (scaleMasteryBPMMap[req.scalePermutationId] || 0) < req.requiredBPM;
+            } else {
+                return (exerciseMasteryBPMMap[req.exerciseId] || 0) < req.requiredBPM;
             }
         });
     });
 
-    if (!nextGrade) {
-        return null; // All grades mastered
-    }
+    if (!nextGrade) return null;
     
     const requirements = getGradeRequirements(nextGrade.id);
     
-    // Filter for unmastered requirements and add a 'score' for prioritization
-    const scoredRequirements = requirements
-        .filter(req => {
-            if (req.type === 'scale') {
-                const highestBPM = scaleMasteryBPMMap[req.scalePermutationId] || 0;
-                return highestBPM < req.requiredBPM;
-            } else { // Dohnanyi or Hanon
-                const highestBPM = exerciseMasteryBPMMap[req.exerciseId] || 0; // Use exerciseId here
-                if (highestBPM > 0) { // Prioritize if already practiced
-                    return highestBPM < req.requiredBPM;
+    // Balanced Rotation Logic: Calculate completion per type
+    const types = ['scale', 'dohnanyi', 'hanon'] as const;
+    const typeStats = types.map(type => {
+        const typeReqs = requirements.filter(r => r.type === type);
+        if (typeReqs.length === 0) return { type, completion: 100 };
+        const mastered = typeReqs.filter(req => {
+            const id = req.type === 'scale' ? req.scalePermutationId : req.exerciseId;
+            const bpm = req.type === 'scale' ? (scaleMasteryBPMMap[req.scalePermutationId] || 0) : (exerciseMasteryBPMMap[req.exerciseId] || 0);
+            return bpm >= req.requiredBPM;
+        }).length;
+        return { type, completion: (mastered / typeReqs.length) * 100 };
+    });
+
+    // Sort types by completion (lowest first)
+    const prioritizedTypes = typeStats.sort((a, b) => a.completion - b.completion).map(s => s.type);
+
+    for (const type of prioritizedTypes) {
+        const candidates = requirements.filter(req => {
+            if (req.type !== type) return false;
+            const id = req.type === 'scale' ? req.scalePermutationId : req.exerciseId;
+            if (progressMap[id] === 'stasis') return false;
+            const bpm = req.type === 'scale' ? (scaleMasteryBPMMap[req.scalePermutationId] || 0) : (exerciseMasteryBPMMap[req.exerciseId] || 0);
+            return bpm < req.requiredBPM;
+        });
+
+        if (candidates.length > 0) {
+            // Pick a random candidate from the lagging type
+            const selectedRequirement = candidates[Math.floor(Math.random() * candidates.length)];
+            
+            if (selectedRequirement.type === 'scale') {
+                const highestBPM = scaleMasteryBPMMap[selectedRequirement.scalePermutationId] || 0;
+                const parsed = parseScalePermutationId(selectedRequirement.scalePermutationId);
+                if (!parsed) continue;
+                const scaleItem = ALL_SCALE_ITEMS.find(s => s.id === parsed.scaleId);
+                if (scaleItem) return {
+                    type: 'scale',
+                    scaleItem,
+                    scalePermutationId: selectedRequirement.scalePermutationId,
+                    requiredBPM: selectedRequirement.requiredBPM,
+                    currentHighestBPM: highestBPM,
+                    nextBPMGoal: highestBPM > 0 ? highestBPM + 3 : 40,
+                    grade: nextGrade.id,
+                    description: selectedRequirement.description,
+                };
+            } else {
+                const item = (selectedRequirement.type === 'dohnanyi' ? ALL_DOHNANYI_ITEMS : ALL_HANON_ITEMS).find(c => c.id === selectedRequirement.exerciseId);
+                if (item) {
+                    const highestBPM = exerciseMasteryBPMMap[selectedRequirement.exerciseId] || 0;
+                    return {
+                        type: selectedRequirement.type,
+                        name: item.name as any,
+                        exerciseId: item.id,
+                        requiredBPM: selectedRequirement.requiredBPM,
+                        currentHighestBPM: highestBPM,
+                        nextBPMGoal: highestBPM > 0 ? highestBPM + 3 : 40,
+                        grade: nextGrade.id,
+                        description: selectedRequirement.description,
+                    } as any;
                 }
-                return true; // If untouched, it's a candidate
             }
-        })
-        .map(req => {
-            let score = 0; // Higher score means higher priority
-            if (req.type === 'scale') {
-                const highestBPM = scaleMasteryBPMMap[req.scalePermutationId] || 0;
-                // Prioritize if already practiced (highestBPM > 0)
-                if (highestBPM > 0) {
-                    score += 10; 
-                    // Further prioritize if current highest BPM is close to required BPM
-                    const bpmDifference = req.requiredBPM - highestBPM;
-                    if (bpmDifference <= 10 && bpmDifference > 0) { // Within 10 BPM of goal
-                        score += 5;
-                    } else if (bpmDifference <= 20 && bpmDifference > 0) { // Within 20 BPM of goal
-                        score += 3;
-                    }
-                }
-            } else { // Dohnanyi or Hanon
-                const highestBPM = exerciseMasteryBPMMap[req.exerciseId] || 0; // Use exerciseId here
-                if (highestBPM > 0) { // Prioritize if already practiced
-                    score += 10;
-                    const bpmDifference = req.requiredBPM - highestBPM;
-                    if (bpmDifference <= 10 && bpmDifference > 0) {
-                        score += 5;
-                    } else if (bpmDifference <= 20 && bpmDifference > 0) {
-                        score += 3;
-                    }
-                }
-            }
-            return { req, score };
-        })
-        .sort((a, b) => b.score - a.score); // Sort by score descending
-
-    // If no unmastered requirements, return null (shouldn't happen if nextGrade exists)
-    if (scoredRequirements.length === 0) return null;
-
-    // Select from the top 3 candidates (or fewer if less than 3 exist) to introduce some randomness
-    const topCandidates = scoredRequirements.slice(0, Math.min(3, scoredRequirements.length));
-    const randomIndex = Math.floor(Math.random() * topCandidates.length);
-    const selectedRequirement = topCandidates[randomIndex].req;
-    
-    if (!selectedRequirement) return null;
-
-    if (selectedRequirement.type === 'scale') {
-        const highestBPM = scaleMasteryBPMMap[selectedRequirement.scalePermutationId] || 0;
-        const nextBPMGoal = highestBPM > 0 ? highestBPM + 3 : 40;
-        
-        // Parse scale details from permutation ID
-        const parsed = parseScalePermutationId(selectedRequirement.scalePermutationId);
-        if (!parsed) return null; // Should not happen with valid IDs
-        
-        const scaleIdPart = parsed.scaleId;
-        const scaleItem = ALL_SCALE_ITEMS.find(s => s.id === scaleIdPart);
-        
-        if (scaleItem) {
-            return {
-                type: 'scale',
-                scaleItem,
-                scalePermutationId: selectedRequirement.scalePermutationId,
-                requiredBPM: selectedRequirement.requiredBPM,
-                currentHighestBPM: highestBPM,
-                nextBPMGoal,
-                grade: nextGrade.id,
-                description: selectedRequirement.description,
-            };
-        }
-    } else if (selectedRequirement.type === 'dohnanyi') {
-        const dohItem = ALL_DOHNANYI_ITEMS.find(c => c.id === selectedRequirement.exerciseId); // Use exerciseId
-        if (dohItem) {
-            const currentHighestBPM = exerciseMasteryBPMMap[selectedRequirement.exerciseId] || 0; // Use exerciseId here
-            const nextBPMGoal = currentHighestBPM > 0 ? currentHighestBPM + 3 : 40;
-            return {
-                type: 'dohnanyi',
-                name: dohItem.name,
-                exerciseId: dohItem.id,
-                requiredBPM: selectedRequirement.requiredBPM,
-                currentHighestBPM: currentHighestBPM,
-                nextBPMGoal: nextBPMGoal,
-                grade: nextGrade.id,
-                description: selectedRequirement.description,
-            };
-        }
-    } else if (selectedRequirement.type === 'hanon') {
-        const hanonItem = ALL_HANON_ITEMS.find(c => c.id === selectedRequirement.exerciseId); // Use exerciseId
-        if (hanonItem) {
-            const currentHighestBPM = exerciseMasteryBPMMap[selectedRequirement.exerciseId] || 0; // Use exerciseId here
-            const nextBPMGoal = currentHighestBPM > 0 ? currentHighestBPM + 3 : 40;
-            return {
-                type: 'hanon',
-                name: hanonItem.name,
-                exerciseId: hanonItem.id,
-                requiredBPM: selectedRequirement.requiredBPM,
-                currentHighestBPM: currentHighestBPM,
-                nextBPMGoal: nextBPMGoal,
-                grade: nextGrade.id,
-                description: selectedRequirement.description,
-            };
         }
     }
     
     return null;
-  }, [scaleMasteryBPMMap, exerciseMasteryBPMMap, isSessionLoading, isDataLoading]);
+  }, [scaleMasteryBPMMap, exerciseMasteryBPMMap, progressMap, isSessionLoading, isDataLoading]);
 
-
-  // 2. Update Practice Status (Upsert to Supabase - used for Dohnanyi/Hanon/Grade categories)
-  // This function will now primarily be for non-BPM tracked items if any remain.
   const updatePracticeStatus = useCallback(async (practiceId: string, status: ScaleStatus) => {
-    if (!userId) {
-      showError("You must be logged in to save progress.");
-      return;
-    }
+    if (!userId) return;
 
     if (status === 'untouched') {
-      // Delete entry if status is untouched
-      const { error } = await supabase
-        .from('user_progress')
-        .delete()
-        .eq('user_id', userId)
-        .eq('practice_id', practiceId);
-
-      if (error) {
-        showError("Failed to reset practice status.");
-        console.error("[ScalesContext] Error resetting practice status:", error);
-        return;
-      }
-      
-      // Update local state
+      await supabase.from('user_progress').delete().eq('user_id', userId).eq('practice_id', practiceId);
       setProgressMap(prev => {
         const newState = { ...prev };
         delete newState[practiceId];
         return newState;
       });
-
     } else {
-      // Upsert entry if status is practiced or mastered
-      const { error } = await supabase
-        .from('user_progress')
-        .upsert({
-          user_id: userId,
-          practice_id: practiceId,
-          status: status,
-        }, { onConflict: 'user_id, practice_id' });
-
-      if (error) {
-        showError("Failed to save practice status.");
-        console.error("[ScalesContext] Error saving practice status:", error);
-        return;
-      }
-      
-      // Update local state
-      setProgressMap(prev => ({
-        ...prev,
-        [practiceId]: status,
-      }));
+      await supabase.from('user_progress').upsert({ user_id: userId, practice_id: practiceId, status: status }, { onConflict: 'user_id, practice_id' });
+      setProgressMap(prev => ({ ...prev, [practiceId]: status }));
     }
-  }, [userId, supabase]); // Added supabase to dependency array
+  }, [userId]);
   
-  // 3. Update Scale Mastery BPM (Upsert to Supabase - used for granular scale tracking)
   const updateScaleMasteryBPM = useCallback(async (scalePermutationId: string, newBPM: number) => {
-    if (!userId) {
-      showError("You must be logged in to save scale BPM progress.");
-      return;
-    }
+    if (!userId) return;
+    await supabase.from('scale_permutations_mastery').upsert({ user_id: userId, scale_permutation_id: scalePermutationId, highest_mastered_bpm: newBPM, last_practiced_at: new Date().toISOString() }, { onConflict: 'user_id, scale_permutation_id' });
+    setScaleMasteryBPMMap(prev => ({ ...prev, [scalePermutationId]: newBPM }));
+  }, [userId]);
 
-    // 1. Upsert the highest BPM
-    const { error } = await supabase
-        .from('scale_permutations_mastery')
-        .upsert({
-            user_id: userId,
-            scale_permutation_id: scalePermutationId,
-            highest_mastered_bpm: newBPM,
-            last_practiced_at: new Date().toISOString(),
-        }, { onConflict: 'user_id, scale_permutation_id' });
-
-    if (error) {
-        showError("Failed to save scale BPM progress.");
-        console.error("[ScalesContext] Error saving scale BPM progress:", error);
-        return;
-    }
-
-    // 2. Update local state
-    setScaleMasteryBPMMap(prev => ({
-        ...prev,
-        [scalePermutationId]: newBPM,
-    }));
-    
-  }, [userId, supabase]); // Added supabase to dependency array
-
-  // 4. Update Exercise Mastery BPM (NEW: Upsert to Supabase - for Dohnanyi/Hanon granular tracking)
   const updateExerciseMasteryBPM = useCallback(async (exerciseId: string, newBPM: number) => {
-    if (!userId) {
-      showError("You must be logged in to save exercise BPM progress.");
-      return;
-    }
+    if (!userId) return;
+    await supabase.from('exercise_mastery').upsert({ user_id: userId, exercise_id: exerciseId, highest_mastered_bpm: newBPM, last_practiced_at: new Date().toISOString() }, { onConflict: 'user_id, exercise_id' });
+    setExerciseMasteryBPMMap(prev => ({ ...prev, [exerciseId]: newBPM }));
+  }, [userId]);
 
-    const { error } = await supabase
-        .from('exercise_mastery')
-        .upsert({
-            user_id: userId,
-            exercise_id: exerciseId,
-            highest_mastered_bpm: newBPM,
-            last_practiced_at: new Date().toISOString(),
-        }, { onConflict: 'user_id, exercise_id' });
-
-    if (error) {
-        showError("Failed to save exercise BPM progress.");
-        console.error("[ScalesContext] Error saving exercise BPM progress:", error);
-        return;
-    }
-
-    setExerciseMasteryBPMMap(prev => ({
-        ...prev,
-        [exerciseId]: newBPM,
-    }));
-  }, [userId, supabase]); // Added supabase to dependency array
-
-
-  // 5. Add Log Entry (Insert to Supabase)
   const addLogEntry = useCallback(async (entry: Omit<PracticeLogEntry, 'id' | 'timestamp'>) => {
-    if (!userId) {
-      showError("You must be logged in to log practice sessions.");
-      return;
+    if (!userId) return;
+    const { data } = await supabase.from('practice_logs').insert({ user_id: userId, duration_minutes: entry.durationMinutes, scales_practiced: entry.itemsPracticed, notes: entry.notes }).select('id, created_at').single();
+    if (data) {
+      const finalEntry: PracticeLogEntry = { ...entry, id: data.id, timestamp: new Date(data.created_at).getTime() };
+      setLog(prev => [finalEntry, ...prev]);
     }
-
-    const newEntry: PracticeLogEntry = {
-      ...entry,
-      id: Date.now().toString(), // Temporary ID for local state update
-      timestamp: Date.now(),
-    };
-
-    // Note: Using 'scales_practiced' column name for backward compatibility with existing schema
-    const { data, error } = await supabase
-      .from('practice_logs')
-      .insert({
-        user_id: userId,
-        duration_minutes: entry.durationMinutes,
-        scales_practiced: entry.itemsPracticed, // Storing PracticeLogItem[] here
-        notes: entry.notes,
-      })
-      .select('id, created_at')
-      .single();
-
-    if (error) {
-      showError("Failed to log practice session.");
-      console.error("[ScalesContext] Error logging practice session:", error);
-      return;
-    }
-    
-    // Update local state with the actual ID and timestamp from DB
-    const finalEntry: PracticeLogEntry = {
-        ...newEntry,
-        id: data.id,
-        timestamp: new Date(data.created_at).getTime(),
-    };
-
-    setLog(prev => [finalEntry, ...prev]);
-  }, [userId, supabase]); // Added supabase to dependency array
-
+  }, [userId]);
 
   const contextValue = useMemo(() => ({
-    progressMap,
-    scaleMasteryBPMMap,
-    exerciseMasteryBPMMap, // Include new map
-    log,
-    isLoading,
-    nextFocus,
-    updatePracticeStatus,
-    updateScaleMasteryBPM,
-    updateExerciseMasteryBPM, // Include new function
-    addLogEntry,
-    allScales: ALL_SCALE_ITEMS,
-    allDohnanyi: ALL_DOHNANYI_ITEMS,
-    allDohnanyiCombinations: ALL_DOHNANYI_COMBINATIONS,
-    allHanon: ALL_HANON_ITEMS,
-    allHanonCombinations: ALL_HANON_COMBINATIONS,
-    refetchData, // Expose refetchData
-    clearExerciseMastery, // Expose clearExerciseMastery
-    clearScaleMastery, // Expose clearScaleMastery
-    clearAllLogs, // Expose clearAllLogs
-  }), [
     progressMap, scaleMasteryBPMMap, exerciseMasteryBPMMap, log, isLoading, nextFocus, 
-    updatePracticeStatus, updateScaleMasteryBPM, updateExerciseMasteryBPM, addLogEntry, refetchData, clearExerciseMastery, clearScaleMastery, clearAllLogs
-  ]);
+    updatePracticeStatus, updateScaleMasteryBPM, updateExerciseMasteryBPM, addLogEntry, 
+    allScales: ALL_SCALE_ITEMS, allDohnanyi: ALL_DOHNANYI_ITEMS, allDohnanyiCombinations: ALL_DOHNANYI_COMBINATIONS,
+    allHanon: ALL_HANON_ITEMS, allHanonCombinations: ALL_HANON_COMBINATIONS, refetchData, clearExerciseMastery, clearScaleMastery, clearAllLogs
+  }), [progressMap, scaleMasteryBPMMap, exerciseMasteryBPMMap, log, isLoading, nextFocus, updatePracticeStatus, updateScaleMasteryBPM, updateExerciseMasteryBPM, addLogEntry, refetchData, clearExerciseMastery, clearScaleMastery, clearAllLogs]);
 
-  return (
-    <ScalesContext.Provider value={contextValue}>
-      {children}
-    </ScalesContext.Provider>
-  );
+  return <ScalesContext.Provider value={contextValue}>{children}</ScalesContext.Provider>;
 };
 
 export const useScales = () => {
   const context = useContext(ScalesContext);
-  if (context === undefined) {
-    throw new Error('useScales must be used within a ScalesProvider');
-  }
+  if (context === undefined) throw new Error('useScales must be used within a ScalesProvider');
   return context;
 };
