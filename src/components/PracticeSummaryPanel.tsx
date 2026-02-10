@@ -13,9 +13,10 @@ const PracticeSummaryPanel: React.FC = () => {
 
   if (!activePracticeItem) {
     return (
-      <Card className="bg-muted/30 border-dashed">
-        <CardContent className="p-12 text-center space-y-4">
-          <p className="text-muted-foreground">Select an exercise to begin tracking your session.</p>
+      <Card className="bg-muted/20 border-dashed border-2">
+        <CardContent className="p-16 text-center space-y-4">
+          <p className="text-xl font-medium text-muted-foreground">Select an exercise to begin tracking your session.</p>
+          <p className="text-sm text-muted-foreground/60">Your progress will be automatically calculated as you practice.</p>
         </CardContent>
       </Card>
     );
@@ -49,79 +50,80 @@ const PracticeSummaryPanel: React.FC = () => {
   })();
 
   return (
-    <Card className="overflow-hidden border-none shadow-md bg-card">
+    <Card className="overflow-hidden border-none shadow-lg bg-card ring-1 ring-primary/5">
       <CardContent className="p-0">
-        <div className="p-6 space-y-6">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-            <div className="space-y-1">
-              <h2 className="text-2xl font-bold tracking-tight">
+        <div className="p-8 space-y-8">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-8">
+            <div className="space-y-2">
+              <h2 className="text-3xl font-black tracking-tight text-primary">
                 {activePracticeItem.type === 'scale'
                   ? `${activePracticeItem.key} ${activePracticeItem.scaleType}`
                   : activePracticeItem.name}
               </h2>
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <span className="capitalize">{activePracticeItem.type}</span>
+              <div className="flex items-center gap-3 text-base font-medium text-muted-foreground">
+                <span className="capitalize bg-primary/10 text-primary px-2 py-0.5 rounded text-xs font-bold tracking-widest">{activePracticeItem.type}</span>
                 <span>•</span>
                 <span>{activePracticeItem.type === 'scale' ? activePracticeItem.articulation : 'Standard'}</span>
               </div>
             </div>
             
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-8">
               <div className="text-right">
-                <p className="text-xs font-medium text-muted-foreground uppercase">Current Tempo</p>
-                <p className="text-3xl font-bold tracking-tighter">{currentBPM} <span className="text-sm font-normal text-muted-foreground">BPM</span></p>
+                <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest mb-1">Current Tempo</p>
+                <p className="text-5xl font-black tracking-tighter text-primary">{currentBPM} <span className="text-lg font-bold text-muted-foreground">BPM</span></p>
               </div>
-              <div className="flex flex-col gap-2">
+              <div className="flex flex-col gap-3">
                 <Button 
                   onClick={() => activeLogSnapshotFunction?.()} 
                   disabled={!activeLogSnapshotFunction}
-                  className="h-10 px-6"
+                  size="lg"
+                  className="h-12 px-8 font-bold shadow-md focus-scale"
                 >
-                  <Save className="w-4 h-4 mr-2" />
+                  <Save className="w-5 h-5 mr-2" />
                   Save Progress
                 </Button>
                 <Button 
-                  variant="outline"
+                  variant="ghost"
                   onClick={handlePivot}
-                  className="h-10 px-6 text-xs text-muted-foreground hover:text-destructive"
+                  className="h-10 px-8 text-xs font-bold text-muted-foreground hover:text-destructive hover:bg-destructive/5 transition-colors"
                 >
-                  <AlertCircle className="w-3 h-3 mr-2" />
+                  <AlertCircle className="w-4 h-4 mr-2" />
                   Too Hard / Pivot
                 </Button>
               </div>
             </div>
           </div>
 
-          <div className="space-y-2">
-            <div className="flex justify-between text-xs font-medium text-muted-foreground uppercase">
+          <div className="space-y-3">
+            <div className="flex justify-between text-xs font-bold text-muted-foreground uppercase tracking-widest">
               <span>Progress to next goal</span>
-              <span>{masteryPercentage.toFixed(0)}%</span>
+              <span className="text-primary">{masteryPercentage.toFixed(0)}%</span>
             </div>
-            <Progress value={masteryPercentage} className="h-2" />
+            <Progress value={masteryPercentage} className="h-3 shadow-sm" />
           </div>
 
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 pt-4 border-t">
-            <div className="space-y-1">
-              <p className="text-[10px] font-medium text-muted-foreground uppercase">Highest</p>
-              <p className="text-sm font-semibold">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 pt-8 border-t border-primary/5">
+            <div className="space-y-1.5">
+              <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Highest</p>
+              <p className="text-lg font-bold text-primary">
                 {activePracticeItem.type === 'scale' ? activePracticeItem.highestBPM : (activePracticeItem as any).currentHighestBPM} BPM
               </p>
             </div>
-            <div className="space-y-1">
-              <p className="text-[10px] font-medium text-muted-foreground uppercase">Goal</p>
-              <p className="text-sm font-semibold">
+            <div className="space-y-1.5">
+              <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Goal</p>
+              <p className="text-lg font-bold text-primary">
                 {activePracticeItem.type === 'scale' ? activePracticeItem.nextGoalBPM : (activePracticeItem as any).nextTargetBPM} BPM
               </p>
             </div>
             {activePracticeItem.type === 'scale' && (
               <>
-                <div className="space-y-1">
-                  <p className="text-[10px] font-medium text-muted-foreground uppercase">Octaves</p>
-                  <p className="text-sm font-semibold">{activePracticeItem.octaves}</p>
+                <div className="space-y-1.5">
+                  <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Octaves</p>
+                  <p className="text-lg font-bold text-primary">{activePracticeItem.octaves}</p>
                 </div>
-                <div className="space-y-1">
-                  <p className="text-[10px] font-medium text-muted-foreground uppercase">Hands</p>
-                  <p className="text-sm font-semibold">{activePracticeItem.handConfig}</p>
+                <div className="space-y-1.5">
+                  <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Hands</p>
+                  <p className="text-lg font-bold text-primary">{activePracticeItem.handConfig}</p>
                 </div>
               </>
             )}

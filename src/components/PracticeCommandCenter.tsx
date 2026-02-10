@@ -92,30 +92,30 @@ const PracticeCommandCenter: React.FC = () => {
     : 'None';
 
   return (
-    <div className="max-w-5xl mx-auto space-y-8">
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Practice</h1>
-          <p className="text-muted-foreground">Focus on your technique and track your progress.</p>
+    <div className="max-w-7xl mx-auto space-y-10 px-4 md:px-8"> {/* Increased max-width and spacing */}
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+        <div className="space-y-2">
+          <h1 className="text-4xl font-bold tracking-tight">Practice</h1>
+          <p className="text-lg text-muted-foreground">Focus on your technique and track your progress.</p>
         </div>
         {nextFocus && (
-          <Card className="bg-muted/50 border-none shadow-none">
-            <CardContent className="p-4 flex items-center gap-4">
+          <Card className="bg-primary/5 border-primary/20 shadow-sm">
+            <CardContent className="p-5 flex items-center gap-6">
               <div className="space-y-1">
-                <p className="text-xs font-medium uppercase text-muted-foreground">Suggested Focus</p>
-                <p className="text-sm font-semibold">{suggestedLabel}</p>
+                <p className="text-xs font-bold uppercase tracking-widest text-primary/60">Suggested Focus</p>
+                <p className="text-lg font-semibold">{suggestedLabel}</p>
               </div>
-              <Button size="sm" onClick={() => handleLoadSuggestion(nextFocus)} disabled={isEngagingSuggestion}>
-                <Target className="w-4 h-4 mr-2" />
-                Start
+              <Button size="lg" onClick={() => handleLoadSuggestion(nextFocus)} disabled={isEngagingSuggestion} className="focus-scale">
+                <Target className="w-5 h-5 mr-2" />
+                Start Session
               </Button>
             </CardContent>
           </Card>
         )}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <div className="lg:col-span-2 space-y-8">
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-10"> {/* Changed to 4 columns for better balance */}
+        <div className="lg:col-span-3 space-y-10">
           <PracticeSummaryPanel />
           
           <Tabs value={activeTab} onValueChange={(v) => {
@@ -124,13 +124,13 @@ const PracticeCommandCenter: React.FC = () => {
             setIsPermutationManuallyAdjusted(false);
             setIsTabManuallySelected(true);
           }}>
-            <TabsList className="w-full justify-start h-auto p-0 bg-transparent border-b rounded-none gap-6">
-              <TabsTrigger value="scales" className="data-[state=active]:border-primary data-[state=active]:bg-transparent border-b-2 border-transparent rounded-none px-0 pb-2 text-base font-semibold shadow-none">Scales</TabsTrigger>
-              <TabsTrigger value="dohnanyi" className="data-[state=active]:border-primary data-[state=active]:bg-transparent border-b-2 border-transparent rounded-none px-0 pb-2 text-base font-semibold shadow-none">Dohnányi</TabsTrigger>
-              <TabsTrigger value="hanon" className="data-[state=active]:border-primary data-[state=active]:bg-transparent border-b-2 border-transparent rounded-none px-0 pb-2 text-base font-semibold shadow-none">Hanon</TabsTrigger>
+            <TabsList className="w-full justify-start h-auto p-0 bg-transparent border-b rounded-none gap-10">
+              <TabsTrigger value="scales" className="data-[state=active]:border-primary data-[state=active]:bg-transparent border-b-4 border-transparent rounded-none px-0 pb-4 text-lg font-bold shadow-none transition-all">Scales</TabsTrigger>
+              <TabsTrigger value="dohnanyi" className="data-[state=active]:border-primary data-[state=active]:bg-transparent border-b-4 border-transparent rounded-none px-0 pb-4 text-lg font-bold shadow-none transition-all">Dohnányi</TabsTrigger>
+              <TabsTrigger value="hanon" className="data-[state=active]:border-primary data-[state=active]:bg-transparent border-b-4 border-transparent rounded-none px-0 pb-4 text-lg font-bold shadow-none transition-all">Hanon</TabsTrigger>
             </TabsList>
 
-            <TabsContent value="scales" className="pt-6">
+            <TabsContent value="scales" className="pt-8">
               <ScalePracticePanel
                 suggestedScalePermutation={nextFocus?.type === 'scale' ? nextFocus : undefined}
                 currentBPM={currentBPM}
@@ -142,7 +142,7 @@ const PracticeCommandCenter: React.FC = () => {
                 activeTab={activeTab}
               />
             </TabsContent>
-            <TabsContent value="dohnanyi" className="pt-6">
+            <TabsContent value="dohnanyi" className="pt-8">
               <DohnanyiPracticePanel
                 suggestedDohnanyi={nextFocus?.type === 'dohnanyi' ? nextFocus : undefined}
                 currentBPM={currentBPM}
@@ -152,7 +152,7 @@ const PracticeCommandCenter: React.FC = () => {
                 activeTab={activeTab}
               />
             </TabsContent>
-            <TabsContent value="hanon" className="pt-6">
+            <TabsContent value="hanon" className="pt-8">
               <HanonPracticePanel
                 suggestedHanon={nextFocus?.type === 'hanon' ? nextFocus : undefined}
                 currentBPM={currentBPM}
@@ -165,18 +165,18 @@ const PracticeCommandCenter: React.FC = () => {
           </Tabs>
         </div>
 
-        <div className="space-y-8">
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg flex items-center gap-2">
+        <div className="space-y-10">
+          <Card className="shadow-md border-primary/10">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
                 <Settings2 className="w-4 h-4" />
                 Tempo Control
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-6">
+            <CardContent className="space-y-8">
               <div className="flex items-center justify-between">
-                <span className="text-4xl font-bold tracking-tighter">{currentBPM}</span>
-                <span className="text-sm font-medium text-muted-foreground uppercase">BPM</span>
+                <span className="text-5xl font-black tracking-tighter text-primary">{currentBPM}</span>
+                <span className="text-sm font-bold text-muted-foreground uppercase">BPM</span>
               </div>
               
               <div className="space-y-4">
@@ -186,29 +186,30 @@ const PracticeCommandCenter: React.FC = () => {
                   max={MAX_BPM}
                   step={1}
                   onValueChange={([v]) => setCurrentBPM(v)}
+                  className="py-4"
                 />
-                <div className="flex justify-between text-xs text-muted-foreground">
+                <div className="flex justify-between text-xs font-bold text-muted-foreground">
                   <span>{MIN_BPM}</span>
                   <span>{MAX_BPM}</span>
                 </div>
               </div>
 
-              <div className="flex items-center justify-center gap-2">
-                <Button variant="outline" size="sm" onClick={() => handleBpmChange(-5)} className="flex-1">
+              <div className="flex items-center justify-center gap-3">
+                <Button variant="outline" size="lg" onClick={() => handleBpmChange(-5)} className="flex-1 font-bold focus-scale">
                   -5
                 </Button>
-                <Button variant="outline" size="sm" onClick={() => handleBpmChange(5)} className="flex-1">
+                <Button variant="outline" size="lg" onClick={() => handleBpmChange(5)} className="flex-1 font-bold focus-scale">
                   +5
                 </Button>
               </div>
 
-              <div className="grid grid-cols-5 gap-1">
+              <div className="grid grid-cols-5 gap-2">
                 {BPM_PRESETS.map(preset => (
                   <Button 
                     key={preset} 
                     variant="outline" 
                     size="sm" 
-                    className={cn("h-8 text-[10px] px-0", currentBPM === preset && "bg-primary text-primary-foreground")}
+                    className={cn("h-10 text-xs font-bold px-0 focus-scale", currentBPM === preset && "bg-primary text-primary-foreground border-primary")}
                     onClick={() => setCurrentBPM(preset)}
                   >
                     {preset}
@@ -216,25 +217,25 @@ const PracticeCommandCenter: React.FC = () => {
                 ))}
               </div>
 
-              <div className="pt-4 border-t space-y-4">
-                <div className="flex items-center gap-2 text-[10px] text-muted-foreground uppercase font-medium">
+              <div className="pt-6 border-t space-y-4">
+                <div className="flex items-center gap-2 text-[10px] text-muted-foreground uppercase font-black tracking-widest">
                   <Keyboard className="w-3 h-3" />
                   Shortcuts
                 </div>
-                <div className="grid grid-cols-2 gap-2 text-[10px]">
-                  <div className="flex items-center justify-between p-2 bg-muted rounded">
-                    <span>BPM</span>
-                    <span className="font-bold">↑/↓</span>
+                <div className="grid grid-cols-2 gap-3 text-[10px]">
+                  <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg border border-border/50">
+                    <span className="font-medium">BPM</span>
+                    <span className="font-black bg-background px-1.5 py-0.5 rounded border shadow-sm">↑/↓</span>
                   </div>
-                  <div className="flex items-center justify-between p-2 bg-muted rounded">
-                    <span>Start/Stop</span>
-                    <span className="font-bold">Space</span>
+                  <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg border border-border/50">
+                    <span className="font-medium">Start/Stop</span>
+                    <span className="font-black bg-background px-1.5 py-0.5 rounded border shadow-sm">Space</span>
                   </div>
                 </div>
               </div>
 
-              <div className="pt-4 border-t flex justify-center">
-                <Button variant="ghost" size="sm" onClick={refetchData} disabled={isScalesContextLoading} className="text-xs text-muted-foreground">
+              <div className="pt-4 flex justify-center">
+                <Button variant="ghost" size="sm" onClick={refetchData} disabled={isScalesContextLoading} className="text-xs font-bold text-muted-foreground hover:text-primary transition-colors">
                   <RefreshCw className={cn("w-3 h-3 mr-2", isScalesContextLoading && "animate-spin")} />
                   Sync Progress
                 </Button>
@@ -243,10 +244,10 @@ const PracticeCommandCenter: React.FC = () => {
           </Card>
 
           {lastLogEntry && (
-            <Card className="bg-muted/30 border-none shadow-none">
-              <CardContent className="p-4">
-                <p className="text-xs font-medium text-muted-foreground uppercase mb-1">Last Session</p>
-                <p className="text-sm">{formatDistanceToNow(lastLogEntry.timestamp, { addSuffix: true })}</p>
+            <Card className="bg-primary/5 border-none shadow-none">
+              <CardContent className="p-5">
+                <p className="text-xs font-bold text-primary/60 uppercase tracking-widest mb-2">Last Session</p>
+                <p className="text-base font-medium">{formatDistanceToNow(lastLogEntry.timestamp, { addSuffix: true })}</p>
               </CardContent>
             </Card>
           )}

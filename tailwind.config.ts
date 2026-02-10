@@ -1,7 +1,7 @@
 import type { Config } from "tailwindcss";
 
 export default {
-  darkMode: ["selector", "[data-theme]"], // Changed from "class" to "selector", "[data-theme]"
+  darkMode: ["selector", "[data-theme]"],
   content: [
     "./pages/**/*.{ts,tsx}",
     "./components/**/*.{ts,tsx}",
@@ -14,7 +14,7 @@ export default {
       center: true,
       padding: "2rem",
       screens: {
-        "2xl": "1400px",
+        "2xl": "1600px", // Increased from 1400px
       },
     },
     extend: {
