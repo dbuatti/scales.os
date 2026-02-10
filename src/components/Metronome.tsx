@@ -19,6 +19,7 @@ const Metronome: React.FC<MetronomeProps> = ({ bpm, onBpmChange }) => {
   const [division, setDivision] = useState<NoteDivision>('quarter');
   const [isBeatActive, setIsBeatActive] = useState(false);
   const [isAccentBeat, setIsAccentBeat] = useState(false);
+  const [pendulumPos, setPendulumPos] = useState(0); // -1 to 1
   
   const audioContextRef = useRef<AudioContext | null>(null);
   const timerRef = useRef<number | null>(null);
@@ -73,6 +74,8 @@ const Metronome: React.FC<MetronomeProps> = ({ bpm, onBpmChange }) => {
       
       setIsBeatActive(true);
       setIsAccentBeat(isAccent);
+      setPendulumPos(prev => prev === 1 ? -1 : 1); // Toggle pendulum
+      
       setTimeout(() => setIsBeatActive(false), 100);
 
       currentBeatRef.current++;
@@ -96,6 +99,7 @@ const Metronome: React.FC<MetronomeProps> = ({ bpm, onBpmChange }) => {
       currentBeatRef.current = 0;
       setIsBeatActive(false);
       setIsAccentBeat(false);
+      setPendulumPos(0);
     }
 
     return () => {
@@ -115,7 +119,6 @@ const Metronome: React.FC<MetronomeProps> = ({ bpm, onBpmChange }) => {
     setIsRunning(prev => !prev);
   }, [isRunning]);
 
-  // Keyboard Shortcuts
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.target !== document.body) return;
@@ -134,7 +137,7 @@ const Metronome: React.FC<MetronomeProps> = ({ bpm, onBpmChange }) => {
 
   const handleTap = () => {
     const now = Date.now();
-    const timeout = 2000; // Reset taps after 2 seconds of inactivity
+    const timeout = 2000;
 
     if (tapTimesRef.current.length > 0 && now - tapTimesRef.current[tapTimesRef.current.length - 1] > timeout) {
       tapTimesRef.current = [];
@@ -214,17 +217,26 @@ const Metronome: React.FC<MetronomeProps> = ({ bpm, onBpmChange }) => {
       
       <div 
         className={cn(
-          "w-10 h-10 rounded-xl transition-all duration-100 flex-shrink-0 border-2 border-primary/10 flex items-center justify-center",
-          isRunning && isBeatActive
-            ? isAccentBeat
-              ? "bg-warning border-warning shadow-[0_0_20px_hsl(var(--warning)/0.4)] scale-110"
-              : "bg-primary border-primary shadow-[0_0_20px_hsl(var(--primary)/0.4)] scale-105"
-            : "bg-muted/20"
+          "w-12 h-12 rounded-xl transition-all duration-150 flex-shrink-0 border-2 border-primary/10 flex items-center justify-center relative overflow-hidden",
+          isRunning ? "bg-muted/10" : "bg-muted/20"
         )}
       >
+        {/* Pendulum Visual */}
+        <div 
+          className={cn(
+            "absolute bottom-0 w-1 bg-primary/20 transition-transform duration-150 origin-bottom",
+            isRunning ? "h-full" : "h-0"
+          )}
+          style={{ transform: `rotate(${pendulumPos * 30}deg)` }}
+        />
+        
         <div className={cn(
-            "w-2 h-2 rounded-full transition-all duration-100",
-            isRunning && isBeatActive ? "bg-background scale-150" : "bg-muted-foreground/20"
+            "w-3 h-3 rounded-full transition-all duration-100 z-10",
+            isRunning && isBeatActive 
+              ? isAccentBeat 
+                ? "bg-warning scale-150 shadow-[0_0_15px_hsl(var(--warning))]" 
+                : "bg-primary scale-125 shadow-[0_0_10px_hsl(var(--primary))]" 
+              : "bg-muted-foreground/20"
         )} />
       </div>
     </div>

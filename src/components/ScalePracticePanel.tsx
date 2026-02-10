@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useEffect, useCallback, useRef } from 'react';
 import { CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { RotateCcw, Music, Gauge, Repeat, Hand, Target, Zap, Palette } from 'lucide-react';
+import { RotateCcw, Music, Gauge, Repeat, Hand, Target, Zap, Palette, LayoutGrid } from 'lucide-react';
 import { 
   KEYS, SCALE_TYPES, ARPEGGIO_TYPES, ARTICULATIONS, 
   Key, Articulation, TempoLevel,
@@ -15,6 +15,7 @@ import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { cn, shallowEqual } from '@/lib/utils';
 import { Label } from '@/components/ui/label';
 import { useGlobalBPM, SNAPSHOT_DEBOUNCE_MS, ActivePracticeItem } from '@/context/GlobalBPMContext';
+import PracticePresets from './PracticePresets';
 
 interface PermutationSectionProps<T extends string> {
     title: string;
@@ -106,6 +107,17 @@ const ScalePracticePanel: React.FC<ScalePracticePanelProps> = ({
     setSelectedOctaves(OCTAVE_CONFIGURATIONS[1]);
     setIsPermutationManuallyAdjusted(false);
     showSuccess("Reset to standard permutations.");
+  };
+
+  const handleApplyPreset = (config: any) => {
+    setSelectedArticulation(config.articulation);
+    setSelectedDirection(config.direction);
+    setSelectedHandConfig(config.handConfig);
+    setSelectedRhythm(config.rhythm);
+    setSelectedAccent(config.accent);
+    setSelectedOctaves(config.octaves);
+    setIsPermutationManuallyAdjusted(true);
+    showSuccess("Preset applied!");
   };
 
   useEffect(() => {
@@ -272,6 +284,17 @@ const ScalePracticePanel: React.FC<ScalePracticePanelProps> = ({
 
   return (
     <CardContent className="p-0 space-y-10">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-4 bg-primary/5 rounded-xl border border-primary/10">
+          <div className="space-y-1">
+            <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-primary/60">
+              <LayoutGrid className="w-3 h-3" />
+              Quick Presets
+            </div>
+            <p className="text-[10px] text-muted-foreground">Instantly apply common practice configurations.</p>
+          </div>
+          <PracticePresets onSelect={handleApplyPreset} />
+        </div>
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
             <div className="space-y-8">
                 <div className="space-y-4 p-5 rounded-xl border bg-card/50 shadow-sm">

@@ -16,6 +16,7 @@ import { Button } from '@/components/ui/button';
 import { showSuccess } from '@/utils/toast';
 import { RefreshCw, Target, Settings2, Keyboard, Plus, Minus } from 'lucide-react';
 import { Slider } from '@/components/ui/slider';
+import KeyboardShortcuts from './KeyboardShortcuts';
 
 const BPM_PRESETS = [60, 80, 100, 120, 140];
 
@@ -40,6 +41,7 @@ const PracticeCommandCenter: React.FC = () => {
     setActivePermutationHighestBPM,
     setIsPermutationManuallyAdjusted,
     handleBpmChange,
+    activeLogSnapshotFunction,
   } = useGlobalBPM();
 
   const [activeTab, setActiveTab] = useState<'scales' | 'dohnanyi' | 'hanon'>('scales');
@@ -51,10 +53,14 @@ const PracticeCommandCenter: React.FC = () => {
       if (e.target !== document.body) return;
       if (e.key === 'ArrowUp') { e.preventDefault(); handleBpmChange(1); }
       else if (e.key === 'ArrowDown') { e.preventDefault(); handleBpmChange(-1); }
+      else if (e.key.toLowerCase() === 's') {
+        e.preventDefault();
+        activeLogSnapshotFunction?.();
+      }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [handleBpmChange]);
+  }, [handleBpmChange, activeLogSnapshotFunction]);
 
   useEffect(() => {
     if (nextFocus && !isTabManuallySelected && !isEngagingSuggestion) {
@@ -92,10 +98,13 @@ const PracticeCommandCenter: React.FC = () => {
     : 'None';
 
   return (
-    <div className="max-w-7xl mx-auto space-y-10 px-4 md:px-8"> {/* Increased max-width and spacing */}
+    <div className="max-w-7xl mx-auto space-y-10 px-4 md:px-8">
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
         <div className="space-y-2">
-          <h1 className="text-4xl font-bold tracking-tight">Practice</h1>
+          <div className="flex items-center gap-3">
+            <h1 className="text-4xl font-bold tracking-tight">Practice</h1>
+            <KeyboardShortcuts />
+          </div>
           <p className="text-lg text-muted-foreground">Focus on your technique and track your progress.</p>
         </div>
         {nextFocus && (
@@ -114,7 +123,7 @@ const PracticeCommandCenter: React.FC = () => {
         )}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-10"> {/* Changed to 4 columns for better balance */}
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-10">
         <div className="lg:col-span-3 space-y-10">
           <PracticeSummaryPanel />
           
