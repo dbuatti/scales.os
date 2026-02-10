@@ -11,7 +11,7 @@ interface PracticeTimerProps {
 }
 
 const PracticeTimer: React.FC<PracticeTimerProps> = ({ onLogSession, isCondensed = false }) => {
-  const [time, setTime] = useState(0); // Time in seconds, counting up
+  const [time, setTime] = useState(0);
   const [isRunning, setIsRunning] = useState(false);
 
   const formatTime = (seconds: number) => {
@@ -21,14 +21,8 @@ const PracticeTimer: React.FC<PracticeTimerProps> = ({ onLogSession, isCondensed
     return `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
   };
 
-  const handleStart = () => {
-    setIsRunning(true);
-  };
-
-  const handlePause = () => {
-    setIsRunning(false);
-  };
-
+  const handleStart = () => setIsRunning(true);
+  const handlePause = () => setIsRunning(false);
   const handleReset = () => {
     setIsRunning(false);
     setTime(0);
@@ -36,88 +30,78 @@ const PracticeTimer: React.FC<PracticeTimerProps> = ({ onLogSession, isCondensed
   
   const handleLog = () => {
     if (time === 0) return;
-    
     const durationMinutes = Math.round(time / 60);
     onLogSession(durationMinutes);
-    
     showSuccess(`Logged ${durationMinutes} minutes of practice.`);
     handleReset();
   };
 
   useEffect(() => {
     let interval: NodeJS.Timeout | null = null;
-
     if (isRunning) {
       interval = setInterval(() => {
         setTime((prevTime) => prevTime + 1);
       }, 1000);
     }
-
-    return () => {
-      if (interval) clearInterval(interval);
-    };
+    return () => { if (interval) clearInterval(interval); };
   }, [isRunning]);
   
   if (isCondensed) {
     return (
         <div className="flex items-center space-x-2">
-            <div className="text-lg font-mono font-extrabold text-primary tracking-tighter min-w-[60px] text-center text-glow">
+            <div className="text-lg font-mono font-extrabold text-primary tracking-tighter min-w-[60px] text-center">
                 {formatTime(time)}
             </div>
             
             {isRunning ? (
-                <Button onClick={handlePause} variant="secondary" size="icon" className="w-8 h-8 bg-destructive hover:bg-destructive/90 text-destructive-foreground">
+                <Button onClick={handlePause} variant="secondary" size="icon" className="w-8 h-8 bg-destructive hover:bg-destructive/90 text-destructive-foreground focus-scale">
                     <Pause className="w-4 h-4" />
                 </Button>
             ) : (
-                <Button onClick={handleStart} size="icon" className="w-8 h-8 bg-primary hover:bg-primary/90 text-primary-foreground" disabled={time > 0}>
+                <Button onClick={handleStart} size="icon" className="w-8 h-8 bg-primary hover:bg-primary/90 text-primary-foreground focus-scale" disabled={time > 0}>
                     <Play className="w-4 h-4" />
                 </Button>
             )}
             
-            <Button onClick={handleLog} size="icon" className="w-8 h-8 bg-accent hover:bg-accent/80 text-accent-foreground" disabled={time === 0 || isRunning}>
+            <Button onClick={handleLog} size="icon" className="w-8 h-8 bg-accent hover:bg-accent/80 text-accent-foreground focus-scale" disabled={time === 0 || isRunning}>
                 <LogIn className="w-4 h-4" />
             </Button>
             
-            <Button onClick={handleReset} variant="outline" size="icon" className="w-8 h-8 border-muted-foreground text-muted-foreground hover:bg-accent" disabled={time === 0}>
+            <Button onClick={handleReset} variant="outline" size="icon" className="w-8 h-8 border-muted-foreground text-muted-foreground hover:bg-accent focus-scale" disabled={time === 0}>
                 <RotateCcw className="w-4 h-4" />
             </Button>
         </div>
     );
   }
 
-  // Full Card View (for PracticeCommandCenter)
   return (
-    <Card className="w-full bg-card/70 border-4 border-primary/80 shadow-2xl shadow-primary/40 relative overflow-hidden">
-      {/* Subtle CRT glow overlay */}
-      <div className="absolute inset-0 pointer-events-none opacity-30">
-        <div className="h-full w-full bg-gradient-to-b from-transparent via-primary/5 to-transparent" />
-      </div>
-      <CardHeader className="p-4 border-b-2 border-primary/50 relative z-10">
-        <CardTitle className="text-center text-xl font-mono tracking-widest text-primary text-glow">SESSION TIMER</CardTitle>
+    <Card className="w-full bg-card border-2 border-primary/20 shadow-xl relative overflow-hidden">
+      <div className="crt-overlay" />
+      <CardHeader className="p-4 border-b border-primary/10 relative z-10">
+        <CardTitle className="text-center text-sm font-mono tracking-widest text-muted-foreground uppercase">Session Timer</CardTitle>
       </CardHeader>
-      <CardContent className="flex flex-col items-center space-y-4 p-6 relative z-10">
-        <div className="text-7xl font-mono font-extrabold text-primary text-glow-intense">
+      <CardContent className="flex flex-col items-center space-y-6 p-8 relative z-10">
+        <div className="text-7xl font-mono font-extrabold text-primary tracking-tighter">
           {formatTime(time)}
         </div>
         <div className="flex space-x-3 w-full">
           {isRunning ? (
-            <Button onClick={handlePause} variant="secondary" size="lg" className="flex-1 bg-destructive hover:bg-destructive/90 text-destructive-foreground text-lg font-mono">
+            <Button onClick={handlePause} variant="secondary" size="lg" className="flex-1 bg-destructive hover:bg-destructive/90 text-destructive-foreground text-lg font-mono focus-scale">
               <Pause className="w-5 h-5 mr-2" /> PAUSE
             </Button>
           ) : (
-            <Button onClick={handleStart} size="lg" className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground text-lg font-mono">
+            <Button onClick={handleStart} size="lg" className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground text-lg font-mono focus-scale">
               <Play className="w-5 h-5 mr-2" /> START
             </Button>
           )}
-          <Button onClick={handleReset} variant="outline" size="lg" className="border-muted-foreground text-muted-foreground hover:bg-accent font-mono">
+          <Button onClick={handleReset} variant="outline" size="lg" className="border-muted-foreground text-muted-foreground hover:bg-accent font-mono focus-scale">
             <RotateCcw className="w-5 h-5" />
           </Button>
         </div>
         <Button 
             onClick={handleLog} 
             disabled={time === 0 || isRunning}
-            className="w-full text-lg py-3 bg-accent hover:bg-accent/80 transition-all duration-300 text-accent-foreground font-mono shadow-lg shadow-accent/30"
+            className="w-full text-lg py-6 bg-accent hover:bg-accent/80 transition-all duration-300 text-accent-foreground font-mono shadow-lg shadow-accent/20 focus-scale"
         >
             <LogIn className="w-6 h-6 mr-2" /> LOG DURATION
         </Button>
