@@ -93,7 +93,7 @@ const getOverallStatus = (scaleItem: ScaleItem, scaleMasteryBPMMap: Record<strin
   return 'untouched';
 };
 
-const ScaleCell = React.forwardRef<HTMLButtonElement, { item: ScaleItem; status: ScaleStatus }>(({ item, status }, ref) => {
+const ScaleCell = React.forwardRef<HTMLButtonElement, { item: ScaleItem; status: ScaleStatus }>(({ item, status, ...props }, ref) => {
   const statusText = status === 'mastered' ? 'Fully Mastered' : status === 'practiced' ? 'In Progress' : 'Untouched';
 
   return (
@@ -105,6 +105,7 @@ const ScaleCell = React.forwardRef<HTMLButtonElement, { item: ScaleItem; status:
         getStatusClasses(status)
       )}
       aria-label={`${item.key} ${item.type} status: ${statusText}. Click for details.`}
+      {...props}
     >
       {getStatusIcon(status)}
       <span className="text-xs font-medium text-foreground hidden sm:inline ml-2">{statusText.split(' ')[0]}</span>
@@ -127,7 +128,6 @@ const ScaleGrid = () => {
 
   const filteredTypes = useMemo(() => {
     if (!searchQuery) return scaleTypes;
-    // If the search query matches a key, show all types. Otherwise, filter types.
     const matchesKey = KEYS.some(key => key.toLowerCase().includes(searchQuery.toLowerCase()));
     if (matchesKey) return scaleTypes;
     return scaleTypes.filter(type => type.toLowerCase().includes(searchQuery.toLowerCase()));
@@ -180,17 +180,17 @@ const ScaleGrid = () => {
 
                   return (
                     <td key={type} className="px-4 py-2">
-                      <ScaleDetailDialog scaleItem={item}>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <ScaleDetailDialog scaleItem={item}>
                             <ScaleCell item={item} status={status} />
-                          </TooltipTrigger>
-                          <TooltipContent>
-                            <p className="font-bold">{item.key} {item.type}</p>
-                            <p>Status: <span className={cn(status === 'mastered' ? 'text-success' : status === 'practiced' ? 'text-warning' : 'text-muted-foreground')}>{statusText}</span></p>
-                          </TooltipContent>
-                        </Tooltip>
-                      </ScaleDetailDialog>
+                          </ScaleDetailDialog>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p className="font-bold">{item.key} {item.type}</p>
+                          <p>Status: <span className={cn(status === 'mastered' ? 'text-success' : status === 'practiced' ? 'text-warning' : 'text-muted-foreground')}>{statusText}</span></p>
+                        </TooltipContent>
+                      </Tooltip>
                     </td>
                   );
                 })}

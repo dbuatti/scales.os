@@ -91,7 +91,7 @@ const PermutationSection = <T extends string>({ title, description, options, sel
 );
 
 
-const ScaleDetailDialog: React.FC<ScaleDetailDialogProps> = ({ scaleItem, children }) => {
+const ScaleDetailDialog = React.forwardRef<HTMLButtonElement, ScaleDetailDialogProps>(({ scaleItem, children }, ref) => {
   const { scaleMasteryBPMMap, updateScaleMasteryBPM } = useScales();
   const [selectedArticulation, setSelectedArticulation] = React.useState<Articulation>(ARTICULATIONS[0]);
   const [selectedTempo, setSelectedTempo] = React.useState<TempoLevel>(TEMPO_LEVELS[0]); // This is for the matrix view
@@ -178,7 +178,7 @@ const ScaleDetailDialog: React.FC<ScaleDetailDialogProps> = ({ scaleItem, childr
   
   return (
     <Dialog>
-      <DialogTrigger asChild>
+      <DialogTrigger asChild ref={ref}>
         {children}
       </DialogTrigger>
       <DialogContent className="sm:max-w-[1000px] max-h-[90vh] overflow-y-auto bg-card/95 border-4 border-primary/80 shadow-2xl shadow-primary/40 relative overflow-hidden">
@@ -257,11 +257,6 @@ const ScaleDetailDialog: React.FC<ScaleDetailDialogProps> = ({ scaleItem, childr
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
-              {/* Articulation is now selected via the PermutationSection above, 
-                  so the rows here represent Tempo Levels for the *selected* articulation.
-                  However, the original design had Articulations as rows and Tempo Levels as columns.
-                  To maintain the matrix, we'll keep Articulations as rows and Tempo Levels as columns,
-                  but the other permutations are now selected globally for this dialog. */}
               {ARTICULATIONS.map(articulation => (
                 <tr key={articulation} className="hover:bg-accent/50 transition-colors">
                   <td className="px-4 py-2 whitespace-nowrap text-sm font-medium text-primary/90">
@@ -287,13 +282,12 @@ const ScaleDetailDialog: React.FC<ScaleDetailDialogProps> = ({ scaleItem, childr
                         <Button
                           onClick={() => {
                             handleToggleStatus(articulation, tempo);
-                            setSelectedArticulation(articulation); // Keep this to highlight the cell
-                            setSelectedTempo(tempo); // Keep this to highlight the cell
+                            setSelectedArticulation(articulation);
+                            setSelectedTempo(tempo);
                           }}
                           className={cn(
                             "w-full h-10 flex flex-col items-center justify-center rounded-md transition-colors duration-150 border border-primary/30",
                             status === 'mastered' ? 'bg-success hover:bg-success/90 shadow-md shadow-success/30' : status === 'practiced' ? 'bg-warning hover:bg-warning/90 shadow-md shadow-warning/30' : getStatusClasses(status),
-                            // Highlight the currently selected cell for reset button context
                             articulation === selectedArticulation && tempo === selectedTempo && "ring-2 ring-offset-2 ring-primary ring-offset-background"
                           )}
                           size="sm"
@@ -324,6 +318,8 @@ const ScaleDetailDialog: React.FC<ScaleDetailDialogProps> = ({ scaleItem, childr
       </DialogContent>
     </Dialog>
   );
-};
+});
+
+ScaleDetailDialog.displayName = "ScaleDetailDialog";
 
 export default ScaleDetailDialog;
