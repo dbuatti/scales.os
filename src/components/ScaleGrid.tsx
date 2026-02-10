@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { useScales, ScaleStatus } from '../context/ScalesContext';
+import { useScales, ScaleStatus } from '@/context/ScalesContext';
 import { 
   KEYS, SCALE_TYPES, ARPEGGIO_TYPES, ScaleItem, ARTICULATIONS, TEMPO_LEVELS, 
   DIRECTION_TYPES, HAND_CONFIGURATIONS, RHYTHMIC_PERMUTATIONS, ACCENT_DISTRIBUTIONS, OCTAVE_CONFIGURATIONS,

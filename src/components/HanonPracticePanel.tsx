@@ -5,7 +5,7 @@ import { LogIn, Check } from 'lucide-react';
 import { 
   HANON_EXERCISES, HanonExercise, HANON_BPM_TARGETS, HanonBPMTarget, getHanonPracticeId, getHanonExerciseBaseId
 } from '@/lib/scales';
-import { useScales, NextFocus, ScaleStatus } from '../context/ScalesContext';
+import { useScales, NextFocus, ScaleStatus } from '@/context/ScalesContext';
 import { showSuccess, showError } from '@/utils/toast';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { cn, shallowEqual } from '@/lib/utils';

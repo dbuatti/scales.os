@@ -2,7 +2,7 @@
 
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { useScales, NextFocus } from '../context/ScalesContext';
+import { useScales, NextFocus } from '@/context/ScalesContext';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import ScalePracticePanel from './ScalePracticePanel';
 import DohnanyiPracticePanel from './DohnanyiPracticePanel';

@@ -9,7 +9,7 @@ import {
   DirectionType, HandConfiguration, RhythmicPermutation, AccentDistribution, OctaveConfiguration, TEMPO_LEVELS,
   getScalePermutationId, parseScalePermutationId, cleanString
 } from '@/lib/scales';
-import { useScales, NextFocus } from '../context/ScalesContext';
+import { useScales, NextFocus } from '@/context/ScalesContext';
 import { showSuccess, showError } from '@/utils/toast';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { cn, shallowEqual } from '@/lib/utils';

@@ -1,7 +1,7 @@
 import React from 'react';
 import { MadeWithDyad } from "@/components/made-with-dyad";
 import PracticeCommandCenter from '@/components/PracticeCommandCenter';
-import { useScales } from '../context/ScalesContext';
+import { useScales } from '@/context/ScalesContext';
 import { Skeleton } from '@/components/ui/skeleton';
 
 const Index = () => {

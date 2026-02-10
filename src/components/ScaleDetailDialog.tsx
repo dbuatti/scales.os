@@ -7,7 +7,7 @@ import {
   getScalePermutationId, getTempoLevelBPMThreshold, parseScalePermutationId, cleanString,
   DirectionType, HandConfiguration, RhythmicPermutation, AccentDistribution, OctaveConfiguration
 } from '@/lib/scales';
-import { useScales, ScaleStatus } from '../context/ScalesContext';
+import { useScales, ScaleStatus } from '@/context/ScalesContext';
 import { cn } from '@/lib/utils';
 import { Check, Clock, X, Music, Gauge, Repeat, Hand, Target, Zap, Palette } from 'lucide-react';
 import { showError, showSuccess } from '@/utils/toast';

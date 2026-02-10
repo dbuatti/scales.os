@@ -5,7 +5,7 @@ import { LogIn, Check } from 'lucide-react';
 import { 
   DOHNANYI_EXERCISES, DohnanyiExercise, DOHNANYI_BPM_TARGETS, DohnanyiBPMTarget, getDohnanyiPracticeId, getDohnanyiExerciseBaseId
 } from '@/lib/scales';
-import { useScales, NextFocus, ScaleStatus } from '../context/ScalesContext';
+import { useScales, NextFocus, ScaleStatus } from '@/context/ScalesContext';
 import { showSuccess, showError } from '@/utils/toast';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { cn, shallowEqual } from '@/lib/utils';

@@ -4,7 +4,7 @@ import { Progress } from '@/components/ui/progress';
 import { 
     PRACTICE_GRADES, getGradeRequirements, GradeRequirement
 } from '@/lib/scales';
-import { useScales } from '../context/ScalesContext';
+import { useScales } from '@/context/ScalesContext';
 import { cn } from '@/lib/utils';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Button } from '@/components/ui/button';
