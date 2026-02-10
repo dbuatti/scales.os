@@ -1,3 +1,5 @@
+"use client";
+
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
@@ -35,13 +37,30 @@ const PracticeCommandCenter: React.FC = () => {
     setCurrentBPM,
     setActivePermutationHighestBPM,
     setIsPermutationManuallyAdjusted,
+    handleBpmChange,
   } = useGlobalBPM();
 
   const [activeTab, setActiveTab] = useState<'scales' | 'dohnanyi' | 'hanon'>('scales');
   const [isTabManuallySelected, setIsTabManuallySelected] = useState(false);
   const [isEngagingSuggestion, setIsEngagingSuggestion] = useState(false);
 
-  // Auto-load suggested focus on mount or when nextFocus changes
+  // Global Keyboard Shortcuts for BPM
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.target !== document.body) return;
+      
+      if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        handleBpmChange(1);
+      } else if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        handleBpmChange(-1);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [handleBpmChange]);
+
   useEffect(() => {
     if (nextFocus && !isTabManuallySelected && !isEngagingSuggestion) {
       const targetTab = nextFocus.type === 'scale' ? 'scales' : nextFocus.type;
@@ -54,7 +73,7 @@ const PracticeCommandCenter: React.FC = () => {
       if (!item) return;
 
       setIsEngagingSuggestion(true);
-      setIsPermutationManuallyAdjusted(false); // Reset manual adjustment when engaging suggestion
+      setIsPermutationManuallyAdjusted(false);
       setIsTabManuallySelected(false);
 
       const targetTab = item.type === 'scale' ? 'scales' : item.type;
@@ -68,7 +87,6 @@ const PracticeCommandCenter: React.FC = () => {
             : item.name
         }`
       );
-      // Simulate a small delay for UI feedback
       await new Promise(resolve => setTimeout(resolve, 500)); 
       setIsEngagingSuggestion(false);
     },
@@ -104,10 +122,7 @@ const PracticeCommandCenter: React.FC = () => {
 
   return (
     <div className="min-h-screen text-foreground font-mono flex items-center justify-center p-4 overflow-hidden relative">
-      {/* Removed inline scanlines, now handled by AppLayout */}
-
       <div className="w-full max-w-6xl relative">
-        {/* Terminal Glow Border */}
         <div className="absolute -inset-4 bg-primary/20 blur-3xl animate-pulse" />
 
         <Card className="relative border-4 border-primary/80 bg-card/95 shadow-2xl">
@@ -127,7 +142,6 @@ const PracticeCommandCenter: React.FC = () => {
           </CardHeader>
 
           <CardContent className="pt-8 space-y-8 pb-10">
-            {/* Status Readout */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
                 <div className="text-xs text-primary/70 uppercase">Last Transmission</div>
@@ -171,34 +185,31 @@ const PracticeCommandCenter: React.FC = () => {
               </div>
             </div>
 
-            {/* Practice Summary */}
             <div className="border-t border-primary/50 pt-6">
               <PracticeSummaryPanel />
             </div>
 
-            {/* BPM Mastery Control */}
             <div className="space-y-4 border border-primary/50 rounded-lg p-6 bg-card/40">
               <div className="flex items-center justify-between">
                 <Label className="text-primary text-lg tracking-wider">METRONOME OVERRIDE</Label>
-                <span className="text-2xl font-bold text-warning">{currentBPM}</span>
+                <div className="flex items-center gap-4">
+                  <span className="text-xs text-primary/50 font-mono hidden sm:inline">USE ARROW KEYS TO ADJUST</span>
+                  <span className="text-2xl font-bold text-warning">{currentBPM}</span>
+                </div>
               </div>
 
               <div className="relative">
-                {/* Retro Progress Bar Background */}
                 <div className="h-10 bg-gradient-to-r from-background via-primary/30 to-background border border-primary/70 rounded overflow-hidden">
-                  {/* Mastered Zone */}
                   <div
                     className="h-full bg-gradient-to-r from-transparent via-primary/40 to-primary/60 transition-all duration-1000 ease-out"
                     style={{ width: `${masteredRangePercentage}%` }}
                   />
-                  {/* Current BPM Marker */}
                   <div
                     className="absolute top-0 h-full w-1 bg-warning shadow-[0_0_10px_hsl(var(--warning))] animate-pulse"
                     style={{ left: `${((currentBPM - MIN_BPM) / (MAX_BPM - MIN_BPM)) * 100}%` }}
                   />
                 </div>
 
-                {/* Slider */}
                 <input
                   type="range"
                   min={MIN_BPM}
@@ -206,9 +217,7 @@ const PracticeCommandCenter: React.FC = () => {
                   step={1}
                   value={currentBPM}
                   onChange={(e) => setCurrentBPM(parseInt(e.target.value))}
-                  className="absolute inset-x-0 -top-1 h-12 opacity-0 cursor-pointer
-                             [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-5 [&::-webkit-slider-thumb]:h-5 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-primary [&::-webkit-slider-thumb]:shadow-[0_0_10px_hsl(var(--primary))] [&::-webkit-slider-thumb]:cursor-grab
-                             [&::-moz-range-thumb]:w-5 [&::-moz-range-thumb]:h-5 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-primary [&::-moz-range-thumb]:shadow-[0_0_10px_hsl(var(--primary))] [&::-moz-range-thumb]:cursor-grab"
+                  className="absolute inset-x-0 -top-1 h-12 opacity-0 cursor-pointer"
                 />
               </div>
 
@@ -223,13 +232,12 @@ const PracticeCommandCenter: React.FC = () => {
               </div>
             </div>
 
-            {/* Main Practice Tabs */}
             <Tabs
               value={activeTab}
               onValueChange={(v) => {
                 setActiveTab(v as any);
                 setActivePermutationHighestBPM(0);
-                setIsPermutationManuallyAdjusted(false); // Reset when tab changes
+                setIsPermutationManuallyAdjusted(false);
                 setIsTabManuallySelected(true);
               }}
               className="w-full"
@@ -291,7 +299,6 @@ const PracticeCommandCenter: React.FC = () => {
               </TabsContent>
             </Tabs>
 
-            {/* Refresh Control */}
             <div className="flex justify-center pt-6 border-t border-primary/50">
               <Button
                 onClick={refetchData}
@@ -310,9 +317,8 @@ const PracticeCommandCenter: React.FC = () => {
           </CardContent>
         </Card>
 
-        {/* Footer Status */}
         <div className="text-center mt-6 text-primary/70 opacity-70">
-          SYSTEM READY • {new Date().toLocaleDateString()} • v4.0 "RETRO COMMAND"
+          SYSTEM READY • {new Date().toLocaleDateString()} • v4.1 "RETRO COMMAND"
         </div>
       </div>
     </div>
