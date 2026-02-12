@@ -85,7 +85,7 @@ const PracticeCommandCenter: React.FC = () => {
     
     const label = (item.type === 'scale' || item.type === 'arpeggio') 
       ? `${item.scaleItem.key} ${item.scaleItem.type}` 
-      : item.name;
+      : (item as any).name;
       
     showSuccess(`Loaded suggestion: ${label}`);
     await new Promise(resolve => setTimeout(resolve, 300)); 
@@ -104,7 +104,7 @@ const PracticeCommandCenter: React.FC = () => {
   const suggestedLabel = nextFocus
     ? (nextFocus.type === 'scale' || nextFocus.type === 'arpeggio')
       ? `${nextFocus.scaleItem.key} ${nextFocus.scaleItem.type}`
-      : nextFocus.name
+      : (nextFocus as any).name
     : 'None';
 
   return (
