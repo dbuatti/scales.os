@@ -49,6 +49,23 @@ const PracticeSummaryPanel: React.FC = () => {
     }
   })();
 
+  // Helper to extract octave number
+  const getOctaveNumber = (octaves: string) => {
+    const match = octaves.match(/\d+/);
+    return match ? match[0] : octaves;
+  };
+
+  // Helper to simplify hand config
+  const getHandLabel = (handConfig: string) => {
+    const lower = handConfig.toLowerCase();
+    if (lower.includes('together')) return 'BOTH';
+    if (lower.includes('left')) return 'LEFT';
+    if (lower.includes('right')) return 'RIGHT';
+    if (lower.includes('contrary')) return 'CONTRARY';
+    if (lower.includes('staggered')) return 'STAGGERED';
+    return handConfig.toUpperCase();
+  };
+
   return (
     <Card className="overflow-hidden border-none shadow-lg bg-card ring-1 ring-primary/5">
       <CardContent className="p-0">
@@ -117,19 +134,25 @@ const PracticeSummaryPanel: React.FC = () => {
             </div>
             {activePracticeItem.type === 'scale' && (
               <>
-                <div className="space-y-2 p-3 rounded-lg bg-primary/5 border border-primary/10">
-                  <div className="flex items-center gap-2 text-[10px] font-black text-muted-foreground uppercase tracking-widest">
-                    <Music className="w-3 h-3" />
-                    Octaves
+                <div className="flex items-center gap-4 p-3 rounded-xl bg-primary/5 border border-primary/10">
+                  <div className="flex flex-col items-center justify-center w-12 h-12 rounded-lg bg-primary/10 text-primary">
+                    <Music className="w-4 h-4 mb-0.5 opacity-50" />
+                    <span className="text-xl font-black leading-none">{getOctaveNumber(activePracticeItem.octaves)}</span>
                   </div>
-                  <p className="text-sm font-bold text-primary leading-tight">{activePracticeItem.octaves}</p>
+                  <div className="space-y-0.5">
+                    <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Octaves</p>
+                    <p className="text-xs font-bold text-primary/70 truncate max-w-[80px]">{activePracticeItem.octaves.split(' ')[0]}</p>
+                  </div>
                 </div>
-                <div className="space-y-2 p-3 rounded-lg bg-primary/5 border border-primary/10">
-                  <div className="flex items-center gap-2 text-[10px] font-black text-muted-foreground uppercase tracking-widest">
-                    <Hand className="w-3 h-3" />
-                    Hands
+                <div className="flex items-center gap-4 p-3 rounded-xl bg-primary/5 border border-primary/10">
+                  <div className="flex flex-col items-center justify-center w-12 h-12 rounded-lg bg-primary/10 text-primary">
+                    <Hand className="w-4 h-4 mb-0.5 opacity-50" />
+                    <span className="text-[10px] font-black leading-none">{getHandLabel(activePracticeItem.handConfig)}</span>
                   </div>
-                  <p className="text-sm font-bold text-primary leading-tight">{activePracticeItem.handConfig}</p>
+                  <div className="space-y-0.5">
+                    <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Hands</p>
+                    <p className="text-xs font-bold text-primary/70 truncate max-w-[80px]">{activePracticeItem.handConfig.split(' ')[0]}</p>
+                  </div>
                 </div>
               </>
             )}
