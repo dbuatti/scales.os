@@ -7,7 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import ScalePracticePanel from './ScalePracticePanel';
 import DohnanyiPracticePanel from './DohnanyiPracticePanel';
 import HanonPracticePanel from './HanonPracticePanel';
-import { cn } from '@/lib/utils';
+import { cn, getCategoryColorClasses } from '@/lib/utils';
 import { useGlobalBPM } from '@/context/GlobalBPMContext';
 import { MIN_BPM, MAX_BPM } from '@/lib/scales';
 import { formatDistanceToNow } from 'date-fns';
@@ -144,9 +144,33 @@ const PracticeCommandCenter: React.FC = () => {
             setIsTabManuallySelected(true);
           }}>
             <TabsList className="w-full justify-start h-auto p-0 bg-transparent border-b rounded-none gap-10">
-              <TabsTrigger value="scales" className="data-[state=active]:border-primary data-[state=active]:bg-transparent border-b-4 border-transparent rounded-none px-0 pb-4 text-lg font-bold shadow-none transition-all">Scales</TabsTrigger>
-              <TabsTrigger value="dohnanyi" className="data-[state=active]:border-primary data-[state=active]:bg-transparent border-b-4 border-transparent rounded-none px-0 pb-4 text-lg font-bold shadow-none transition-all">Dohnányi</TabsTrigger>
-              <TabsTrigger value="hanon" className="data-[state=active]:border-primary data-[state=active]:bg-transparent border-b-4 border-transparent rounded-none px-0 pb-4 text-lg font-bold shadow-none transition-all">Hanon</TabsTrigger>
+              <TabsTrigger 
+                value="scales" 
+                className={cn(
+                  "data-[state=active]:border-indigo-500 data-[state=active]:bg-transparent border-b-4 border-transparent rounded-none px-0 pb-4 text-lg font-bold shadow-none transition-all",
+                  activeTab === 'scales' && "text-indigo-600 dark:text-indigo-400"
+                )}
+              >
+                Scales
+              </TabsTrigger>
+              <TabsTrigger 
+                value="dohnanyi" 
+                className={cn(
+                  "data-[state=active]:border-cyan-500 data-[state=active]:bg-transparent border-b-4 border-transparent rounded-none px-0 pb-4 text-lg font-bold shadow-none transition-all",
+                  activeTab === 'dohnanyi' && "text-cyan-600 dark:text-cyan-400"
+                )}
+              >
+                Dohnányi
+              </TabsTrigger>
+              <TabsTrigger 
+                value="hanon" 
+                className={cn(
+                  "data-[state=active]:border-amber-500 data-[state=active]:bg-transparent border-b-4 border-transparent rounded-none px-0 pb-4 text-lg font-bold shadow-none transition-all",
+                  activeTab === 'hanon' && "text-amber-600 dark:text-amber-400"
+                )}
+              >
+                Hanon
+              </TabsTrigger>
             </TabsList>
 
             <TabsContent value="scales" className="pt-8">

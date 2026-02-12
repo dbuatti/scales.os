@@ -6,7 +6,7 @@ import { Save, AlertCircle, Music, Hand } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { showSuccess } from '@/utils/toast';
-import { cn, getHandColorClasses } from '@/lib/utils';
+import { cn, getHandColorClasses, getCategoryColorClasses } from '@/lib/utils';
 
 const PracticeSummaryPanel: React.FC = () => {
   const { activePracticeItem, currentBPM, activeLogSnapshotFunction } = useGlobalBPM();
@@ -74,6 +74,8 @@ const PracticeSummaryPanel: React.FC = () => {
     return 'scale';
   };
 
+  const displayType = getDisplayType();
+
   return (
     <Card className="overflow-hidden border-none shadow-lg bg-card ring-1 ring-primary/5">
       <CardContent className="p-0">
@@ -86,7 +88,12 @@ const PracticeSummaryPanel: React.FC = () => {
                   : activePracticeItem.name}
               </h2>
               <div className="flex items-center gap-3 text-base font-medium text-muted-foreground">
-                <span className="capitalize bg-primary/10 text-primary px-2 py-0.5 rounded text-xs font-bold tracking-widest">{getDisplayType()}</span>
+                <span className={cn(
+                  "capitalize px-2 py-0.5 rounded text-xs font-bold tracking-widest border",
+                  getCategoryColorClasses(displayType)
+                )}>
+                  {displayType}
+                </span>
                 <span>•</span>
                 <span>{activePracticeItem.type === 'scale' ? activePracticeItem.articulation : 'Standard'}</span>
               </div>

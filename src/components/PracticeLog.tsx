@@ -5,7 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Clock, Target, History } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { cn, getCategoryColorClasses } from '@/lib/utils';
 
 const PracticeLog = () => {
   const { log, allScales, allDohnanyi, allHanon } = useScales();
@@ -64,27 +64,40 @@ const PracticeLog = () => {
 
                 {entry.itemsPracticed.length > 0 && (
                   <div className="flex flex-wrap gap-2">
-                    {entry.itemsPracticed.map((item, index) => (
-                      <Badge key={index} variant="secondary" className="flex flex-col items-start p-3 h-auto text-left bg-secondary/50 border-primary/5">
-                        {item.type === 'scale' && item.scaleId && (
-                            <>
-                                <span className="font-bold text-primary mb-1">{scaleMap[item.scaleId] || item.scaleId}</span>
-                                <div className="text-[10px] font-mono text-muted-foreground space-y-0.5">
-                                    <p>{item.practicedBPM} BPM • {item.articulation?.split(' ')[0]}</p>
-                                    <p>{item.handConfig?.split(' ')[0]} • {item.octaves?.split(' ')[0]}</p>
-                                </div>
-                            </>
-                        )}
-                        {(item.type === 'dohnanyi' || item.type === 'hanon') && (
-                            <>
-                                <span className="font-bold text-primary mb-1">{item.dohnanyiName || item.hanonName}</span>
-                                <p className="text-[10px] font-mono text-muted-foreground">
-                                    {item.bpmTarget || item.hanonBpmTarget} BPM
-                                </p>
-                            </>
-                        )}
-                      </Badge>
-                    ))}
+                    {entry.itemsPracticed.map((item, index) => {
+                      const category = item.type === 'scale' 
+                        ? (scaleMap[item.scaleId || ''] || 'scale') 
+                        : item.type;
+                      
+                      return (
+                        <Badge 
+                          key={index} 
+                          variant="secondary" 
+                          className={cn(
+                            "flex flex-col items-start p-3 h-auto text-left border",
+                            getCategoryColorClasses(category)
+                          )}
+                        >
+                          {item.type === 'scale' && item.scaleId && (
+                              <>
+                                  <span className="font-bold mb-1">{scaleMap[item.scaleId] || item.scaleId}</span>
+                                  <div className="text-[10px] font-mono opacity-70 space-y-0.5">
+                                      <p>{item.practicedBPM} BPM • {item.articulation?.split(' ')[0]}</p>
+                                      <p>{item.handConfig?.split(' ')[0]} • {item.octaves?.split(' ')[0]}</p>
+                                  </div>
+                              </>
+                          )}
+                          {(item.type === 'dohnanyi' || item.type === 'hanon') && (
+                              <>
+                                  <span className="font-bold mb-1">{item.dohnanyiName || item.hanonName}</span>
+                                  <p className="text-[10px] font-mono opacity-70">
+                                      {item.bpmTarget || item.hanonBpmTarget} BPM
+                                  </p>
+                              </>
+                          )}
+                        </Badge>
+                      );
+                    })}
                   </div>
                 )}
               </div>

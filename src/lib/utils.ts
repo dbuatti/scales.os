@@ -32,3 +32,20 @@ export const getHandColorClasses = (handConfig: string) => {
   // "together", "contrary", "staggered" all involve both hands
   return "border-emerald-500/30 text-emerald-600 dark:text-emerald-400 data-[state=on]:bg-emerald-600 data-[state=on]:text-white data-[state=on]:border-emerald-600";
 };
+
+export const getCategoryColorClasses = (category: string) => {
+  const lower = category.toLowerCase();
+  if (lower.includes('arpeggio') || lower.includes('7th')) {
+    return "bg-rose-500/10 text-rose-600 border-rose-500/20 dark:text-rose-400";
+  }
+  if (lower.includes('scale') || lower.includes('chromatic')) {
+    return "bg-indigo-500/10 text-indigo-600 border-indigo-500/20 dark:text-indigo-400";
+  }
+  if (lower.includes('dohnanyi')) {
+    return "bg-cyan-500/10 text-cyan-600 border-cyan-500/20 dark:text-cyan-400";
+  }
+  if (lower.includes('hanon')) {
+    return "bg-amber-500/10 text-amber-600 border-amber-500/20 dark:text-amber-400";
+  }
+  return "bg-primary/10 text-primary border-primary/20";
+};
