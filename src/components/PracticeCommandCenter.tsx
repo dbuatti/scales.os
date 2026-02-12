@@ -69,7 +69,7 @@ const PracticeCommandCenter: React.FC = () => {
 
   useEffect(() => {
     if (nextFocus && !isTabManuallySelected && !isEngagingSuggestion) {
-      const targetTab = nextFocus.type === 'scale' ? 'scales' : nextFocus.type;
+      const targetTab = (nextFocus.type === 'scale' || nextFocus.type === 'arpeggio') ? 'scales' : nextFocus.type;
       setActiveTab(targetTab as any);
     }
   }, [nextFocus, isTabManuallySelected, isEngagingSuggestion]);
@@ -79,10 +79,15 @@ const PracticeCommandCenter: React.FC = () => {
     setIsEngagingSuggestion(true);
     setIsPermutationManuallyAdjusted(false);
     setIsTabManuallySelected(false);
-    const targetTab = item.type === 'scale' ? 'scales' : item.type;
+    const targetTab = (item.type === 'scale' || item.type === 'arpeggio') ? 'scales' : item.type;
     setActiveTab(targetTab as any);
     setActivePermutationHighestBPM(0);
-    showSuccess(`Loaded suggestion: ${item.type === 'scale' ? `${item.scaleItem.key} ${item.scaleItem.type}` : item.name}`);
+    
+    const label = (item.type === 'scale' || item.type === 'arpeggio') 
+      ? `${item.scaleItem.key} ${item.scaleItem.type}` 
+      : item.name;
+      
+    showSuccess(`Loaded suggestion: ${label}`);
     await new Promise(resolve => setTimeout(resolve, 300)); 
     setIsEngagingSuggestion(false);
   }, [setIsPermutationManuallyAdjusted, setActivePermutationHighestBPM]);
@@ -97,7 +102,7 @@ const PracticeCommandCenter: React.FC = () => {
   }, [log]);
 
   const suggestedLabel = nextFocus
-    ? nextFocus.type === 'scale'
+    ? (nextFocus.type === 'scale' || nextFocus.type === 'arpeggio')
       ? `${nextFocus.scaleItem.key} ${nextFocus.scaleItem.type}`
       : nextFocus.name
     : 'None';
@@ -146,7 +151,7 @@ const PracticeCommandCenter: React.FC = () => {
 
             <TabsContent value="scales" className="pt-8">
               <ScalePracticePanel
-                suggestedScalePermutation={nextFocus?.type === 'scale' ? nextFocus : undefined}
+                suggestedScalePermutation={(nextFocus?.type === 'scale' || nextFocus?.type === 'arpeggio') ? nextFocus : undefined}
                 currentBPM={currentBPM}
                 addLogEntry={addLogEntry}
                 updatePracticeStatus={updatePracticeStatus}

@@ -65,7 +65,7 @@ interface ScalePracticePanelProps {
     scaleMasteryBPMMap: ReturnType<typeof useScales>['scaleMasteryBPMMap']; 
     allScales: ReturnType<typeof useScales>['allScales'];
     activeTab: 'scales' | 'dohnanyi' | 'hanon';
-    suggestedScalePermutation: (NextFocus & { type: 'scale' }) | undefined;
+    suggestedScalePermutation: (NextFocus & { type: 'scale' | 'arpeggio' }) | undefined;
 }
 
 const ScalePracticePanel: React.FC<ScalePracticePanelProps> = ({ 
