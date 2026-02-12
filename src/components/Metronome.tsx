@@ -2,9 +2,12 @@
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
-import { Volume2, VolumeX, Music, Clock, Fingerprint } from 'lucide-react';
+import { Volume2, VolumeX, Music, Clock, Fingerprint, TrendingUp, Settings2 } from 'lucide-react';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { cn } from '@/lib/utils';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 
 interface MetronomeProps {
   bpm: number;
@@ -19,8 +22,14 @@ const Metronome: React.FC<MetronomeProps> = ({ bpm, onBpmChange }) => {
   const [division, setDivision] = useState<NoteDivision>('quarter');
   const [isBeatActive, setIsBeatActive] = useState(false);
   const [isAccentBeat, setIsAccentBeat] = useState(false);
-  const [pendulumPos, setPendulumPos] = useState(0); // -1 to 1
+  const [pendulumPos, setPendulumPos] = useState(0);
   
+  // Auto-increment states
+  const [autoIncrementEnabled, setAutoIncrementEnabled] = useState(false);
+  const [incrementAmount, setIncrementAmount] = useState(1);
+  const [incrementEvery, setIncrementEvery] = useState(4); // measures
+  const measuresCountRef = useRef(0);
+
   const audioContextRef = useRef<AudioContext | null>(null);
   const timerRef = useRef<number | null>(null);
   const nextNoteTimeRef = useRef(0);
@@ -47,7 +56,6 @@ const Metronome: React.FC<MetronomeProps> = ({ bpm, onBpmChange }) => {
     osc.connect(gain);
     gain.connect(context.destination);
 
-    // Raised pitch and increased volume
     const frequency = isAccent ? 1200 : 800; 
     const volume = isAccent ? 1.0 : 0.8;
     const duration = 0.025;
@@ -68,14 +76,26 @@ const Metronome: React.FC<MetronomeProps> = ({ bpm, onBpmChange }) => {
     const interval = division === 'quarter' ? secondsPerBeat : secondsPerBeat / 2;
 
     while (nextNoteTimeRef.current < context.currentTime + scheduleAheadTime) {
-      const beatIndex = currentBeatRef.current % (division === 'quarter' ? 4 : 8);
+      const beatsPerMeasure = division === 'quarter' ? 4 : 8;
+      const beatIndex = currentBeatRef.current % beatsPerMeasure;
       const isAccent = beatIndex === 0;
+
+      // Handle Auto-Increment
+      if (isAccent && currentBeatRef.current > 0) {
+        measuresCountRef.current++;
+        if (autoIncrementEnabled && measuresCountRef.current >= incrementEvery) {
+          measuresCountRef.current = 0;
+          if (onBpmChange) {
+            onBpmChange(bpm + incrementAmount);
+          }
+        }
+      }
 
       playClick(nextNoteTimeRef.current, isAccent);
       
       setIsBeatActive(true);
       setIsAccentBeat(isAccent);
-      setPendulumPos(prev => prev === 1 ? -1 : 1); // Toggle pendulum
+      setPendulumPos(prev => prev === 1 ? -1 : 1);
       
       setTimeout(() => setIsBeatActive(false), 100);
 
@@ -84,12 +104,13 @@ const Metronome: React.FC<MetronomeProps> = ({ bpm, onBpmChange }) => {
     }
     
     timerRef.current = window.setTimeout(scheduler, lookahead);
-  }, [bpm, division, playClick, scheduleAheadTime, lookahead]);
+  }, [bpm, division, playClick, scheduleAheadTime, lookahead, autoIncrementEnabled, incrementAmount, incrementEvery, onBpmChange]);
 
   useEffect(() => {
     if (isRunning) {
       const context = initAudioContext();
       currentBeatRef.current = 0;
+      measuresCountRef.current = 0;
       nextNoteTimeRef.current = context.currentTime;
       timerRef.current = window.setTimeout(scheduler, lookahead);
     } else {
@@ -98,6 +119,7 @@ const Metronome: React.FC<MetronomeProps> = ({ bpm, onBpmChange }) => {
         timerRef.current = null;
       }
       currentBeatRef.current = 0;
+      measuresCountRef.current = 0;
       setIsBeatActive(false);
       setIsAccentBeat(false);
       setPendulumPos(0);
@@ -178,14 +200,64 @@ const Metronome: React.FC<MetronomeProps> = ({ bpm, onBpmChange }) => {
         {isRunning ? 'STOP' : 'START'}
       </Button>
       
-      <Button 
-        onClick={handleTap}
-        variant="outline"
-        size="sm"
-        className="font-bold text-xs border-primary/20 text-primary hover:bg-primary/5 focus-scale"
-      >
-        <Fingerprint className="w-3 h-3 mr-1.5" /> TAP
-      </Button>
+      <div className="flex items-center gap-1">
+        <Button 
+          onClick={handleTap}
+          variant="outline"
+          size="sm"
+          className="font-bold text-xs border-primary/20 text-primary hover:bg-primary/5 focus-scale"
+        >
+          <Fingerprint className="w-3 h-3 mr-1.5" /> TAP
+        </Button>
+
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button 
+              variant={autoIncrementEnabled ? "secondary" : "outline"} 
+              size="sm" 
+              className={cn(
+                "font-bold text-xs border-primary/20 focus-scale",
+                autoIncrementEnabled && "bg-primary/10 text-primary border-primary/40"
+              )}
+            >
+              <TrendingUp className="w-3 h-3 mr-1.5" /> AUTO
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-64 p-4 space-y-4 font-mono">
+            <div className="flex items-center justify-between">
+              <Label className="text-xs font-bold uppercase tracking-widest">Auto-Increment</Label>
+              <Button 
+                variant={autoIncrementEnabled ? "default" : "outline"} 
+                size="sm" 
+                onClick={() => setAutoIncrementEnabled(!autoIncrementEnabled)}
+                className="h-7 text-[10px]"
+              >
+                {autoIncrementEnabled ? "ENABLED" : "DISABLED"}
+              </Button>
+            </div>
+            <div className="space-y-3 pt-2 border-t">
+              <div className="flex items-center justify-between gap-4">
+                <Label className="text-[10px] text-muted-foreground">Increase by (BPM)</Label>
+                <Input 
+                  type="number" 
+                  value={incrementAmount} 
+                  onChange={(e) => setIncrementAmount(Number(e.target.value))}
+                  className="w-16 h-8 text-xs"
+                />
+              </div>
+              <div className="flex items-center justify-between gap-4">
+                <Label className="text-[10px] text-muted-foreground">Every (Measures)</Label>
+                <Input 
+                  type="number" 
+                  value={incrementEvery} 
+                  onChange={(e) => setIncrementEvery(Number(e.target.value))}
+                  className="w-16 h-8 text-xs"
+                />
+              </div>
+            </div>
+          </PopoverContent>
+        </Popover>
+      </div>
 
       <Button 
         onClick={() => setIsMuted(prev => !prev)} 
@@ -222,7 +294,6 @@ const Metronome: React.FC<MetronomeProps> = ({ bpm, onBpmChange }) => {
           isRunning ? "bg-muted/10" : "bg-muted/20"
         )}
       >
-        {/* Pendulum Visual */}
         <div 
           className={cn(
             "absolute bottom-0 w-1 bg-primary/20 transition-transform duration-150 origin-bottom",

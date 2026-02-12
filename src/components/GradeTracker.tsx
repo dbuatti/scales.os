@@ -8,7 +8,7 @@ import { useScales } from '@/context/ScalesContext';
 import { cn } from '@/lib/utils';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Button } from '@/components/ui/button';
-import { ChevronDown, Award } from 'lucide-react';
+import { ChevronDown, Award, Trophy, Star, Shield } from 'lucide-react';
 
 const GradeTracker: React.FC = () => {
     const { progressMap, scaleMasteryBPMMap, exerciseMasteryBPMMap } = useScales();
@@ -32,8 +32,8 @@ const GradeTracker: React.FC = () => {
                     if (highestBPM >= req.requiredBPM) {
                         isMastered = true;
                     }
-                } else { // Dohnanyi or Hanon
-                    const highestBPM = exerciseMasteryBPMMap[req.practiceId] || 0; // Use exerciseMasteryBPMMap
+                } else {
+                    const highestBPM = exerciseMasteryBPMMap[req.practiceId] || 0;
                     if (highestBPM >= req.requiredBPM) {
                         isMastered = true;
                     }
@@ -58,20 +58,17 @@ const GradeTracker: React.FC = () => {
     }, [progressMap, scaleMasteryBPMMap, exerciseMasteryBPMMap]);
     
     const currentGradeInfo = useMemo(() => {
-        // Find the highest grade where completion is 100%
         const completedGrades = gradeStats.filter(g => g.completion === 100);
-        
         const nextGradeStats = gradeStats.find(g => g.completion < 100);
         
         if (nextGradeStats) {
             return {
-                currentGradeName: nextGradeStats.id > 1 ? PRACTICE_GRADES[nextGradeStats.id - 2].name : "Beginner",
+                currentGradeName: nextGradeStats.id > 1 ? PRACTICE_GRADES[nextGradeStats.id - 2].name : "Novice",
                 nextGrade: nextGradeStats,
                 completedCount: completedGrades.length,
             };
         }
         
-        // If all grades 1-10 are 100%
         return { 
             currentGradeName: PRACTICE_GRADES[9].name, 
             nextGrade: null,
@@ -80,53 +77,68 @@ const GradeTracker: React.FC = () => {
         
     }, [gradeStats]);
     
-    const { nextGrade, completedCount } = currentGradeInfo;
+    const { nextGrade, completedCount, currentGradeName } = currentGradeInfo;
+
+    const getRankIcon = (count: number) => {
+        if (count >= 10) return <Trophy className="w-8 h-8 text-warning animate-bounce" />;
+        if (count >= 7) return <Star className="w-8 h-8 text-warning animate-pulse" />;
+        if (count >= 4) return <Award className="w-8 h-8 text-primary" />;
+        return <Shield className="w-8 h-8 text-muted-foreground" />;
+    };
 
     return (
         <Card className="border-4 border-primary/80 shadow-2xl shadow-primary/40 bg-card/95 relative overflow-hidden">
-            {/* Subtle CRT glow overlay */}
             <div className="absolute inset-0 pointer-events-none opacity-30">
                 <div className="h-full w-full bg-gradient-to-b from-transparent via-primary/5 to-transparent" />
             </div>
-            <CardHeader className="p-4 pb-2 border-b-2 border-primary/50 relative z-10">
-                <CardTitle className="font-mono text-primary text-xl flex items-center justify-between text-glow">
-                    <Award className="w-6 h-6 mr-2 text-warning animate-pulse" />
-                    GRADE TRACKER 
-                    <span className={cn("text-sm font-bold", nextGrade ? 'text-warning animate-pulse' : 'text-success')}>
-                        {nextGrade ? `Working on Grade ${nextGrade.id}` : 'Mastery Achieved'}
-                    </span>
-                </CardTitle>
+            <CardHeader className="p-6 pb-2 border-b-2 border-primary/50 relative z-10">
+                <div className="flex items-center justify-between">
+                    <div className="space-y-1">
+                        <CardTitle className="font-mono text-primary text-2xl flex items-center text-glow">
+                            SYSTEM RANK: {currentGradeName.toUpperCase()}
+                        </CardTitle>
+                        <p className="text-xs text-muted-foreground font-mono uppercase tracking-widest">
+                            {completedCount} / 10 Grades Mastered
+                        </p>
+                    </div>
+                    <div className="p-3 rounded-full bg-primary/5 border border-primary/20">
+                        {getRankIcon(completedCount)}
+                    </div>
+                </div>
             </CardHeader>
-            <CardContent className="p-6 space-y-4 relative z-10">
-                {/* Summary View (Always visible) */}
+            <CardContent className="p-6 space-y-6 relative z-10">
                 {nextGrade && (
-                    <div className="space-y-2">
-                        <div className="flex justify-between text-sm font-mono font-medium">
-                            <span className="text-foreground text-primary/90">Next Goal: {nextGrade.name}</span>
-                            <span className="text-primary text-glow">{nextGrade.completion}%</span>
+                    <div className="space-y-4 p-4 rounded-xl bg-primary/5 border border-primary/10">
+                        <div className="flex justify-between items-end">
+                            <div className="space-y-1">
+                                <span className="text-[10px] font-black text-primary/60 uppercase tracking-widest">Current Objective</span>
+                                <h3 className="text-lg font-bold text-primary">{nextGrade.name}</h3>
+                            </div>
+                            <span className="text-2xl font-black text-primary text-glow">{nextGrade.completion}%</span>
                         </div>
-                        <Progress value={nextGrade.completion} className="h-2 [&>div]:bg-primary shadow-md shadow-primary/30" />
-                        <p className="text-xs text-muted-foreground italic text-primary/70">{nextGrade.description}</p>
+                        <Progress value={nextGrade.completion} className="h-3 [&>div]:bg-primary shadow-md shadow-primary/30" />
+                        <p className="text-xs text-muted-foreground italic leading-relaxed">{nextGrade.description}</p>
                     </div>
                 )}
                 
-                {/* Collapsible Detail View */}
                 <Collapsible>
                     <CollapsibleTrigger asChild>
-                        <Button variant="ghost" className="w-full justify-between text-sm font-mono text-muted-foreground hover:text-primary p-0 h-auto border-t border-primary/30 pt-4 mt-4">
-                            View All Grade Progress ({completedCount} / 10 Completed)
+                        <Button variant="ghost" className="w-full justify-between text-xs font-bold uppercase tracking-widest text-muted-foreground hover:text-primary p-0 h-auto border-t border-primary/10 pt-4">
+                            Curriculum Overview
                             <ChevronDown className="w-4 h-4 transition-transform data-[state=open]:rotate-180" />
                         </Button>
                     </CollapsibleTrigger>
-                    <CollapsibleContent className="space-y-4 pt-4 border-t border-dashed border-primary/30 mt-4">
+                    <CollapsibleContent className="space-y-3 pt-4">
                         {gradeStats.map(grade => (
-                            <div key={grade.id} className="space-y-1 p-2 rounded-md bg-secondary/30 border border-primary/20">
-                                <div className="flex justify-between text-sm font-mono font-medium">
-                                    <span className={cn(grade.completion === 100 ? 'text-success text-glow' : 'text-primary/90')}>{grade.name}</span>
-                                    <span className={cn(grade.completion === 100 ? 'text-success text-glow' : 'text-primary text-glow')}>{grade.completion}%</span>
+                            <div key={grade.id} className={cn(
+                                "space-y-2 p-3 rounded-lg border transition-all",
+                                grade.completion === 100 ? "bg-success/5 border-success/20" : "bg-secondary/30 border-primary/10"
+                            )}>
+                                <div className="flex justify-between text-[10px] font-black uppercase tracking-widest">
+                                    <span className={cn(grade.completion === 100 ? 'text-success' : 'text-primary/70')}>Grade {grade.id}: {grade.name}</span>
+                                    <span className={cn(grade.completion === 100 ? 'text-success' : 'text-primary')}>{grade.completion}%</span>
                                 </div>
-                                <Progress value={grade.completion} className="h-2 [&>div]:bg-primary shadow-sm shadow-primary/20" />
-                                <p className="text-xs text-muted-foreground italic text-primary/70">{grade.description}</p>
+                                <Progress value={grade.completion} className={cn("h-1.5", grade.completion === 100 ? "[&>div]:bg-success" : "[&>div]:bg-primary")} />
                             </div>
                         ))}
                     </CollapsibleContent>
