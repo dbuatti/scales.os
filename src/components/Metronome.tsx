@@ -47,8 +47,9 @@ const Metronome: React.FC<MetronomeProps> = ({ bpm, onBpmChange }) => {
     osc.connect(gain);
     gain.connect(context.destination);
 
-    const frequency = isAccent ? 880 : 440;
-    const volume = isAccent ? 0.8 : 0.5;
+    // Raised pitch and increased volume
+    const frequency = isAccent ? 1200 : 800; 
+    const volume = isAccent ? 1.0 : 0.8;
     const duration = 0.025;
 
     osc.frequency.setValueAtTime(frequency, time);
