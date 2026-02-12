@@ -264,39 +264,41 @@ export const ScalesProvider: React.FC<React.PropsWithChildren> = ({ children }) 
     
     const requirements = getGradeRequirements(nextGrade.id);
     
-    // --- Granular Rotation Logic ---
+    // --- Technique Balance Assessment ---
+    // We calculate completion for each category within the current grade to find what's "lacking"
     const categories = ['scale', 'arpeggio', 'dohnanyi', 'hanon'] as const;
-    const hands = ['Left hand only', 'Right hand only', 'Hands together'] as const;
-    const octaves = ['1 Octave (Beginner)', '2 Octaves (Standard)', '3 Octaves (Advanced)', '4 Octaves (Professional)'] as const;
+    const stats = categories.reduce((acc, cat) => {
+        acc[cat] = { total: 0, mastered: 0 };
+        return acc;
+    }, {} as Record<string, { total: 0, mastered: 0 }>);
 
-    const now = new Date();
-    const dayIndex = Math.floor(now.getTime() / (1000 * 60 * 60 * 24));
-    const hourIndex = now.getHours();
+    requirements.forEach(req => {
+        let category: typeof categories[number];
+        if (req.type === 'dohnanyi' || req.type === 'hanon') {
+            category = req.type;
+        } else {
+            const parsed = parseScalePermutationId(req.scalePermutationId);
+            if (!parsed) return;
+            const scaleItem = ALL_SCALE_ITEMS.find(s => s.id === parsed.scaleId);
+            if (!scaleItem) return;
+            category = ARPEGGIO_TYPES.includes(scaleItem.type as any) ? 'arpeggio' : 'scale';
+        }
 
-    // Rotate categories hourly to ensure variety within a single session
-    const categoryRotationIndex = (dayIndex + hourIndex) % 4;
-    const hourlyCategoryPriority = [
-        categories[categoryRotationIndex],
-        categories[(categoryRotationIndex + 1) % 4],
-        categories[(categoryRotationIndex + 2) % 4],
-        categories[(categoryRotationIndex + 3) % 4],
-    ];
+        stats[category].total++;
+        const bpm = req.type === 'scale' ? (scaleMasteryBPMMap[req.scalePermutationId] || 0) : (exerciseMasteryBPMMap[req.exerciseId] || 0);
+        if (bpm >= req.requiredBPM) stats[category].mastered++;
+    });
 
-    // Rotate hands and octaves hourly to ensure healthy alternation
-    const hourlyHandPriority = [
-        hands[hourIndex % 3],
-        hands[(hourIndex + 1) % 3],
-        hands[(hourIndex + 2) % 3],
-    ];
+    // Sort categories by completion percentage (ascending) to prioritize what's lacking
+    const balancedCategoryPriority = categories
+        .filter(cat => stats[cat].total > 0)
+        .sort((a, b) => {
+            const completionA = stats[a].mastered / stats[a].total;
+            const completionB = stats[b].mastered / stats[b].total;
+            return completionA - completionB;
+        });
 
-    const hourlyOctavePriority = [
-        octaves[hourIndex % 4],
-        octaves[(hourIndex + 1) % 4],
-        octaves[(hourIndex + 2) % 4],
-        octaves[(hourIndex + 3) % 4],
-    ];
-
-    for (const category of hourlyCategoryPriority) {
+    for (const category of balancedCategoryPriority) {
         const candidates = requirements.filter(req => {
             if (category === 'dohnanyi' || category === 'hanon') {
                 if (req.type !== category) return false;
@@ -318,23 +320,8 @@ export const ScalesProvider: React.FC<React.PropsWithChildren> = ({ children }) 
         });
 
         if (candidates.length > 0) {
-            // Within the category, sort by hourly hand and octave priority
+            // Within the lacking category, pick the one closest to mastery to encourage finishing
             const sortedCandidates = candidates.sort((a, b) => {
-                if (a.type === 'scale' && b.type === 'scale') {
-                    const parsedA = parseScalePermutationId(a.scalePermutationId);
-                    const parsedB = parseScalePermutationId(b.scalePermutationId);
-                    if (parsedA && parsedB) {
-                        const handScoreA = hourlyHandPriority.indexOf(parsedA.handConfig as any);
-                        const handScoreB = hourlyHandPriority.indexOf(parsedB.handConfig as any);
-                        if (handScoreA !== handScoreB) return handScoreA - handScoreB;
-
-                        const octaveScoreA = hourlyOctavePriority.indexOf(parsedA.octaves as any);
-                        const octaveScoreB = hourlyOctavePriority.indexOf(parsedB.octaves as any);
-                        if (octaveScoreA !== octaveScoreB) return octaveScoreA - octaveScoreB;
-                    }
-                }
-                
-                // Secondary sort: pick the one closest to mastery (highest BPM)
                 const bpmA = a.type === 'scale' ? (scaleMasteryBPMMap[a.scalePermutationId] || 0) : (exerciseMasteryBPMMap[a.exerciseId] || 0);
                 const bpmB = b.type === 'scale' ? (scaleMasteryBPMMap[b.scalePermutationId] || 0) : (exerciseMasteryBPMMap[b.exerciseId] || 0);
                 return bpmB - bpmA;

@@ -53,12 +53,14 @@ const Metronome: React.FC<MetronomeProps> = ({ bpm, onBpmChange }) => {
     const osc = context.createOscillator();
     const gain = context.createGain();
 
+    // Use triangle wave for much better audibility/bite than sine
+    osc.type = 'triangle';
     osc.connect(gain);
     gain.connect(context.destination);
 
-    const frequency = isAccent ? 1200 : 800; 
-    const volume = isAccent ? 1.0 : 0.8;
-    const duration = 0.025;
+    const frequency = isAccent ? 1000 : 800; 
+    const volume = isAccent ? 1.0 : 0.7;
+    const duration = 0.03; // Slightly longer duration for more "thump"
 
     osc.frequency.setValueAtTime(frequency, time);
     gain.gain.setValueAtTime(volume, time);
