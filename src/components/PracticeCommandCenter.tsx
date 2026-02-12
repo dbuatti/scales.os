@@ -16,7 +16,6 @@ import { Button } from '@/components/ui/button';
 import { showSuccess } from '@/utils/toast';
 import { RefreshCw, Target, Settings2, Keyboard, Plus, Minus, Save } from 'lucide-react';
 import { Slider } from '@/components/ui/slider';
-import KeyboardShortcuts from './KeyboardShortcuts';
 
 const BPM_PRESETS = [60, 80, 100, 120, 140];
 
@@ -48,6 +47,7 @@ const PracticeCommandCenter: React.FC = () => {
   const [isTabManuallySelected, setIsTabManuallySelected] = useState(false);
   const [isEngagingSuggestion, setIsEngagingSuggestion] = useState(false);
 
+  // Keyboard Shortcuts
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.target !== document.body) return;
@@ -111,10 +111,7 @@ const PracticeCommandCenter: React.FC = () => {
     <div className="max-w-7xl mx-auto space-y-10 px-4 md:px-8">
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
         <div className="space-y-2">
-          <div className="flex items-center gap-3">
-            <h1 className="text-4xl font-bold tracking-tight">Practice</h1>
-            <KeyboardShortcuts />
-          </div>
+          <h1 className="text-4xl font-bold tracking-tight">Practice</h1>
           <p className="text-lg text-muted-foreground">Focus on your technique and track your progress.</p>
         </div>
         {nextFocus && (
