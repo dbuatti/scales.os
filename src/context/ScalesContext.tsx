@@ -6,7 +6,7 @@ import {
   DohnanyiExercise, DohnanyiItem, ALL_DOHNANYI_ITEMS, DOHNANYI_BPM_TARGETS, getDohnanyiPracticeId, ALL_DOHNANYI_COMBINATIONS,
   HanonExercise, HanonItem, ALL_HANON_ITEMS, ALL_HANON_COMBINATIONS, getHanonPracticeId, getScalePermutationId,
   PRACTICE_GRADES, getGradeRequirements, GradeRequirement, parseScalePermutationId, getDohnanyiExerciseBaseId, getHanonExerciseBaseId,
-  KEYS
+  KEYS, SCALE_TYPES, ARPEGGIO_TYPES
 } from '@/lib/scales';
 import { useSupabaseSession } from '@/hooks/use-supabase-session';
 import { supabase } from '@/integrations/supabase/client';
@@ -59,7 +59,7 @@ export interface PracticeLogEntry {
 
 export type NextFocus = 
   | {
-      type: 'scale';
+      type: 'scale' | 'arpeggio';
       scaleItem: ScaleItem;
       scalePermutationId: string;
       requiredBPM: number;
@@ -264,24 +264,39 @@ export const ScalesProvider: React.FC<React.PropsWithChildren> = ({ children }) 
     
     const requirements = getGradeRequirements(nextGrade.id);
     
-    // 1. Balanced Type Rotation (Scales vs Dohnanyi vs Hanon)
-    const types = ['scale', 'dohnanyi', 'hanon'] as const;
-    const typeStats = types.map(type => {
-        const typeReqs = requirements.filter(r => r.type === type);
-        if (typeReqs.length === 0) return { type, completion: 100 };
-        const mastered = typeReqs.filter(req => {
-            const id = req.type === 'scale' ? req.scalePermutationId : req.exerciseId;
-            const bpm = req.type === 'scale' ? (scaleMasteryBPMMap[req.scalePermutationId] || 0) : (exerciseMasteryBPMMap[req.exerciseId] || 0);
-            return bpm >= req.requiredBPM;
-        }).length;
-        return { type, completion: (mastered / typeReqs.length) * 100 };
-    });
+    // --- Daily Rotation Logic ---
+    // We define 4 distinct categories to rotate through equally.
+    const categories = ['scale', 'arpeggio', 'dohnanyi', 'hanon'] as const;
+    
+    // Use the current day index to shift the priority array.
+    // This ensures that every day, the "starting" category is different.
+    const dayIndex = Math.floor(Date.now() / (1000 * 60 * 60 * 24));
+    const dailyPriority = [
+        categories[dayIndex % 4],
+        categories[(dayIndex + 1) % 4],
+        categories[(dayIndex + 2) % 4],
+        categories[(dayIndex + 3) % 4],
+    ];
 
-    const prioritizedTypes = typeStats.sort((a, b) => a.completion - b.completion).map(s => s.type);
-
-    for (const type of prioritizedTypes) {
+    for (const category of dailyPriority) {
         const candidates = requirements.filter(req => {
-            if (req.type !== type) return false;
+            // 1. Filter by category
+            if (category === 'dohnanyi' || category === 'hanon') {
+                if (req.type !== category) return false;
+            } else {
+                // For scales and arpeggios, we need to check the scale type within the 'scale' requirement
+                if (req.type !== 'scale') return false;
+                const parsed = parseScalePermutationId(req.scalePermutationId);
+                if (!parsed) return false;
+                const scaleItem = ALL_SCALE_ITEMS.find(s => s.id === parsed.scaleId);
+                if (!scaleItem) return false;
+                
+                const isArpeggio = ARPEGGIO_TYPES.includes(scaleItem.type as any);
+                if (category === 'arpeggio' && !isArpeggio) return false;
+                if (category === 'scale' && isArpeggio) return false;
+            }
+
+            // 2. Filter out stasis and already mastered items
             const id = req.type === 'scale' ? req.scalePermutationId : req.exerciseId;
             if (progressMap[id] === 'stasis') return false;
             const bpm = req.type === 'scale' ? (scaleMasteryBPMMap[req.scalePermutationId] || 0) : (exerciseMasteryBPMMap[req.exerciseId] || 0);
@@ -289,34 +304,20 @@ export const ScalesProvider: React.FC<React.PropsWithChildren> = ({ children }) 
         });
 
         if (candidates.length > 0) {
-            // 2. Balanced Key Rotation (for Scales)
-            if (type === 'scale') {
-                // Group candidates by key
-                const keyStats = KEYS.map(key => {
-                    const keyCandidates = candidates.filter(c => {
-                        const parsed = parseScalePermutationId((c as any).scalePermutationId);
-                        return parsed?.scaleId.startsWith(key);
-                    });
-                    return { key, count: keyCandidates.length, candidates: keyCandidates };
-                }).filter(k => k.count > 0);
+            // Within the selected category, pick the one with the highest current BPM (closest to goal) to build momentum
+            const selectedRequirement = candidates.sort((a, b) => {
+                const bpmA = a.type === 'scale' ? (scaleMasteryBPMMap[a.scalePermutationId] || 0) : (exerciseMasteryBPMMap[a.exerciseId] || 0);
+                const bpmB = b.type === 'scale' ? (scaleMasteryBPMMap[b.scalePermutationId] || 0) : (exerciseMasteryBPMMap[b.exerciseId] || 0);
+                return bpmB - bpmA;
+            })[0];
 
-                // Pick the key with the most remaining work (lowest completion)
-                const prioritizedKeys = keyStats.sort((a, b) => b.count - a.count);
-                const selectedKeyGroup = prioritizedKeys[0];
-                
-                // Within the key, pick the one with the highest current BPM (closest to goal) to build momentum
-                const selectedRequirement = selectedKeyGroup.candidates.sort((a, b) => {
-                    const bpmA = scaleMasteryBPMMap[(a as any).scalePermutationId] || 0;
-                    const bpmB = scaleMasteryBPMMap[(b as any).scalePermutationId] || 0;
-                    return bpmB - bpmA;
-                })[0] as any;
-
+            if (selectedRequirement.type === 'scale') {
                 const highestBPM = scaleMasteryBPMMap[selectedRequirement.scalePermutationId] || 0;
                 const parsed = parseScalePermutationId(selectedRequirement.scalePermutationId);
                 if (!parsed) continue;
                 const scaleItem = ALL_SCALE_ITEMS.find(s => s.id === parsed.scaleId);
                 if (scaleItem) return {
-                    type: 'scale',
+                    type: category as 'scale' | 'arpeggio',
                     scaleItem,
                     scalePermutationId: selectedRequirement.scalePermutationId,
                     requiredBPM: selectedRequirement.requiredBPM,
@@ -326,13 +327,6 @@ export const ScalesProvider: React.FC<React.PropsWithChildren> = ({ children }) 
                     description: selectedRequirement.description,
                 };
             } else {
-                // For Dohnanyi/Hanon, pick the one with the highest current BPM (closest to goal)
-                const selectedRequirement = candidates.sort((a, b) => {
-                    const bpmA = exerciseMasteryBPMMap[(a as any).exerciseId] || 0;
-                    const bpmB = exerciseMasteryBPMMap[(b as any).exerciseId] || 0;
-                    return bpmB - bpmA;
-                })[0] as any;
-
                 const item = (selectedRequirement.type === 'dohnanyi' ? ALL_DOHNANYI_ITEMS : ALL_HANON_ITEMS).find(c => c.id === selectedRequirement.exerciseId);
                 if (item) {
                     const highestBPM = exerciseMasteryBPMMap[selectedRequirement.exerciseId] || 0;
