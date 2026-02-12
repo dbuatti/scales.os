@@ -2,7 +2,7 @@ import React from 'react';
 import { useGlobalBPM } from '@/context/GlobalBPMContext';
 import { useScales } from '@/context/ScalesContext';
 import { Card, CardContent } from '@/components/ui/card';
-import { Save, AlertCircle } from 'lucide-react';
+import { Save, AlertCircle, Music, Hand } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { showSuccess } from '@/utils/toast';
@@ -117,13 +117,19 @@ const PracticeSummaryPanel: React.FC = () => {
             </div>
             {activePracticeItem.type === 'scale' && (
               <>
-                <div className="space-y-1.5">
-                  <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Octaves</p>
-                  <p className="text-lg font-bold text-primary">{activePracticeItem.octaves}</p>
+                <div className="space-y-2 p-3 rounded-lg bg-primary/5 border border-primary/10">
+                  <div className="flex items-center gap-2 text-[10px] font-black text-muted-foreground uppercase tracking-widest">
+                    <Music className="w-3 h-3" />
+                    Octaves
+                  </div>
+                  <p className="text-sm font-bold text-primary leading-tight">{activePracticeItem.octaves}</p>
                 </div>
-                <div className="space-y-1.5">
-                  <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Hands</p>
-                  <p className="text-lg font-bold text-primary">{activePracticeItem.handConfig}</p>
+                <div className="space-y-2 p-3 rounded-lg bg-primary/5 border border-primary/10">
+                  <div className="flex items-center gap-2 text-[10px] font-black text-muted-foreground uppercase tracking-widest">
+                    <Hand className="w-3 h-3" />
+                    Hands
+                  </div>
+                  <p className="text-sm font-bold text-primary leading-tight">{activePracticeItem.handConfig}</p>
                 </div>
               </>
             )}
