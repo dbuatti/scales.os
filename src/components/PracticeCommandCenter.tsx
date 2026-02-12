@@ -14,7 +14,7 @@ import { formatDistanceToNow } from 'date-fns';
 import PracticeSummaryPanel from './PracticeSummaryPanel';
 import { Button } from '@/components/ui/button';
 import { showSuccess } from '@/utils/toast';
-import { RefreshCw, Target, Settings2, Keyboard, Plus, Minus } from 'lucide-react';
+import { RefreshCw, Target, Settings2, Keyboard, Plus, Minus, Save } from 'lucide-react';
 import { Slider } from '@/components/ui/slider';
 import KeyboardShortcuts from './KeyboardShortcuts';
 
@@ -51,9 +51,14 @@ const PracticeCommandCenter: React.FC = () => {
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.target !== document.body) return;
-      if (e.key === 'ArrowUp') { e.preventDefault(); handleBpmChange(1); }
-      else if (e.key === 'ArrowDown') { e.preventDefault(); handleBpmChange(-1); }
-      else if (e.key.toLowerCase() === 's') {
+      
+      if (e.key === 'ArrowUp') { 
+        e.preventDefault(); 
+        handleBpmChange(1); 
+      } else if (e.key === 'ArrowDown') { 
+        e.preventDefault(); 
+        handleBpmChange(-1); 
+      } else if (e.key.toLowerCase() === 's' || e.key === 'Enter') {
         e.preventDefault();
         activeLogSnapshotFunction?.();
       }
@@ -231,14 +236,20 @@ const PracticeCommandCenter: React.FC = () => {
                   <Keyboard className="w-3 h-3" />
                   Shortcuts
                 </div>
-                <div className="grid grid-cols-2 gap-3 text-[10px]">
+                <div className="grid grid-cols-1 gap-3 text-[10px]">
                   <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg border border-border/50">
-                    <span className="font-medium">BPM</span>
-                    <span className="font-black bg-background px-1.5 py-0.5 rounded border shadow-sm">↑/↓</span>
+                    <span className="font-medium">Save Progress</span>
+                    <span className="font-black bg-background px-1.5 py-0.5 rounded border shadow-sm">Enter / S</span>
                   </div>
-                  <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg border border-border/50">
-                    <span className="font-medium">Start/Stop</span>
-                    <span className="font-black bg-background px-1.5 py-0.5 rounded border shadow-sm">Space</span>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg border border-border/50">
+                      <span className="font-medium">BPM</span>
+                      <span className="font-black bg-background px-1.5 py-0.5 rounded border shadow-sm">↑/↓</span>
+                    </div>
+                    <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg border border-border/50">
+                      <span className="font-medium">Start/Stop</span>
+                      <span className="font-black bg-background px-1.5 py-0.5 rounded border shadow-sm">Space</span>
+                    </div>
                   </div>
                 </div>
               </div>

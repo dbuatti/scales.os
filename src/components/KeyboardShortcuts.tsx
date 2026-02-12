@@ -45,7 +45,7 @@ const KeyboardShortcuts = () => {
           <ShortcutItem keys={["↑"]} description="Increase BPM" />
           <ShortcutItem keys={["↓"]} description="Decrease BPM" />
           <ShortcutItem keys={["M"]} description="Mute / Unmute Metronome" />
-          <ShortcutItem keys={["S"]} description="Save Practice Snapshot" />
+          <ShortcutItem keys={["Enter", "S"]} description="Save Practice Snapshot" />
         </div>
       </DialogContent>
     </Dialog>
