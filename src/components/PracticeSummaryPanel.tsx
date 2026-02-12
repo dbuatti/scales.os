@@ -6,6 +6,7 @@ import { Save, AlertCircle, Music, Hand } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { showSuccess } from '@/utils/toast';
+import { cn, getHandColorClasses } from '@/lib/utils';
 
 const PracticeSummaryPanel: React.FC = () => {
   const { activePracticeItem, currentBPM, activeLogSnapshotFunction } = useGlobalBPM();
@@ -55,7 +56,7 @@ const PracticeSummaryPanel: React.FC = () => {
     return match ? match[0] : octaves;
   };
 
-  // Helper to simplify hand config
+  // Helper to simplify hand label
   const getHandLabel = (handConfig: string) => {
     const lower = handConfig.toLowerCase();
     if (lower.includes('together')) return 'BOTH';
@@ -151,14 +152,17 @@ const PracticeSummaryPanel: React.FC = () => {
                     <p className="text-xs font-bold text-primary/70 truncate max-w-[80px]">{activePracticeItem.octaves.split(' ')[0]}</p>
                   </div>
                 </div>
-                <div className="flex items-center gap-4 p-3 rounded-xl bg-primary/5 border border-primary/10">
-                  <div className="flex flex-col items-center justify-center w-12 h-12 rounded-lg bg-primary/10 text-primary">
+                <div className={cn(
+                  "flex items-center gap-4 p-3 rounded-xl border transition-colors",
+                  getHandColorClasses(activePracticeItem.handConfig).split(' ').filter(c => !c.startsWith('data-')).join(' ')
+                )}>
+                  <div className="flex flex-col items-center justify-center w-12 h-12 rounded-lg bg-current/10">
                     <Hand className="w-4 h-4 mb-0.5 opacity-50" />
                     <span className="text-[10px] font-black leading-none">{getHandLabel(activePracticeItem.handConfig)}</span>
                   </div>
                   <div className="space-y-0.5">
-                    <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Hands</p>
-                    <p className="text-xs font-bold text-primary/70 truncate max-w-[80px]">{activePracticeItem.handConfig.split(' ')[0]}</p>
+                    <p className="text-[10px] font-black uppercase tracking-widest opacity-70">Hands</p>
+                    <p className="text-xs font-bold truncate max-w-[80px]">{activePracticeItem.handConfig.split(' ')[0]}</p>
                   </div>
                 </div>
               </>

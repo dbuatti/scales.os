@@ -8,7 +8,7 @@ import {
   DirectionType, HandConfiguration, RhythmicPermutation, AccentDistribution, OctaveConfiguration
 } from '@/lib/scales';
 import { useScales, ScaleStatus } from '@/context/ScalesContext';
-import { cn } from '@/lib/utils';
+import { cn, getHandColorClasses } from '@/lib/utils';
 import { Check, Clock, X, Music, Gauge, Repeat, Hand, Target, Zap, Palette } from 'lucide-react';
 import { showError, showSuccess } from '@/utils/toast';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
@@ -58,9 +58,10 @@ interface PermutationSectionProps<T extends string> {
     selectedValue: T;
     onValueChange: (value: T) => void;
     icon: React.ReactNode;
+    getItemClasses?: (option: T) => string;
 }
 
-const PermutationSection = <T extends string>({ title, description, options, selectedValue, onValueChange, icon }: PermutationSectionProps<T>) => (
+const PermutationSection = <T extends string>({ title, description, options, selectedValue, onValueChange, icon, getItemClasses }: PermutationSectionProps<T>) => (
     <div className="space-y-3 p-3 rounded-lg border border-primary/30 bg-secondary/50">
         <div className="flex items-center gap-2 mb-2">
             {icon}
@@ -80,7 +81,7 @@ const PermutationSection = <T extends string>({ title, description, options, sel
                     aria-label={`Select ${option}`}
                     className={cn(
                         "data-[state=on]:bg-primary data-[state=on]:text-primary-foreground data-[state=on]:shadow-md data-[state=on]:border-primary/80 border border-border text-xs px-2 py-1 h-auto font-mono",
-                        selectedValue === option ? "bg-primary text-primary-foreground" : "bg-card text-foreground"
+                        getItemClasses?.(option) || (selectedValue === option ? "bg-primary text-primary-foreground" : "bg-card text-foreground")
                     )}
                 >
                     {option.split(' ')[0]}
@@ -217,6 +218,7 @@ const ScaleDetailDialog = React.forwardRef<HTMLButtonElement, ScaleDetailDialogP
                 selectedValue={selectedHandConfig}
                 onValueChange={setSelectedHandConfig as (value: HandConfiguration) => void}
                 icon={<Hand className="w-5 h-5 text-primary/70" />}
+                getItemClasses={getHandColorClasses}
             />
             <PermutationSection
                 title="RHYTHMIC PERMUTATIONS"

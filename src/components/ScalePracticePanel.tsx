@@ -12,7 +12,7 @@ import {
 import { useScales, NextFocus } from '@/context/ScalesContext';
 import { showSuccess, showError } from '@/utils/toast';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
-import { cn, shallowEqual } from '@/lib/utils';
+import { cn, shallowEqual, getHandColorClasses } from '@/lib/utils';
 import { Label } from '@/components/ui/label';
 import { useGlobalBPM, SNAPSHOT_DEBOUNCE_MS, ActivePracticeItem } from '@/context/GlobalBPMContext';
 import PracticePresets from './PracticePresets';
@@ -24,9 +24,10 @@ interface PermutationSectionProps<T extends string> {
     selectedValue: T;
     onValueChange: (value: T) => void;
     icon: React.ReactNode;
+    getItemClasses?: (option: T) => string;
 }
 
-const PermutationSection = <T extends string>({ title, description, options, selectedValue, onValueChange, icon }: PermutationSectionProps<T>) => (
+const PermutationSection = <T extends string>({ title, description, options, selectedValue, onValueChange, icon, getItemClasses }: PermutationSectionProps<T>) => (
     <div className="space-y-4 p-5 rounded-xl border bg-card/50 shadow-sm transition-all hover:shadow-md">
         <div className="flex items-center gap-3">
             <div className="p-2 rounded-lg bg-primary/10 text-primary">
@@ -47,7 +48,10 @@ const PermutationSection = <T extends string>({ title, description, options, sel
                 <ToggleGroupItem 
                     key={option} 
                     value={option} 
-                    className="h-9 px-4 text-xs font-medium data-[state=on]:bg-primary data-[state=on]:text-primary-foreground focus-scale"
+                    className={cn(
+                        "h-9 px-4 text-xs font-medium data-[state=on]:bg-primary data-[state=on]:text-primary-foreground focus-scale",
+                        getItemClasses?.(option)
+                    )}
                 >
                     {option}
                 </ToggleGroupItem>
@@ -391,6 +395,7 @@ const ScalePracticePanel: React.FC<ScalePracticePanelProps> = ({
                     selectedValue={selectedHandConfig} 
                     onValueChange={setHandConfigAndAdjust}
                     icon={<Hand className="w-5 h-5" />}
+                    getItemClasses={getHandColorClasses}
                 />
                 <PermutationSection 
                     title="Rhythm" 
