@@ -264,7 +264,7 @@ export const ScalesProvider: React.FC<React.PropsWithChildren> = ({ children }) 
     
     const requirements = getGradeRequirements(nextGrade.id);
     
-    // --- Daily & Hourly Rotation Logic ---
+    // --- Granular Rotation Logic ---
     const categories = ['scale', 'arpeggio', 'dohnanyi', 'hanon'] as const;
     const hands = ['Left hand only', 'Right hand only', 'Hands together'] as const;
     const octaves = ['1 Octave (Beginner)', '2 Octaves (Standard)', '3 Octaves (Advanced)', '4 Octaves (Professional)'] as const;
@@ -273,12 +273,13 @@ export const ScalesProvider: React.FC<React.PropsWithChildren> = ({ children }) 
     const dayIndex = Math.floor(now.getTime() / (1000 * 60 * 60 * 24));
     const hourIndex = now.getHours();
 
-    // Rotate categories daily
-    const dailyCategoryPriority = [
-        categories[dayIndex % 4],
-        categories[(dayIndex + 1) % 4],
-        categories[(dayIndex + 2) % 4],
-        categories[(dayIndex + 3) % 4],
+    // Rotate categories hourly to ensure variety within a single session
+    const categoryRotationIndex = (dayIndex + hourIndex) % 4;
+    const hourlyCategoryPriority = [
+        categories[categoryRotationIndex],
+        categories[(categoryRotationIndex + 1) % 4],
+        categories[(categoryRotationIndex + 2) % 4],
+        categories[(categoryRotationIndex + 3) % 4],
     ];
 
     // Rotate hands and octaves hourly to ensure healthy alternation
@@ -295,7 +296,7 @@ export const ScalesProvider: React.FC<React.PropsWithChildren> = ({ children }) 
         octaves[(hourIndex + 3) % 4],
     ];
 
-    for (const category of dailyCategoryPriority) {
+    for (const category of hourlyCategoryPriority) {
         const candidates = requirements.filter(req => {
             if (category === 'dohnanyi' || category === 'hanon') {
                 if (req.type !== category) return false;
