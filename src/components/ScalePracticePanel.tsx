@@ -5,8 +5,8 @@ import { RotateCcw, Music, Gauge, Repeat, Hand, Target, Zap, Palette, LayoutGrid
 import { 
   KEYS, SCALE_TYPES, ARPEGGIO_TYPES, ARTICULATIONS, 
   Key, Articulation, TempoLevel,
+  DirectionType, HandConfiguration, RhythmicPermutation, AccentDistribution, OctaveConfiguration,
   DIRECTION_TYPES, HAND_CONFIGURATIONS, RHYTHMIC_PERMUTATIONS, ACCENT_DISTRIBUTIONS, OCTAVE_CONFIGURATIONS,
-  DirectionType, HandConfiguration, RhythmicPermutation, AccentDistribution, OctaveConfiguration, TEMPO_LEVELS,
   getScalePermutationId, parseScalePermutationId, cleanString
 } from '@/lib/scales';
 import { useScales, NextFocus } from '@/context/ScalesContext';
@@ -324,15 +324,21 @@ const ScalePracticePanel: React.FC<ScalePracticePanelProps> = ({
                         <div className="p-2 rounded-lg bg-primary/10 text-primary">
                             <Zap className="w-5 h-5" />
                         </div>
-                        <Label className="text-sm font-bold uppercase tracking-wider text-foreground">Type</Label>
+                        <Label className="text-sm font-bold uppercase tracking-wider text-foreground">Type Selection</Label>
                     </div>
-                    <div className="grid grid-cols-2 gap-4">
-                        <ToggleGroup type="single" value={selectedType} onValueChange={(v) => v && setTypeAndAdjust(v)} className="flex flex-col items-stretch gap-2">
-                            {SCALE_TYPES.map(t => <ToggleGroupItem key={t} value={t} className="justify-start h-10 px-4 text-xs font-medium focus-scale">{t}</ToggleGroupItem>)}
-                        </ToggleGroup>
-                        <ToggleGroup type="single" value={selectedType} onValueChange={(v) => v && setTypeAndAdjust(v)} className="flex flex-col items-stretch gap-2">
-                            {ARPEGGIO_TYPES.map(t => <ToggleGroupItem key={t} value={t} className="justify-start h-10 px-4 text-xs font-medium focus-scale">{t.replace(' Arpeggio', '')}</ToggleGroupItem>)}
-                        </ToggleGroup>
+                    <div className="grid grid-cols-2 gap-6">
+                        <div className="space-y-3">
+                            <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest border-b pb-1">Scales</p>
+                            <ToggleGroup type="single" value={selectedType} onValueChange={(v) => v && setTypeAndAdjust(v)} className="flex flex-col items-stretch gap-2">
+                                {SCALE_TYPES.map(t => <ToggleGroupItem key={t} value={t} className="justify-start h-10 px-4 text-xs font-medium focus-scale">{t}</ToggleGroupItem>)}
+                            </ToggleGroup>
+                        </div>
+                        <div className="space-y-3">
+                            <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest border-b pb-1">Arpeggios</p>
+                            <ToggleGroup type="single" value={selectedType} onValueChange={(v) => v && setTypeAndAdjust(v)} className="flex flex-col items-stretch gap-2">
+                                {ARPEGGIO_TYPES.map(t => <ToggleGroupItem key={t} value={t} className="justify-start h-10 px-4 text-xs font-medium focus-scale">{t.replace(' Arpeggio', '')}</ToggleGroupItem>)}
+                            </ToggleGroup>
+                        </div>
                     </div>
                 </div>
             </div>

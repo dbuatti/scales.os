@@ -66,6 +66,13 @@ const PracticeSummaryPanel: React.FC = () => {
     return handConfig.toUpperCase();
   };
 
+  const getDisplayType = () => {
+    if (activePracticeItem.type !== 'scale') return activePracticeItem.type;
+    const type = activePracticeItem.scaleType.toLowerCase();
+    if (type.includes('arpeggio') || type.includes('7th')) return 'arpeggio';
+    return 'scale';
+  };
+
   return (
     <Card className="overflow-hidden border-none shadow-lg bg-card ring-1 ring-primary/5">
       <CardContent className="p-0">
@@ -78,7 +85,7 @@ const PracticeSummaryPanel: React.FC = () => {
                   : activePracticeItem.name}
               </h2>
               <div className="flex items-center gap-3 text-base font-medium text-muted-foreground">
-                <span className="capitalize bg-primary/10 text-primary px-2 py-0.5 rounded text-xs font-bold tracking-widest">{activePracticeItem.type}</span>
+                <span className="capitalize bg-primary/10 text-primary px-2 py-0.5 rounded text-xs font-bold tracking-widest">{getDisplayType()}</span>
                 <span>•</span>
                 <span>{activePracticeItem.type === 'scale' ? activePracticeItem.articulation : 'Standard'}</span>
               </div>
