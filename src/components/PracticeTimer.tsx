@@ -1,18 +1,23 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Play, Pause, RotateCcw, LogIn } from 'lucide-react';
+import { Play, Pause, RotateCcw, LogIn, Target } from 'lucide-react';
 import { showSuccess } from '@/utils/toast';
 import { cn } from '@/lib/utils';
+import { Progress } from '@/components/ui/progress';
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 
 interface PracticeTimerProps {
   onLogSession: (durationMinutes: number) => void;
   isCondensed?: boolean;
 }
 
+const GOAL_OPTIONS = [15, 30, 45, 60];
+
 const PracticeTimer: React.FC<PracticeTimerProps> = ({ onLogSession, isCondensed = false }) => {
   const [time, setTime] = useState(0);
   const [isRunning, setIsRunning] = useState(false);
+  const [sessionGoal, setSessionGoal] = useState<number | null>(null);
 
   const formatTime = (seconds: number) => {
     const totalSeconds = Math.floor(seconds);
@@ -45,12 +50,19 @@ const PracticeTimer: React.FC<PracticeTimerProps> = ({ onLogSession, isCondensed
     }
     return () => { if (interval) clearInterval(interval); };
   }, [isRunning]);
+
+  const progress = sessionGoal ? Math.min(100, (time / (sessionGoal * 60)) * 100) : 0;
   
   if (isCondensed) {
     return (
         <div className="flex items-center space-x-2">
-            <div className="text-lg font-mono font-extrabold text-primary tracking-tighter min-w-[60px] text-center">
-                {formatTime(time)}
+            <div className="flex flex-col items-center">
+                <div className="text-lg font-mono font-extrabold text-primary tracking-tighter min-w-[60px] text-center">
+                    {formatTime(time)}
+                </div>
+                {sessionGoal && (
+                    <Progress value={progress} className="h-1 w-full mt-0.5" />
+                )}
             </div>
             
             {isRunning ? (
@@ -81,9 +93,42 @@ const PracticeTimer: React.FC<PracticeTimerProps> = ({ onLogSession, isCondensed
         <CardTitle className="text-center text-sm font-mono tracking-widest text-muted-foreground uppercase">Session Timer</CardTitle>
       </CardHeader>
       <CardContent className="flex flex-col items-center space-y-6 p-8 relative z-10">
-        <div className="text-7xl font-mono font-extrabold text-primary tracking-tighter">
-          {formatTime(time)}
+        <div className="space-y-2 w-full text-center">
+            <div className="text-7xl font-mono font-extrabold text-primary tracking-tighter">
+                {formatTime(time)}
+            </div>
+            {sessionGoal && (
+                <div className="space-y-1">
+                    <div className="flex justify-between text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                        <span>Goal: {sessionGoal}m</span>
+                        <span>{Math.round(progress)}%</span>
+                    </div>
+                    <Progress value={progress} className="h-2" />
+                </div>
+            )}
         </div>
+
+        <div className="w-full space-y-2">
+            <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                <Target className="w-3 h-3" /> Set Session Goal (Minutes)
+            </div>
+            <ToggleGroup 
+                type="single" 
+                value={sessionGoal?.toString()} 
+                onValueChange={(v) => setSessionGoal(v ? parseInt(v) : null)}
+                className="justify-start gap-2"
+            >
+                {GOAL_OPTIONS.map(goal => (
+                    <ToggleGroupItem key={goal} value={goal.toString()} className="h-8 px-3 text-xs font-bold">
+                        {goal}m
+                    </ToggleGroupItem>
+                ))}
+                <ToggleGroupItem value="none" onClick={() => setSessionGoal(null)} className="h-8 px-3 text-xs font-bold">
+                    None
+                </ToggleGroupItem>
+            </ToggleGroup>
+        </div>
+
         <div className="flex space-x-3 w-full">
           {isRunning ? (
             <Button onClick={handlePause} variant="secondary" size="lg" className="flex-1 bg-destructive hover:bg-destructive/90 text-destructive-foreground text-lg font-mono focus-scale">

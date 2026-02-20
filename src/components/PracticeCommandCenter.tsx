@@ -14,7 +14,7 @@ import { formatDistanceToNow } from 'date-fns';
 import PracticeSummaryPanel from './PracticeSummaryPanel';
 import { Button } from '@/components/ui/button';
 import { showSuccess } from '@/utils/toast';
-import { RefreshCw, Target, Settings2, Keyboard, Plus, Minus, Save, ChevronsLeft, ChevronsRight } from 'lucide-react';
+import { RefreshCw, Target, Settings2, Keyboard, Plus, Minus, Save, ChevronsLeft, ChevronsRight, Lock, Unlock } from 'lucide-react';
 import { Slider } from '@/components/ui/slider';
 
 const BPM_PRESETS = [60, 80, 100, 120, 140];
@@ -46,6 +46,7 @@ const PracticeCommandCenter: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'scales' | 'dohnanyi' | 'hanon'>('scales');
   const [isTabManuallySelected, setIsTabManuallySelected] = useState(false);
   const [isEngagingSuggestion, setIsEngagingSuggestion] = useState(false);
+  const [isBpmLocked, setIsBpmLocked] = useState(false);
 
   // Keyboard Shortcuts
   useEffect(() => {
@@ -54,10 +55,10 @@ const PracticeCommandCenter: React.FC = () => {
       
       if (e.key === 'ArrowUp') { 
         e.preventDefault(); 
-        handleBpmChange(1); 
+        if (!isBpmLocked) handleBpmChange(e.shiftKey ? 5 : 1); 
       } else if (e.key === 'ArrowDown') { 
         e.preventDefault(); 
-        handleBpmChange(-1); 
+        if (!isBpmLocked) handleBpmChange(e.shiftKey ? -5 : -1); 
       } else if (e.key.toLowerCase() === 's' || e.key === 'Enter') {
         e.preventDefault();
         activeLogSnapshotFunction?.();
@@ -65,7 +66,7 @@ const PracticeCommandCenter: React.FC = () => {
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [handleBpmChange, activeLogSnapshotFunction]);
+  }, [handleBpmChange, activeLogSnapshotFunction, isBpmLocked]);
 
   useEffect(() => {
     if (nextFocus && !isTabManuallySelected && !isEngagingSuggestion) {
@@ -208,14 +209,26 @@ const PracticeCommandCenter: React.FC = () => {
         <div className="space-y-10">
           <Card className="shadow-md border-primary/10">
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
-                <Settings2 className="w-4 h-4" />
-                Tempo Control
-              </CardTitle>
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-sm font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
+                    <Settings2 className="w-4 h-4" />
+                    Tempo Control
+                </CardTitle>
+                <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    onClick={() => setIsBpmLocked(!isBpmLocked)}
+                    className={cn("h-8 w-8", isBpmLocked ? "text-warning" : "text-muted-foreground")}
+                >
+                    {isBpmLocked ? <Lock className="w-4 h-4" /> : <Unlock className="w-4 h-4" />}
+                </Button>
+              </div>
             </CardHeader>
             <CardContent className="space-y-8">
               <div className="flex items-center justify-between">
-                <span className="text-5xl font-black tracking-tighter text-primary">{currentBPM}</span>
+                <span className={cn("text-5xl font-black tracking-tighter transition-opacity", isBpmLocked ? "text-primary/50" : "text-primary")}>
+                    {currentBPM}
+                </span>
                 <span className="text-sm font-bold text-muted-foreground uppercase">BPM</span>
               </div>
               
@@ -225,7 +238,8 @@ const PracticeCommandCenter: React.FC = () => {
                   min={MIN_BPM}
                   max={MAX_BPM}
                   step={1}
-                  onValueChange={([v]) => setCurrentBPM(v)}
+                  onValueChange={([v]) => !isBpmLocked && setCurrentBPM(v)}
+                  disabled={isBpmLocked}
                   className="py-4"
                 />
                 <div className="flex justify-between text-xs font-bold text-muted-foreground">
@@ -236,18 +250,18 @@ const PracticeCommandCenter: React.FC = () => {
 
               <div className="grid grid-cols-2 gap-3">
                 <div className="flex items-center gap-1">
-                  <Button variant="outline" size="sm" onClick={() => handleBpmChange(-10)} className="flex-1 font-bold focus-scale h-10">
+                  <Button variant="outline" size="sm" onClick={() => !isBpmLocked && handleBpmChange(-10)} disabled={isBpmLocked} className="flex-1 font-bold focus-scale h-10">
                     <ChevronsLeft className="w-4 h-4" />
                   </Button>
-                  <Button variant="outline" size="sm" onClick={() => handleBpmChange(-5)} className="flex-1 font-bold focus-scale h-10">
+                  <Button variant="outline" size="sm" onClick={() => !isBpmLocked && handleBpmChange(-5)} disabled={isBpmLocked} className="flex-1 font-bold focus-scale h-10">
                     -5
                   </Button>
                 </div>
                 <div className="flex items-center gap-1">
-                  <Button variant="outline" size="sm" onClick={() => handleBpmChange(5)} className="flex-1 font-bold focus-scale h-10">
+                  <Button variant="outline" size="sm" onClick={() => !isBpmLocked && handleBpmChange(5)} disabled={isBpmLocked} className="flex-1 font-bold focus-scale h-10">
                     +5
                   </Button>
-                  <Button variant="outline" size="sm" onClick={() => handleBpmChange(10)} className="flex-1 font-bold focus-scale h-10">
+                  <Button variant="outline" size="sm" onClick={() => !isBpmLocked && handleBpmChange(10)} disabled={isBpmLocked} className="flex-1 font-bold focus-scale h-10">
                     <ChevronsRight className="w-4 h-4" />
                   </Button>
                 </div>
@@ -259,6 +273,7 @@ const PracticeCommandCenter: React.FC = () => {
                     key={preset} 
                     variant="outline" 
                     size="sm" 
+                    disabled={isBpmLocked}
                     className={cn("h-10 text-xs font-bold px-0 focus-scale", currentBPM === preset && "bg-primary text-primary-foreground border-primary")}
                     onClick={() => setCurrentBPM(preset)}
                   >
@@ -283,8 +298,8 @@ const PracticeCommandCenter: React.FC = () => {
                       <span className="font-black bg-background px-1.5 py-0.5 rounded border shadow-sm">↑/↓</span>
                     </div>
                     <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg border border-border/50">
-                      <span className="font-medium">Start/Stop</span>
-                      <span className="font-black bg-background px-1.5 py-0.5 rounded border shadow-sm">Space</span>
+                      <span className="font-medium">Tap Tempo</span>
+                      <span className="font-black bg-background px-1.5 py-0.5 rounded border shadow-sm">T</span>
                     </div>
                   </div>
                 </div>
