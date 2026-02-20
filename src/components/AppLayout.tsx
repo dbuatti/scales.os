@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import ScrollToTopButton from './ScrollToTopButton';
 import ThemeSwitcher from './ThemeSwitcher';
 import ZenModeToggle from './ZenModeToggle';
+import KeyboardShortcuts from './KeyboardShortcuts';
 import { useZenMode } from '@/context/ZenModeContext';
 
 interface NavLinkProps {
@@ -60,6 +61,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children, headerRightContent }) =
                         {headerRightContent ? (
                             <>
                                 {headerRightContent}
+                                <KeyboardShortcuts />
                                 <ZenModeToggle />
                                 {!isZenMode && <ThemeSwitcher />}
                             </>
@@ -71,6 +73,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children, headerRightContent }) =
                                         <User className="w-4 h-4 mr-2" /> Login
                                     </Link>
                                 </Button>
+                                <KeyboardShortcuts />
                                 <ZenModeToggle />
                                 {!isZenMode && <ThemeSwitcher />}
                             </>

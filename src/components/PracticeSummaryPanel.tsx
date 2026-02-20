@@ -144,7 +144,7 @@ const PracticeSummaryPanel: React.FC = () => {
             <div className="space-y-1.5">
               <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Goal</p>
               <p className="text-lg font-bold text-primary">
-                {activePracticeItem.type === 'scale' ? activePracticeItem.nextGoalBPM : (activePracticeItem as any).nextTargetBPM} BPM
+                {activePracticeItem.type === 'scale' ? activePracticeItem.highestBPM + 3 : (activePracticeItem as any).nextTargetBPM} BPM
               </p>
             </div>
             {activePracticeItem.type === 'scale' && (
