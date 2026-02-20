@@ -14,7 +14,7 @@ import { formatDistanceToNow } from 'date-fns';
 import PracticeSummaryPanel from './PracticeSummaryPanel';
 import { Button } from '@/components/ui/button';
 import { showSuccess } from '@/utils/toast';
-import { RefreshCw, Target, Settings2, Keyboard, Plus, Minus, Save } from 'lucide-react';
+import { RefreshCw, Target, Settings2, Keyboard, Plus, Minus, Save, ChevronsLeft, ChevronsRight } from 'lucide-react';
 import { Slider } from '@/components/ui/slider';
 
 const BPM_PRESETS = [60, 80, 100, 120, 140];
@@ -234,13 +234,23 @@ const PracticeCommandCenter: React.FC = () => {
                 </div>
               </div>
 
-              <div className="flex items-center justify-center gap-3">
-                <Button variant="outline" size="lg" onClick={() => handleBpmChange(-5)} className="flex-1 font-bold focus-scale">
-                  -5
-                </Button>
-                <Button variant="outline" size="lg" onClick={() => handleBpmChange(5)} className="flex-1 font-bold focus-scale">
-                  +5
-                </Button>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="flex items-center gap-1">
+                  <Button variant="outline" size="sm" onClick={() => handleBpmChange(-10)} className="flex-1 font-bold focus-scale h-10">
+                    <ChevronsLeft className="w-4 h-4" />
+                  </Button>
+                  <Button variant="outline" size="sm" onClick={() => handleBpmChange(-5)} className="flex-1 font-bold focus-scale h-10">
+                    -5
+                  </Button>
+                </div>
+                <div className="flex items-center gap-1">
+                  <Button variant="outline" size="sm" onClick={() => handleBpmChange(5)} className="flex-1 font-bold focus-scale h-10">
+                    +5
+                  </Button>
+                  <Button variant="outline" size="sm" onClick={() => handleBpmChange(10)} className="flex-1 font-bold focus-scale h-10">
+                    <ChevronsRight className="w-4 h-4" />
+                  </Button>
+                </div>
               </div>
 
               <div className="grid grid-cols-5 gap-2">
