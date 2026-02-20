@@ -15,7 +15,6 @@ import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { cn, shallowEqual, getHandColorClasses } from '@/lib/utils';
 import { Label } from '@/components/ui/label';
 import { useGlobalBPM, SNAPSHOT_DEBOUNCE_MS, ActivePracticeItem } from '@/context/GlobalBPMContext';
-import PracticePresets from './PracticePresets';
 
 interface PermutationSectionProps<T extends string> {
     title: string;
@@ -133,17 +132,6 @@ const ScalePracticePanel: React.FC<ScalePracticePanelProps> = ({
     setSelectedOctaves(randomOctave);
     setIsPermutationManuallyAdjusted(true);
     showSuccess(`Randomized: ${randomKey} ${randomType}!`);
-  };
-
-  const handleApplyPreset = (config: any) => {
-    setSelectedArticulation(config.articulation);
-    setSelectedDirection(config.direction);
-    setSelectedHandConfig(config.handConfig);
-    setSelectedRhythm(config.rhythm);
-    setSelectedAccent(config.accent);
-    setSelectedOctaves(config.octaves);
-    setIsPermutationManuallyAdjusted(true);
-    showSuccess("Preset applied!");
   };
 
   useEffect(() => {
@@ -310,21 +298,18 @@ const ScalePracticePanel: React.FC<ScalePracticePanelProps> = ({
 
   return (
     <CardContent className="p-0 space-y-10">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-4 bg-primary/5 rounded-xl border border-primary/10">
+        <div className="flex items-center justify-between p-4 bg-primary/5 rounded-xl border border-primary/10">
           <div className="space-y-1">
             <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-primary/60">
               <LayoutGrid className="w-3 h-3" />
-              Quick Presets
+              Quick Actions
             </div>
-            <p className="text-[10px] text-muted-foreground">Instantly apply common practice configurations.</p>
+            <p className="text-[10px] text-muted-foreground">Instantly modify your current practice session.</p>
           </div>
-          <div className="flex items-center gap-2">
-            <PracticePresets onSelect={handleApplyPreset} />
-            <Button variant="outline" size="sm" onClick={handleRandomize} className="h-8 text-[10px] font-bold uppercase tracking-wider gap-2 border-primary/20 hover:bg-primary/5 focus-scale">
-              <Shuffle className="w-4 h-4" />
-              Randomize
-            </Button>
-          </div>
+          <Button variant="outline" size="sm" onClick={handleRandomize} className="h-8 text-[10px] font-bold uppercase tracking-wider gap-2 border-primary/20 hover:bg-primary/5 focus-scale">
+            <Shuffle className="w-4 h-4" />
+            Randomize
+          </Button>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-10">

@@ -14,10 +14,7 @@ import { formatDistanceToNow } from 'date-fns';
 import PracticeSummaryPanel from './PracticeSummaryPanel';
 import { Button } from '@/components/ui/button';
 import { showSuccess } from '@/utils/toast';
-import { RefreshCw, Target, Settings2, Keyboard, Plus, Minus, Save, ChevronsLeft, ChevronsRight, Lock, Unlock } from 'lucide-react';
-import { Slider } from '@/components/ui/slider';
-
-const BPM_PRESETS = [60, 80, 100, 120, 140];
+import { RefreshCw, Target, Settings2, Keyboard, Plus, Minus, Save } from 'lucide-react';
 
 const PracticeCommandCenter: React.FC = () => {
   const {
@@ -46,29 +43,22 @@ const PracticeCommandCenter: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'scales' | 'dohnanyi' | 'hanon'>('scales');
   const [isTabManuallySelected, setIsTabManuallySelected] = useState(false);
   const [isEngagingSuggestion, setIsEngagingSuggestion] = useState(false);
-  const [isBpmLocked, setIsBpmLocked] = useState(false);
 
   // Keyboard Shortcuts
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.target !== document.body) return;
       
-      if (e.key === 'ArrowUp') { 
-        e.preventDefault(); 
-        if (!isBpmLocked) handleBpmChange(e.shiftKey ? 5 : 1); 
-      } else if (e.key === 'ArrowDown') { 
-        e.preventDefault(); 
-        if (!isBpmLocked) handleBpmChange(e.shiftKey ? -5 : -1); 
-      } else if (e.key.toLowerCase() === 's' || e.key === 'Enter') {
+      if (e.key === 'ArrowUp') { e.preventDefault(); handleBpmChange(1); }
+      else if (e.key === 'ArrowDown') { e.preventDefault(); handleBpmChange(-1); }
+      else if (e.key.toLowerCase() === 's' || e.key === 'Enter') {
         e.preventDefault();
         activeLogSnapshotFunction?.();
-      } else if (e.key.toLowerCase() === 't') {
-        // Tap tempo is handled inside Metronome component via global listener
       }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [handleBpmChange, activeLogSnapshotFunction, isBpmLocked]);
+  }, [handleBpmChange, activeLogSnapshotFunction]);
 
   useEffect(() => {
     if (nextFocus && !isTabManuallySelected && !isEngagingSuggestion) {
@@ -211,79 +201,22 @@ const PracticeCommandCenter: React.FC = () => {
         <div className="space-y-10">
           <Card className="shadow-md border-primary/10">
             <CardHeader className="pb-2">
-              <div className="flex items-center justify-between">
-                <CardTitle className="text-sm font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
-                    <Settings2 className="w-4 h-4" />
-                    Tempo Control
-                </CardTitle>
-                <Button 
-                    variant="ghost" 
-                    size="icon" 
-                    onClick={() => setIsBpmLocked(!isBpmLocked)}
-                    className={cn("h-8 w-8", isBpmLocked ? "text-warning" : "text-muted-foreground")}
-                >
-                    {isBpmLocked ? <Lock className="w-4 h-4" /> : <Unlock className="w-4 h-4" />}
-                </Button>
-              </div>
+              <CardTitle className="text-sm font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
+                  <Settings2 className="w-4 h-4" />
+                  Tempo Control
+              </CardTitle>
             </CardHeader>
             <CardContent className="space-y-8">
               <div className="flex items-center justify-between">
-                <span className={cn("text-5xl font-black tracking-tighter transition-opacity", isBpmLocked ? "text-primary/50" : "text-primary")}>
-                    {currentBPM}
-                </span>
+                <span className="text-5xl font-black tracking-tighter text-primary">{currentBPM}</span>
                 <span className="text-sm font-bold text-muted-foreground uppercase">BPM</span>
               </div>
-              
-              <div className="space-y-4">
-                <Slider
-                  value={[currentBPM]}
-                  min={MIN_BPM}
-                  max={MAX_BPM}
-                  step={1}
-                  onValueChange={([v]) => !isBpmLocked && setCurrentBPM(v)}
-                  disabled={isBpmLocked}
-                  className="py-4"
-                />
-                <div className="flex justify-between text-xs font-bold text-muted-foreground">
-                  <span>{MIN_BPM}</span>
-                  <span>{MAX_BPM}</span>
-                </div>
+              <div className="flex items-center gap-2">
+                <Button variant="outline" size="sm" onClick={() => handleBpmChange(-5)} className="flex-1 font-bold focus-scale h-10">-5</Button>
+                <Button variant="outline" size="sm" onClick={() => handleBpmChange(-1)} className="flex-1 font-bold focus-scale h-10"><Minus className="w-4 h-4" /></Button>
+                <Button variant="outline" size="sm" onClick={() => handleBpmChange(1)} className="flex-1 font-bold focus-scale h-10"><Plus className="w-4 h-4" /></Button>
+                <Button variant="outline" size="sm" onClick={() => handleBpmChange(5)} className="flex-1 font-bold focus-scale h-10">+5</Button>
               </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div className="flex items-center gap-1">
-                  <Button variant="outline" size="sm" onClick={() => !isBpmLocked && handleBpmChange(-10)} disabled={isBpmLocked} className="flex-1 font-bold focus-scale h-10">
-                    <ChevronsLeft className="w-4 h-4" />
-                  </Button>
-                  <Button variant="outline" size="sm" onClick={() => !isBpmLocked && handleBpmChange(-5)} disabled={isBpmLocked} className="flex-1 font-bold focus-scale h-10">
-                    -5
-                  </Button>
-                </div>
-                <div className="flex items-center gap-1">
-                  <Button variant="outline" size="sm" onClick={() => !isBpmLocked && handleBpmChange(5)} disabled={isBpmLocked} className="flex-1 font-bold focus-scale h-10">
-                    +5
-                  </Button>
-                  <Button variant="outline" size="sm" onClick={() => !isBpmLocked && handleBpmChange(10)} disabled={isBpmLocked} className="flex-1 font-bold focus-scale h-10">
-                    <ChevronsRight className="w-4 h-4" />
-                  </Button>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-5 gap-2">
-                {BPM_PRESETS.map(preset => (
-                  <Button 
-                    key={preset} 
-                    variant="outline" 
-                    size="sm" 
-                    disabled={isBpmLocked}
-                    className={cn("h-10 text-xs font-bold px-0 focus-scale", currentBPM === preset && "bg-primary text-primary-foreground border-primary")}
-                    onClick={() => setCurrentBPM(preset)}
-                  >
-                    {preset}
-                  </Button>
-                ))}
-              </div>
-
               <div className="pt-6 border-t space-y-4">
                 <div className="flex items-center gap-2 text-[10px] text-muted-foreground uppercase font-black tracking-widest">
                   <Keyboard className="w-3 h-3" />
@@ -294,19 +227,12 @@ const PracticeCommandCenter: React.FC = () => {
                     <span className="font-medium">Save Progress</span>
                     <span className="font-black bg-background px-1.5 py-0.5 rounded border shadow-sm">Enter / S</span>
                   </div>
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg border border-border/50">
-                      <span className="font-medium">BPM</span>
-                      <span className="font-black bg-background px-1.5 py-0.5 rounded border shadow-sm">↑/↓</span>
-                    </div>
-                    <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg border border-border/50">
-                      <span className="font-medium">Tap Tempo</span>
-                      <span className="font-black bg-background px-1.5 py-0.5 rounded border shadow-sm">T</span>
-                    </div>
+                  <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg border border-border/50">
+                    <span className="font-medium">Adjust BPM</span>
+                    <span className="font-black bg-background px-1.5 py-0.5 rounded border shadow-sm">↑ / ↓</span>
                   </div>
                 </div>
               </div>
-
               <div className="pt-4 flex justify-center">
                 <Button variant="ghost" size="sm" onClick={refetchData} disabled={isScalesContextLoading} className="text-xs font-bold text-muted-foreground hover:text-primary transition-colors">
                   <RefreshCw className={cn("w-3 h-3 mr-2", isScalesContextLoading && "animate-spin")} />
