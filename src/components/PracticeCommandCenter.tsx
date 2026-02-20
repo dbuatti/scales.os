@@ -62,6 +62,8 @@ const PracticeCommandCenter: React.FC = () => {
       } else if (e.key.toLowerCase() === 's' || e.key === 'Enter') {
         e.preventDefault();
         activeLogSnapshotFunction?.();
+      } else if (e.key.toLowerCase() === 't') {
+        // Tap tempo is handled inside Metronome component via global listener
       }
     };
     window.addEventListener('keydown', handleKeyDown);

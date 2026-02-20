@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
-import { Volume2, VolumeX, Music, Clock, Fingerprint, TrendingUp, Settings2, Zap, ZapOff, Hash, Bell, BellOff } from 'lucide-react';
+import { Volume2, VolumeX, Music, Clock, Fingerprint, TrendingUp, Settings2, Zap, ZapOff, Hash } from 'lucide-react';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { cn } from '@/lib/utils';
 import { Input } from '@/components/ui/input';
@@ -22,7 +22,6 @@ const Metronome: React.FC<MetronomeProps> = ({ bpm, onBpmChange }) => {
   const [isMuted, setIsMuted] = useState(false);
   const [volume, setVolume] = useState(0.7);
   const [visualFlashEnabled, setVisualFlashEnabled] = useState(false);
-  const [accentEnabled, setAccentEnabled] = useState(true);
   const [division, setDivision] = useState<NoteDivision>('quarter');
   const [isBeatActive, setIsBeatActive] = useState(false);
   const [isAccentBeat, setIsAccentBeat] = useState(false);
@@ -62,8 +61,8 @@ const Metronome: React.FC<MetronomeProps> = ({ bpm, onBpmChange }) => {
     osc.connect(gain);
     gain.connect(context.destination);
 
-    const frequency = (isAccent && accentEnabled) ? 1000 : 800; 
-    const baseVolume = (isAccent && accentEnabled) ? volume : volume * 0.7;
+    const frequency = isAccent ? 1000 : 800; 
+    const baseVolume = isAccent ? volume : volume * 0.7;
     const duration = 0.03;
 
     osc.frequency.setValueAtTime(frequency, time);
@@ -72,7 +71,7 @@ const Metronome: React.FC<MetronomeProps> = ({ bpm, onBpmChange }) => {
 
     osc.start(time);
     osc.stop(time + duration);
-  }, [isMuted, initAudioContext, volume, accentEnabled]);
+  }, [isMuted, initAudioContext, volume]);
 
   const scheduler = useCallback(() => {
     const context = audioContextRef.current;
@@ -150,7 +149,23 @@ const Metronome: React.FC<MetronomeProps> = ({ bpm, onBpmChange }) => {
     setIsRunning(prev => !prev);
   }, [isRunning]);
 
-  const handleTap = useCallback(() => {
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.target !== document.body) return;
+
+      if (e.code === 'Space') {
+        e.preventDefault();
+        handleToggleRun();
+      } else if (e.key.toLowerCase() === 'm') {
+        e.preventDefault();
+        setIsMuted(prev => !prev);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [handleToggleRun]);
+
+  const handleTap = () => {
     const now = Date.now();
     const timeout = 2000;
 
@@ -175,26 +190,7 @@ const Metronome: React.FC<MetronomeProps> = ({ bpm, onBpmChange }) => {
     if (tapTimesRef.current.length > 4) {
       tapTimesRef.current.shift();
     }
-  }, [onBpmChange]);
-
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.target !== document.body) return;
-
-      if (e.code === 'Space') {
-        e.preventDefault();
-        handleToggleRun();
-      } else if (e.key.toLowerCase() === 'm') {
-        e.preventDefault();
-        setIsMuted(prev => !prev);
-      } else if (e.key.toLowerCase() === 't') {
-        e.preventDefault();
-        handleTap();
-      }
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [handleToggleRun, handleTap]);
+  };
 
   return (
     <div className="flex items-center space-x-4">
@@ -202,7 +198,7 @@ const Metronome: React.FC<MetronomeProps> = ({ bpm, onBpmChange }) => {
       {isRunning && visualFlashEnabled && isBeatActive && (
         <div className={cn(
           "fixed inset-0 pointer-events-none z-[100] transition-opacity duration-100",
-          (isAccentBeat && accentEnabled) ? "bg-warning/10" : "bg-primary/5"
+          isAccentBeat ? "bg-warning/10" : "bg-primary/5"
         )} />
       )}
 
@@ -236,7 +232,7 @@ const Metronome: React.FC<MetronomeProps> = ({ bpm, onBpmChange }) => {
               size="sm" 
               className={cn(
                 "font-bold text-xs border-primary/20 focus-scale",
-                (autoIncrementEnabled || visualFlashEnabled || !accentEnabled) && "bg-primary/10 text-primary border-primary/40"
+                (autoIncrementEnabled || visualFlashEnabled) && "bg-primary/10 text-primary border-primary/40"
               )}
             >
               <Settings2 className="w-3 h-3 mr-1.5" /> SETTINGS
@@ -261,29 +257,19 @@ const Metronome: React.FC<MetronomeProps> = ({ bpm, onBpmChange }) => {
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4 pt-4 border-t">
-              <div className="space-y-2">
-                <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Visual Flash</Label>
+            <div className="space-y-4 pt-4 border-t">
+              <div className="flex items-center justify-between">
+                <div className="space-y-0.5">
+                  <Label className="text-xs font-bold uppercase tracking-widest">Visual Flash</Label>
+                  <p className="text-[10px] text-muted-foreground">Flash screen on beat</p>
+                </div>
                 <Button 
                   variant={visualFlashEnabled ? "default" : "outline"} 
                   size="sm" 
                   onClick={() => setVisualFlashEnabled(!visualFlashEnabled)}
-                  className="w-full h-9"
+                  className="h-7 w-12 p-0"
                 >
-                  {visualFlashEnabled ? <Zap className="w-3 h-3 mr-2" /> : <ZapOff className="w-3 h-3 mr-2" />}
-                  {visualFlashEnabled ? "ON" : "OFF"}
-                </Button>
-              </div>
-              <div className="space-y-2">
-                <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Accent Beat 1</Label>
-                <Button 
-                  variant={accentEnabled ? "default" : "outline"} 
-                  size="sm" 
-                  onClick={() => setAccentEnabled(!accentEnabled)}
-                  className="w-full h-9"
-                >
-                  {accentEnabled ? <Bell className="w-3 h-3 mr-2" /> : <BellOff className="w-3 h-3 mr-2" />}
-                  {accentEnabled ? "ON" : "OFF"}
+                  {visualFlashEnabled ? <Zap className="w-3 h-3" /> : <ZapOff className="w-3 h-3" />}
                 </Button>
               </div>
             </div>
@@ -384,7 +370,7 @@ const Metronome: React.FC<MetronomeProps> = ({ bpm, onBpmChange }) => {
         <div className={cn(
             "w-3 h-3 rounded-full transition-all duration-100 z-10",
             isRunning && isBeatActive 
-              ? (isAccentBeat && accentEnabled)
+              ? isAccentBeat 
                 ? "bg-warning scale-150 shadow-[0_0_15px_hsl(var(--warning))]" 
                 : "bg-primary scale-125 shadow-[0_0_10px_hsl(var(--primary))]" 
               : "bg-muted-foreground/20"
