@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useEffect, useCallback, useRef } from 'react';
 import { CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { RotateCcw, Music, Gauge, Repeat, Hand, Target, Zap, Palette, LayoutGrid } from 'lucide-react';
+import { RotateCcw, Music, Gauge, Repeat, Hand, Target, Zap, Palette, LayoutGrid, Shuffle } from 'lucide-react';
 import { 
   KEYS, SCALE_TYPES, ARPEGGIO_TYPES, ARTICULATIONS, 
   Key, Articulation, TempoLevel,
@@ -111,6 +111,28 @@ const ScalePracticePanel: React.FC<ScalePracticePanelProps> = ({
     setSelectedOctaves(OCTAVE_CONFIGURATIONS[1]);
     setIsPermutationManuallyAdjusted(false);
     showSuccess("Reset to standard permutations.");
+  };
+
+  const handleRandomize = () => {
+    const randomKey = KEYS[Math.floor(Math.random() * KEYS.length)];
+    const randomType = ALL_COMBINED_TYPES[Math.floor(Math.random() * ALL_COMBINED_TYPES.length)];
+    const randomArticulation = ARTICULATIONS[Math.floor(Math.random() * ARTICULATIONS.length)];
+    const randomDirection = DIRECTION_TYPES[Math.floor(Math.random() * DIRECTION_TYPES.length)];
+    const randomHand = HAND_CONFIGURATIONS[Math.floor(Math.random() * HAND_CONFIGURATIONS.length)];
+    const randomRhythm = RHYTHMIC_PERMUTATIONS[Math.floor(Math.random() * RHYTHMIC_PERMUTATIONS.length)];
+    const randomAccent = ACCENT_DISTRIBUTIONS[Math.floor(Math.random() * ACCENT_DISTRIBUTIONS.length)];
+    const randomOctave = OCTAVE_CONFIGURATIONS[Math.floor(Math.random() * OCTAVE_CONFIGURATIONS.length)];
+
+    setSelectedKey(randomKey);
+    setSelectedType(randomType);
+    setSelectedArticulation(randomArticulation);
+    setSelectedDirection(randomDirection);
+    setSelectedHandConfig(randomHand);
+    setSelectedRhythm(randomRhythm);
+    setSelectedAccent(randomAccent);
+    setSelectedOctaves(randomOctave);
+    setIsPermutationManuallyAdjusted(true);
+    showSuccess(`Randomized: ${randomKey} ${randomType}!`);
   };
 
   const handleApplyPreset = (config: any) => {
@@ -296,7 +318,13 @@ const ScalePracticePanel: React.FC<ScalePracticePanelProps> = ({
             </div>
             <p className="text-[10px] text-muted-foreground">Instantly apply common practice configurations.</p>
           </div>
-          <PracticePresets onSelect={handleApplyPreset} />
+          <div className="flex items-center gap-2">
+            <PracticePresets onSelect={handleApplyPreset} />
+            <Button variant="outline" size="sm" onClick={handleRandomize} className="h-8 text-[10px] font-bold uppercase tracking-wider gap-2 border-primary/20 hover:bg-primary/5 focus-scale">
+              <Shuffle className="w-4 h-4" />
+              Randomize
+            </Button>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-10">

@@ -274,14 +274,14 @@ export const ScalesProvider: React.FC<React.PropsWithChildren> = ({ children }) 
 
     requirements.forEach(req => {
         let category: typeof categories[number];
-        if (req.type === 'dohnanyi' || req.type === 'hanon') {
-            category = req.type;
-        } else {
+        if (req.type === 'scale') {
             const parsed = parseScalePermutationId(req.scalePermutationId);
             if (!parsed) return;
             const scaleItem = ALL_SCALE_ITEMS.find(s => s.id === parsed.scaleId);
             if (!scaleItem) return;
             category = ARPEGGIO_TYPES.includes(scaleItem.type as any) ? 'arpeggio' : 'scale';
+        } else {
+            category = req.type;
         }
 
         stats[category].total++;

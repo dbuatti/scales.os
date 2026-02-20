@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
-import { Volume2, VolumeX, Music, Clock, Fingerprint, TrendingUp, Settings2, Zap, ZapOff } from 'lucide-react';
+import { Volume2, VolumeX, Music, Clock, Fingerprint, TrendingUp, Settings2, Zap, ZapOff, Hash } from 'lucide-react';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { cn } from '@/lib/utils';
 import { Input } from '@/components/ui/input';
@@ -26,6 +26,7 @@ const Metronome: React.FC<MetronomeProps> = ({ bpm, onBpmChange }) => {
   const [isBeatActive, setIsBeatActive] = useState(false);
   const [isAccentBeat, setIsAccentBeat] = useState(false);
   const [pendulumPos, setPendulumPos] = useState(0);
+  const [currentMeasure, setCurrentMeasure] = useState(0);
   
   // Auto-increment states
   const [autoIncrementEnabled, setAutoIncrementEnabled] = useState(false);
@@ -86,8 +87,9 @@ const Metronome: React.FC<MetronomeProps> = ({ bpm, onBpmChange }) => {
 
       if (isAccent && currentBeatRef.current > 0) {
         measuresCountRef.current++;
-        if (autoIncrementEnabled && measuresCountRef.current >= incrementEvery) {
-          measuresCountRef.current = 0;
+        setCurrentMeasure(measuresCountRef.current);
+        
+        if (autoIncrementEnabled && measuresCountRef.current % incrementEvery === 0) {
           if (onBpmChange) {
             onBpmChange(bpm + incrementAmount);
           }
@@ -114,6 +116,7 @@ const Metronome: React.FC<MetronomeProps> = ({ bpm, onBpmChange }) => {
       const context = initAudioContext();
       currentBeatRef.current = 0;
       measuresCountRef.current = 0;
+      setCurrentMeasure(0);
       nextNoteTimeRef.current = context.currentTime;
       timerRef.current = window.setTimeout(scheduler, lookahead);
     } else {
@@ -123,6 +126,7 @@ const Metronome: React.FC<MetronomeProps> = ({ bpm, onBpmChange }) => {
       }
       currentBeatRef.current = 0;
       measuresCountRef.current = 0;
+      setCurrentMeasure(0);
       setIsBeatActive(false);
       setIsAccentBeat(false);
       setPendulumPos(0);
@@ -348,6 +352,13 @@ const Metronome: React.FC<MetronomeProps> = ({ bpm, onBpmChange }) => {
           isRunning ? "bg-muted/10" : "bg-muted/20"
         )}
       >
+        {isRunning && (
+          <div className="absolute top-1 right-1 flex items-center gap-0.5 text-[8px] font-black text-primary/40">
+            <Hash className="w-2 h-2" />
+            {currentMeasure}
+          </div>
+        )}
+        
         <div 
           className={cn(
             "absolute bottom-0 w-1 bg-primary/20 transition-transform duration-150 origin-bottom",

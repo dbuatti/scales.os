@@ -1,10 +1,12 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Play, BarChart2, User, Home } from 'lucide-react';
+import { Play, User, Home } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import ScrollToTopButton from './ScrollToTopButton';
 import ThemeSwitcher from './ThemeSwitcher';
+import ZenModeToggle from './ZenModeToggle';
+import { useZenMode } from '@/context/ZenModeContext';
 
 interface NavLinkProps {
     to: string;
@@ -39,21 +41,27 @@ interface AppLayoutProps {
 }
 
 const AppLayout: React.FC<AppLayoutProps> = ({ children, headerRightContent }) => {
+    const { isZenMode } = useZenMode();
+
     return (
-        <div className="min-h-screen flex flex-col bg-background">
-            <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-                <div className="container flex h-16 items-center justify-between">
-                    <Link to="/" className="flex items-center gap-2 font-bold text-xl tracking-tight">
-                        <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center text-primary-foreground">
-                            <Play className="w-5 h-5 fill-current" />
+        <div className={cn("min-h-screen flex flex-col bg-background transition-all duration-500", isZenMode && "bg-background/95")}>
+            <header className={cn(
+                "sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 transition-all duration-300",
+                isZenMode && "h-12 opacity-50 hover:opacity-100"
+            )}>
+                <div className="container flex h-full items-center justify-between py-2">
+                    <Link to="/" className={cn("flex items-center gap-2 font-bold text-xl tracking-tight transition-all", isZenMode && "text-sm")}>
+                        <div className={cn("bg-primary rounded-lg flex items-center justify-center text-primary-foreground transition-all", isZenMode ? "w-6 h-6" : "w-8 h-8")}>
+                            <Play className={cn("fill-current", isZenMode ? "w-3 h-3" : "w-5 h-5")} />
                         </div>
-                        <span>Scales</span>
+                        <span className={cn(isZenMode && "hidden sm:inline")}>Scales</span>
                     </Link>
                     <nav className="flex items-center gap-2">
                         {headerRightContent ? (
                             <>
                                 {headerRightContent}
-                                <ThemeSwitcher />
+                                <ZenModeToggle />
+                                {!isZenMode && <ThemeSwitcher />}
                             </>
                         ) : (
                             <>
@@ -63,26 +71,29 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children, headerRightContent }) =
                                         <User className="w-4 h-4 mr-2" /> Login
                                     </Link>
                                 </Button>
-                                <ThemeSwitcher />
+                                <ZenModeToggle />
+                                {!isZenMode && <ThemeSwitcher />}
                             </>
                         )}
                     </nav>
                 </div>
             </header>
             
-            <main className="flex-grow container py-8">
+            <main className={cn("flex-grow container py-8 transition-all duration-500", isZenMode && "py-4 max-w-5xl")}>
                 {children}
             </main>
 
-            <footer className="border-t py-6 md:py-0">
-                <div className="container flex flex-col items-center justify-between gap-4 md:h-24 md:flex-row">
-                    <p className="text-center text-sm leading-loose text-muted-foreground md:text-left">
-                        Built for pianists. Focused on technique.
-                    </p>
-                </div>
-            </footer>
+            {!isZenMode && (
+                <footer className="border-t py-6 md:py-0">
+                    <div className="container flex flex-col items-center justify-between gap-4 md:h-24 md:flex-row">
+                        <p className="text-center text-sm leading-loose text-muted-foreground md:text-left">
+                            Built for pianists. Focused on technique.
+                        </p>
+                    </div>
+                </footer>
+            )}
 
-            <ScrollToTopButton />
+            {!isZenMode && <ScrollToTopButton />}
         </div>
     );
 };
