@@ -15,6 +15,11 @@ import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { cn, shallowEqual, getHandColorClasses } from '@/lib/utils';
 import { Label } from '@/components/ui/label';
 import { useGlobalBPM, SNAPSHOT_DEBOUNCE_MS, ActivePracticeItem } from '@/context/GlobalBPMContext';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface PermutationSectionProps<T extends string> {
     title: string;
@@ -44,16 +49,22 @@ const PermutationSection = <T extends string>({ title, description, options, sel
             className="flex flex-wrap gap-2"
         >
             {options.map(option => (
-                <ToggleGroupItem 
-                    key={option} 
-                    value={option} 
-                    className={cn(
-                        "h-9 px-4 text-xs font-medium data-[state=on]:bg-primary data-[state=on]:text-primary-foreground focus-scale",
-                        getItemClasses?.(option)
-                    )}
-                >
-                    {option}
-                </ToggleGroupItem>
+                <Tooltip key={option}>
+                    <TooltipTrigger asChild>
+                        <ToggleGroupItem 
+                            value={option} 
+                            className={cn(
+                                "h-9 px-4 text-xs font-medium data-[state=on]:bg-primary data-[state=on]:text-primary-foreground focus-scale",
+                                getItemClasses?.(option)
+                            )}
+                        >
+                            {option}
+                        </ToggleGroupItem>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                        <p className="text-xs">{option}</p>
+                    </TooltipContent>
+                </Tooltip>
             ))}
         </ToggleGroup>
     </div>

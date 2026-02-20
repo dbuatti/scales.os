@@ -10,11 +10,12 @@ import HanonPracticePanel from './HanonPracticePanel';
 import { cn, getCategoryColorClasses } from '@/lib/utils';
 import { useGlobalBPM } from '@/context/GlobalBPMContext';
 import { MIN_BPM, MAX_BPM } from '@/lib/scales';
-import { formatDistanceToNow } from 'date-fns';
+import { formatDistanceToNow, isSameDay } from 'date-fns';
 import PracticeSummaryPanel from './PracticeSummaryPanel';
 import { Button } from '@/components/ui/button';
 import { showSuccess } from '@/utils/toast';
-import { RefreshCw, Target, Settings2, Keyboard, Plus, Minus, Save } from 'lucide-react';
+import { RefreshCw, Target, Settings2, Keyboard, Plus, Minus, Save, Clock, Activity } from 'lucide-react';
+import { useZenMode } from '@/context/ZenModeContext';
 
 const PracticeCommandCenter: React.FC = () => {
   const {
@@ -39,6 +40,8 @@ const PracticeCommandCenter: React.FC = () => {
     handleBpmChange,
     activeLogSnapshotFunction,
   } = useGlobalBPM();
+
+  const { isZenMode } = useZenMode();
 
   const [activeTab, setActiveTab] = useState<'scales' | 'dohnanyi' | 'hanon'>('scales');
   const [isTabManuallySelected, setIsTabManuallySelected] = useState(false);
@@ -85,6 +88,16 @@ const PracticeCommandCenter: React.FC = () => {
     setIsEngagingSuggestion(false);
   }, [setIsPermutationManuallyAdjusted, setActivePermutationHighestBPM]);
 
+  const todayStats = useMemo(() => {
+    const today = new Date();
+    const todayLogs = log.filter(entry => isSameDay(new Date(entry.timestamp), today));
+    
+    const totalMinutes = todayLogs.reduce((sum, entry) => sum + entry.durationMinutes, 0);
+    const itemsPracticed = todayLogs.reduce((sum, entry) => sum + entry.itemsPracticed.length, 0);
+    
+    return { totalMinutes, itemsPracticed };
+  }, [log]);
+
   const lastLogEntry = useMemo(() => {
     const entry = log[0];
     if (!entry) return null;
@@ -101,156 +114,187 @@ const PracticeCommandCenter: React.FC = () => {
     : 'None';
 
   return (
-    <div className="max-w-7xl mx-auto space-y-10 px-4 md:px-8">
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
-        <div className="space-y-2">
-          <h1 className="text-4xl font-bold tracking-tight">Practice</h1>
-          <p className="text-lg text-muted-foreground">Focus on your technique and track your progress.</p>
-        </div>
-        {nextFocus && (
-          <Card className="bg-primary/5 border-primary/20 shadow-sm">
-            <CardContent className="p-5 flex items-center gap-6">
-              <div className="space-y-1">
-                <p className="text-xs font-bold uppercase tracking-widest text-primary/60">Suggested Focus</p>
-                <p className="text-lg font-semibold">{suggestedLabel}</p>
-              </div>
-              <Button size="lg" onClick={() => handleLoadSuggestion(nextFocus)} disabled={isEngagingSuggestion} className="focus-scale">
-                <Target className="w-5 h-5 mr-2" />
-                Start Session
-              </Button>
-            </CardContent>
-          </Card>
-        )}
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-10">
-        <div className="lg:col-span-3 space-y-10">
-          <PracticeSummaryPanel />
-          
-          <Tabs value={activeTab} onValueChange={(v) => {
-            setActiveTab(v as any);
-            setActivePermutationHighestBPM(0);
-            setIsPermutationManuallyAdjusted(false);
-            setIsTabManuallySelected(true);
-          }}>
-            <TabsList className="w-full justify-start h-auto p-0 bg-transparent border-b rounded-none gap-10">
-              <TabsTrigger 
-                value="scales" 
-                className={cn(
-                  "data-[state=active]:border-indigo-500 data-[state=active]:bg-transparent border-b-4 border-transparent rounded-none px-0 pb-4 text-lg font-bold shadow-none transition-all",
-                  activeTab === 'scales' && "text-indigo-600 dark:text-indigo-400"
-                )}
-              >
-                Scales
-              </TabsTrigger>
-              <TabsTrigger 
-                value="dohnanyi" 
-                className={cn(
-                  "data-[state=active]:border-cyan-500 data-[state=active]:bg-transparent border-b-4 border-transparent rounded-none px-0 pb-4 text-lg font-bold shadow-none transition-all",
-                  activeTab === 'dohnanyi' && "text-cyan-600 dark:text-cyan-400"
-                )}
-              >
-                Dohnányi
-              </TabsTrigger>
-              <TabsTrigger 
-                value="hanon" 
-                className={cn(
-                  "data-[state=active]:border-amber-500 data-[state=active]:bg-transparent border-b-4 border-transparent rounded-none px-0 pb-4 text-lg font-bold shadow-none transition-all",
-                  activeTab === 'hanon' && "text-amber-600 dark:text-amber-400"
-                )}
-              >
-                Hanon
-              </TabsTrigger>
-            </TabsList>
-
-            <TabsContent value="scales" className="pt-8">
-              <ScalePracticePanel
-                suggestedScalePermutation={(nextFocus?.type === 'scale' || nextFocus?.type === 'arpeggio') ? nextFocus : undefined}
-                currentBPM={currentBPM}
-                addLogEntry={addLogEntry}
-                updatePracticeStatus={updatePracticeStatus}
-                updateScaleMasteryBPM={updateScaleMasteryBPM}
-                scaleMasteryBPMMap={scaleMasteryBPMMap}
-                allScales={allScales}
-                activeTab={activeTab}
-              />
-            </TabsContent>
-            <TabsContent value="dohnanyi" className="pt-8">
-              <DohnanyiPracticePanel
-                suggestedDohnanyi={nextFocus?.type === 'dohnanyi' ? nextFocus : undefined}
-                currentBPM={currentBPM}
-                addLogEntry={addLogEntry}
-                updatePracticeStatus={updatePracticeStatus}
-                progressMap={progressMap}
-                activeTab={activeTab}
-              />
-            </TabsContent>
-            <TabsContent value="hanon" className="pt-8">
-              <HanonPracticePanel
-                suggestedHanon={nextFocus?.type === 'hanon' ? nextFocus : undefined}
-                currentBPM={currentBPM}
-                addLogEntry={addLogEntry}
-                updatePracticeStatus={updatePracticeStatus}
-                progressMap={progressMap}
-                activeTab={activeTab}
-              />
-            </TabsContent>
-          </Tabs>
-        </div>
-
-        <div className="space-y-10">
-          <Card className="shadow-md border-primary/10">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
-                  <Settings2 className="w-4 h-4" />
-                  Tempo Control
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-8">
-              <div className="flex items-center justify-between">
-                <span className="text-5xl font-black tracking-tighter text-primary">{currentBPM}</span>
-                <span className="text-sm font-bold text-muted-foreground uppercase">BPM</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Button variant="outline" size="sm" onClick={() => handleBpmChange(-5)} className="flex-1 font-bold focus-scale h-10">-5</Button>
-                <Button variant="outline" size="sm" onClick={() => handleBpmChange(-1)} className="flex-1 font-bold focus-scale h-10"><Minus className="w-4 h-4" /></Button>
-                <Button variant="outline" size="sm" onClick={() => handleBpmChange(1)} className="flex-1 font-bold focus-scale h-10"><Plus className="w-4 h-4" /></Button>
-                <Button variant="outline" size="sm" onClick={() => handleBpmChange(5)} className="flex-1 font-bold focus-scale h-10">+5</Button>
-              </div>
-              <div className="pt-6 border-t space-y-4">
-                <div className="flex items-center gap-2 text-[10px] text-muted-foreground uppercase font-black tracking-widest">
-                  <Keyboard className="w-3 h-3" />
-                  Shortcuts
+    <div className={cn("max-w-7xl mx-auto space-y-10 px-4 md:px-8 transition-all duration-500", isZenMode && "max-w-4xl")}>
+      {!isZenMode && (
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+          <div className="space-y-2">
+            <h1 className="text-4xl font-bold tracking-tight">Practice</h1>
+            <p className="text-lg text-muted-foreground">Focus on your technique and track your progress.</p>
+          </div>
+          {nextFocus && (
+            <Card className="bg-primary/5 border-primary/20 shadow-sm">
+              <CardContent className="p-5 flex items-center gap-6">
+                <div className="space-y-1">
+                  <p className="text-xs font-bold uppercase tracking-widest text-primary/60">Suggested Focus</p>
+                  <p className="text-lg font-semibold">{suggestedLabel}</p>
                 </div>
-                <div className="grid grid-cols-1 gap-3 text-[10px]">
-                  <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg border border-border/50">
-                    <span className="font-medium">Save Progress</span>
-                    <span className="font-black bg-background px-1.5 py-0.5 rounded border shadow-sm">Enter / S</span>
-                  </div>
-                  <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg border border-border/50">
-                    <span className="font-medium">Adjust BPM</span>
-                    <span className="font-black bg-background px-1.5 py-0.5 rounded border shadow-sm">↑ / ↓</span>
-                  </div>
-                </div>
-              </div>
-              <div className="pt-4 flex justify-center">
-                <Button variant="ghost" size="sm" onClick={refetchData} disabled={isScalesContextLoading} className="text-xs font-bold text-muted-foreground hover:text-primary transition-colors">
-                  <RefreshCw className={cn("w-3 h-3 mr-2", isScalesContextLoading && "animate-spin")} />
-                  Sync Progress
+                <Button size="lg" onClick={() => handleLoadSuggestion(nextFocus)} disabled={isEngagingSuggestion} className="focus-scale">
+                  <Target className="w-5 h-5 mr-2" />
+                  Start Session
                 </Button>
-              </div>
-            </CardContent>
-          </Card>
-
-          {lastLogEntry && (
-            <Card className="bg-primary/5 border-none shadow-none">
-              <CardContent className="p-5">
-                <p className="text-xs font-bold text-primary/60 uppercase tracking-widest mb-2">Last Session</p>
-                <p className="text-base font-medium">{formatDistanceToNow(lastLogEntry.timestamp, { addSuffix: true })}</p>
               </CardContent>
             </Card>
           )}
         </div>
+      )}
+
+      <div className={cn("grid grid-cols-1 gap-10", !isZenMode && "lg:grid-cols-4")}>
+        <div className={cn("space-y-10", !isZenMode ? "lg:col-span-3" : "col-span-1")}>
+          <PracticeSummaryPanel />
+          
+          {!isZenMode && (
+            <Tabs value={activeTab} onValueChange={(v) => {
+              setActiveTab(v as any);
+              setActivePermutationHighestBPM(0);
+              setIsPermutationManuallyAdjusted(false);
+              setIsTabManuallySelected(true);
+            }}>
+              <TabsList className="w-full justify-start h-auto p-0 bg-transparent border-b rounded-none gap-10">
+                <TabsTrigger 
+                  value="scales" 
+                  className={cn(
+                    "data-[state=active]:border-indigo-500 data-[state=active]:bg-transparent border-b-4 border-transparent rounded-none px-0 pb-4 text-lg font-bold shadow-none transition-all",
+                    activeTab === 'scales' && "text-indigo-600 dark:text-indigo-400"
+                  )}
+                >
+                  Scales
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="dohnanyi" 
+                  className={cn(
+                    "data-[state=active]:border-cyan-500 data-[state=active]:bg-transparent border-b-4 border-transparent rounded-none px-0 pb-4 text-lg font-bold shadow-none transition-all",
+                    activeTab === 'dohnanyi' && "text-cyan-600 dark:text-cyan-400"
+                  )}
+                >
+                  Dohnányi
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="hanon" 
+                  className={cn(
+                    "data-[state=active]:border-amber-500 data-[state=active]:bg-transparent border-b-4 border-transparent rounded-none px-0 pb-4 text-lg font-bold shadow-none transition-all",
+                    activeTab === 'hanon' && "text-amber-600 dark:text-amber-400"
+                  )}
+                >
+                  Hanon
+                </TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="scales" className="pt-8">
+                <ScalePracticePanel
+                  suggestedScalePermutation={(nextFocus?.type === 'scale' || nextFocus?.type === 'arpeggio') ? nextFocus : undefined}
+                  currentBPM={currentBPM}
+                  addLogEntry={addLogEntry}
+                  updatePracticeStatus={updatePracticeStatus}
+                  updateScaleMasteryBPM={updateScaleMasteryBPM}
+                  scaleMasteryBPMMap={scaleMasteryBPMMap}
+                  allScales={allScales}
+                  activeTab={activeTab}
+                />
+              </TabsContent>
+              <TabsContent value="dohnanyi" className="pt-8">
+                <DohnanyiPracticePanel
+                  suggestedDohnanyi={nextFocus?.type === 'dohnanyi' ? nextFocus : undefined}
+                  currentBPM={currentBPM}
+                  addLogEntry={addLogEntry}
+                  updatePracticeStatus={updatePracticeStatus}
+                  progressMap={progressMap}
+                  activeTab={activeTab}
+                />
+              </TabsContent>
+              <TabsContent value="hanon" className="pt-8">
+                <HanonPracticePanel
+                  suggestedHanon={nextFocus?.type === 'hanon' ? nextFocus : undefined}
+                  currentBPM={currentBPM}
+                  addLogEntry={addLogEntry}
+                  updatePracticeStatus={updatePracticeStatus}
+                  progressMap={progressMap}
+                  activeTab={activeTab}
+                />
+              </TabsContent>
+            </Tabs>
+          )}
+        </div>
+
+        {!isZenMode && (
+          <div className="space-y-10">
+            <Card className="shadow-md border-primary/10">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
+                    <Settings2 className="w-4 h-4" />
+                    Tempo Control
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-8">
+                <div className="flex items-center justify-between">
+                  <span className="text-5xl font-black tracking-tighter text-primary">{currentBPM}</span>
+                  <span className="text-sm font-bold text-muted-foreground uppercase">BPM</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Button variant="outline" size="sm" onClick={() => handleBpmChange(-5)} className="flex-1 font-bold focus-scale h-10">-5</Button>
+                  <Button variant="outline" size="sm" onClick={() => handleBpmChange(-1)} className="flex-1 font-bold focus-scale h-10"><Minus className="w-4 h-4" /></Button>
+                  <Button variant="outline" size="sm" onClick={() => handleBpmChange(1)} className="flex-1 font-bold focus-scale h-10"><Plus className="w-4 h-4" /></Button>
+                  <Button variant="outline" size="sm" onClick={() => handleBpmChange(5)} className="flex-1 font-bold focus-scale h-10">+5</Button>
+                </div>
+                <div className="pt-6 border-t space-y-4">
+                  <div className="flex items-center gap-2 text-[10px] text-muted-foreground uppercase font-black tracking-widest">
+                    <Keyboard className="w-3 h-3" />
+                    Shortcuts
+                  </div>
+                  <div className="grid grid-cols-1 gap-3 text-[10px]">
+                    <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg border border-border/50">
+                      <span className="font-medium">Save Progress</span>
+                      <span className="font-black bg-background px-1.5 py-0.5 rounded border shadow-sm">Enter / S</span>
+                    </div>
+                    <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg border border-border/50">
+                      <span className="font-medium">Adjust BPM</span>
+                      <span className="font-black bg-background px-1.5 py-0.5 rounded border shadow-sm">↑ / ↓</span>
+                    </div>
+                  </div>
+                </div>
+                <div className="pt-4 flex justify-center">
+                  <Button variant="ghost" size="sm" onClick={refetchData} disabled={isScalesContextLoading} className="text-xs font-bold text-muted-foreground hover:text-primary transition-colors">
+                    <RefreshCw className={cn("w-3 h-3 mr-2", isScalesContextLoading && "animate-spin")} />
+                    Sync Progress
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="bg-primary/5 border-none shadow-none">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-xs font-bold uppercase tracking-widest text-primary/60 flex items-center gap-2">
+                  <Activity className="w-3 h-3" />
+                  Today's Activity
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Clock className="w-4 h-4 text-muted-foreground" />
+                    <span className="text-sm font-medium">Time</span>
+                  </div>
+                  <span className="text-lg font-bold">{todayStats.totalMinutes}m</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Target className="w-4 h-4 text-muted-foreground" />
+                    <span className="text-sm font-medium">Items</span>
+                  </div>
+                  <span className="text-lg font-bold">{todayStats.itemsPracticed}</span>
+                </div>
+              </CardContent>
+            </Card>
+
+            {lastLogEntry && (
+              <Card className="bg-muted/10 border-none shadow-none">
+                <CardContent className="p-5">
+                  <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest mb-2">Last Session</p>
+                  <p className="text-base font-medium">{formatDistanceToNow(lastLogEntry.timestamp, { addSuffix: true })}</p>
+                </CardContent>
+              </Card>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );
