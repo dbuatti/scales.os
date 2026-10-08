@@ -243,12 +243,6 @@ const PdfViewer = React.forwardRef<PdfViewerHandle, PdfViewerProps>(({
     didJumpRef.current = false;
   }, [source]);
 
-  useEffect(() => {
-    if (!pdf || width <= 0 || !initialPage || initialPage <= 1 || didJumpRef.current) return;
-    scrollToPage(initialPage);
-    didJumpRef.current = true;
-  }, [pdf, width, initialPage, pages, scrollToPage]);
-
   const scrollToPage = useCallback(
     (page: number) => {
       const container = scrollRef.current;
@@ -262,6 +256,12 @@ const PdfViewer = React.forwardRef<PdfViewerHandle, PdfViewerProps>(({
   );
 
   useImperativeHandle(ref, () => ({ scrollToPage }), [scrollToPage]);
+
+  useEffect(() => {
+    if (!pdf || width <= 0 || !initialPage || initialPage <= 1 || didJumpRef.current) return;
+    scrollToPage(initialPage);
+    didJumpRef.current = true;
+  }, [pdf, width, initialPage, pages, scrollToPage]);
 
   const handleScroll = useCallback(() => {
     const container = scrollRef.current;
