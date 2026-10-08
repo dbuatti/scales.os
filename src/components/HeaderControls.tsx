@@ -15,11 +15,6 @@ interface HeaderControlsProps {
 }
 
 const HeaderControls: React.FC<HeaderControlsProps> = ({ currentBPM, onBpmChange, onLogSession }) => {
-  const handleSetBpm = (newBpm: number) => {
-    const clampedBpm = Math.min(MAX_BPM, Math.max(MIN_BPM, newBpm));
-    onBpmChange(clampedBpm - currentBPM);
-  };
-
   return (
     <div className="flex items-center space-x-4">
       {/* 1. BPM Controls */}
@@ -54,7 +49,7 @@ const HeaderControls: React.FC<HeaderControlsProps> = ({ currentBPM, onBpmChange
       </div>
       
       {/* 2. Metronome */}
-      <Metronome bpm={currentBPM} onBpmChange={handleSetBpm} />
+      <Metronome />
 
       {/* 3. Timer (Condensed) */}
       <div className="hidden md:block">

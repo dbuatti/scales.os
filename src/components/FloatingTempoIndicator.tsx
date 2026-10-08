@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useGlobalBPM } from '@/context/GlobalBPMContext';
-import { MAX_BPM, MIN_BPM } from '@/lib/scales';
+import { useMetronome } from '@/context/MetronomeContext';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { GripVertical, Minimize2, Maximize2, Target, Save, FileText } from 'lucide-react';
@@ -27,19 +27,17 @@ const FloatingTempoIndicator: React.FC<FloatingTempoIndicatorProps> = ({
   beatsPerMeasure,
   onLog,
 }) => {
-  const { currentBPM, setCurrentBPM } = useGlobalBPM();
+  const { currentBPM } = useGlobalBPM();
+  const { setBeatsPerMeasure } = useMetronome();
   const panelRef = useRef<HTMLDivElement>(null);
   const dragOffsetRef = useRef<{ dx: number; dy: number } | null>(null);
   const [position, setPosition] = useState<{ x: number; y: number } | null>(null);
   const [collapsed, setCollapsed] = useState(false);
 
-  const handleSetBpm = useCallback(
-    (newBpm: number) => {
-      const clamped = Math.min(MAX_BPM, Math.max(MIN_BPM, newBpm));
-      setCurrentBPM(clamped);
-    },
-    [setCurrentBPM],
-  );
+  useEffect(() => {
+    setBeatsPerMeasure(beatsPerMeasure);
+    return () => setBeatsPerMeasure(4);
+  }, [beatsPerMeasure, setBeatsPerMeasure]);
 
   const onPointerDown = useCallback((event: React.PointerEvent) => {
     if (!panelRef.current) return;
@@ -146,12 +144,7 @@ const FloatingTempoIndicator: React.FC<FloatingTempoIndicatorProps> = ({
             </div>
           </div>
 
-          <Metronome
-            bpm={currentBPM}
-            onBpmChange={handleSetBpm}
-            beatsPerMeasure={beatsPerMeasure}
-            showSettings={false}
-          />
+          <Metronome showSettings={false} />
 
           <Button
             variant="outline"
