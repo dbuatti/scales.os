@@ -1,12 +1,32 @@
 import React, { useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react';
-import * as pdfjsLib from 'pdfjs-dist/legacy/build/pdf.mjs';
 import type { PDFDocumentProxy } from 'pdfjs-dist';
+import pdfjsUrl from 'pdfjs-dist/legacy/build/pdf.min.mjs?url';
 import pdfWorkerUrl from 'pdfjs-dist/legacy/build/pdf.worker.min.mjs?url';
 import { cn } from '@/lib/utils';
 import { getMappingForPage, PageMapping } from '@/lib/repertoire';
 import { FileText, Loader2, AlertTriangle } from 'lucide-react';
 
-pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorkerUrl;
+// Load pdf.js at runtime from its own asset URL. Keeping it out of the Rollup
+// graph is deliberate: inlining the pdf.js module into an app chunk breaks its
+// internal top-level evaluation order under minification.
+type PdfjsModule = typeof import('pdfjs-dist');
+let pdfjsPromise: Promise<PdfjsModule> | null = null;
+
+function loadPdfjs(): Promise<PdfjsModule> {
+  if (!pdfjsPromise) {
+    pdfjsPromise = import(/* @vite-ignore */ pdfjsUrl)
+      .then((module) => {
+        const mod = module as unknown as PdfjsModule;
+        mod.GlobalWorkerOptions.workerSrc = pdfWorkerUrl;
+        return mod;
+      })
+      .catch((err) => {
+        pdfjsPromise = null;
+        throw err;
+      });
+  }
+  return pdfjsPromise;
+}
 
 export interface PdfViewerHandle {
   scrollToPage: (page: number) => void;
@@ -132,6 +152,7 @@ const PdfViewer = React.forwardRef<PdfViewerHandle, PdfViewerProps>(({
 }, ref) => {
   const scrollRef = useRef<HTMLDivElement>(null);
   const pagesRef = useRef<HTMLDivElement>(null);
+  const taskRef = useRef<{ destroy(): void } | null>(null);
   const pageRefs = useRef<Map<number, HTMLDivElement>>(new Map());
   const didJumpRef = useRef(false);
   const onPageChangeRef = useRef(onPageChange);
@@ -157,32 +178,46 @@ const PdfViewer = React.forwardRef<PdfViewerHandle, PdfViewerProps>(({
     setLoading(true);
     setError(null);
     const params = typeof source === 'string' ? { url: source } : { data: source };
-    const task = pdfjsLib.getDocument(params as never);
 
-    task.promise
-      .then((doc) => {
-        if (cancelled) {
-          doc.destroy();
-          return;
-        }
-        setPdf(doc);
-        setPageCount(doc.numPages);
-        setCurrentPage(1);
-        onDocumentLoaded?.(doc.numPages);
-      })
-      .catch((err: unknown) => {
+    (async () => {
+      let task: ReturnType<PdfjsModule['getDocument']>;
+      try {
+        const pdfjsLib = await loadPdfjs();
+        task = pdfjsLib.getDocument(params as never);
+        taskRef.current = task;
+      } catch (err) {
         if (!cancelled) {
-          setError(err instanceof Error ? err.message : 'Failed to load PDF.');
-          setPdf(null);
+          setError(err instanceof Error ? err.message : 'Failed to load pdf.js.');
+          setLoading(false);
         }
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false);
-      });
+        return;
+      }
+
+      task.promise
+        .then((doc) => {
+          if (cancelled) {
+            doc.destroy();
+            return;
+          }
+          setPdf(doc);
+          setPageCount(doc.numPages);
+          setCurrentPage(1);
+          onDocumentLoaded?.(doc.numPages);
+        })
+        .catch((err: unknown) => {
+          if (!cancelled) {
+            setError(err instanceof Error ? err.message : 'Failed to load PDF.');
+            setPdf(null);
+          }
+        })
+        .finally(() => {
+          if (!cancelled) setLoading(false);
+        });
+    })();
 
     return () => {
       cancelled = true;
-      task.destroy();
+      taskRef.current?.destroy();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [source]);
