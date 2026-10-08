@@ -82,8 +82,12 @@ export const saveMappings = (documentId: string, mappings: PageMapping[]): void 
   }
 };
 
-export const createMappingId = (): string =>
-  `map-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+export const createMappingId = (): string => {
+  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+    return crypto.randomUUID();
+  }
+  return `map-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+};
 
 export const createEmptyMapping = (page: number): PageMapping => ({
   id: createMappingId(),

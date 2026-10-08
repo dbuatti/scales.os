@@ -12,13 +12,25 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Upload, Plus, Trash2, FileText, Music2, ListMusic, X } from 'lucide-react';
+import {
+  Upload,
+  Plus,
+  Trash2,
+  FileText,
+  Music2,
+  ListMusic,
+  X,
+  Cloud,
+  HardDrive,
+  Loader2,
+} from 'lucide-react';
 import PdfViewer from './PdfViewer';
 import FloatingTempoIndicator from './FloatingTempoIndicator';
 import { useGlobalBPM } from '@/context/GlobalBPMContext';
 import { useScales } from '@/context/ScalesContext';
 import { shallowEqual } from '@/lib/utils';
 import { showSuccess, showError } from '@/utils/toast';
+import { useRepertoireData, SavedDocument } from '@/hooks/use-repertoire-data';
 import {
   PageMapping,
   RepertoireMode,
@@ -27,60 +39,11 @@ import {
   MODE_LABELS,
   getMappingForPage,
   getBeatsPerMeasure,
-  loadMappings,
-  saveMappings,
+  loadMappings as loadLocalMappings,
+  saveMappings as saveLocalMappings,
   sortMappings,
   createEmptyMapping,
 } from '@/lib/repertoire';
-
-const SourceSelector: React.FC<{
-  fileName: string | null;
-  onFile: (file: File) => void;
-  onClear: () => void;
-}> = ({ fileName, onFile, onClear }) => {
-  const inputRef = useRef<HTMLInputElement>(null);
-
-  const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) onFile(file);
-    event.target.value = '';
-  };
-
-  return (
-    <div className="flex items-center gap-3">
-      <input
-        ref={inputRef}
-        type="file"
-        accept="application/pdf"
-        className="hidden"
-        onChange={handleChange}
-      />
-      {fileName ? (
-        <div className="flex items-center gap-2 rounded-lg border border-primary/20 bg-primary/5 px-3 py-2">
-          <FileText className="w-4 h-4 text-primary shrink-0" />
-          <span className="text-sm font-medium max-w-[260px] truncate">{fileName}</span>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-6 w-6 text-muted-foreground hover:text-destructive"
-            onClick={onClear}
-          >
-            <X className="w-3.5 h-3.5" />
-          </Button>
-        </div>
-      ) : (
-        <Button
-          variant="outline"
-          className="font-bold focus-scale"
-          onClick={() => inputRef.current?.click()}
-        >
-          <Upload className="w-4 h-4 mr-2" />
-          Load PDF
-        </Button>
-      )}
-    </div>
-  );
-};
 
 const MappingRow: React.FC<{
   mapping: PageMapping;
@@ -251,81 +214,171 @@ const MappingRow: React.FC<{
 };
 
 const RepertoirePanel: React.FC = () => {
-  const {
-    addLogEntry,
-    updateExerciseMasteryBPM,
-    exerciseMasteryBPMMap,
-  } = useScales();
+  const { addLogEntry, updateExerciseMasteryBPM, exerciseMasteryBPMMap } = useScales();
   const {
     currentBPM,
     setActivePracticeItem,
     setActiveLogSnapshotFunction,
     activePracticeItem: globalActivePracticeItem,
   } = useGlobalBPM();
+  const {
+    documents,
+    isLoadingDocuments,
+    isCloudEnabled,
+    uploadDocument,
+    deleteDocument,
+    getSignedUrl,
+    fetchMappings,
+    saveMappings,
+    updateLastViewedPage,
+    updatePageCount,
+  } = useRepertoireData();
 
-  const [file, setFile] = useState<File | null>(null);
+  const [selectedDocId, setSelectedDocId] = useState<string | null>(null);
+  const [localDocumentId, setLocalDocumentId] = useState<string | null>(null);
+  const [localTitle, setLocalTitle] = useState<string | null>(null);
   const [source, setSource] = useState<string | null>(null);
   const [pageCount, setPageCount] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
   const [mappings, setMappings] = useState<PageMapping[]>([]);
+  const [isUploading, setIsUploading] = useState(false);
+
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const objectUrlRef = useRef<string | null>(null);
+  const mappingSaveTimer = useRef<number | null>(null);
+  const lastViewedTimer = useRef<number | null>(null);
   const masteryRef = useRef(exerciseMasteryBPMMap);
   masteryRef.current = exerciseMasteryBPMMap;
 
-  const documentId = useMemo(
-    () => (file ? `${file.name}-${file.size}` : null),
-    [file],
+  const activeDocumentId = selectedDocId || localDocumentId;
+  const selectedDoc = useMemo(
+    () => documents.find((d) => d.id === selectedDocId) ?? null,
+    [documents, selectedDocId],
   );
+  const activeTitle = selectedDoc?.title ?? localTitle;
 
-  useEffect(() => {
-    if (!documentId) {
-      setMappings([]);
-      return;
-    }
-    setMappings(loadMappings(documentId));
-  }, [documentId]);
+  const clearTimers = useCallback(() => {
+    if (mappingSaveTimer.current) window.clearTimeout(mappingSaveTimer.current);
+    if (lastViewedTimer.current) window.clearTimeout(lastViewedTimer.current);
+    mappingSaveTimer.current = null;
+    lastViewedTimer.current = null;
+  }, []);
 
   useEffect(
     () => () => {
+      clearTimers();
       if (objectUrlRef.current) URL.revokeObjectURL(objectUrlRef.current);
     },
-    [],
+    [clearTimers],
   );
+
+  const loadDocument = useCallback(
+    async (doc: SavedDocument) => {
+      try {
+        const url = await getSignedUrl(doc);
+        clearTimers();
+        if (objectUrlRef.current) {
+          URL.revokeObjectURL(objectUrlRef.current);
+          objectUrlRef.current = null;
+        }
+        setSelectedDocId(doc.id);
+        setLocalDocumentId(null);
+        setLocalTitle(null);
+        setSource(url);
+        setPageCount(doc.page_count || 0);
+        setCurrentPage(doc.last_viewed_page || 1);
+        const loaded = await fetchMappings(doc.id);
+        setMappings(sortMappings(loaded));
+      } catch (err) {
+        showError(err instanceof Error ? err.message : 'Failed to open document.');
+      }
+    },
+    [getSignedUrl, fetchMappings, clearTimers],
+  );
+
+  const loadLocalFile = useCallback(
+    (file: File) => {
+      clearTimers();
+      if (objectUrlRef.current) URL.revokeObjectURL(objectUrlRef.current);
+      const url = URL.createObjectURL(file);
+      objectUrlRef.current = url;
+      const localId = `local:${file.name}-${file.size}`;
+      setSelectedDocId(null);
+      setLocalDocumentId(localId);
+      setLocalTitle(file.name);
+      setSource(url);
+      setPageCount(0);
+      setCurrentPage(1);
+      setMappings(sortMappings(loadLocalMappings(localId)));
+    },
+    [clearTimers],
+  );
+
+  const handleUpload = useCallback(
+    async (file: File) => {
+      setIsUploading(true);
+      try {
+        const doc = await uploadDocument(file, 'technical');
+        await loadDocument(doc);
+        showSuccess(`Uploaded ${file.name}.`);
+      } catch (err) {
+        const message = err instanceof Error ? err.message : 'Upload failed.';
+        showError(`${message} Continuing in local (unsynced) mode.`);
+        loadLocalFile(file);
+      } finally {
+        setIsUploading(false);
+      }
+    },
+    [uploadDocument, loadDocument, loadLocalFile],
+  );
+
+  const handleFileInput = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) handleUpload(file);
+    event.target.value = '';
+  };
+
+  const handleSelectDocument = (value: string) => {
+    if (!value) {
+      clearTimers();
+      if (objectUrlRef.current) URL.revokeObjectURL(objectUrlRef.current);
+      objectUrlRef.current = null;
+      setSelectedDocId(null);
+      setLocalDocumentId(null);
+      setLocalTitle(null);
+      setSource(null);
+      setPageCount(0);
+      setCurrentPage(1);
+      setMappings([]);
+      return;
+    }
+    const doc = documents.find((d) => d.id === value);
+    if (doc) loadDocument(doc);
+  };
+
+  const handleDeleteDocument = async () => {
+    if (!selectedDoc) return;
+    if (!window.confirm(`Delete "${selectedDoc.title}" and its mappings?`)) return;
+    await deleteDocument(selectedDoc);
+    handleSelectDocument('');
+    showSuccess('Document deleted.');
+  };
 
   const persist = useCallback(
     (next: PageMapping[]) => {
       const sorted = sortMappings(next);
       setMappings(sorted);
-      if (documentId) saveMappings(documentId, sorted);
+      if (selectedDocId) {
+        if (mappingSaveTimer.current) window.clearTimeout(mappingSaveTimer.current);
+        mappingSaveTimer.current = window.setTimeout(() => {
+          void saveMappings(selectedDocId, sorted);
+        }, 700);
+      } else if (localDocumentId) {
+        saveLocalMappings(localDocumentId, sorted);
+      }
     },
-    [documentId],
+    [selectedDocId, localDocumentId, saveMappings],
   );
-
-  const handleFile = useCallback((nextFile: File) => {
-    if (objectUrlRef.current) URL.revokeObjectURL(objectUrlRef.current);
-    const url = URL.createObjectURL(nextFile);
-    objectUrlRef.current = url;
-    setFile(nextFile);
-    setSource(url);
-    setPageCount(0);
-    setCurrentPage(1);
-  }, []);
-
-  const handleClear = useCallback(() => {
-    if (objectUrlRef.current) URL.revokeObjectURL(objectUrlRef.current);
-    objectUrlRef.current = null;
-    setFile(null);
-    setSource(null);
-    setPageCount(0);
-    setCurrentPage(1);
-    setMappings([]);
-  }, []);
-
-  const currentMapping = getMappingForPage(mappings, currentPage);
-
-  const handlePageChange = useCallback((page: number) => {
-    setCurrentPage(page);
-  }, []);
 
   const updateMapping = useCallback(
     (id: string, patch: Partial<PageMapping>) => {
@@ -350,7 +403,34 @@ const RepertoirePanel: React.FC = () => {
     showSuccess(`Added mapping starting at page ${currentPage}.`);
   }, [mappings, currentPage, persist]);
 
-  const activeExerciseId = currentMapping?.exerciseId;
+  const handlePageChange = useCallback(
+    (page: number) => {
+      setCurrentPage(page);
+      if (selectedDocId) {
+        if (lastViewedTimer.current) window.clearTimeout(lastViewedTimer.current);
+        lastViewedTimer.current = window.setTimeout(() => {
+          void updateLastViewedPage(selectedDocId, page);
+        }, 1000);
+      }
+    },
+    [selectedDocId, updateLastViewedPage],
+  );
+
+  const handleDocumentLoaded = useCallback(
+    (count: number) => {
+      setPageCount(count);
+      if (selectedDocId) {
+        const doc = documents.find((d) => d.id === selectedDocId);
+        if (doc && doc.page_count !== count) {
+          void updatePageCount(selectedDocId, count);
+        }
+      }
+    },
+    [selectedDocId, documents, updatePageCount],
+  );
+
+  const currentMapping = getMappingForPage(mappings, currentPage);
+
   const activeLabel = currentMapping?.label || currentMapping?.exerciseId || 'No exercise mapped';
   const activeTargetBpm = currentMapping?.targetBpm ?? currentBPM;
   const activeTimeSignature = currentMapping?.timeSignature ?? '4/4';
@@ -418,7 +498,15 @@ const RepertoirePanel: React.FC = () => {
 
   return (
     <CardContent className="p-0 space-y-6">
-      <div className="flex flex-col gap-3 rounded-lg border border-primary/30 bg-secondary/50 p-4 md:flex-row md:items-center md:justify-between">
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="application/pdf"
+        className="hidden"
+        onChange={handleFileInput}
+      />
+
+      <div className="flex flex-col gap-4 rounded-lg border border-primary/30 bg-secondary/50 p-4 lg:flex-row lg:items-center lg:justify-between">
         <div className="space-y-1">
           <Label className="text-lg font-semibold text-primary font-mono text-glow flex items-center gap-2">
             <Music2 className="w-4 h-4" />
@@ -429,8 +517,78 @@ const RepertoirePanel: React.FC = () => {
             tempo panel follows the page you are viewing.
           </p>
         </div>
-        <SourceSelector fileName={file?.name ?? null} onFile={handleFile} onClear={handleClear} />
+
+        <div className="flex flex-wrap items-center gap-2">
+          <Select value={selectedDocId ?? ''} onValueChange={handleSelectDocument}>
+            <SelectTrigger className="w-[240px] h-9 text-xs">
+              <SelectValue
+                placeholder={activeTitle ?? (isLoadingDocuments ? 'Loading…' : 'My library')}
+              />
+            </SelectTrigger>
+            <SelectContent className="max-h-[320px]">
+              {documents.length === 0 && (
+                <div className="px-3 py-2 text-xs text-muted-foreground">No saved PDFs yet.</div>
+              )}
+              {documents.map((doc) => (
+                <SelectItem key={doc.id} value={doc.id} className="text-xs">
+                  {doc.title}
+                  <span className="ml-2 text-muted-foreground">p.{doc.last_viewed_page}</span>
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          <Button
+            variant="outline"
+            className="font-bold focus-scale h-9"
+            onClick={() => fileInputRef.current?.click()}
+            disabled={isUploading}
+          >
+            {isUploading ? (
+              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+            ) : (
+              <Upload className="w-4 h-4 mr-2" />
+            )}
+            Upload PDF
+          </Button>
+
+          {activeDocumentId && (
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-9 w-9 text-muted-foreground hover:text-destructive"
+              onClick={() => {
+                if (selectedDoc) handleDeleteDocument();
+                else handleSelectDocument('');
+              }}
+              title={selectedDoc ? 'Delete document' : 'Close'}
+            >
+              {selectedDoc ? <Trash2 className="w-4 h-4" /> : <X className="w-4 h-4" />}
+            </Button>
+          )}
+        </div>
       </div>
+
+      {!isCloudEnabled && (
+        <div className="flex items-center gap-2 rounded-md border border-warning/30 bg-warning/5 px-3 py-2 text-xs text-warning-foreground">
+          <HardDrive className="w-3.5 h-3.5" />
+          Not signed in — documents are stored locally in this browser only.
+        </div>
+      )}
+
+      {source && selectedDoc && (
+        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+          <Cloud className="w-3.5 h-3.5 text-primary" />
+          Synced document • last on page {selectedDoc.last_viewed_page}
+        </div>
+      )}
+
+      {source && !selectedDoc && localTitle && (
+        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+          <HardDrive className="w-3.5 h-3.5" />
+          Local (unsynced): {localTitle}
+        </div>
+      )}
 
       {!source ? (
         <PdfViewer source={null} mappings={[]} />
@@ -440,7 +598,8 @@ const RepertoirePanel: React.FC = () => {
             source={source}
             mappings={mappings}
             onPageChange={handlePageChange}
-            onDocumentLoaded={setPageCount}
+            onDocumentLoaded={handleDocumentLoaded}
+            initialPage={selectedDoc?.last_viewed_page ?? 1}
           />
 
           <Card className="border-primary/20">

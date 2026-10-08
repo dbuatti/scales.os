@@ -13,6 +13,7 @@ interface PdfViewerProps {
   mappings: PageMapping[];
   onPageChange?: (page: number, mapping?: PageMapping) => void;
   onDocumentLoaded?: (pageCount: number) => void;
+  initialPage?: number;
   className?: string;
 }
 
@@ -122,11 +123,13 @@ const PdfViewer: React.FC<PdfViewerProps> = ({
   mappings,
   onPageChange,
   onDocumentLoaded,
+  initialPage,
   className,
 }) => {
   const scrollRef = useRef<HTMLDivElement>(null);
   const pagesRef = useRef<HTMLDivElement>(null);
   const pageRefs = useRef<Map<number, HTMLDivElement>>(new Map());
+  const didJumpRef = useRef(false);
   const onPageChangeRef = useRef(onPageChange);
   onPageChangeRef.current = onPageChange;
 
@@ -196,6 +199,21 @@ const PdfViewer: React.FC<PdfViewerProps> = ({
     () => (pdf ? Array.from({ length: pageCount }, (_, i) => i + 1) : []),
     [pdf, pageCount],
   );
+
+  useEffect(() => {
+    didJumpRef.current = false;
+  }, [source]);
+
+  useEffect(() => {
+    if (!pdf || width <= 0 || !initialPage || initialPage <= 1 || didJumpRef.current) return;
+    const container = scrollRef.current;
+    const target = pageRefs.current.get(initialPage);
+    if (container && target) {
+      container.scrollTop = target.offsetTop;
+      didJumpRef.current = true;
+      setCurrentPage(initialPage);
+    }
+  }, [pdf, width, initialPage, pages]);
 
   const handleScroll = useCallback(() => {
     const container = scrollRef.current;
