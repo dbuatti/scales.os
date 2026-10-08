@@ -81,24 +81,34 @@ export const useRepertoireData = () => {
         .upload(path, file, { contentType: 'application/pdf', upsert: false });
       if (uploadError) throw uploadError;
 
-      const { data, error } = await supabase
-        .from('pdf_documents')
-        .insert({
-          id: documentId,
-          user_id: userId,
-          title: file.name,
-          mode,
-          storage_path: path,
-          page_count: 0,
-          last_viewed_page: 1,
-        })
-        .select('*')
-        .single();
-      if (error) throw error;
+      try {
+        const { data, error } = await supabase
+          .from('pdf_documents')
+          .insert({
+            id: documentId,
+            user_id: userId,
+            title: file.name,
+            mode,
+            storage_path: path,
+            page_count: 0,
+            last_viewed_page: 1,
+          })
+          .select('*')
+          .single();
+        if (error) throw error;
 
-      const saved = data as SavedDocument;
-      setDocuments((prev) => [saved, ...prev]);
-      return saved;
+        const saved = data as SavedDocument;
+        setDocuments((prev) => [saved, ...prev]);
+        return saved;
+      } catch (err) {
+        const { error: removeError } = await supabase.storage
+          .from(REPERTOIRE_BUCKET)
+          .remove([path]);
+        if (removeError) {
+          console.error('Failed to clean up orphaned PDF after record insert failed:', removeError.message);
+        }
+        throw err;
+      }
     },
     [userId],
   );
@@ -106,9 +116,22 @@ export const useRepertoireData = () => {
   const deleteDocument = useCallback(
     async (doc: SavedDocument) => {
       if (!userId) return;
-      await supabase.storage.from(REPERTOIRE_BUCKET).remove([doc.storage_path]);
-      await supabase.from('pdf_documents').delete().eq('id', doc.id).eq('user_id', userId);
+      const { error: dbError } = await supabase
+        .from('pdf_documents')
+        .delete()
+        .eq('id', doc.id)
+        .eq('user_id', userId);
+      if (dbError) {
+        console.error('Failed to delete document record:', dbError.message);
+        return;
+      }
       setDocuments((prev) => prev.filter((d) => d.id !== doc.id));
+      const { error: storageError } = await supabase.storage
+        .from(REPERTOIRE_BUCKET)
+        .remove([doc.storage_path]);
+      if (storageError) {
+        console.error('Failed to remove PDF from storage:', storageError.message);
+      }
     },
     [userId],
   );
