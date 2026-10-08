@@ -7,6 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import ScalePracticePanel from './ScalePracticePanel';
 import DohnanyiPracticePanel from './DohnanyiPracticePanel';
 import HanonPracticePanel from './HanonPracticePanel';
+import RepertoirePanel from './RepertoirePanel';
 import { cn, getCategoryColorClasses } from '@/lib/utils';
 import { useGlobalBPM } from '@/context/GlobalBPMContext';
 import { MIN_BPM, MAX_BPM } from '@/lib/scales';
@@ -43,7 +44,7 @@ const PracticeCommandCenter: React.FC = () => {
 
   const { isZenMode } = useZenMode();
 
-  const [activeTab, setActiveTab] = useState<'scales' | 'dohnanyi' | 'hanon'>('scales');
+  const [activeTab, setActiveTab] = useState<'scales' | 'dohnanyi' | 'hanon' | 'repertoire'>('scales');
   const [isTabManuallySelected, setIsTabManuallySelected] = useState(false);
   const [isEngagingSuggestion, setIsEngagingSuggestion] = useState(false);
 
@@ -177,6 +178,15 @@ const PracticeCommandCenter: React.FC = () => {
                 >
                   Hanon
                 </TabsTrigger>
+                <TabsTrigger 
+                  value="repertoire" 
+                  className={cn(
+                    "data-[state=active]:border-fuchsia-500 data-[state=active]:bg-transparent border-b-4 border-transparent rounded-none px-0 pb-4 text-lg font-bold shadow-none transition-all",
+                    activeTab === 'repertoire' && "text-fuchsia-600 dark:text-fuchsia-400"
+                  )}
+                >
+                  Repertoire
+                </TabsTrigger>
               </TabsList>
 
               <TabsContent value="scales" className="pt-8">
@@ -210,6 +220,9 @@ const PracticeCommandCenter: React.FC = () => {
                   progressMap={progressMap}
                   activeTab={activeTab}
                 />
+              </TabsContent>
+              <TabsContent value="repertoire" className="pt-8">
+                <RepertoirePanel />
               </TabsContent>
             </Tabs>
           )}

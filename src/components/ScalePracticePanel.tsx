@@ -78,7 +78,7 @@ interface ScalePracticePanelProps {
     updateScaleMasteryBPM: ReturnType<typeof useScales>['updateScaleMasteryBPM']; 
     scaleMasteryBPMMap: ReturnType<typeof useScales>['scaleMasteryBPMMap']; 
     allScales: ReturnType<typeof useScales>['allScales'];
-    activeTab: 'scales' | 'dohnanyi' | 'hanon';
+    activeTab: 'scales' | 'dohnanyi' | 'hanon' | 'repertoire';
     suggestedScalePermutation: (NextFocus & { type: 'scale' | 'arpeggio' }) | undefined;
 }
 

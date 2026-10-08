@@ -32,7 +32,7 @@ export interface ExerciseMasteryEntry {
 }
 
 export interface PracticeLogItem {
-  type: 'scale' | 'dohnanyi' | 'hanon';
+  type: 'scale' | 'dohnanyi' | 'hanon' | 'repertoire';
   scaleId?: string;
   articulation?: Articulation;
   tempo?: TempoLevel;
@@ -47,6 +47,9 @@ export interface PracticeLogItem {
   bpmTarget?: number;
   hanonName?: HanonExercise;
   hanonBpmTarget?: number;
+  repertoireName?: string;
+  repertoireBpmTarget?: number;
+  repertoirePage?: number;
 }
 
 export interface PracticeLogEntry {

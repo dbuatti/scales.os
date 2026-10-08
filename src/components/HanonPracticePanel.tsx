@@ -18,7 +18,7 @@ interface HanonPracticePanelProps {
     addLogEntry: ReturnType<typeof useScales>['addLogEntry'];
     updatePracticeStatus: (practiceId: string, status: ScaleStatus) => void; // Re-added
     progressMap: ReturnType<typeof useScales>['progressMap']; // Re-added
-    activeTab: 'scales' | 'dohnanyi' | 'hanon';
+    activeTab: 'scales' | 'dohnanyi' | 'hanon' | 'repertoire';
     suggestedHanon: (NextFocus & { type: 'hanon' }) | undefined;
 }
 

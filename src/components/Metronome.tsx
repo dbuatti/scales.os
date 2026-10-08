@@ -13,11 +13,13 @@ import { Slider } from '@/components/ui/slider';
 interface MetronomeProps {
   bpm: number;
   onBpmChange?: (newBpm: number) => void;
+  beatsPerMeasure?: number;
+  showSettings?: boolean;
 }
 
 type NoteDivision = 'quarter' | 'eighth';
 
-const Metronome: React.FC<MetronomeProps> = ({ bpm, onBpmChange }) => {
+const Metronome: React.FC<MetronomeProps> = ({ bpm, onBpmChange, beatsPerMeasure = 4, showSettings = true }) => {
   const [isRunning, setIsRunning] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
   const [volume, setVolume] = useState(0.7);
@@ -81,8 +83,8 @@ const Metronome: React.FC<MetronomeProps> = ({ bpm, onBpmChange }) => {
     const interval = division === 'quarter' ? secondsPerBeat : secondsPerBeat / 2;
 
     while (nextNoteTimeRef.current < context.currentTime + scheduleAheadTime) {
-      const beatsPerMeasure = division === 'quarter' ? 4 : 8;
-      const beatIndex = currentBeatRef.current % beatsPerMeasure;
+      const beatsInMeasure = division === 'quarter' ? beatsPerMeasure : beatsPerMeasure * 2;
+      const beatIndex = currentBeatRef.current % beatsInMeasure;
       const isAccent = beatIndex === 0;
 
       if (isAccent && currentBeatRef.current > 0) {
@@ -109,7 +111,7 @@ const Metronome: React.FC<MetronomeProps> = ({ bpm, onBpmChange }) => {
     }
     
     timerRef.current = window.setTimeout(scheduler, lookahead);
-  }, [bpm, division, playClick, scheduleAheadTime, lookahead, autoIncrementEnabled, incrementAmount, incrementEvery, onBpmChange]);
+  }, [bpm, division, beatsPerMeasure, playClick, scheduleAheadTime, lookahead, autoIncrementEnabled, incrementAmount, incrementEvery, onBpmChange]);
 
   useEffect(() => {
     if (isRunning) {
@@ -225,6 +227,7 @@ const Metronome: React.FC<MetronomeProps> = ({ bpm, onBpmChange }) => {
           <Fingerprint className="w-3 h-3 mr-1.5" /> TAP
         </Button>
 
+        {showSettings && (
         <Popover>
           <PopoverTrigger asChild>
             <Button 
@@ -315,6 +318,7 @@ const Metronome: React.FC<MetronomeProps> = ({ bpm, onBpmChange }) => {
             </div>
           </PopoverContent>
         </Popover>
+        )}
       </div>
 
       <Button 
