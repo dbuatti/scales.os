@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -16,7 +16,8 @@ import {
   Upload,
   Plus,
   Trash2,
-  FileText,
+  ChevronLeft,
+  ChevronRight,
   Music2,
   ListMusic,
   X,
@@ -24,7 +25,8 @@ import {
   HardDrive,
   Loader2,
 } from 'lucide-react';
-import PdfViewer from './PdfViewer';
+import type { PdfViewerHandle } from './PdfViewer';
+const PdfViewer = React.lazy(() => import('./PdfViewer'));
 import FloatingTempoIndicator from './FloatingTempoIndicator';
 import { useGlobalBPM } from '@/context/GlobalBPMContext';
 import { useScales } from '@/context/ScalesContext';
@@ -44,6 +46,13 @@ import {
   sortMappings,
   createEmptyMapping,
 } from '@/lib/repertoire';
+
+const ViewerFallback: React.FC = () => (
+  <div className="flex flex-col items-center justify-center rounded-lg border-2 border-dashed border-border/60 min-h-[420px] text-center p-8">
+    <Loader2 className="w-8 h-8 text-muted-foreground/40 animate-spin mb-3" />
+    <p className="text-sm font-medium text-muted-foreground">Loading PDF viewer…</p>
+  </div>
+);
 
 const MappingRow: React.FC<{
   mapping: PageMapping;
@@ -240,10 +249,12 @@ const RepertoirePanel: React.FC = () => {
   const [source, setSource] = useState<string | null>(null);
   const [pageCount, setPageCount] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
+  const [pageInput, setPageInput] = useState('1');
   const [mappings, setMappings] = useState<PageMapping[]>([]);
   const [isUploading, setIsUploading] = useState(false);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const viewerRef = useRef<PdfViewerHandle>(null);
   const objectUrlRef = useRef<string | null>(null);
   const mappingSaveTimer = useRef<number | null>(null);
   const lastViewedTimer = useRef<number | null>(null);
@@ -431,6 +442,40 @@ const RepertoirePanel: React.FC = () => {
 
   const currentMapping = getMappingForPage(mappings, currentPage);
 
+  const navigatePage = useCallback(
+    (page: number) => {
+      const clamped = Math.min(Math.max(1, page), Math.max(1, pageCount || 1));
+      viewerRef.current?.scrollToPage(clamped);
+    },
+    [pageCount],
+  );
+
+  const commitPageInput = useCallback(() => {
+    const page = parseInt(pageInput, 10);
+    if (!Number.isNaN(page)) navigatePage(page);
+    else setPageInput(String(currentPage));
+  }, [pageInput, currentPage, navigatePage]);
+
+  useEffect(() => {
+    setPageInput(String(currentPage));
+  }, [currentPage]);
+
+  useEffect(() => {
+    if (!source || pageCount <= 0) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.target !== document.body) return;
+      if (e.key === 'ArrowLeft' || e.key === '[') {
+        e.preventDefault();
+        navigatePage(currentPage - 1);
+      } else if (e.key === 'ArrowRight' || e.key === ']') {
+        e.preventDefault();
+        navigatePage(currentPage + 1);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [source, pageCount, currentPage, navigatePage]);
+
   const activeLabel = currentMapping?.label || currentMapping?.exerciseId || 'No exercise mapped';
   const activeTargetBpm = currentMapping?.targetBpm ?? currentBPM;
   const activeTimeSignature = currentMapping?.timeSignature ?? '4/4';
@@ -591,16 +636,86 @@ const RepertoirePanel: React.FC = () => {
       )}
 
       {!source ? (
-        <PdfViewer source={null} mappings={[]} />
+        <Suspense fallback={<ViewerFallback />}>
+          <PdfViewer source={null} mappings={[]} />
+        </Suspense>
       ) : (
         <div className="space-y-6">
-          <PdfViewer
-            source={source}
-            mappings={mappings}
-            onPageChange={handlePageChange}
-            onDocumentLoaded={handleDocumentLoaded}
-            initialPage={selectedDoc?.last_viewed_page ?? 1}
-          />
+          <div className="flex flex-wrap items-center gap-2">
+            <Button
+              variant="outline"
+              size="icon"
+              className="h-8 w-8"
+              onClick={() => navigatePage(currentPage - 1)}
+              disabled={currentPage <= 1}
+              aria-label="Previous page"
+            >
+              <ChevronLeft className="w-4 h-4" />
+            </Button>
+
+            <div className="flex items-center gap-1.5 font-mono text-sm">
+              <Input
+                value={pageInput}
+                onChange={(e) => setPageInput(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    commitPageInput();
+                  }
+                }}
+                onBlur={commitPageInput}
+                aria-label="Page number"
+                className="w-16 h-8 px-2 text-center text-xs"
+              />
+              <span className="text-muted-foreground text-xs">/ {pageCount || '—'}</span>
+            </div>
+
+            <Button
+              variant="outline"
+              size="icon"
+              className="h-8 w-8"
+              onClick={() => navigatePage(currentPage + 1)}
+              disabled={pageCount > 0 && currentPage >= pageCount}
+              aria-label="Next page"
+            >
+              <ChevronRight className="w-4 h-4" />
+            </Button>
+
+            {mappings.length > 0 && (
+              <div className="flex flex-wrap items-center gap-1.5 min-w-0 ml-1">
+                {mappings.map((mapping) => {
+                  const isCurrent = mapping.id === currentMapping?.id;
+                  return (
+                    <Button
+                      key={mapping.id}
+                      variant={isCurrent ? 'default' : 'outline'}
+                      size="sm"
+                      className="h-7 px-2 text-[11px] font-bold focus-scale"
+                      onClick={() => navigatePage(mapping.pageStart)}
+                      title={`Jump to p.${mapping.pageStart}: ${mapping.label || mapping.exerciseId || 'unlabelled'}`}
+                    >
+                      {mapping.label || mapping.exerciseId || `p.${mapping.pageStart}`}
+                    </Button>
+                  );
+                })}
+              </div>
+            )}
+
+            <div className="hidden lg:block ml-auto text-xs text-muted-foreground/70">
+              [ ← ] [ → ]
+            </div>
+          </div>
+
+          <Suspense fallback={<ViewerFallback />}>
+            <PdfViewer
+              ref={viewerRef}
+              source={source}
+              mappings={mappings}
+              onPageChange={handlePageChange}
+              onDocumentLoaded={handleDocumentLoaded}
+              initialPage={selectedDoc?.last_viewed_page ?? 1}
+            />
+          </Suspense>
 
           <Card className="border-primary/20">
             <CardHeader className="pb-3">

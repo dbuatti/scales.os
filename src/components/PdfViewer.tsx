@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react';
 import * as pdfjsLib from 'pdfjs-dist';
 import type { PDFDocumentProxy } from 'pdfjs-dist';
 import pdfWorkerUrl from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
@@ -7,6 +7,10 @@ import { getMappingForPage, PageMapping } from '@/lib/repertoire';
 import { FileText, Loader2, AlertTriangle } from 'lucide-react';
 
 pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorkerUrl;
+
+export interface PdfViewerHandle {
+  scrollToPage: (page: number) => void;
+}
 
 interface PdfViewerProps {
   source: string | ArrayBuffer | null;
@@ -118,14 +122,14 @@ const PdfPage: React.FC<PdfPageProps> = ({ pdf, pageNumber, width, label, mode, 
   );
 };
 
-const PdfViewer: React.FC<PdfViewerProps> = ({
+const PdfViewer = React.forwardRef<PdfViewerHandle, PdfViewerProps>(({
   source,
   mappings,
   onPageChange,
   onDocumentLoaded,
   initialPage,
   className,
-}) => {
+}, ref) => {
   const scrollRef = useRef<HTMLDivElement>(null);
   const pagesRef = useRef<HTMLDivElement>(null);
   const pageRefs = useRef<Map<number, HTMLDivElement>>(new Map());
@@ -206,14 +210,23 @@ const PdfViewer: React.FC<PdfViewerProps> = ({
 
   useEffect(() => {
     if (!pdf || width <= 0 || !initialPage || initialPage <= 1 || didJumpRef.current) return;
-    const container = scrollRef.current;
-    const target = pageRefs.current.get(initialPage);
-    if (container && target) {
-      container.scrollTop = target.offsetTop;
-      didJumpRef.current = true;
-      setCurrentPage(initialPage);
-    }
-  }, [pdf, width, initialPage, pages]);
+    scrollToPage(initialPage);
+    didJumpRef.current = true;
+  }, [pdf, width, initialPage, pages, scrollToPage]);
+
+  const scrollToPage = useCallback(
+    (page: number) => {
+      const container = scrollRef.current;
+      const target = pageRefs.current.get(page);
+      if (container && target) {
+        container.scrollTop = target.offsetTop;
+        setCurrentPage(page);
+      }
+    },
+    [],
+  );
+
+  useImperativeHandle(ref, () => ({ scrollToPage }), [scrollToPage]);
 
   const handleScroll = useCallback(() => {
     const container = scrollRef.current;
@@ -293,6 +306,6 @@ const PdfViewer: React.FC<PdfViewerProps> = ({
       </div>
     </div>
   );
-};
+});
 
 export default PdfViewer;
