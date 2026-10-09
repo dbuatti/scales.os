@@ -153,6 +153,7 @@ const PdfViewer = React.forwardRef<PdfViewerHandle, PdfViewerProps>(({
   const scrollRef = useRef<HTMLDivElement>(null);
   const pagesRef = useRef<HTMLDivElement>(null);
   const taskRef = useRef<{ destroy(): void } | null>(null);
+  const pdfRef = useRef<PDFDocumentProxy | null>(null);
   const pageRefs = useRef<Map<number, HTMLDivElement>>(new Map());
   const didJumpRef = useRef(false);
   const onPageChangeRef = useRef(onPageChange);
@@ -166,17 +167,22 @@ const PdfViewer = React.forwardRef<PdfViewerHandle, PdfViewerProps>(({
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
+    pdfRef.current?.destroy();
+    pdfRef.current = null;
+    taskRef.current?.destroy();
+    taskRef.current = null;
+    setPdf(null);
+    setPageCount(0);
+    setCurrentPage(1);
+    setError(null);
+
     if (!source) {
-      setPdf(null);
-      setPageCount(0);
-      setCurrentPage(1);
-      setError(null);
+      setLoading(false);
       return;
     }
 
     let cancelled = false;
     setLoading(true);
-    setError(null);
     const params = typeof source === 'string' ? { url: source } : { data: source };
 
     (async () => {
@@ -199,6 +205,7 @@ const PdfViewer = React.forwardRef<PdfViewerHandle, PdfViewerProps>(({
             doc.destroy();
             return;
           }
+          pdfRef.current = doc;
           setPdf(doc);
           setPageCount(doc.numPages);
           setCurrentPage(1);
@@ -233,6 +240,15 @@ const PdfViewer = React.forwardRef<PdfViewerHandle, PdfViewerProps>(({
     setWidth(el.clientWidth);
     return () => observer.disconnect();
   }, [pdf]);
+
+  useEffect(() => {
+    return () => {
+      pdfRef.current?.destroy();
+      pdfRef.current = null;
+      taskRef.current?.destroy();
+      taskRef.current = null;
+    };
+  }, []);
 
   const pages = useMemo(
     () => (pdf ? Array.from({ length: pageCount }, (_, i) => i + 1) : []),
