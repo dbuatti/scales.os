@@ -45,6 +45,7 @@ import {
   Images,
   ArrowLeftRight,
   Scan,
+  Library,
 } from 'lucide-react';
 import type { PdfViewerHandle } from './PdfViewer';
 const PdfViewer = React.lazy(() => import('./PdfViewer'));
@@ -380,31 +381,33 @@ const ReaderToolbar: React.FC<ReaderToolbarProps> = ({
       </SelectContent>
     </Select>
 
-    <ToggleGroup
-      type="single"
-      value={layout}
-      onValueChange={(value) => value && onLayoutChange(value as 'vertical' | 'horizontal')}
-      className="bg-muted/50 rounded-lg p-1 border border-primary/10"
-    >
-      <ToggleGroupItem
-        value="horizontal"
-        className="h-10 px-3 text-[11px] font-bold data-[state=on]:bg-primary data-[state=on]:text-primary-foreground"
-        aria-label="Pages view"
-        title="Pages (spread) view"
+    {!fullscreen && (
+      <ToggleGroup
+        type="single"
+        value={layout}
+        onValueChange={(value) => value && onLayoutChange(value as 'vertical' | 'horizontal')}
+        className="bg-muted/50 rounded-lg p-1 border border-primary/10"
       >
-        <Columns2 className="w-3.5 h-3.5 mr-1.5" />
-        Pages
-      </ToggleGroupItem>
-      <ToggleGroupItem
-        value="vertical"
-        className="h-10 px-3 text-[11px] font-bold data-[state=on]:bg-primary data-[state=on]:text-primary-foreground"
-        aria-label="Continuous scroll view"
-        title="Continuous scroll view"
-      >
-        <Rows2 className="w-3.5 h-3.5 mr-1.5" />
-        Scroll
-      </ToggleGroupItem>
-    </ToggleGroup>
+        <ToggleGroupItem
+          value="horizontal"
+          className="h-10 px-3 text-[11px] font-bold data-[state=on]:bg-primary data-[state=on]:text-primary-foreground"
+          aria-label="Pages view"
+          title="Pages (spread) view"
+        >
+          <Columns2 className="w-3.5 h-3.5 mr-1.5" />
+          Pages
+        </ToggleGroupItem>
+        <ToggleGroupItem
+          value="vertical"
+          className="h-10 px-3 text-[11px] font-bold data-[state=on]:bg-primary data-[state=on]:text-primary-foreground"
+          aria-label="Continuous scroll view"
+          title="Continuous scroll view"
+        >
+          <Rows2 className="w-3.5 h-3.5 mr-1.5" />
+          Scroll
+        </ToggleGroupItem>
+      </ToggleGroup>
+    )}
 
     <Button
       variant="outline"
@@ -680,6 +683,7 @@ const RepertoirePanel: React.FC = () => {
         setSource(url);
         setPageCount(doc.page_count || 0);
         setCurrentPage(initialPage ?? (doc.last_viewed_page || 1));
+        setFullscreen(true);
         const loaded = await fetchMappings(doc.id);
         setMappings(sortMappings(loaded));
       } catch (err) {
@@ -703,6 +707,7 @@ const RepertoirePanel: React.FC = () => {
       setSource(url);
       setPageCount(0);
       setCurrentPage(1);
+      setFullscreen(true);
       setMappings(sortMappings(loadLocalMappings(localId)));
     },
     [clearTimers],
@@ -1210,6 +1215,25 @@ const RepertoirePanel: React.FC = () => {
                 : 'space-y-3',
             )}
           >
+            {fullscreen && (
+              <div className="flex shrink-0 items-center justify-between gap-3">
+                <div className="flex min-w-0 items-center gap-2">
+                  <FileText className="h-4 w-4 shrink-0 text-primary" />
+                  <span className="truncate text-sm font-bold">
+                    {selectedDoc?.title ?? localTitle}
+                  </span>
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setFullscreen(false)}
+                  className="shrink-0 font-bold focus-scale"
+                >
+                  <Library className="mr-1.5 h-3.5 w-3.5" />
+                  Library
+                </Button>
+              </div>
+            )}
             <div className={fullscreen ? 'shrink-0' : undefined}>
               <ReaderToolbar
                 pageNumber={currentPage}
@@ -1273,7 +1297,8 @@ const RepertoirePanel: React.FC = () => {
                 initialPage={pendingInitialPage ?? selectedDoc?.last_viewed_page ?? 1}
                 maxPixelRatio={maxPixelRatio}
                 onBookmark={addBookmark}
-                layout={layout}
+                layout={fullscreen ? 'vertical' : layout}
+                initialFit={fullscreen ? 'page' : 'width'}
                 zoom={zoom}
                 onZoomChange={setZoom}
                 onPdfReady={setPdfProxy}
