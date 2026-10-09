@@ -36,11 +36,14 @@ import {
   Minimize2,
   ZoomIn,
   ZoomOut,
+  Images,
 } from 'lucide-react';
 import type { PdfViewerHandle } from './PdfViewer';
 const PdfViewer = React.lazy(() => import('./PdfViewer'));
+import type { PDFDocumentProxy } from 'pdfjs-dist';
 import FloatingTempoIndicator from './FloatingTempoIndicator';
 import LibraryDialog from './LibraryDialog';
+import ThumbnailRail from './ThumbnailRail';
 import { useGlobalBPM } from '@/context/GlobalBPMContext';
 import { useScales } from '@/context/ScalesContext';
 import { cn, shallowEqual } from '@/lib/utils';
@@ -528,6 +531,8 @@ const RepertoirePanel: React.FC = () => {
   const [quality, setQuality] = useState<'standard' | 'retina'>('standard');
   const [zoom, setZoom] = useState(1);
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [thumbnailsOpen, setThumbnailsOpen] = useState(true);
+  const [pdfProxy, setPdfProxy] = useState<PDFDocumentProxy | null>(null);
   const [fullscreen, setFullscreen] = useState(false);
   const [libraryOpen, setLibraryOpen] = useState(false);
   const [bookmarkOpen, setBookmarkOpen] = useState(false);
@@ -1108,6 +1113,7 @@ const RepertoirePanel: React.FC = () => {
                 layout="horizontal"
                 zoom={zoom}
                 onZoomChange={setZoom}
+                onPdfReady={setPdfProxy}
                 className={fullscreen ? 'flex-1 min-h-0' : undefined}
                 scrollClassName={
                   fullscreen
@@ -1141,6 +1147,35 @@ const RepertoirePanel: React.FC = () => {
 
           {!fullscreen && (
             <aside className="space-y-3 min-w-0">
+              <Card>
+                <CardHeader className="pb-3">
+                  <div className="flex items-center justify-between gap-3">
+                    <CardTitle className="text-sm font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
+                      <Images className="w-4 h-4" />
+                      Pages
+                    </CardTitle>
+                    <Button
+                      size="sm"
+                      variant="secondary"
+                      onClick={() => setThumbnailsOpen((prev) => !prev)}
+                      className="font-bold focus-scale"
+                    >
+                      {thumbnailsOpen ? 'Hide' : 'Show'}
+                    </Button>
+                  </div>
+                </CardHeader>
+                {thumbnailsOpen && (
+                  <CardContent className="pt-0">
+                    <ThumbnailRail
+                      pdf={pdfProxy}
+                      pageCount={pageCount}
+                      currentPage={currentPage}
+                      onSelect={navigatePage}
+                    />
+                  </CardContent>
+                )}
+              </Card>
+
               <Card className="border-primary/20">
                 <CardHeader className="pb-3">
                   <div className="flex items-center justify-between gap-3">

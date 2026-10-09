@@ -48,6 +48,7 @@ interface PdfViewerProps {
   layout?: 'vertical' | 'horizontal';
   zoom?: number;
   onZoomChange?: (zoom: number) => void;
+  onPdfReady?: (pdf: PDFDocumentProxy | null) => void;
 }
 
 interface PdfPageProps {
@@ -193,6 +194,7 @@ const PdfViewer = React.forwardRef<PdfViewerHandle, PdfViewerProps>(({
   layout = 'vertical',
   zoom = 1,
   onZoomChange,
+  onPdfReady,
 }, ref) => {
   const scrollRef = useRef<HTMLDivElement>(null);
   const pagesRef = useRef<HTMLDivElement>(null);
@@ -206,6 +208,8 @@ const PdfViewer = React.forwardRef<PdfViewerHandle, PdfViewerProps>(({
   zoomRef.current = zoom;
   const onZoomChangeRef = useRef(onZoomChange);
   onZoomChangeRef.current = onZoomChange;
+  const onPdfReadyRef = useRef(onPdfReady);
+  onPdfReadyRef.current = onPdfReady;
 
   const [pdf, setPdf] = useState<PDFDocumentProxy | null>(null);
   const [pageCount, setPageCount] = useState(0);
@@ -223,6 +227,7 @@ const PdfViewer = React.forwardRef<PdfViewerHandle, PdfViewerProps>(({
     setPageCount(0);
     setCurrentPage(1);
     setError(null);
+    onPdfReadyRef.current?.(null);
 
     if (!source) {
       setLoading(false);
@@ -260,6 +265,7 @@ const PdfViewer = React.forwardRef<PdfViewerHandle, PdfViewerProps>(({
           setPageCount(doc.numPages);
           setCurrentPage(1);
           onDocumentLoaded?.(doc.numPages);
+          onPdfReadyRef.current?.(doc);
         })
         .catch((err: unknown) => {
           if (!cancelled) {
@@ -302,6 +308,7 @@ const PdfViewer = React.forwardRef<PdfViewerHandle, PdfViewerProps>(({
 
   useEffect(() => {
     return () => {
+      onPdfReadyRef.current?.(null);
       void pdfRef.current?.cleanup();
       pdfRef.current = null;
       taskRef.current?.destroy();
