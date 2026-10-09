@@ -19,13 +19,6 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover';
 import {
-  Command,
-  CommandEmpty,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from '@/components/ui/command';
-import {
   Upload,
   Plus,
   Trash2,
@@ -47,6 +40,7 @@ import {
 import type { PdfViewerHandle } from './PdfViewer';
 const PdfViewer = React.lazy(() => import('./PdfViewer'));
 import FloatingTempoIndicator from './FloatingTempoIndicator';
+import LibraryDialog from './LibraryDialog';
 import { useGlobalBPM } from '@/context/GlobalBPMContext';
 import { useScales } from '@/context/ScalesContext';
 import { cn, shallowEqual } from '@/lib/utils';
@@ -536,7 +530,6 @@ const RepertoirePanel: React.FC = () => {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [fullscreen, setFullscreen] = useState(false);
   const [libraryOpen, setLibraryOpen] = useState(false);
-  const [libraryFilter, setLibraryFilter] = useState('');
   const [bookmarkOpen, setBookmarkOpen] = useState(false);
   const [bookmarkExercise, setBookmarkExercise] = useState('');
   const [bookmarkLabel, setBookmarkLabel] = useState('');
@@ -668,12 +661,13 @@ const RepertoirePanel: React.FC = () => {
     if (doc) loadDocument(doc);
   };
 
-  const handleDeleteDocument = async () => {
-    if (!selectedDoc) return;
-    if (!window.confirm(`Delete "${selectedDoc.title}" and its mappings?`)) return;
-    await deleteDocument(selectedDoc);
-    if (getLastOpenedDocumentId() === selectedDoc.id) clearLastOpenedDocumentId();
-    handleSelectDocument('');
+  const handleDeleteDocument = async (doc?: SavedDocument) => {
+    const target = doc ?? selectedDoc;
+    if (!target) return;
+    if (!window.confirm(`Delete "${target.title}" and its mappings?`)) return;
+    await deleteDocument(target);
+    if (getLastOpenedDocumentId() === target.id) clearLastOpenedDocumentId();
+    if (target.id === selectedDoc?.id) handleSelectDocument('');
     showSuccess('Document deleted.');
   };
 
@@ -787,11 +781,6 @@ const RepertoirePanel: React.FC = () => {
     (m) => currentPage >= m.pageStart && currentPage <= m.pageEnd,
   );
   const maxPixelRatio = quality === 'retina' ? 3 : 1.5;
-  const filteredDocs = useMemo(() => {
-    const term = libraryFilter.trim().toLowerCase();
-    if (!term) return documents;
-    return documents.filter((d) => d.title.toLowerCase().includes(term));
-  }, [documents, libraryFilter]);
 
   const navigatePage = useCallback(
     (page: number) => {
@@ -948,6 +937,25 @@ const RepertoirePanel: React.FC = () => {
         onChange={handleFileInput}
       />
 
+      <LibraryDialog
+        open={libraryOpen}
+        onOpenChange={setLibraryOpen}
+        documents={documents}
+        isLoading={isLoadingDocuments}
+        isCloudEnabled={isCloudEnabled}
+        activeDocumentId={activeDocumentId}
+        isUploading={isUploading}
+        onSelect={(doc) => {
+          setLibraryOpen(false);
+          handleSelectDocument(doc.id);
+        }}
+        onDelete={(doc) => void handleDeleteDocument(doc)}
+        onUpload={(file) => {
+          setLibraryOpen(false);
+          void handleUpload(file);
+        }}
+      />
+
       <div className="flex flex-col gap-4 rounded-xl border bg-card/50 p-5 shadow-sm lg:flex-row lg:items-center lg:justify-between">
         <div className="space-y-0.5">
           <Label className="flex items-center gap-2 text-sm font-bold uppercase tracking-wider text-foreground">
@@ -961,53 +969,18 @@ const RepertoirePanel: React.FC = () => {
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
-          <Popover open={libraryOpen} onOpenChange={(open) => {
-            setLibraryOpen(open);
-            if (!open) setLibraryFilter('');
-          }}>
-            <PopoverTrigger asChild>
-              <Button
-                variant="outline"
-                role="combobox"
-                aria-expanded={libraryOpen}
-                className="w-[260px] h-9 justify-start text-xs font-normal"
-              >
-                <ListMusic className="w-3.5 h-3.5 mr-2 text-primary shrink-0" />
-                <span className="truncate">
-                  {activeTitle ?? (isLoadingDocuments ? 'Loading…' : 'My library')}
-                </span>
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent align="start" className="w-[320px] p-0">
-              <Command>
-                <CommandInput
-                  value={libraryFilter}
-                  onValueChange={setLibraryFilter}
-                  placeholder="Search library…"
-                />
-                <CommandList>
-                  {filteredDocs.length === 0 && (
-                    <CommandEmpty>No documents{libraryFilter ? ` matching "${libraryFilter}"` : ''}.</CommandEmpty>
-                  )}
-                  {filteredDocs.map((doc) => (
-                    <CommandItem
-                      key={doc.id}
-                      value={doc.title}
-                      onSelect={() => {
-                        setLibraryOpen(false);
-                        handleSelectDocument(doc.id);
-                      }}
-                    >
-                      <span className="truncate">{doc.title}</span>
-                      <span className="ml-auto shrink-0 text-[10px] font-mono text-muted-foreground">
-                        p.{doc.last_viewed_page} · {doc.page_count}p
-                      </span>
-                    </CommandItem>
-                  ))}
-                </CommandList>
-              </Command>
-            </PopoverContent>
-          </Popover>
+          <Button
+            variant="outline"
+            role="combobox"
+            aria-expanded={libraryOpen}
+            onClick={() => setLibraryOpen(true)}
+            className="w-[260px] h-9 justify-start text-xs font-normal"
+          >
+            <ListMusic className="w-3.5 h-3.5 mr-2 text-primary shrink-0" />
+            <span className="truncate">
+              {activeTitle ?? (isLoadingDocuments ? 'Loading…' : 'My library')}
+            </span>
+          </Button>
 
           <Button
             variant="outline"
