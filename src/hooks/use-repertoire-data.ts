@@ -7,6 +7,17 @@ import {
   loadMappings as loadLocalMappings,
   saveMappings as saveLocalMappings,
 } from '@/lib/repertoire';
+import { validatePdfFile } from '@/lib/validation/pdf';
+import { parseOrThrow, safeParse } from '@/lib/validation/parse';
+import {
+  MAX_TITLE_LENGTH,
+  documentTitleSchema,
+  pageCountSchema,
+  pageMappingListSchema,
+  pageMappingRowSchema,
+  pageNumberSchema,
+  repertoireModeSchema,
+} from '@/lib/validation/schemas';
 
 export const REPERTOIRE_BUCKET = 'practice-pdfs';
 
@@ -73,6 +84,19 @@ export const useRepertoireData = () => {
     async (file: File, mode: RepertoireMode): Promise<SavedDocument> => {
       if (!userId) throw new Error('You must be signed in to upload.');
 
+      const fileCheck = await validatePdfFile(file);
+      if (!fileCheck.ok) throw new Error(fileCheck.reason);
+
+      const safeMode = parseOrThrow(
+        repertoireModeSchema,
+        mode,
+        'Invalid document mode',
+      );
+      const titleResult = safeParse(documentTitleSchema, file.name);
+      const title = titleResult.success
+        ? titleResult.data
+        : file.name.slice(0, MAX_TITLE_LENGTH) || 'Untitled document';
+
       const documentId = crypto.randomUUID();
       const path = `${userId}/${documentId}.pdf`;
 
@@ -87,8 +111,8 @@ export const useRepertoireData = () => {
           .insert({
             id: documentId,
             user_id: userId,
-            title: file.name,
-            mode,
+            title,
+            mode: safeMode,
             storage_path: path,
             page_count: 0,
             last_viewed_page: 1,
@@ -154,23 +178,33 @@ export const useRepertoireData = () => {
         .eq('user_id', userId)
         .order('page_start', { ascending: true });
       if (error || !data) return loadLocalMappings(documentId);
-      return (data as PageMappingRow[]).map(rowToMapping);
+      return (data as unknown[])
+        .map((row) => {
+          const parsed = safeParse(pageMappingRowSchema, row);
+          return parsed.success ? rowToMapping(parsed.data) : null;
+        })
+        .filter((mapping): mapping is PageMapping => mapping !== null);
     },
     [userId],
   );
 
   const saveMappings = useCallback(
     async (documentId: string, next: PageMapping[]): Promise<void> => {
-      saveLocalMappings(documentId, next);
+      const validated = parseOrThrow(
+        pageMappingListSchema,
+        next,
+        'Invalid page mappings',
+      ) as PageMapping[];
+      saveLocalMappings(documentId, validated);
       if (!userId) return;
       await supabase
         .from('pdf_page_mappings')
         .delete()
         .eq('document_id', documentId)
         .eq('user_id', userId);
-      if (next.length === 0) return;
+      if (validated.length === 0) return;
       await supabase.from('pdf_page_mappings').insert(
-        next.map((m) => ({
+        validated.map((m) => ({
           user_id: userId,
           document_id: documentId,
           page_start: m.pageStart,
@@ -189,13 +223,14 @@ export const useRepertoireData = () => {
   const updateLastViewedPage = useCallback(
     async (documentId: string, page: number): Promise<void> => {
       if (!userId) return;
+      const safePage = parseOrThrow(pageNumberSchema, page, 'Invalid page number');
       await supabase
         .from('pdf_documents')
-        .update({ last_viewed_page: page })
+        .update({ last_viewed_page: safePage })
         .eq('id', documentId)
         .eq('user_id', userId);
       setDocuments((prev) =>
-        prev.map((d) => (d.id === documentId ? { ...d, last_viewed_page: page } : d)),
+        prev.map((d) => (d.id === documentId ? { ...d, last_viewed_page: safePage } : d)),
       );
     },
     [userId],
@@ -204,13 +239,14 @@ export const useRepertoireData = () => {
   const updatePageCount = useCallback(
     async (documentId: string, pageCount: number): Promise<void> => {
       if (!userId) return;
+      const safeCount = parseOrThrow(pageCountSchema, pageCount, 'Invalid page count');
       await supabase
         .from('pdf_documents')
-        .update({ page_count: pageCount })
+        .update({ page_count: safeCount })
         .eq('id', documentId)
         .eq('user_id', userId);
       setDocuments((prev) =>
-        prev.map((d) => (d.id === documentId ? { ...d, page_count: pageCount } : d)),
+        prev.map((d) => (d.id === documentId ? { ...d, page_count: safeCount } : d)),
       );
     },
     [userId],
