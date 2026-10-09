@@ -17,6 +17,14 @@ import { Button } from '@/components/ui/button';
 import { showSuccess } from '@/utils/toast';
 import { RefreshCw, Target, Settings2, Keyboard, Plus, Minus, Save, Clock, Activity } from 'lucide-react';
 import { useZenMode } from '@/context/ZenModeContext';
+import PageHeader from './PageHeader';
+
+const PRACTICE_TABS = [
+  { value: 'scales', label: 'Scales', activeClass: 'data-[state=active]:border-indigo-500 data-[state=active]:text-indigo-600 dark:data-[state=active]:text-indigo-400' },
+  { value: 'dohnanyi', label: 'Dohnányi', activeClass: 'data-[state=active]:border-cyan-500 data-[state=active]:text-cyan-600 dark:data-[state=active]:text-cyan-400' },
+  { value: 'hanon', label: 'Hanon', activeClass: 'data-[state=active]:border-amber-500 data-[state=active]:text-amber-600 dark:data-[state=active]:text-amber-400' },
+  { value: 'repertoire', label: 'Repertoire', activeClass: 'data-[state=active]:border-fuchsia-500 data-[state=active]:text-fuchsia-600 dark:data-[state=active]:text-fuchsia-400' },
+] as const;
 
 const PracticeCommandCenter: React.FC = () => {
   const {
@@ -117,26 +125,27 @@ const PracticeCommandCenter: React.FC = () => {
   return (
     <div className={cn("max-w-7xl mx-auto space-y-10 px-4 md:px-8 transition-all duration-500", isZenMode && "max-w-4xl")}>
       {!isZenMode && (
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
-          <div className="space-y-2">
-            <h1 className="text-4xl font-bold tracking-tight">Practice</h1>
-            <p className="text-lg text-muted-foreground">Focus on your technique and track your progress.</p>
-          </div>
-          {nextFocus && (
-            <Card className="bg-primary/5 border-primary/20 shadow-sm">
-              <CardContent className="p-5 flex items-center gap-6">
-                <div className="space-y-1">
-                  <p className="text-xs font-bold uppercase tracking-widest text-primary/60">Suggested Focus</p>
-                  <p className="text-lg font-semibold">{suggestedLabel}</p>
-                </div>
-                <Button size="lg" onClick={() => handleLoadSuggestion(nextFocus)} disabled={isEngagingSuggestion} className="focus-scale">
-                  <Target className="w-5 h-5 mr-2" />
-                  Start Session
-                </Button>
-              </CardContent>
-            </Card>
-          )}
-        </div>
+        <PageHeader
+          eyebrow="Practice"
+          title="Command Center"
+          description="Focus on your technique, adjust tempo, and track every session."
+          actions={
+            nextFocus && (
+              <Card className="bg-primary/5 border-primary/20 shadow-sm">
+                <CardContent className="p-5 flex items-center gap-6">
+                  <div className="space-y-1">
+                    <p className="text-xs font-bold uppercase tracking-widest text-primary/60">Suggested Focus</p>
+                    <p className="text-lg font-semibold">{suggestedLabel}</p>
+                  </div>
+                  <Button size="lg" onClick={() => handleLoadSuggestion(nextFocus)} disabled={isEngagingSuggestion} className="focus-scale">
+                    <Target className="w-5 h-5 mr-2" />
+                    Start Session
+                  </Button>
+                </CardContent>
+              </Card>
+            )
+          }
+        />
       )}
 
       <div className={cn("grid grid-cols-1 gap-10", !isZenMode && "lg:grid-cols-4")}>
@@ -150,43 +159,19 @@ const PracticeCommandCenter: React.FC = () => {
               setIsPermutationManuallyAdjusted(false);
               setIsTabManuallySelected(true);
             }}>
-              <TabsList className="w-full justify-start h-auto p-0 bg-transparent border-b rounded-none gap-10">
-                <TabsTrigger 
-                  value="scales" 
-                  className={cn(
-                    "data-[state=active]:border-indigo-500 data-[state=active]:bg-transparent border-b-4 border-transparent rounded-none px-0 pb-4 text-lg font-bold shadow-none transition-all",
-                    activeTab === 'scales' && "text-indigo-600 dark:text-indigo-400"
-                  )}
-                >
-                  Scales
-                </TabsTrigger>
-                <TabsTrigger 
-                  value="dohnanyi" 
-                  className={cn(
-                    "data-[state=active]:border-cyan-500 data-[state=active]:bg-transparent border-b-4 border-transparent rounded-none px-0 pb-4 text-lg font-bold shadow-none transition-all",
-                    activeTab === 'dohnanyi' && "text-cyan-600 dark:text-cyan-400"
-                  )}
-                >
-                  Dohnányi
-                </TabsTrigger>
-                <TabsTrigger 
-                  value="hanon" 
-                  className={cn(
-                    "data-[state=active]:border-amber-500 data-[state=active]:bg-transparent border-b-4 border-transparent rounded-none px-0 pb-4 text-lg font-bold shadow-none transition-all",
-                    activeTab === 'hanon' && "text-amber-600 dark:text-amber-400"
-                  )}
-                >
-                  Hanon
-                </TabsTrigger>
-                <TabsTrigger 
-                  value="repertoire" 
-                  className={cn(
-                    "data-[state=active]:border-fuchsia-500 data-[state=active]:bg-transparent border-b-4 border-transparent rounded-none px-0 pb-4 text-lg font-bold shadow-none transition-all",
-                    activeTab === 'repertoire' && "text-fuchsia-600 dark:text-fuchsia-400"
-                  )}
-                >
-                  Repertoire
-                </TabsTrigger>
+              <TabsList className="flex h-auto w-full justify-start gap-2 overflow-x-auto rounded-none border-b bg-transparent p-0">
+                {PRACTICE_TABS.map(({ value, label, activeClass }) => (
+                  <TabsTrigger
+                    key={value}
+                    value={value}
+                    className={cn(
+                      "shrink-0 rounded-none border-b-4 border-transparent px-1 pb-4 text-base font-bold shadow-none transition-all data-[state=active]:bg-transparent",
+                      activeClass,
+                    )}
+                  >
+                    {label}
+                  </TabsTrigger>
+                ))}
               </TabsList>
 
               <TabsContent value="scales" className="pt-8">

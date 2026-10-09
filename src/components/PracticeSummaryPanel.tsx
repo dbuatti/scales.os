@@ -2,7 +2,7 @@ import React from 'react';
 import { useGlobalBPM } from '@/context/GlobalBPMContext';
 import { useScales } from '@/context/ScalesContext';
 import { Card, CardContent } from '@/components/ui/card';
-import { Save, AlertCircle, Music, Hand } from 'lucide-react';
+import { Save, AlertCircle, Music, Hand, Piano } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { showSuccess } from '@/utils/toast';
@@ -14,10 +14,18 @@ const PracticeSummaryPanel: React.FC = () => {
 
   if (!activePracticeItem) {
     return (
-      <Card className="bg-muted/20 border-dashed border-2">
-        <CardContent className="p-16 text-center space-y-4">
-          <p className="text-xl font-medium text-muted-foreground">Select an exercise to begin tracking your session.</p>
-          <p className="text-sm text-muted-foreground/60">Your progress will be automatically calculated as you practice.</p>
+      <Card className="border-2 border-dashed bg-muted/20">
+        <CardContent className="flex flex-col items-center gap-6 p-12 text-center md:p-16">
+          <div className="rounded-2xl bg-primary/10 p-4 text-primary">
+            <Piano className="h-8 w-8" />
+          </div>
+          <div className="space-y-2">
+            <p className="text-xl font-semibold">Ready when you are</p>
+            <p className="mx-auto max-w-md text-sm text-muted-foreground">
+              Pick a scale, arpeggio, or exercise below to start a session. Your tempo and mastery
+              progress will be tracked automatically as you play.
+            </p>
+          </div>
         </CardContent>
       </Card>
     );

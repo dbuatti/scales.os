@@ -1,16 +1,12 @@
 import React, { useState, useMemo, useEffect, useCallback, useRef } from 'react';
-import { CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { LogIn, Check } from 'lucide-react';
 import { 
   DOHNANYI_EXERCISES, DohnanyiExercise, DOHNANYI_BPM_TARGETS, DohnanyiBPMTarget, getDohnanyiPracticeId, getDohnanyiExerciseBaseId
 } from '@/lib/scales';
 import { useScales, NextFocus, ScaleStatus } from '@/context/ScalesContext';
-import { showSuccess, showError } from '@/utils/toast';
-import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
-import { cn, shallowEqual } from '@/lib/utils';
-import { Label } from '@/components/ui/label';
+import { showSuccess } from '@/utils/toast';
+import { shallowEqual } from '@/lib/utils';
 import { useGlobalBPM, SNAPSHOT_DEBOUNCE_MS, ActivePracticeItem } from '@/context/GlobalBPMContext';
+import ExercisePracticePanel from './ExercisePracticePanel';
 
 interface DohnanyiPracticePanelProps {
     currentBPM: number;
@@ -139,48 +135,16 @@ const DohnanyiPracticePanel: React.FC<DohnanyiPracticePanelProps> = ({
   };
 
   return (
-    <CardContent className="p-0 space-y-6">
-        <div className="space-y-3 border p-4 rounded-lg border-primary/30 bg-secondary/50">
-            <Label className="text-lg font-semibold text-primary block mb-2 font-mono text-glow">DOHNÁNYI EXERCISES</Label>
-            <p className="text-xs text-muted-foreground italic mb-4 text-primary/70">
-                Select the exercise you are currently practicing. Your highest mastered BPM will be tracked.
-            </p>
-            <ToggleGroup 
-                type="single" 
-                value={selectedExercise} 
-                onValueChange={(value) => value && setSelectedExercise(value as DohnanyiExercise)}
-                className="flex flex-wrap justify-center gap-2 w-full"
-            >
-                {DOHNANYI_EXERCISES.map(exercise => (
-                    <ToggleGroupItem 
-                        key={exercise} 
-                        value={exercise} 
-                        aria-label={`Select exercise ${exercise}`}
-                        className="data-[state=on]:bg-primary data-[state=on]:text-primary-foreground data-[state=on]:shadow-md data-[state=on]:border-primary/80 border border-border text-xs px-2 py-1 h-auto font-mono flex-1 min-w-[80px]"
-                    >
-                        {exercise}
-                    </ToggleGroupItem>
-                ))}
-            </ToggleGroup>
-        </div>
-
-        <div className="space-y-4 p-4 rounded-lg border border-primary/30 bg-secondary/50">
-            <Label className="text-lg font-semibold text-primary block mb-2 font-mono text-glow">MASTERY PROGRESS</Label>
-            <div className="flex flex-col items-center justify-center space-y-2">
-                <p className="text-sm text-muted-foreground font-mono text-primary/70">
-                    Highest Mastered BPM: <span className="font-bold text-primary text-glow">{highestMasteredBPM}</span>
-                </p>
-                <p className="text-sm text-warning font-mono text-glow animate-pulse">
-                    Next Goal: <span className="font-bold">{nextBPMGoal} BPM</span>
-                </p>
-                {highestMasteredBPM >= DOHNANYI_BPM_TARGETS[DOHNANYI_BPM_TARGETS.length - 1] && (
-                    <div className="flex items-center text-success font-mono text-sm mt-2 text-glow">
-                        <Check className="w-4 h-4 mr-1" /> FULLY MASTERED!
-                    </div>
-                )}
-            </div>
-        </div>
-    </CardContent>
+    <ExercisePracticePanel
+        title="Dohnányi Exercises"
+        description="Select the exercise you are currently practicing. Your highest mastered BPM will be tracked."
+        exercises={DOHNANYI_EXERCISES}
+        selectedExercise={selectedExercise}
+        onSelect={(value) => setSelectedExercise(value as DohnanyiExercise)}
+        highestMasteredBPM={highestMasteredBPM}
+        nextGoalBPM={nextBPMGoal}
+        maxTargetBPM={DOHNANYI_BPM_TARGETS[DOHNANYI_BPM_TARGETS.length - 1]}
+    />
   );
 };
 

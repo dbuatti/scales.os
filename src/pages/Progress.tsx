@@ -4,13 +4,13 @@ import RepertoireStats from '@/components/RepertoireStats';
 import ScaleGrid from '@/components/ScaleGrid';
 import PracticeLog from '@/components/PracticeLog';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Separator } from '@/components/ui/separator';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useScales } from '@/context/ScalesContext';
 import { Skeleton } from '@/components/ui/skeleton';
 import GradeTracker from '@/components/GradeTracker';
 import { Button } from '@/components/ui/button';
-import { Trash2, RefreshCw, PlayCircle, AlertCircle } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { Trash2, RefreshCw, PlayCircle, AlertCircle, LayoutDashboard, Piano, History } from 'lucide-react';
+import PageHeader from '@/components/PageHeader';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -43,10 +43,8 @@ const ProgressPage: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="container mx-auto p-4 md:p-8 space-y-10">
-        <h1 className="text-4xl font-extrabold tracking-tight text-center lg:text-5xl">
-          Progress
-        </h1>
+      <div className="mx-auto max-w-7xl space-y-10">
+        <PageHeader eyebrow="Progress" title="Your Mastery" description="Review your mastery across all techniques and manage your practice stasis." />
         <Skeleton className="h-40 w-full bg-card/50" />
         <Skeleton className="h-[500px] w-full bg-card/50" />
       </div>
@@ -54,97 +52,123 @@ const ProgressPage: React.FC = () => {
   }
 
   return (
-    <div className="container mx-auto p-4 md:p-8 space-y-10">
-      <div className="text-center space-y-2">
-        <h1 className="text-4xl font-extrabold tracking-tight lg:text-5xl">
-          Progress
-        </h1>
-        <p className="text-lg text-muted-foreground max-w-3xl mx-auto">
-          Review your mastery across all techniques and manage your practice stasis.
-        </p>
-      </div>
+    <div className="mx-auto max-w-7xl space-y-8">
+      <PageHeader
+        eyebrow="Progress"
+        title="Your Mastery"
+        description="Review your mastery across all techniques and manage your practice stasis."
+        actions={
+          <Button variant="outline" onClick={handleRefresh} disabled={isRefreshing} className="font-bold focus-scale">
+            <RefreshCw className={isRefreshing ? 'mr-2 h-4 w-4 animate-spin' : 'mr-2 h-4 w-4'} />
+            Sync
+          </Button>
+        }
+      />
 
-      <PracticeStats />
-      
-      <RepertoireStats />
+      <Tabs defaultValue="overview" className="space-y-8">
+        <TabsList className="flex h-auto w-full justify-start gap-2 overflow-x-auto rounded-none border-b bg-transparent p-0">
+          <TabsTrigger
+            value="overview"
+            className="shrink-0 gap-2 rounded-none border-b-4 border-transparent px-1 pb-4 font-bold shadow-none data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:text-primary"
+          >
+            <LayoutDashboard className="h-4 w-4" />
+            Overview
+          </TabsTrigger>
+          <TabsTrigger
+            value="technique"
+            className="shrink-0 gap-2 rounded-none border-b-4 border-transparent px-1 pb-4 font-bold shadow-none data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:text-primary"
+          >
+            <Piano className="h-4 w-4" />
+            Technique
+          </TabsTrigger>
+          <TabsTrigger
+            value="history"
+            className="shrink-0 gap-2 rounded-none border-b-4 border-transparent px-1 pb-4 font-bold shadow-none data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:text-primary"
+          >
+            <History className="h-4 w-4" />
+            History
+          </TabsTrigger>
+        </TabsList>
 
-        <GradeTracker />
+        <TabsContent value="overview" className="space-y-8">
+          <PracticeStats />
+          <RepertoireStats />
+          <GradeTracker />
+        </TabsContent>
 
-      {stasisItems.length > 0 && (
-        <Card className="border-warning/50 bg-warning/5">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-warning">
-              <AlertCircle className="w-5 h-5" />
-              Technique Stasis
-            </CardTitle>
-            <CardDescription>
-              These items were marked as "Too Hard" and are currently hidden from suggestions.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {stasisItems.map(([id, _]) => (
-                <div key={id} className="flex items-center justify-between p-3 bg-card border rounded-lg shadow-sm">
-                  <span className="text-sm font-medium truncate max-w-[200px]">{id.split('-').slice(0, 2).join(' ')}</span>
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    onClick={() => updatePracticeStatus(id, 'untouched')}
-                    className="text-xs text-primary hover:bg-primary/10"
-                  >
-                    <PlayCircle className="w-4 h-4 mr-1" />
-                    Reactivate
-                  </Button>
+        <TabsContent value="technique" className="space-y-8">
+          {stasisItems.length > 0 && (
+            <Card className="border-warning/50 bg-warning/5">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-warning">
+                  <AlertCircle className="w-5 h-5" />
+                  Technique Stasis
+                </CardTitle>
+                <CardDescription>
+                  These items were marked as "Too Hard" and are currently hidden from suggestions.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+                  {stasisItems.map(([id]) => (
+                    <div key={id} className="flex items-center justify-between rounded-lg border bg-card p-3 shadow-sm">
+                      <span className="max-w-[200px] truncate text-sm font-medium">{id.split('-').slice(0, 2).join(' ')}</span>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => updatePracticeStatus(id, 'untouched')}
+                        className="text-xs text-primary hover:bg-primary/10"
+                      >
+                        <PlayCircle className="w-4 h-4 mr-1" />
+                        Reactivate
+                      </Button>
+                    </div>
+                  ))}
                 </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      )}
+              </CardContent>
+            </Card>
+          )}
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Scale Mastery Matrix</CardTitle>
-        </CardHeader>
-        <CardContent>
           <ScaleGrid />
-        </CardContent>
-      </Card>
+        </TabsContent>
 
-      <Separator />
+        <TabsContent value="history" className="space-y-8">
+          <PracticeLog />
 
-      <PracticeLog />
-
-      <div className="flex flex-col sm:flex-row justify-center gap-4 mt-10">
-        <Button 
-          onClick={handleRefresh} 
-          disabled={isRefreshing || isLoading}
-          variant="outline" 
-        >
-          <RefreshCw className={cn("w-4 h-4 mr-2", isRefreshing && "animate-spin")} />
-          Refresh Data
-        </Button>
-
-        <AlertDialog>
-          <AlertDialogTrigger asChild>
-            <Button variant="destructive">
-              <Trash2 className="w-4 h-4 mr-2" /> Clear ALL Data
-            </Button>
-          </AlertDialogTrigger>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-              <AlertDialogDescription>
-                This will permanently delete ALL your practice logs, scale mastery, and exercise progress.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>Cancel</AlertDialogCancel>
-              <AlertDialogAction onClick={handleClearAllData}>Continue</AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
-      </div>
+          <Card className="border-destructive/30">
+            <CardHeader>
+              <CardTitle className="text-destructive">Danger Zone</CardTitle>
+              <CardDescription>
+                Permanently clear all of your practice data. This cannot be undone.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button variant="destructive" className="font-bold">
+                    <Trash2 className="w-4 h-4 mr-2" />
+                    Clear all practice data
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Clear all practice data?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      This will permanently delete all logs, scale mastery, and exercise progress.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction onClick={handleClearAllData} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                      Delete everything
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };

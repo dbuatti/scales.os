@@ -76,6 +76,7 @@
     --radius: 0.25rem;
   }
 
+  [data-theme='dark'],
   .dark {
     --background: 240 10% 3.9%;
     --foreground: 0 0% 98%;
@@ -106,6 +107,9 @@
   body {
     @apply bg-background text-foreground antialiased transition-colors duration-300;
     font-feature-settings: "rlig" 1, "calt" 1;
+  }
+  :focus-visible {
+    @apply outline-none ring-2 ring-ring ring-offset-2 ring-offset-background;
   }
 }
 
@@ -139,4 +143,19 @@
 /* Focus enhancement: subtle scale on interactive elements */
 .focus-scale {
   @apply transition-transform duration-200 hover:scale-[1.02] active:scale-[0.98];
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .focus-scale {
+    @apply hover:scale-100 active:scale-100;
+  }
 }

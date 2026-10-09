@@ -1,17 +1,12 @@
 import React, { useState, useMemo, useEffect, useCallback, useRef } from 'react';
-import { CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { LogIn, Check } from 'lucide-react';
 import { 
   HANON_EXERCISES, HanonExercise, HANON_BPM_TARGETS, HanonBPMTarget, getHanonPracticeId, getHanonExerciseBaseId
 } from '@/lib/scales';
 import { useScales, NextFocus, ScaleStatus } from '@/context/ScalesContext';
-import { showSuccess, showError } from '@/utils/toast';
-import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
-import { cn, shallowEqual } from '@/lib/utils';
-import { Label } from '@/components/ui/label';
-import { ScrollArea } from '@/components/ui/scroll-area';
+import { showSuccess } from '@/utils/toast';
+import { shallowEqual } from '@/lib/utils';
 import { useGlobalBPM, SNAPSHOT_DEBOUNCE_MS, ActivePracticeItem } from '@/context/GlobalBPMContext';
+import ExercisePracticePanel from './ExercisePracticePanel';
 
 interface HanonPracticePanelProps {
     currentBPM: number;
@@ -140,50 +135,18 @@ const HanonPracticePanel: React.FC<HanonPracticePanelProps> = ({
   };
 
   return (
-    <CardContent className="p-0 space-y-6">
-        <div className="space-y-3 border p-4 rounded-lg border-primary/30 bg-secondary/50">
-            <Label className="text-lg font-semibold text-primary block mb-2 font-mono text-glow">HANON EXERCISES (1-60)</Label>
-            <p className="text-xs text-muted-foreground italic mb-4 text-primary/70">
-                Select the exercise you are currently practicing. Your highest mastered BPM will be tracked.
-            </p>
-            <ScrollArea className="h-[200px] w-full pr-4">
-                <ToggleGroup 
-                    type="single" 
-                    value={selectedExercise} 
-                    onValueChange={(value) => value && setSelectedExercise(value as HanonExercise)}
-                    className="flex flex-wrap justify-start gap-2 w-full"
-                >
-                    {HANON_EXERCISES.map(exercise => (
-                        <ToggleGroupItem 
-                            key={exercise} 
-                            value={exercise} 
-                            aria-label={`Select exercise ${exercise}`}
-                            className="data-[state=on]:bg-primary data-[state=on]:text-primary-foreground data-[state=on]:shadow-md data-[state=on]:border-primary/80 border border-border text-xs px-2 py-1 h-auto font-mono min-w-[80px]"
-                        >
-                            {exercise.replace('Exercise ', 'Ex. ')}
-                        </ToggleGroupItem>
-                    ))}
-                </ToggleGroup>
-            </ScrollArea>
-        </div>
-
-        <div className="space-y-4 p-4 rounded-lg border border-primary/30 bg-secondary/50">
-            <Label className="text-lg font-semibold text-primary block mb-2 font-mono text-glow">MASTERY PROGRESS</Label>
-            <div className="flex flex-col items-center justify-center space-y-2">
-                <p className="text-sm text-muted-foreground font-mono text-primary/70">
-                    Highest Mastered BPM: <span className="font-bold text-primary text-glow">{highestMasteredBPM}</span>
-                </p>
-                <p className="text-sm text-warning font-mono text-glow animate-pulse">
-                    Next Goal: <span className="font-bold">{nextBPMGoal} BPM</span>
-                </p>
-                {highestMasteredBPM >= HANON_BPM_TARGETS[HANON_BPM_TARGETS.length - 1] && (
-                    <div className="flex items-center text-success font-mono text-sm mt-2 text-glow">
-                        <Check className="w-4 h-4 mr-1" /> FULLY MASTERED!
-                    </div>
-                )}
-            </div>
-        </div>
-    </CardContent>
+    <ExercisePracticePanel
+        title="Hanon Exercises (1–60)"
+        description="Select the exercise you are currently practicing. Your highest mastered BPM will be tracked."
+        exercises={HANON_EXERCISES}
+        selectedExercise={selectedExercise}
+        onSelect={(value) => setSelectedExercise(value as HanonExercise)}
+        highestMasteredBPM={highestMasteredBPM}
+        nextGoalBPM={nextBPMGoal}
+        maxTargetBPM={HANON_BPM_TARGETS[HANON_BPM_TARGETS.length - 1]}
+        formatExercise={(exercise) => exercise.replace('Exercise ', 'Ex. ')}
+        scrollable
+    />
   );
 };
 

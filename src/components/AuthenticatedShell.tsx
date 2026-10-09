@@ -37,6 +37,30 @@ const NavLink: React.FC<NavLinkProps> = ({ to, icon, label }) => {
     );
 };
 
+interface MobileNavItemProps {
+    to: string;
+    icon: React.ReactNode;
+    label: string;
+}
+
+const MobileNavItem: React.FC<MobileNavItemProps> = ({ to, icon, label }) => {
+    const location = useLocation();
+    const isActive = location.pathname === to;
+
+    return (
+        <Link
+            to={to}
+            className={cn(
+                "flex flex-1 flex-col items-center justify-center gap-0.5 py-2 text-[10px] font-bold uppercase tracking-widest transition-colors",
+                isActive ? "text-primary" : "text-muted-foreground"
+            )}
+        >
+            {icon}
+            <span>{label}</span>
+        </Link>
+    );
+};
+
 const AuthenticatedShell: React.FC = () => {
   const navigate = useNavigate();
 
@@ -51,28 +75,43 @@ const AuthenticatedShell: React.FC = () => {
   };
 
   const authenticatedHeaderRightContent = (
-    <div className="flex items-center gap-4">
+    <div className="flex items-center gap-3">
       <AuthenticatedHeaderControls />
-      <div className="h-6 w-px bg-border mx-2 hidden md:block" />
-      <nav className="flex items-center gap-1">
+      <div className="hidden h-6 w-px bg-border md:block" />
+      <nav className="hidden items-center gap-1 md:flex">
         <NavLink to="/" icon={<Play className="w-4 h-4" />} label="Practice" />
         <NavLink to="/progress" icon={<BarChart2 className="w-4 h-4" />} label="Progress" />
-        <Button
-            variant="ghost"
-            size="icon"
-            onClick={handleLogout}
-            className="text-muted-foreground hover:text-destructive"
-        >
-            <LogOut className="w-4 h-4" />
-            <span className="sr-only">Logout</span>
-        </Button>
       </nav>
+      <Button
+          variant="ghost"
+          size="icon"
+          onClick={handleLogout}
+          className="hidden text-muted-foreground hover:text-destructive md:inline-flex"
+      >
+          <LogOut className="w-4 h-4" />
+          <span className="sr-only">Logout</span>
+      </Button>
+    </div>
+  );
+
+  const mobileNav = (
+    <div className="flex items-stretch">
+      <MobileNavItem to="/" icon={<Play className="w-5 h-5" />} label="Practice" />
+      <MobileNavItem to="/progress" icon={<BarChart2 className="w-5 h-5" />} label="Progress" />
+      <button
+        type="button"
+        onClick={handleLogout}
+        className="flex flex-1 flex-col items-center justify-center gap-0.5 py-2 text-[10px] font-bold uppercase tracking-widest text-muted-foreground transition-colors hover:text-destructive"
+      >
+        <LogOut className="w-5 h-5" />
+        <span>Logout</span>
+      </button>
     </div>
   );
 
   return (
     <ScalesProvider>
-      <AppLayout headerRightContent={authenticatedHeaderRightContent}>
+      <AppLayout headerRightContent={authenticatedHeaderRightContent} mobileNav={mobileNav}>
         <Outlet />
       </AppLayout>
     </ScalesProvider>

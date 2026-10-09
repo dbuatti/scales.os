@@ -6,7 +6,6 @@ import { Plus, Minus } from 'lucide-react';
 import { MIN_BPM, MAX_BPM } from '@/lib/scales';
 import PracticeTimer from './PracticeTimer';
 import Metronome from './Metronome';
-import { cn } from '@/lib/utils';
 
 interface HeaderControlsProps {
   currentBPM: number;
@@ -16,32 +15,26 @@ interface HeaderControlsProps {
 
 const HeaderControls: React.FC<HeaderControlsProps> = ({ currentBPM, onBpmChange, onLogSession }) => {
   return (
-    <div className="flex items-center space-x-4">
+    <div className="flex items-center space-x-2 sm:space-x-4">
       {/* 1. BPM Controls */}
-      <div className="flex items-center space-x-1 border-2 border-primary/50 rounded-lg p-1 bg-secondary/50 shadow-inner shadow-primary/10">
+      <div className="flex items-center rounded-lg border bg-card/50 p-0.5">
         <Button 
           onClick={() => onBpmChange(-1)} 
           variant="ghost" 
           size="icon" 
-          className={cn(
-            "w-8 h-8 text-primary hover:bg-accent transition-colors duration-150",
-            currentBPM <= MIN_BPM ? "opacity-50 cursor-not-allowed" : "hover:text-primary-foreground"
-          )}
+          className="h-8 w-8 text-muted-foreground hover:text-foreground transition-colors duration-150"
           disabled={currentBPM <= MIN_BPM}
         >
           <Minus className="w-4 h-4" />
         </Button>
-        <div className="text-xl font-mono font-extrabold text-primary tracking-tighter min-w-[50px] text-center text-glow">
+        <div className="min-w-[44px] px-1 text-center text-lg font-bold tabular-nums text-foreground">
           {currentBPM}
         </div>
         <Button 
           onClick={() => onBpmChange(1)} 
           variant="ghost" 
           size="icon" 
-          className={cn(
-            "w-8 h-8 text-primary hover:bg-accent transition-colors duration-150",
-            currentBPM >= MAX_BPM ? "opacity-50 cursor-not-allowed" : "hover:text-primary-foreground"
-          )}
+          className="h-8 w-8 text-muted-foreground hover:text-foreground transition-colors duration-150"
           disabled={currentBPM >= MAX_BPM}
         >
           <Plus className="w-4 h-4" />

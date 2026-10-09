@@ -1,7 +1,7 @@
 import type { Config } from "tailwindcss";
 
 export default {
-  darkMode: ["selector", "[data-theme]"],
+  darkMode: ["selector", ':is([data-theme="dark"], [data-theme="retro-terminal"])'],
   content: [
     "./pages/**/*.{ts,tsx}",
     "./components/**/*.{ts,tsx}",

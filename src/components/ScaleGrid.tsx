@@ -200,7 +200,10 @@ const ScaleGrid = () => {
         </table>
       </div>
       {filteredKeys.length === 0 && (
-        <p className="text-center py-8 text-muted-foreground">No results found for "{searchQuery}"</p>
+        <div className="flex flex-col items-center gap-2 py-10 text-center text-muted-foreground">
+          <Search className="h-6 w-6 opacity-50" />
+          <p className="text-sm">No results found for "{searchQuery}"</p>
+        </div>
       )}
     </div>
   );
