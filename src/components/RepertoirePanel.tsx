@@ -38,13 +38,15 @@ import {
   Loader2,
   Bookmark,
   PanelRight,
+  Maximize2,
+  Minimize2,
 } from 'lucide-react';
 import type { PdfViewerHandle } from './PdfViewer';
 const PdfViewer = React.lazy(() => import('./PdfViewer'));
 import FloatingTempoIndicator from './FloatingTempoIndicator';
 import { useGlobalBPM } from '@/context/GlobalBPMContext';
 import { useScales } from '@/context/ScalesContext';
-import { shallowEqual } from '@/lib/utils';
+import { cn, shallowEqual } from '@/lib/utils';
 import { showSuccess, showError } from '@/utils/toast';
 import { useRepertoireData, SavedDocument } from '@/hooks/use-repertoire-data';
 import {
@@ -236,6 +238,213 @@ const MappingRow: React.FC<{
   );
 };
 
+interface ReaderToolbarProps {
+  pageNumber: number;
+  pageCount: number;
+  pageInput: string;
+  onPageInputChange: (value: string) => void;
+  onCommitPageInput: () => void;
+  onPrevious: () => void;
+  onNext: () => void;
+  quality: 'standard' | 'retina';
+  onQualityChange: (value: 'standard' | 'retina') => void;
+  mappings: PageMapping[];
+  currentMapping?: PageMapping;
+  onJumpPage: (page: number) => void;
+  canBookmark: boolean;
+  bookmarkOpen: boolean;
+  onBookmarkOpenChange: (open: boolean) => void;
+  onOpenBookmark: () => void;
+  bookmarkExercise: string;
+  onBookmarkExerciseChange: (value: string) => void;
+  bookmarkLabel: string;
+  onBookmarkLabelChange: (value: string) => void;
+  onConfirmBookmark: () => void;
+  fullscreen: boolean;
+  onToggleFullscreen: () => void;
+  showPanelToggle: boolean;
+  panelOpen: boolean;
+  onPanelToggle: () => void;
+}
+
+const ReaderToolbar: React.FC<ReaderToolbarProps> = ({
+  pageNumber,
+  pageCount,
+  pageInput,
+  onPageInputChange,
+  onCommitPageInput,
+  onPrevious,
+  onNext,
+  quality,
+  onQualityChange,
+  mappings,
+  currentMapping,
+  onJumpPage,
+  canBookmark,
+  bookmarkOpen,
+  onBookmarkOpenChange,
+  onOpenBookmark,
+  bookmarkExercise,
+  onBookmarkExerciseChange,
+  bookmarkLabel,
+  onBookmarkLabelChange,
+  onConfirmBookmark,
+  fullscreen,
+  onToggleFullscreen,
+  showPanelToggle,
+  panelOpen,
+  onPanelToggle,
+}) => (
+  <div className="flex flex-wrap items-center gap-2">
+    <Button
+      variant="outline"
+      size="icon"
+      className="h-8 w-8"
+      onClick={onPrevious}
+      disabled={pageNumber <= 1}
+      aria-label="Previous page"
+    >
+      <ChevronLeft className="w-4 h-4" />
+    </Button>
+
+    <div className="flex items-center gap-1.5 font-mono text-sm">
+      <Input
+        value={pageInput}
+        onChange={(e) => onPageInputChange(e.target.value)}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter') {
+            e.preventDefault();
+            onCommitPageInput();
+          }
+        }}
+        onBlur={onCommitPageInput}
+        aria-label="Page number"
+        className="w-16 h-8 px-2 text-center text-xs"
+      />
+      <span className="text-muted-foreground text-xs">/ {pageCount || '—'}</span>
+    </div>
+
+    <Button
+      variant="outline"
+      size="icon"
+      className="h-8 w-8"
+      onClick={onNext}
+      disabled={pageCount > 0 && pageNumber >= pageCount}
+      aria-label="Next page"
+    >
+      <ChevronRight className="w-4 h-4" />
+    </Button>
+
+    <Select value={quality} onValueChange={(value) => onQualityChange(value as 'standard' | 'retina')}>
+      <SelectTrigger className="h-8 w-[104px] text-xs">
+        <SelectValue />
+      </SelectTrigger>
+      <SelectContent>
+        <SelectItem value="standard" className="text-xs">Standard</SelectItem>
+        <SelectItem value="retina" className="text-xs">Retina</SelectItem>
+      </SelectContent>
+    </Select>
+
+    {mappings.length > 0 && (
+      <div className="flex flex-wrap items-center gap-1.5 min-w-0 ml-1">
+        {mappings.map((mapping) => {
+          const isCurrent = mapping.id === currentMapping?.id;
+          return (
+            <Button
+              key={mapping.id}
+              variant={isCurrent ? 'default' : 'outline'}
+              size="sm"
+              className="h-7 px-2 text-[11px] font-bold focus-scale"
+              onClick={() => onJumpPage(mapping.pageStart)}
+              title={`Jump to p.${mapping.pageStart}: ${mapping.label || mapping.exerciseId || 'unlabelled'}`}
+            >
+              {mapping.label || mapping.exerciseId || `p.${mapping.pageStart}`}
+            </Button>
+          );
+        })}
+      </div>
+    )}
+
+    <div className="ml-auto flex items-center gap-2">
+      <Popover open={bookmarkOpen} onOpenChange={onBookmarkOpenChange}>
+        <PopoverTrigger asChild>
+          <Button
+            variant="secondary"
+            size="sm"
+            className="h-8 font-bold focus-scale"
+            disabled={!canBookmark}
+            onClick={onOpenBookmark}
+          >
+            <Bookmark className="w-3.5 h-3.5 mr-1.5" />
+            Bookmark page {pageNumber}
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent align="end" className="w-72 space-y-3">
+          <div className="space-y-1.5">
+            <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+              Exercise
+            </Label>
+            <Select value={bookmarkExercise} onValueChange={onBookmarkExerciseChange}>
+              <SelectTrigger className="h-8 text-xs">
+                <SelectValue placeholder="Choose exercise (optional)" />
+              </SelectTrigger>
+              <SelectContent className="max-h-[280px]">
+                {EXERCISE_OPTIONS.map((option) => (
+                  <SelectItem key={option.id} value={option.id} className="text-xs">
+                    {option.label}
+                    <span className="ml-2 text-muted-foreground capitalize">{option.source}</span>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-1.5">
+            <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+              Label
+            </Label>
+            <Input
+              value={bookmarkLabel}
+              onChange={(e) => onBookmarkLabelChange(e.target.value)}
+              placeholder={bookmarkExercise ? 'Optional custom name' : 'e.g. Hanon No. 7'}
+              className="h-8 text-xs"
+            />
+          </div>
+          <Button size="sm" onClick={onConfirmBookmark} className="w-full font-bold focus-scale">
+            <Plus className="w-3.5 h-3.5 mr-1.5" />
+            Add bookmark on page {pageNumber}
+          </Button>
+        </PopoverContent>
+      </Popover>
+
+      <Button
+        variant="ghost"
+        size="icon"
+        className="h-8 w-8 text-muted-foreground"
+        onClick={onToggleFullscreen}
+        aria-label={fullscreen ? 'Exit full screen reader' : 'Full screen reader'}
+        title={fullscreen ? 'Exit full screen' : 'Full screen'}
+      >
+        {fullscreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
+      </Button>
+
+      {showPanelToggle && (
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-8 w-8 text-muted-foreground"
+          onClick={onPanelToggle}
+          aria-label="Toggle bookmarks panel"
+          title="Toggle bookmarks panel"
+        >
+          <PanelRight
+            className={cn('w-4 h-4', panelOpen && 'text-primary')}
+          />
+        </Button>
+      )}
+    </div>
+  </div>
+);
+
 const RepertoirePanel: React.FC = () => {
   const { addLogEntry, updateExerciseMasteryBPM, exerciseMasteryBPMMap } = useScales();
   const {
@@ -268,11 +477,20 @@ const RepertoirePanel: React.FC = () => {
   const [isUploading, setIsUploading] = useState(false);
   const [quality, setQuality] = useState<'standard' | 'retina'>('standard');
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [fullscreen, setFullscreen] = useState(false);
   const [libraryOpen, setLibraryOpen] = useState(false);
   const [libraryFilter, setLibraryFilter] = useState('');
   const [bookmarkOpen, setBookmarkOpen] = useState(false);
   const [bookmarkExercise, setBookmarkExercise] = useState('');
   const [bookmarkLabel, setBookmarkLabel] = useState('');
+
+  useEffect(() => {
+    const previous = document.body.style.overflow;
+    document.body.style.overflow = fullscreen ? 'hidden' : previous;
+    return () => {
+      document.body.style.overflow = previous;
+    };
+  }, [fullscreen]);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const viewerRef = useRef<PdfViewerHandle>(null);
@@ -720,145 +938,43 @@ const RepertoirePanel: React.FC = () => {
         </Suspense>
       ) : (
         <div className="grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,1fr)_360px]">
-          <div className="space-y-3 min-w-0">
-            <div className="flex flex-wrap items-center gap-2">
-              <Button
-                variant="outline"
-                size="icon"
-                className="h-8 w-8"
-                onClick={() => navigatePage(currentPage - 1)}
-                disabled={currentPage <= 1}
-                aria-label="Previous page"
-              >
-                <ChevronLeft className="w-4 h-4" />
-              </Button>
-
-              <div className="flex items-center gap-1.5 font-mono text-sm">
-                <Input
-                  value={pageInput}
-                  onChange={(e) => setPageInput(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') {
-                      e.preventDefault();
-                      commitPageInput();
-                    }
-                  }}
-                  onBlur={commitPageInput}
-                  aria-label="Page number"
-                  className="w-16 h-8 px-2 text-center text-xs"
-                />
-                <span className="text-muted-foreground text-xs">/ {pageCount || '—'}</span>
-              </div>
-
-              <Button
-                variant="outline"
-                size="icon"
-                className="h-8 w-8"
-                onClick={() => navigatePage(currentPage + 1)}
-                disabled={pageCount > 0 && currentPage >= pageCount}
-                aria-label="Next page"
-              >
-                <ChevronRight className="w-4 h-4" />
-              </Button>
-
-              <Select
-                value={quality}
-                onValueChange={(value) => setQuality(value as 'standard' | 'retina')}
-              >
-                <SelectTrigger className="h-8 w-[104px] text-xs">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="standard" className="text-xs">Standard</SelectItem>
-                  <SelectItem value="retina" className="text-xs">Retina</SelectItem>
-                </SelectContent>
-              </Select>
-
-              {mappings.length > 0 && (
-                <div className="flex flex-wrap items-center gap-1.5 min-w-0 ml-1">
-                  {mappings.map((mapping) => {
-                    const isCurrent = mapping.id === currentMapping?.id;
-                    return (
-                      <Button
-                        key={mapping.id}
-                        variant={isCurrent ? 'default' : 'outline'}
-                        size="sm"
-                        className="h-7 px-2 text-[11px] font-bold focus-scale"
-                        onClick={() => navigatePage(mapping.pageStart)}
-                        title={`Jump to p.${mapping.pageStart}: ${mapping.label || mapping.exerciseId || 'unlabelled'}`}
-                      >
-                        {mapping.label || mapping.exerciseId || `p.${mapping.pageStart}`}
-                      </Button>
-                    );
-                  })}
-                </div>
-              )}
-
-              <div className="ml-auto flex items-center gap-2">
-                <Popover open={bookmarkOpen} onOpenChange={setBookmarkOpen}>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant="secondary"
-                      size="sm"
-                      className="h-8 font-bold focus-scale"
-                      disabled={!isBookmarkable}
-                      onClick={addBookmark}
-                    >
-                      <Bookmark className="w-3.5 h-3.5 mr-1.5" />
-                      Bookmark page {currentPage}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent align="end" className="w-72 space-y-3">
-                    <div className="space-y-1.5">
-                      <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-                        Exercise
-                      </Label>
-                      <Select value={bookmarkExercise} onValueChange={setBookmarkExercise}>
-                        <SelectTrigger className="h-8 text-xs">
-                          <SelectValue placeholder="Choose exercise (optional)" />
-                        </SelectTrigger>
-                        <SelectContent className="max-h-[280px]">
-                          {EXERCISE_OPTIONS.map((option) => (
-                            <SelectItem key={option.id} value={option.id} className="text-xs">
-                              {option.label}
-                              <span className="ml-2 text-muted-foreground capitalize">{option.source}</span>
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="space-y-1.5">
-                      <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-                        Label
-                      </Label>
-                      <Input
-                        value={bookmarkLabel}
-                        onChange={(e) => setBookmarkLabel(e.target.value)}
-                        placeholder={bookmarkExercise ? 'Optional custom name' : 'e.g. Hanon No. 7'}
-                        className="h-8 text-xs"
-                      />
-                    </div>
-                    <Button
-                      size="sm"
-                      onClick={confirmBookmark}
-                      className="w-full font-bold focus-scale"
-                    >
-                      <Plus className="w-3.5 h-3.5 mr-1.5" />
-                      Add bookmark on page {currentPage}
-                    </Button>
-                  </PopoverContent>
-                </Popover>
-
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-8 w-8 text-muted-foreground"
-                  onClick={() => setSidebarOpen((prev) => !prev)}
-                  aria-label="Toggle bookmarks panel"
-                >
-                  <PanelRight className="w-4 h-4" />
-                </Button>
-              </div>
+          <div
+            className={cn(
+              'min-w-0',
+              fullscreen
+                ? 'fixed inset-0 z-50 flex flex-col gap-3 bg-background p-4'
+                : 'space-y-3',
+            )}
+          >
+            <div className={fullscreen ? 'shrink-0' : undefined}>
+              <ReaderToolbar
+                pageNumber={currentPage}
+                pageCount={pageCount}
+                pageInput={pageInput}
+                onPageInputChange={setPageInput}
+                onCommitPageInput={commitPageInput}
+                onPrevious={() => navigatePage(currentPage - 1)}
+                onNext={() => navigatePage(currentPage + 1)}
+                quality={quality}
+                onQualityChange={setQuality}
+                mappings={mappings}
+                currentMapping={currentMapping}
+                onJumpPage={navigatePage}
+                canBookmark={isBookmarkable}
+                bookmarkOpen={bookmarkOpen}
+                onBookmarkOpenChange={setBookmarkOpen}
+                onOpenBookmark={addBookmark}
+                bookmarkExercise={bookmarkExercise}
+                onBookmarkExerciseChange={setBookmarkExercise}
+                bookmarkLabel={bookmarkLabel}
+                onBookmarkLabelChange={setBookmarkLabel}
+                onConfirmBookmark={confirmBookmark}
+                fullscreen={fullscreen}
+                onToggleFullscreen={() => setFullscreen((prev) => !prev)}
+                showPanelToggle={!fullscreen}
+                panelOpen={sidebarOpen}
+                onPanelToggle={() => setSidebarOpen((prev) => !prev)}
+              />
             </div>
 
             <Suspense fallback={<ViewerFallback />}>
@@ -871,71 +987,82 @@ const RepertoirePanel: React.FC = () => {
                 initialPage={selectedDoc?.last_viewed_page ?? 1}
                 maxPixelRatio={maxPixelRatio}
                 onBookmark={addBookmark}
-                scrollClassName="h-[calc(100vh-15rem)] min-h-[520px]"
+                layout="horizontal"
+                className={fullscreen ? 'flex-1 min-h-0' : undefined}
+                scrollClassName={
+                  fullscreen
+                    ? 'h-full min-h-0 rounded-none border-0 bg-background'
+                    : 'h-[calc(100vh-15rem)] min-h-[520px]'
+                }
               />
             </Suspense>
-            <p className="text-[11px] text-muted-foreground/60">
-              <kbd className="px-1 rounded bg-muted border border-border/60 font-mono">←</kbd>
-              {' '}
-              <kbd className="px-1 rounded bg-muted border border-border/60 font-mono">→</kbd>
-              {' '}
-              jump pages ·{' '}
-              <kbd className="px-1 rounded bg-muted border border-border/60 font-mono">[</kbd>
-              <kbd className="px-1 rounded bg-muted border border-border/60 font-mono">]</kbd>
-              {' '}
-              exercises · bookmark from the page or the panel
-            </p>
+
+            {!fullscreen && (
+              <p className="text-[11px] text-muted-foreground/60">
+                <kbd className="px-1 rounded bg-muted border border-border/60 font-mono">←</kbd>
+                {' '}
+                <kbd className="px-1 rounded bg-muted border border-border/60 font-mono">→</kbd>
+                {' '}
+                jump pages ·{' '}
+                <kbd className="px-1 rounded bg-muted border border-border/60 font-mono">[</kbd>
+                <kbd className="px-1 rounded bg-muted border border-border/60 font-mono">]</kbd>
+                {' '}
+                exercises · bookmark from the page or the panel
+              </p>
+            )}
           </div>
 
-          <aside className="space-y-3 min-w-0">
-            <Card className="border-primary/20">
-              <CardHeader className="pb-3">
-                <div className="flex items-center justify-between gap-3">
-                  <CardTitle className="text-sm font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
-                    <ListMusic className="w-4 h-4" />
-                    Exercises &amp; Bookmarks
-                  </CardTitle>
-                  <Button
-                    size="sm"
-                    variant="secondary"
-                    onClick={addBookmark}
-                    disabled={!isBookmarkable}
-                    className="font-bold focus-scale"
-                  >
-                    <Plus className="w-4 h-4 mr-1.5" />
-                    Bookmark page {currentPage}
-                  </Button>
-                </div>
-              </CardHeader>
-              <CardContent>
-                {mappings.length === 0 ? (
-                  <p className="text-sm text-muted-foreground text-center py-6">
-                    No bookmarks yet. Scroll to an exercise and hit{' '}
-                    <span className="font-bold text-primary">Bookmark page {currentPage}</span>.
-                  </p>
-                ) : (
-                  <ScrollArea
-                    className={sidebarOpen ? 'max-h-[calc(100vh-22rem)] pr-3' : 'max-h-[420px] pr-3'}
-                  >
-                    <div className="space-y-3">
-                      {mappings.map((mapping) => (
-                        <MappingRow
-                          key={mapping.id}
-                          mapping={mapping}
-                          pageCount={pageCount}
-                          onChange={updateMapping}
-                          onDelete={deleteMapping}
-                          isCurrent={
-                            currentPage >= mapping.pageStart && currentPage <= mapping.pageEnd
-                          }
-                        />
-                      ))}
-                    </div>
-                  </ScrollArea>
-                )}
-              </CardContent>
-            </Card>
-          </aside>
+          {!fullscreen && (
+            <aside className="space-y-3 min-w-0">
+              <Card className="border-primary/20">
+                <CardHeader className="pb-3">
+                  <div className="flex items-center justify-between gap-3">
+                    <CardTitle className="text-sm font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
+                      <ListMusic className="w-4 h-4" />
+                      Exercises &amp; Bookmarks
+                    </CardTitle>
+                    <Button
+                      size="sm"
+                      variant="secondary"
+                      onClick={addBookmark}
+                      disabled={!isBookmarkable}
+                      className="font-bold focus-scale"
+                    >
+                      <Plus className="w-4 h-4 mr-1.5" />
+                      Bookmark page {currentPage}
+                    </Button>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  {mappings.length === 0 ? (
+                    <p className="text-sm text-muted-foreground text-center py-6">
+                      No bookmarks yet. Flip through the book and hit{' '}
+                      <span className="font-bold text-primary">Bookmark page {currentPage}</span>.
+                    </p>
+                  ) : (
+                    <ScrollArea
+                      className={sidebarOpen ? 'max-h-[calc(100vh-22rem)] pr-3' : 'max-h-[420px] pr-3'}
+                    >
+                      <div className="space-y-3">
+                        {mappings.map((mapping) => (
+                          <MappingRow
+                            key={mapping.id}
+                            mapping={mapping}
+                            pageCount={pageCount}
+                            onChange={updateMapping}
+                            onDelete={deleteMapping}
+                            isCurrent={
+                              currentPage >= mapping.pageStart && currentPage <= mapping.pageEnd
+                            }
+                          />
+                        ))}
+                      </div>
+                    </ScrollArea>
+                  )}
+                </CardContent>
+              </Card>
+            </aside>
+          )}
         </div>
       )}
 

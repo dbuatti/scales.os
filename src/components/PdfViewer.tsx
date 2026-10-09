@@ -45,6 +45,7 @@ interface PdfViewerProps {
   onBookmark?: (page: number) => void;
   scrollClassName?: string;
   className?: string;
+  layout?: 'vertical' | 'horizontal';
 }
 
 interface PdfPageProps {
@@ -55,6 +56,7 @@ interface PdfPageProps {
   mode?: string;
   isActive: boolean;
   maxPixelRatio: number;
+  layout: 'vertical' | 'horizontal';
   showBookmark?: boolean;
   onBookmark?: () => void;
 }
@@ -67,6 +69,7 @@ const PdfPage: React.FC<PdfPageProps> = ({
   mode,
   isActive,
   maxPixelRatio,
+  layout,
   showBookmark,
   onBookmark,
 }) => {
@@ -83,11 +86,11 @@ const PdfPage: React.FC<PdfPageProps> = ({
       (entries) => {
         if (entries.some((entry) => entry.isIntersecting)) setVisible(true);
       },
-      { rootMargin: '700px 0px' },
+      { rootMargin: layout === 'horizontal' ? '0px 700px' : '700px 0px' },
     );
     observer.observe(el);
     return () => observer.disconnect();
-  }, []);
+  }, [layout]);
 
   useEffect(() => {
     if (!visible || rendered || width <= 0) return;
@@ -181,6 +184,7 @@ const PdfViewer = React.forwardRef<PdfViewerHandle, PdfViewerProps>(({
   onBookmark,
   scrollClassName = 'h-[70vh] min-h-[480px]',
   className,
+  layout = 'vertical',
 }, ref) => {
   const scrollRef = useRef<HTMLDivElement>(null);
   const pagesRef = useRef<HTMLDivElement>(null);
@@ -194,7 +198,7 @@ const PdfViewer = React.forwardRef<PdfViewerHandle, PdfViewerProps>(({
   const [pdf, setPdf] = useState<PDFDocumentProxy | null>(null);
   const [pageCount, setPageCount] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
-  const [width, setWidth] = useState(0);
+  const [containerWidth, setContainerWidth] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -264,16 +268,22 @@ const PdfViewer = React.forwardRef<PdfViewerHandle, PdfViewerProps>(({
   }, [source]);
 
   useEffect(() => {
-    const el = pagesRef.current;
+    const el = scrollRef.current;
     if (!el) return;
     const observer = new ResizeObserver((entries) => {
-      const next = entries[0]?.contentRect.width ?? 0;
-      setWidth(next);
+      setContainerWidth(entries[0]?.contentRect.width ?? 0);
     });
     observer.observe(el);
-    setWidth(el.clientWidth);
+    setContainerWidth(el.clientWidth);
     return () => observer.disconnect();
   }, [pdf]);
+
+  const pageWidth = useMemo(() => {
+    if (layout === 'horizontal') {
+      return Math.min(Math.max((containerWidth || 0) * 0.82, 320), 760);
+    }
+    return Math.min(containerWidth || 0, 768);
+  }, [containerWidth, layout]);
 
   useEffect(() => {
     return () => {
@@ -298,31 +308,40 @@ const PdfViewer = React.forwardRef<PdfViewerHandle, PdfViewerProps>(({
       const container = scrollRef.current;
       const target = pageRefs.current.get(page);
       if (container && target) {
-        container.scrollTop = target.offsetTop;
+        if (layout === 'horizontal') {
+          const padding = (container.clientWidth - target.offsetWidth) / 2;
+          container.scrollLeft = Math.max(0, target.offsetLeft - padding);
+        } else {
+          container.scrollTop = target.offsetTop;
+        }
         setCurrentPage(page);
       }
     },
-    [],
+    [layout],
   );
 
   useImperativeHandle(ref, () => ({ scrollToPage }), [scrollToPage]);
 
   useEffect(() => {
-    if (!pdf || width <= 0 || !initialPage || initialPage <= 1 || didJumpRef.current) return;
+    if (!pdf || pageWidth <= 0 || !initialPage || initialPage <= 1 || didJumpRef.current) return;
     scrollToPage(initialPage);
     didJumpRef.current = true;
-  }, [pdf, width, initialPage, pages, scrollToPage]);
+  }, [pdf, pageWidth, initialPage, pages, scrollToPage]);
+
+  const axis = layout === 'horizontal' ? 'scrollLeft' : 'scrollTop';
+  const extent = layout === 'horizontal' ? 'clientWidth' : 'clientHeight';
+  const position = layout === 'horizontal' ? 'offsetLeft' : 'offsetTop';
 
   const handleScroll = useCallback(() => {
     const container = scrollRef.current;
     if (!container) return;
-    const marker = container.scrollTop + container.clientHeight * 0.3;
+    const marker = container[axis] + container[extent] * 0.3;
     let best = 1;
     pageRefs.current.forEach((el, page) => {
-      if (el.offsetTop <= marker) best = page;
+      if (el[position] <= marker) best = page;
     });
     setCurrentPage((prev) => (prev === best ? prev : best));
-  }, []);
+  }, [axis, extent, position]);
 
   useEffect(() => {
     const mapping = getMappingForPage(mappings, currentPage);
@@ -354,9 +373,21 @@ const PdfViewer = React.forwardRef<PdfViewerHandle, PdfViewerProps>(({
       <div
         ref={scrollRef}
         onScroll={handleScroll}
-        className={cn('overflow-y-auto rounded-lg bg-muted/20 border border-border/60 p-4', scrollClassName)}
+        className={cn(
+          'rounded-lg bg-muted/20 border border-border/60 p-4',
+          layout === 'horizontal' ? 'overflow-x-auto' : 'overflow-y-auto',
+          scrollClassName,
+        )}
       >
-        <div ref={pagesRef} className="relative mx-auto flex flex-col items-center gap-4 max-w-3xl">
+        <div
+          ref={pagesRef}
+          className={cn(
+            'relative mx-auto',
+            layout === 'horizontal'
+              ? 'flex w-max min-h-full flex-row items-center gap-6 px-6'
+              : 'flex max-w-3xl flex-col items-center gap-4',
+          )}
+        >
           {loading && (
             <div className="flex items-center gap-2 py-16 text-muted-foreground">
               <Loader2 className="w-5 h-5 animate-spin" />
@@ -373,17 +404,19 @@ const PdfViewer = React.forwardRef<PdfViewerHandle, PdfViewerProps>(({
                   if (el) pageRefs.current.set(page, el);
                   else pageRefs.current.delete(page);
                 }}
-                className="w-full"
+                className={layout === 'horizontal' ? 'shrink-0' : 'w-full'}
+                style={layout === 'horizontal' ? { width: pageWidth } : undefined}
               >
                 {pdf && (
                   <PdfPage
                     pdf={pdf}
                     pageNumber={page}
-                    width={width}
+                    width={pageWidth}
                     label={mapping?.label}
                     mode={mapping?.mode}
                     isActive={page === currentPage}
                     maxPixelRatio={maxPixelRatio}
+                    layout={layout}
                     showBookmark={!isMapped && page === currentPage && Boolean(onBookmark)}
                     onBookmark={onBookmark ? () => onBookmark(page) : undefined}
                   />
