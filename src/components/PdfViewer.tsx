@@ -4,7 +4,7 @@ import pdfjsUrl from 'pdfjs-dist/legacy/build/pdf.min.mjs?url';
 import pdfWorkerUrl from 'pdfjs-dist/legacy/build/pdf.worker.min.mjs?url';
 import { cn } from '@/lib/utils';
 import { getMappingForPage, PageMapping } from '@/lib/repertoire';
-import { FileText, Loader2, AlertTriangle } from 'lucide-react';
+import { FileText, Loader2, AlertTriangle, Bookmark as BookmarkIcon } from 'lucide-react';
 
 // Load pdf.js at runtime from its own asset URL. Keeping it out of the Rollup
 // graph is deliberate: inlining the pdf.js module into an app chunk breaks its
@@ -41,6 +41,9 @@ interface PdfViewerProps {
   onPageChange?: (page: number, mapping?: PageMapping) => void;
   onDocumentLoaded?: (pageCount: number) => void;
   initialPage?: number;
+  maxPixelRatio?: number;
+  onBookmark?: (page: number) => void;
+  scrollClassName?: string;
   className?: string;
 }
 
@@ -51,9 +54,22 @@ interface PdfPageProps {
   label?: string;
   mode?: string;
   isActive: boolean;
+  maxPixelRatio: number;
+  showBookmark?: boolean;
+  onBookmark?: () => void;
 }
 
-const PdfPage: React.FC<PdfPageProps> = ({ pdf, pageNumber, width, label, mode, isActive }) => {
+const PdfPage: React.FC<PdfPageProps> = ({
+  pdf,
+  pageNumber,
+  width,
+  label,
+  mode,
+  isActive,
+  maxPixelRatio,
+  showBookmark,
+  onBookmark,
+}) => {
   const wrapperRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [visible, setVisible] = useState(false);
@@ -87,7 +103,7 @@ const PdfPage: React.FC<PdfPageProps> = ({ pdf, pageNumber, width, label, mode, 
 
       const scale = width / baseViewport.width;
       const viewport = page.getViewport({ scale });
-      const outputScale = window.devicePixelRatio || 1;
+      const outputScale = Math.min(window.devicePixelRatio || 1, maxPixelRatio);
       const canvas = canvasRef.current;
       if (!canvas) return;
       const context = canvas.getContext('2d');
@@ -114,7 +130,7 @@ const PdfPage: React.FC<PdfPageProps> = ({ pdf, pageNumber, width, label, mode, 
       cancelled = true;
       renderTask?.cancel?.();
     };
-  }, [visible, rendered, width, pdf, pageNumber]);
+  }, [visible, rendered, width, pdf, pageNumber, maxPixelRatio]);
 
   return (
     <div
@@ -141,6 +157,16 @@ const PdfPage: React.FC<PdfPageProps> = ({ pdf, pageNumber, width, label, mode, 
       <div className="absolute bottom-2 right-2 rounded bg-background/80 px-1.5 py-0.5 text-[10px] font-bold text-muted-foreground">
         {pageNumber}
       </div>
+      {showBookmark && (
+        <button
+          onClick={onBookmark}
+          title="Bookmark exercise on this page"
+          className="absolute top-2 right-2 flex items-center gap-1 rounded-md bg-primary/90 px-2 py-1 text-[10px] font-black uppercase tracking-widest text-primary-foreground shadow-sm hover:bg-primary transition-colors"
+        >
+          <BookmarkIcon className="w-3 h-3" />
+          Bookmark
+        </button>
+      )}
     </div>
   );
 };
@@ -151,6 +177,9 @@ const PdfViewer = React.forwardRef<PdfViewerHandle, PdfViewerProps>(({
   onPageChange,
   onDocumentLoaded,
   initialPage,
+  maxPixelRatio = 2,
+  onBookmark,
+  scrollClassName = 'h-[70vh] min-h-[480px]',
   className,
 }, ref) => {
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -325,7 +354,7 @@ const PdfViewer = React.forwardRef<PdfViewerHandle, PdfViewerProps>(({
       <div
         ref={scrollRef}
         onScroll={handleScroll}
-        className="overflow-y-auto rounded-lg bg-muted/20 border border-border/60 p-4 h-[70vh] min-h-[480px]"
+        className={cn('overflow-y-auto rounded-lg bg-muted/20 border border-border/60 p-4', scrollClassName)}
       >
         <div ref={pagesRef} className="relative mx-auto flex flex-col items-center gap-4 max-w-3xl">
           {loading && (
@@ -336,6 +365,7 @@ const PdfViewer = React.forwardRef<PdfViewerHandle, PdfViewerProps>(({
           )}
           {pages.map((page) => {
             const mapping = getMappingForPage(mappings, page);
+            const isMapped = Boolean(mapping);
             return (
               <div
                 key={page}
@@ -353,6 +383,9 @@ const PdfViewer = React.forwardRef<PdfViewerHandle, PdfViewerProps>(({
                     label={mapping?.label}
                     mode={mapping?.mode}
                     isActive={page === currentPage}
+                    maxPixelRatio={maxPixelRatio}
+                    showBookmark={!isMapped && page === currentPage && Boolean(onBookmark)}
+                    onBookmark={onBookmark ? () => onBookmark(page) : undefined}
                   />
                 )}
               </div>

@@ -1,5 +1,6 @@
 import React from 'react';
 import PracticeStats from '@/components/PracticeStats';
+import RepertoireStats from '@/components/RepertoireStats';
 import ScaleGrid from '@/components/ScaleGrid';
 import PracticeLog from '@/components/PracticeLog';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -65,7 +66,9 @@ const ProgressPage: React.FC = () => {
 
       <PracticeStats />
       
-      <GradeTracker />
+      <RepertoireStats />
+
+        <GradeTracker />
 
       {stasisItems.length > 0 && (
         <Card className="border-warning/50 bg-warning/5">
