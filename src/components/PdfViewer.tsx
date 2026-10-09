@@ -473,7 +473,7 @@ const PdfViewer = React.forwardRef<PdfViewerHandle, PdfViewerProps>(({
             'relative mx-auto',
             layout === 'horizontal'
               ? 'flex w-max min-h-full flex-row items-center gap-6 px-6'
-              : 'flex max-w-3xl flex-col items-center gap-4',
+              : 'flex flex-col items-center gap-4',
           )}
         >
           {loading && (
@@ -492,8 +492,8 @@ const PdfViewer = React.forwardRef<PdfViewerHandle, PdfViewerProps>(({
                   if (el) pageRefs.current.set(page, el);
                   else pageRefs.current.delete(page);
                 }}
-                className={layout === 'horizontal' ? 'shrink-0' : 'w-full'}
-                style={layout === 'horizontal' ? { width: pageWidth } : undefined}
+                className="shrink-0"
+                style={{ width: pageWidth }}
               >
                 {pdf && (
                   <PdfPage

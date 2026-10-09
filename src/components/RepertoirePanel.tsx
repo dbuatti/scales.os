@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import {
   Select,
   SelectContent,
@@ -26,6 +27,8 @@ import {
   ChevronRight,
   ChevronsLeft,
   ChevronsRight,
+  Columns2,
+  Rows2,
   FileText,
   Music2,
   ListMusic,
@@ -258,6 +261,8 @@ interface ReaderToolbarProps {
   onNext: () => void;
   quality: 'standard' | 'retina';
   onQualityChange: (value: 'standard' | 'retina') => void;
+  layout: 'vertical' | 'horizontal';
+  onLayoutChange: (value: 'vertical' | 'horizontal') => void;
   zoom: number;
   onZoomIn: () => void;
   onZoomOut: () => void;
@@ -293,6 +298,8 @@ const ReaderToolbar: React.FC<ReaderToolbarProps> = ({
   onNext,
   quality,
   onQualityChange,
+  layout,
+  onLayoutChange,
   zoom,
   onZoomIn,
   onZoomOut,
@@ -366,6 +373,32 @@ const ReaderToolbar: React.FC<ReaderToolbarProps> = ({
         <SelectItem value="retina" className="text-xs">Retina</SelectItem>
       </SelectContent>
     </Select>
+
+    <ToggleGroup
+      type="single"
+      value={layout}
+      onValueChange={(value) => value && onLayoutChange(value as 'vertical' | 'horizontal')}
+      className="bg-muted/50 rounded-lg p-1 border border-primary/10"
+    >
+      <ToggleGroupItem
+        value="horizontal"
+        className="h-10 px-3 text-[11px] font-bold data-[state=on]:bg-primary data-[state=on]:text-primary-foreground"
+        aria-label="Pages view"
+        title="Pages (spread) view"
+      >
+        <Columns2 className="w-3.5 h-3.5 mr-1.5" />
+        Pages
+      </ToggleGroupItem>
+      <ToggleGroupItem
+        value="vertical"
+        className="h-10 px-3 text-[11px] font-bold data-[state=on]:bg-primary data-[state=on]:text-primary-foreground"
+        aria-label="Continuous scroll view"
+        title="Continuous scroll view"
+      >
+        <Rows2 className="w-3.5 h-3.5 mr-1.5" />
+        Scroll
+      </ToggleGroupItem>
+    </ToggleGroup>
 
     <div className="flex items-center rounded-md border">
       <Button
@@ -554,6 +587,7 @@ const RepertoirePanel: React.FC = () => {
   const [mappings, setMappings] = useState<PageMapping[]>([]);
   const [isUploading, setIsUploading] = useState(false);
   const [quality, setQuality] = useState<'standard' | 'retina'>('standard');
+  const [layout, setLayout] = useState<'vertical' | 'horizontal'>('horizontal');
   const [zoom, setZoom] = useState(1);
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [thumbnailsOpen, setThumbnailsOpen] = useState(true);
@@ -1160,6 +1194,8 @@ const RepertoirePanel: React.FC = () => {
                 onNext={() => navigatePage(currentPage + 1)}
                 quality={quality}
                 onQualityChange={setQuality}
+                layout={layout}
+                onLayoutChange={setLayout}
                 zoom={zoom}
                 onZoomIn={zoomIn}
                 onZoomOut={zoomOut}
@@ -1208,7 +1244,7 @@ const RepertoirePanel: React.FC = () => {
                 initialPage={pendingInitialPage ?? selectedDoc?.last_viewed_page ?? 1}
                 maxPixelRatio={maxPixelRatio}
                 onBookmark={addBookmark}
-                layout="horizontal"
+                layout={layout}
                 zoom={zoom}
                 onZoomChange={setZoom}
                 onPdfReady={setPdfProxy}
