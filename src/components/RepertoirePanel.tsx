@@ -24,6 +24,9 @@ import {
   Trash2,
   ChevronLeft,
   ChevronRight,
+  ChevronsLeft,
+  ChevronsRight,
+  FileText,
   Music2,
   ListMusic,
   X,
@@ -42,7 +45,6 @@ import type { PdfViewerHandle } from './PdfViewer';
 const PdfViewer = React.lazy(() => import('./PdfViewer'));
 import type { PDFDocumentProxy } from 'pdfjs-dist';
 import FloatingTempoIndicator from './FloatingTempoIndicator';
-import LibraryDialog from './LibraryDialog';
 import ThumbnailRail from './ThumbnailRail';
 import { useGlobalBPM } from '@/context/GlobalBPMContext';
 import { useScales } from '@/context/ScalesContext';
@@ -263,6 +265,8 @@ interface ReaderToolbarProps {
   mappings: PageMapping[];
   currentMapping?: PageMapping;
   onJumpPage: (page: number) => void;
+  onPreviousExercise: () => void;
+  onNextExercise: () => void;
   canBookmark: boolean;
   bookmarkOpen: boolean;
   onBookmarkOpenChange: (open: boolean) => void;
@@ -296,6 +300,8 @@ const ReaderToolbar: React.FC<ReaderToolbarProps> = ({
   mappings,
   currentMapping,
   onJumpPage,
+  onPreviousExercise,
+  onNextExercise,
   canBookmark,
   bookmarkOpen,
   onBookmarkOpenChange,
@@ -396,6 +402,26 @@ const ReaderToolbar: React.FC<ReaderToolbarProps> = ({
 
     {mappings.length > 0 && (
       <div className="flex flex-wrap items-center gap-1.5 min-w-0 ml-1">
+        <Button
+          variant="outline"
+          size="icon"
+          className="h-9 w-9 shrink-0"
+          onClick={onPreviousExercise}
+          aria-label="Previous exercise"
+          title="Previous exercise"
+        >
+          <ChevronsLeft className="w-4 h-4" />
+        </Button>
+        <Button
+          variant="outline"
+          size="icon"
+          className="h-9 w-9 shrink-0"
+          onClick={onNextExercise}
+          aria-label="Next exercise"
+          title="Next exercise"
+        >
+          <ChevronsRight className="w-4 h-4" />
+        </Button>
         {mappings.map((mapping) => {
           const isCurrent = mapping.id === currentMapping?.id;
           return (
@@ -504,7 +530,6 @@ const RepertoirePanel: React.FC = () => {
   } = useGlobalBPM();
   const {
     documents,
-    isLoadingDocuments,
     isCloudEnabled,
     uploadDocument,
     deleteDocument,
@@ -534,7 +559,7 @@ const RepertoirePanel: React.FC = () => {
   const [thumbnailsOpen, setThumbnailsOpen] = useState(true);
   const [pdfProxy, setPdfProxy] = useState<PDFDocumentProxy | null>(null);
   const [fullscreen, setFullscreen] = useState(false);
-  const [libraryOpen, setLibraryOpen] = useState(false);
+  const [pdfFilter, setPdfFilter] = useState('');
   const [bookmarkOpen, setBookmarkOpen] = useState(false);
   const [bookmarkExercise, setBookmarkExercise] = useState('');
   const [bookmarkLabel, setBookmarkLabel] = useState('');
@@ -561,7 +586,6 @@ const RepertoirePanel: React.FC = () => {
     () => documents.find((d) => d.id === selectedDocId) ?? null,
     [documents, selectedDocId],
   );
-  const activeTitle = selectedDoc?.title ?? localTitle;
 
   const clearTimers = useCallback(() => {
     if (mappingSaveTimer.current) window.clearTimeout(mappingSaveTimer.current);
@@ -795,6 +819,27 @@ const RepertoirePanel: React.FC = () => {
     [pageCount],
   );
 
+  const filteredDocuments = useMemo(() => {
+    const term = pdfFilter.trim().toLowerCase();
+    if (!term) return documents;
+    return documents.filter((d) => d.title.toLowerCase().includes(term));
+  }, [documents, pdfFilter]);
+
+  const sortedMappings = useMemo(() => sortMappings(mappings), [mappings]);
+
+  const jumpToAdjacentMapping = useCallback(
+    (direction: -1 | 1) => {
+      if (sortedMappings.length === 0) return;
+      const pages = sortedMappings.map((m) => m.pageStart);
+      const target =
+        direction === -1
+          ? [...pages].reverse().find((p) => p < currentPage)
+          : pages.find((p) => p > currentPage);
+      navigatePage(target ?? pages[0]);
+    },
+    [sortedMappings, currentPage, navigatePage],
+  );
+
   useEffect(() => {
     if (!pendingNavigation) return;
     const { docId, page } = pendingNavigation;
@@ -846,12 +891,18 @@ const RepertoirePanel: React.FC = () => {
       if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || target?.isContentEditable) {
         return;
       }
-      if (e.key === 'ArrowLeft' || e.key === '[') {
+      if (e.key === 'ArrowLeft') {
         e.preventDefault();
         navigatePage(currentPage - 1);
-      } else if (e.key === 'ArrowRight' || e.key === ']') {
+      } else if (e.key === 'ArrowRight') {
         e.preventDefault();
         navigatePage(currentPage + 1);
+      } else if (e.key === '[') {
+        e.preventDefault();
+        jumpToAdjacentMapping(-1);
+      } else if (e.key === ']') {
+        e.preventDefault();
+        jumpToAdjacentMapping(1);
       } else if (e.key === '+' || e.key === '=') {
         e.preventDefault();
         zoomIn();
@@ -865,7 +916,7 @@ const RepertoirePanel: React.FC = () => {
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [source, pageCount, currentPage, navigatePage, zoomIn, zoomOut, zoomReset]);
+  }, [source, pageCount, currentPage, navigatePage, jumpToAdjacentMapping, zoomIn, zoomOut, zoomReset]);
 
   const activeLabel = currentMapping?.label || currentMapping?.exerciseId || 'No exercise mapped';
   const activeTargetBpm = currentMapping?.targetBpm ?? currentBPM;
@@ -942,25 +993,6 @@ const RepertoirePanel: React.FC = () => {
         onChange={handleFileInput}
       />
 
-      <LibraryDialog
-        open={libraryOpen}
-        onOpenChange={setLibraryOpen}
-        documents={documents}
-        isLoading={isLoadingDocuments}
-        isCloudEnabled={isCloudEnabled}
-        activeDocumentId={activeDocumentId}
-        isUploading={isUploading}
-        onSelect={(doc) => {
-          setLibraryOpen(false);
-          handleSelectDocument(doc.id);
-        }}
-        onDelete={(doc) => void handleDeleteDocument(doc)}
-        onUpload={(file) => {
-          setLibraryOpen(false);
-          void handleUpload(file);
-        }}
-      />
-
       <div className="flex flex-col gap-4 rounded-xl border bg-card/50 p-5 shadow-sm lg:flex-row lg:items-center lg:justify-between">
         <div className="space-y-0.5">
           <Label className="flex items-center gap-2 text-sm font-bold uppercase tracking-wider text-foreground">
@@ -974,19 +1006,6 @@ const RepertoirePanel: React.FC = () => {
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
-          <Button
-            variant="outline"
-            role="combobox"
-            aria-expanded={libraryOpen}
-            onClick={() => setLibraryOpen(true)}
-            className="w-[260px] h-9 justify-start text-xs font-normal"
-          >
-            <ListMusic className="w-3.5 h-3.5 mr-2 text-primary shrink-0" />
-            <span className="truncate">
-              {activeTitle ?? (isLoadingDocuments ? 'Loading…' : 'My library')}
-            </span>
-          </Button>
-
           <Button
             variant="outline"
             className="font-bold focus-scale h-9"
@@ -1017,6 +1036,83 @@ const RepertoirePanel: React.FC = () => {
           )}
         </div>
       </div>
+
+      <section className="space-y-3">
+        <div className="flex items-center justify-between gap-3">
+          <h3 className="text-xs font-black uppercase tracking-[0.2em] text-muted-foreground">
+            Your PDFs
+          </h3>
+          {documents.length > 0 && (
+            <Input
+              value={pdfFilter}
+              onChange={(e) => setPdfFilter(e.target.value)}
+              placeholder="Search PDFs…"
+              className="h-8 w-40 text-xs"
+            />
+          )}
+        </div>
+
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+          {filteredDocuments.map((doc) => {
+            const isOpen = doc.id === activeDocumentId;
+            return (
+              <div
+                key={doc.id}
+                role="button"
+                tabIndex={0}
+                onClick={() => handleSelectDocument(doc.id)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') handleSelectDocument(doc.id);
+                }}
+                className={cn(
+                  'group relative flex flex-col gap-2 rounded-xl border bg-card/50 p-4 text-left shadow-sm transition-all cursor-pointer active:scale-[0.98]',
+                  isOpen
+                    ? 'border-primary/40 ring-1 ring-primary/20'
+                    : 'border-border hover:border-primary/30 hover:shadow-md',
+                )}
+              >
+                <div className="flex items-start justify-between">
+                  <div className="rounded-lg bg-primary/10 p-2 text-primary">
+                    <FileText className="h-4 w-4" />
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-7 w-7 text-muted-foreground hover:text-destructive"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      void handleDeleteDocument(doc);
+                    }}
+                    title="Delete"
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </Button>
+                </div>
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-bold leading-tight">{doc.title}</p>
+                  <p className="text-[11px] text-muted-foreground tabular-nums">
+                    {doc.page_count}p · p.{doc.last_viewed_page}
+                  </p>
+                </div>
+              </div>
+            );
+          })}
+
+          <button
+            type="button"
+            onClick={() => fileInputRef.current?.click()}
+            disabled={isUploading}
+            className="flex flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-border bg-card/30 p-4 text-center text-muted-foreground transition-colors hover:border-primary/40 hover:text-primary"
+          >
+            {isUploading ? (
+              <Loader2 className="h-5 w-5 animate-spin" />
+            ) : (
+              <Upload className="h-5 w-5" />
+            )}
+            <span className="text-xs font-bold">Upload PDF</span>
+          </button>
+        </div>
+      </section>
 
       {!isCloudEnabled && (
         <div className="flex items-center gap-2 rounded-md border border-warning/30 bg-warning/5 px-3 py-2 text-xs text-warning-foreground">
@@ -1071,6 +1167,8 @@ const RepertoirePanel: React.FC = () => {
                 mappings={mappings}
                 currentMapping={currentMapping}
                 onJumpPage={navigatePage}
+                onPreviousExercise={() => jumpToAdjacentMapping(-1)}
+                onNextExercise={() => jumpToAdjacentMapping(1)}
                 canBookmark={isBookmarkable}
                 bookmarkOpen={bookmarkOpen}
                 onBookmarkOpenChange={setBookmarkOpen}
