@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useEffect, useCallback, useRef } from 'react';
 import { CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { RotateCcw, Music, Gauge, Repeat, Hand, Target, Zap, Palette, LayoutGrid, Shuffle } from 'lucide-react';
+import { RotateCcw, Music, Gauge, Repeat, Hand, Target, Zap, Palette, LayoutGrid, Shuffle, ChevronDown } from 'lucide-react';
 import { 
   KEYS, SCALE_TYPES, ARPEGGIO_TYPES, ARTICULATIONS, 
   Key, Articulation, TempoLevel,
@@ -111,6 +111,7 @@ const ScalePracticePanel: React.FC<ScalePracticePanelProps> = ({
   const [selectedRhythm, setSelectedRhythm] = useState<RhythmicPermutation>(RHYTHMIC_PERMUTATIONS[0]);
   const [selectedAccent, setSelectedAccent] = useState<AccentDistribution>(ACCENT_DISTRIBUTIONS[3]);
   const [selectedOctaves, setSelectedOctaves] = useState<OctaveConfiguration>(OCTAVE_CONFIGURATIONS[1]);
+  const [advancedOpen, setAdvancedOpen] = useState(true);
 
   const handleResetToStandard = () => {
     setSelectedArticulation(ARTICULATIONS[0]);
@@ -152,7 +153,7 @@ const ScalePracticePanel: React.FC<ScalePracticePanelProps> = ({
             const [key, typeId] = parsed.scaleId.split('-');
             const fullType = ALL_COMBINED_TYPES.find(t => t.replace(/\s/g, "") === typeId) || SCALE_TYPES[0];
             
-            let newHandConfig: HandConfiguration = parsed.handConfig === 'Hands separately' 
+            const newHandConfig: HandConfiguration = parsed.handConfig === 'Hands separately' 
                 ? HAND_CONFIGURATIONS[0] 
                 : parsed.handConfig as HandConfiguration;
 
@@ -228,6 +229,13 @@ const ScalePracticePanel: React.FC<ScalePracticePanelProps> = ({
 
   const highestMasteredBPM = getHighestBPMForCurrentPermutation();
   const nextBPMGoal = highestMasteredBPM > 0 ? highestMasteredBPM + 3 : 40;
+
+  const modifiedAdvancedCount = [
+    selectedDirection !== DIRECTION_TYPES[2],
+    selectedHandConfig !== HAND_CONFIGURATIONS[0],
+    selectedRhythm !== RHYTHMIC_PERMUTATIONS[0],
+    selectedAccent !== ACCENT_DISTRIBUTIONS[3],
+  ].filter(Boolean).length;
 
   const handleSaveSnapshot = useCallback(() => {
     const now = Date.now();
@@ -392,17 +400,37 @@ const ScalePracticePanel: React.FC<ScalePracticePanelProps> = ({
         </div>
 
         <div className="pt-10 border-t space-y-10">
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between gap-4">
                 <div className="space-y-1">
-                    <h3 className="text-xl font-bold tracking-tight">Advanced Permutations</h3>
+                    <div className="flex items-center gap-2">
+                      <h3 className="text-xl font-bold tracking-tight">Advanced Permutations</h3>
+                      {modifiedAdvancedCount > 0 && (
+                        <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-black uppercase tracking-widest text-primary">
+                          {modifiedAdvancedCount} active
+                        </span>
+                      )}
+                    </div>
                     <p className="text-sm text-muted-foreground">Break muscle memory and build true mastery.</p>
                 </div>
-                <Button variant="outline" size="sm" onClick={handleResetToStandard} className="text-xs font-bold focus-scale">
-                    <RotateCcw className="w-3 h-3 mr-2" />
-                    Reset to Standard
-                </Button>
+                <div className="flex shrink-0 items-center gap-2">
+                  <Button variant="outline" size="sm" onClick={handleResetToStandard} className="text-xs font-bold focus-scale">
+                      <RotateCcw className="w-3 h-3 mr-2" />
+                      Reset
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setAdvancedOpen((prev) => !prev)}
+                    aria-expanded={advancedOpen}
+                    className="text-xs font-bold focus-scale"
+                  >
+                      <ChevronDown className={cn('w-4 h-4 mr-1 transition-transform', !advancedOpen && '-rotate-90')} />
+                      {advancedOpen ? 'Hide' : 'Show'}
+                  </Button>
+                </div>
             </div>
             
+            {advancedOpen && (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
                 <PermutationSection 
                     title="Direction" 
@@ -438,6 +466,7 @@ const ScalePracticePanel: React.FC<ScalePracticePanelProps> = ({
                     icon={<Target className="w-5 h-5" />}
                 />
             </div>
+            )}
         </div>
     </CardContent>
   );

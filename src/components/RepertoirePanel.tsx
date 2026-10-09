@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
+import { Progress } from '@/components/ui/progress';
 import {
   Select,
   SelectContent,
@@ -40,6 +41,8 @@ import {
   PanelRight,
   Maximize2,
   Minimize2,
+  ZoomIn,
+  ZoomOut,
 } from 'lucide-react';
 import type { PdfViewerHandle } from './PdfViewer';
 const PdfViewer = React.lazy(() => import('./PdfViewer'));
@@ -69,6 +72,10 @@ const ViewerFallback: React.FC = () => (
     <p className="text-sm font-medium text-muted-foreground">Loading PDF viewer…</p>
   </div>
 );
+
+const ZOOM_MIN = 0.5;
+const ZOOM_MAX = 3;
+const ZOOM_STEP = 0.15;
 
 const MappingRow: React.FC<{
   mapping: PageMapping;
@@ -248,6 +255,10 @@ interface ReaderToolbarProps {
   onNext: () => void;
   quality: 'standard' | 'retina';
   onQualityChange: (value: 'standard' | 'retina') => void;
+  zoom: number;
+  onZoomIn: () => void;
+  onZoomOut: () => void;
+  onZoomReset: () => void;
   mappings: PageMapping[];
   currentMapping?: PageMapping;
   onJumpPage: (page: number) => void;
@@ -277,6 +288,10 @@ const ReaderToolbar: React.FC<ReaderToolbarProps> = ({
   onNext,
   quality,
   onQualityChange,
+  zoom,
+  onZoomIn,
+  onZoomOut,
+  onZoomReset,
   mappings,
   currentMapping,
   onJumpPage,
@@ -344,6 +359,39 @@ const ReaderToolbar: React.FC<ReaderToolbarProps> = ({
         <SelectItem value="retina" className="text-xs">Retina</SelectItem>
       </SelectContent>
     </Select>
+
+    <div className="flex items-center rounded-md border">
+      <Button
+        variant="ghost"
+        size="icon"
+        className="h-8 w-8 rounded-r-none"
+        onClick={onZoomOut}
+        disabled={zoom <= 0.5}
+        aria-label="Zoom out"
+        title="Zoom out"
+      >
+        <ZoomOut className="w-4 h-4" />
+      </Button>
+      <button
+        type="button"
+        onClick={onZoomReset}
+        className="h-8 min-w-[52px] border-x px-2 text-xs font-bold tabular-nums text-muted-foreground transition-colors hover:text-foreground"
+        title="Reset zoom to 100%"
+      >
+        {Math.round(zoom * 100)}%
+      </button>
+      <Button
+        variant="ghost"
+        size="icon"
+        className="h-8 w-8 rounded-l-none"
+        onClick={onZoomIn}
+        disabled={zoom >= 3}
+        aria-label="Zoom in"
+        title="Zoom in"
+      >
+        <ZoomIn className="w-4 h-4" />
+      </Button>
+    </div>
 
     {mappings.length > 0 && (
       <div className="flex flex-wrap items-center gap-1.5 min-w-0 ml-1">
@@ -476,6 +524,7 @@ const RepertoirePanel: React.FC = () => {
   const [mappings, setMappings] = useState<PageMapping[]>([]);
   const [isUploading, setIsUploading] = useState(false);
   const [quality, setQuality] = useState<'standard' | 'retina'>('standard');
+  const [zoom, setZoom] = useState(1);
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [fullscreen, setFullscreen] = useState(false);
   const [libraryOpen, setLibraryOpen] = useState(false);
@@ -724,6 +773,14 @@ const RepertoirePanel: React.FC = () => {
     else setPageInput(String(currentPage));
   }, [pageInput, currentPage, navigatePage]);
 
+  const zoomIn = useCallback(() => {
+    setZoom((z) => Math.min(ZOOM_MAX, Math.round((z + ZOOM_STEP) * 100) / 100));
+  }, []);
+  const zoomOut = useCallback(() => {
+    setZoom((z) => Math.max(ZOOM_MIN, Math.round((z - ZOOM_STEP) * 100) / 100));
+  }, []);
+  const zoomReset = useCallback(() => setZoom(1), []);
+
   useEffect(() => {
     setPageInput(String(currentPage));
   }, [currentPage]);
@@ -731,18 +788,31 @@ const RepertoirePanel: React.FC = () => {
   useEffect(() => {
     if (!source || pageCount <= 0) return;
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.target !== document.body) return;
+      const target = e.target as HTMLElement | null;
+      const tag = target?.tagName;
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || target?.isContentEditable) {
+        return;
+      }
       if (e.key === 'ArrowLeft' || e.key === '[') {
         e.preventDefault();
         navigatePage(currentPage - 1);
       } else if (e.key === 'ArrowRight' || e.key === ']') {
         e.preventDefault();
         navigatePage(currentPage + 1);
+      } else if (e.key === '+' || e.key === '=') {
+        e.preventDefault();
+        zoomIn();
+      } else if (e.key === '-' || e.key === '_') {
+        e.preventDefault();
+        zoomOut();
+      } else if (e.key === '0') {
+        e.preventDefault();
+        zoomReset();
       }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [source, pageCount, currentPage, navigatePage]);
+  }, [source, pageCount, currentPage, navigatePage, zoomIn, zoomOut, zoomReset]);
 
   const activeLabel = currentMapping?.label || currentMapping?.exerciseId || 'No exercise mapped';
   const activeTargetBpm = currentMapping?.targetBpm ?? currentBPM;
@@ -819,13 +889,13 @@ const RepertoirePanel: React.FC = () => {
         onChange={handleFileInput}
       />
 
-      <div className="flex flex-col gap-4 rounded-lg border border-primary/30 bg-secondary/50 p-4 lg:flex-row lg:items-center lg:justify-between">
-        <div className="space-y-1">
-          <Label className="text-lg font-semibold text-primary font-mono text-glow flex items-center gap-2">
-            <Music2 className="w-4 h-4" />
-            REPERTOIRE &amp; TECHNICAL
+      <div className="flex flex-col gap-4 rounded-xl border bg-card/50 p-5 shadow-sm lg:flex-row lg:items-center lg:justify-between">
+        <div className="space-y-0.5">
+          <Label className="flex items-center gap-2 text-sm font-bold uppercase tracking-wider text-foreground">
+            <Music2 className="w-4 h-4 text-primary" />
+            Repertoire &amp; Technical
           </Label>
-          <p className="text-xs text-muted-foreground italic text-primary/70">
+          <p className="text-xs text-muted-foreground">
             Load a full method book once, then map page ranges to exercises. The floating
             tempo panel follows the page you are viewing.
           </p>
@@ -957,6 +1027,10 @@ const RepertoirePanel: React.FC = () => {
                 onNext={() => navigatePage(currentPage + 1)}
                 quality={quality}
                 onQualityChange={setQuality}
+                zoom={zoom}
+                onZoomIn={zoomIn}
+                onZoomOut={zoomOut}
+                onZoomReset={zoomReset}
                 mappings={mappings}
                 currentMapping={currentMapping}
                 onJumpPage={navigatePage}
@@ -977,6 +1051,18 @@ const RepertoirePanel: React.FC = () => {
               />
             </div>
 
+            {pageCount > 0 && (
+              <div className="flex items-center gap-3">
+                <Progress
+                  value={Math.min(100, (currentPage / pageCount) * 100)}
+                  className="h-1.5"
+                />
+                <span className="shrink-0 text-[10px] font-bold uppercase tracking-widest text-muted-foreground tabular-nums">
+                  {currentPage} / {pageCount}
+                </span>
+              </div>
+            )}
+
             <Suspense fallback={<ViewerFallback />}>
               <PdfViewer
                 ref={viewerRef}
@@ -988,6 +1074,7 @@ const RepertoirePanel: React.FC = () => {
                 maxPixelRatio={maxPixelRatio}
                 onBookmark={addBookmark}
                 layout="horizontal"
+                zoom={zoom}
                 className={fullscreen ? 'flex-1 min-h-0' : undefined}
                 scrollClassName={
                   fullscreen
@@ -1007,7 +1094,14 @@ const RepertoirePanel: React.FC = () => {
                 <kbd className="px-1 rounded bg-muted border border-border/60 font-mono">[</kbd>
                 <kbd className="px-1 rounded bg-muted border border-border/60 font-mono">]</kbd>
                 {' '}
-                exercises · bookmark from the page or the panel
+                exercises ·{' '}
+                <kbd className="px-1 rounded bg-muted border border-border/60 font-mono">+</kbd>
+                <kbd className="px-1 rounded bg-muted border border-border/60 font-mono">−</kbd>
+                {' '}
+                zoom ·{' '}
+                <kbd className="px-1 rounded bg-muted border border-border/60 font-mono">0</kbd>
+                {' '}
+                reset · bookmark from the page or the panel
               </p>
             )}
           </div>

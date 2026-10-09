@@ -54,7 +54,7 @@ const RepertoireStats = () => {
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card className="bg-card border-2 border-primary/5">
+        <Card className="bg-card border border-primary/10 shadow-sm transition-all hover:shadow-md hover:border-primary/20">
           <CardContent className="p-6 flex items-center gap-4">
             <div className="p-3 rounded-xl bg-indigo-500/10 text-indigo-500">
               <BookOpen className="w-6 h-6" />
@@ -66,7 +66,7 @@ const RepertoireStats = () => {
           </CardContent>
         </Card>
 
-        <Card className="bg-card border-2 border-primary/5">
+        <Card className="bg-card border border-primary/10 shadow-sm transition-all hover:shadow-md hover:border-primary/20">
           <CardContent className="p-6 flex items-center gap-4">
             <div className="p-3 rounded-xl bg-sky-500/10 text-sky-500">
               <Calendar className="w-6 h-6" />
@@ -78,7 +78,7 @@ const RepertoireStats = () => {
           </CardContent>
         </Card>
 
-        <Card className="bg-card border-2 border-primary/5">
+        <Card className="bg-card border border-primary/10 shadow-sm transition-all hover:shadow-md hover:border-primary/20">
           <CardContent className="p-6 flex items-center gap-4">
             <div className="p-3 rounded-xl bg-orange-500/10 text-orange-500">
               <Clock className="w-6 h-6" />
@@ -90,7 +90,7 @@ const RepertoireStats = () => {
           </CardContent>
         </Card>
 
-        <Card className="bg-card border-2 border-primary/5">
+        <Card className="bg-card border border-primary/10 shadow-sm transition-all hover:shadow-md hover:border-primary/20">
           <CardContent className="p-6 flex items-center gap-4">
             <div className="p-3 rounded-xl bg-emerald-500/10 text-emerald-500">
               <Target className="w-6 h-6" />
@@ -105,7 +105,7 @@ const RepertoireStats = () => {
         </Card>
       </div>
 
-      <Card className="bg-card border-2 border-primary/5">
+      <Card className="bg-card border border-primary/10 shadow-sm transition-all hover:shadow-md hover:border-primary/20">
         <CardHeader className="pb-2">
           <CardTitle className="text-sm font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
             <ListChecks className="w-4 h-4" />

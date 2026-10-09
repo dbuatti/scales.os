@@ -46,6 +46,7 @@ interface PdfViewerProps {
   scrollClassName?: string;
   className?: string;
   layout?: 'vertical' | 'horizontal';
+  zoom?: number;
 }
 
 interface PdfPageProps {
@@ -78,6 +79,10 @@ const PdfPage: React.FC<PdfPageProps> = ({
   const [visible, setVisible] = useState(false);
   const [rendered, setRendered] = useState(false);
   const [aspectRatio, setAspectRatio] = useState(1.414);
+
+  useEffect(() => {
+    setRendered(false);
+  }, [width]);
 
   useEffect(() => {
     const el = wrapperRef.current;
@@ -185,6 +190,7 @@ const PdfViewer = React.forwardRef<PdfViewerHandle, PdfViewerProps>(({
   scrollClassName = 'h-[70vh] min-h-[480px]',
   className,
   layout = 'vertical',
+  zoom = 1,
 }, ref) => {
   const scrollRef = useRef<HTMLDivElement>(null);
   const pagesRef = useRef<HTMLDivElement>(null);
@@ -279,11 +285,14 @@ const PdfViewer = React.forwardRef<PdfViewerHandle, PdfViewerProps>(({
   }, [pdf]);
 
   const pageWidth = useMemo(() => {
+    const clampedZoom = Math.min(Math.max(zoom, 0.5), 3);
     if (layout === 'horizontal') {
-      return Math.min(Math.max((containerWidth || 0) * 0.82, 320), 760);
+      const base = Math.min(Math.max((containerWidth || 0) * 0.82, 320), 760);
+      return base * clampedZoom;
     }
-    return Math.min(containerWidth || 0, 768);
-  }, [containerWidth, layout]);
+    const base = Math.min(containerWidth || 0, 768);
+    return base * clampedZoom;
+  }, [containerWidth, layout, zoom]);
 
   useEffect(() => {
     return () => {
@@ -343,6 +352,20 @@ const PdfViewer = React.forwardRef<PdfViewerHandle, PdfViewerProps>(({
     setCurrentPage((prev) => (prev === best ? prev : best));
   }, [axis, extent, position]);
 
+  const handleWheel = useCallback(
+    (event: React.WheelEvent<HTMLDivElement>) => {
+      if (layout !== 'horizontal') return;
+      const container = scrollRef.current;
+      if (!container) return;
+      const canScrollVertically = container.scrollHeight > container.clientHeight + 1;
+      if (canScrollVertically) return;
+      if (Math.abs(event.deltaY) > Math.abs(event.deltaX)) {
+        container.scrollLeft += event.deltaY;
+      }
+    },
+    [layout],
+  );
+
   useEffect(() => {
     const mapping = getMappingForPage(mappings, currentPage);
     onPageChangeRef.current?.(currentPage, mapping);
@@ -373,9 +396,10 @@ const PdfViewer = React.forwardRef<PdfViewerHandle, PdfViewerProps>(({
       <div
         ref={scrollRef}
         onScroll={handleScroll}
+        onWheel={handleWheel}
         className={cn(
           'rounded-lg bg-muted/20 border border-border/60 p-4',
-          layout === 'horizontal' ? 'overflow-x-auto' : 'overflow-y-auto',
+          layout === 'horizontal' ? 'overflow-x-auto' : 'overflow-auto',
           scrollClassName,
         )}
       >

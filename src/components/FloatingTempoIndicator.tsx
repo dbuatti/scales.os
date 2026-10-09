@@ -33,6 +33,15 @@ const FloatingTempoIndicator: React.FC<FloatingTempoIndicatorProps> = ({
   const dragOffsetRef = useRef<{ dx: number; dy: number } | null>(null);
   const [position, setPosition] = useState<{ x: number; y: number } | null>(null);
   const [collapsed, setCollapsed] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const mq = window.matchMedia('(max-width: 767px)');
+    const update = () => setIsMobile(mq.matches);
+    update();
+    mq.addEventListener('change', update);
+    return () => mq.removeEventListener('change', update);
+  }, []);
 
   useEffect(() => {
     setBeatsPerMeasure(beatsPerMeasure);
@@ -48,8 +57,10 @@ const FloatingTempoIndicator: React.FC<FloatingTempoIndicatorProps> = ({
     const handleMove = (moveEvent: PointerEvent) => {
       const offset = dragOffsetRef.current;
       if (!offset) return;
-      const maxX = window.innerWidth - 40;
-      const maxY = window.innerHeight - 40;
+      const width = panelRef.current?.offsetWidth ?? 300;
+      const height = panelRef.current?.offsetHeight ?? 120;
+      const maxX = window.innerWidth - width - 8;
+      const maxY = window.innerHeight - height - 8;
       setPosition({
         x: Math.min(maxX, Math.max(0, moveEvent.clientX - offset.dx)),
         y: Math.min(maxY, Math.max(0, moveEvent.clientY - offset.dy)),
@@ -70,9 +81,11 @@ const FloatingTempoIndicator: React.FC<FloatingTempoIndicatorProps> = ({
     const handleResize = () => {
       setPosition((prev) => {
         if (!prev) return prev;
+        const width = panelRef.current?.offsetWidth ?? 300;
+        const height = panelRef.current?.offsetHeight ?? 120;
         return {
-          x: Math.min(prev.x, window.innerWidth - 40),
-          y: Math.min(prev.y, window.innerHeight - 40),
+          x: Math.min(prev.x, Math.max(0, window.innerWidth - width - 8)),
+          y: Math.min(prev.y, Math.max(0, window.innerHeight - height - 8)),
         };
       });
     };
@@ -82,7 +95,7 @@ const FloatingTempoIndicator: React.FC<FloatingTempoIndicatorProps> = ({
 
   const style: React.CSSProperties = position
     ? { left: position.x, top: position.y }
-    : { right: 24, bottom: 24 };
+    : { right: 16, bottom: isMobile ? 84 : 24 };
 
   return (
     <div
