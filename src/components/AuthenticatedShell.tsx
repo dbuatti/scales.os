@@ -5,7 +5,7 @@ import { RepertoireProvider } from '@/context/RepertoireContext';
 import AppLayout from './AppLayout';
 import AuthenticatedHeaderControls from './AuthenticatedHeaderControls';
 import { Button } from '@/components/ui/button';
-import { Play, BarChart2, LogOut } from 'lucide-react';
+import { Play, BarChart2, BookOpen, LogOut } from 'lucide-react';
 import { useSupabaseSession } from '@/hooks/use-supabase-session';
 import { supabase } from '@/integrations/supabase/client';
 import { showSuccess, showError } from '@/utils/toast';
@@ -81,6 +81,7 @@ const AuthenticatedShell: React.FC = () => {
       <div className="hidden h-6 w-px bg-border md:block" />
       <nav className="hidden items-center gap-1 md:flex">
         <NavLink to="/" icon={<Play className="w-4 h-4" />} label="Practice" />
+        <NavLink to="/reader" icon={<BookOpen className="w-4 h-4" />} label="Reader" />
         <NavLink to="/progress" icon={<BarChart2 className="w-4 h-4" />} label="Progress" />
       </nav>
       <Button
@@ -98,6 +99,7 @@ const AuthenticatedShell: React.FC = () => {
   const mobileNav = (
     <div className="flex items-stretch">
       <MobileNavItem to="/" icon={<Play className="w-5 h-5" />} label="Practice" />
+      <MobileNavItem to="/reader" icon={<BookOpen className="w-5 h-5" />} label="Reader" />
       <MobileNavItem to="/progress" icon={<BarChart2 className="w-5 h-5" />} label="Progress" />
       <button
         type="button"

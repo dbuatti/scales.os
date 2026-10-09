@@ -63,6 +63,34 @@ export const sortMappings = (mappings: PageMapping[]): PageMapping[] =>
   [...mappings].sort((a, b) => a.pageStart - b.pageStart);
 
 const STORAGE_PREFIX = 'scales.os.repertoire.mappings.';
+const LAST_DOCUMENT_KEY = 'scales.os.repertoire.lastDocument';
+
+export const getLastOpenedDocumentId = (): string | null => {
+  if (typeof window === 'undefined') return null;
+  try {
+    return window.localStorage.getItem(LAST_DOCUMENT_KEY);
+  } catch {
+    return null;
+  }
+};
+
+export const setLastOpenedDocumentId = (documentId: string): void => {
+  if (typeof window === 'undefined') return;
+  try {
+    window.localStorage.setItem(LAST_DOCUMENT_KEY, documentId);
+  } catch {
+    // Storage may be unavailable (private mode / quota); ignore.
+  }
+};
+
+export const clearLastOpenedDocumentId = (): void => {
+  if (typeof window === 'undefined') return;
+  try {
+    window.localStorage.removeItem(LAST_DOCUMENT_KEY);
+  } catch {
+    // Ignore.
+  }
+};
 
 export const loadMappings = (documentId: string): PageMapping[] => {
   if (typeof window === 'undefined') return [];

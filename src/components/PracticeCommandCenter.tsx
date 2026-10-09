@@ -12,6 +12,7 @@ import { cn, getCategoryColorClasses } from '@/lib/utils';
 import { useGlobalBPM } from '@/context/GlobalBPMContext';
 import { MIN_BPM, MAX_BPM } from '@/lib/scales';
 import { formatDistanceToNow, isSameDay } from 'date-fns';
+import { useNavigate } from 'react-router-dom';
 import PracticeSummaryPanel from './PracticeSummaryPanel';
 import { Button } from '@/components/ui/button';
 import { showSuccess } from '@/utils/toast';
@@ -54,6 +55,7 @@ const PracticeCommandCenter: React.FC = () => {
 
   const { isZenMode } = useZenMode();
   const { hasMappingsForSource } = useRepertoire();
+  const navigate = useNavigate();
 
   const [activeTab, setActiveTab] = useState<'scales' | 'dohnanyi' | 'hanon' | 'repertoire'>('scales');
   const [isTabManuallySelected, setIsTabManuallySelected] = useState(false);
@@ -104,7 +106,7 @@ const PracticeCommandCenter: React.FC = () => {
   const handleQuickSelect = useCallback((target: QuickTarget) => {
     setIsTabManuallySelected(true);
     if (target === 'reader') {
-      setActiveTab('repertoire');
+      navigate('/reader');
       return;
     }
     if (target === 'arpeggios') {
@@ -118,12 +120,12 @@ const PracticeCommandCenter: React.FC = () => {
       return;
     }
     setActiveTab(target);
-  }, []);
+  }, [navigate]);
 
   const handleOpenReader = useCallback(() => {
     setIsTabManuallySelected(true);
-    setActiveTab('repertoire');
-  }, []);
+    navigate('/reader');
+  }, [navigate]);
 
   const todayStats = useMemo(() => {
     const today = new Date();

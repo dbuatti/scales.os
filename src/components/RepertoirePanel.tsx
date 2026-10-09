@@ -65,6 +65,9 @@ import {
   saveMappings as saveLocalMappings,
   sortMappings,
   createEmptyMapping,
+  getLastOpenedDocumentId,
+  setLastOpenedDocumentId,
+  clearLastOpenedDocumentId,
 } from '@/lib/repertoire';
 
 const ViewerFallback: React.FC = () => (
@@ -553,6 +556,7 @@ const RepertoirePanel: React.FC = () => {
   const lastViewedTimer = useRef<number | null>(null);
   const masteryRef = useRef(exerciseMasteryBPMMap);
   masteryRef.current = exerciseMasteryBPMMap;
+  const hasAutoResumedRef = useRef(false);
 
   const activeDocumentId = selectedDocId || localDocumentId;
   const selectedDoc = useMemo(
@@ -589,6 +593,7 @@ const RepertoirePanel: React.FC = () => {
         setLocalDocumentId(null);
         setLocalTitle(null);
         setPendingInitialPage(initialPage ?? null);
+        setLastOpenedDocumentId(doc.id);
         setSource(url);
         setPageCount(doc.page_count || 0);
         setCurrentPage(initialPage ?? (doc.last_viewed_page || 1));
@@ -667,6 +672,7 @@ const RepertoirePanel: React.FC = () => {
     if (!selectedDoc) return;
     if (!window.confirm(`Delete "${selectedDoc.title}" and its mappings?`)) return;
     await deleteDocument(selectedDoc);
+    if (getLastOpenedDocumentId() === selectedDoc.id) clearLastOpenedDocumentId();
     handleSelectDocument('');
     showSuccess('Document deleted.');
   };
@@ -759,6 +765,22 @@ const RepertoirePanel: React.FC = () => {
   useEffect(() => {
     if (activeDocumentId) registerMappings(activeDocumentId, mappings);
   }, [activeDocumentId, mappings, registerMappings]);
+
+  useEffect(() => {
+    if (hasAutoResumedRef.current) return;
+    if (pendingNavigation) {
+      hasAutoResumedRef.current = true;
+      return;
+    }
+    if (activeDocumentId) return;
+    if (documents.length === 0) return;
+    const lastId = getLastOpenedDocumentId();
+    if (!lastId) return;
+    const doc = documents.find((d) => d.id === lastId);
+    if (!doc) return;
+    hasAutoResumedRef.current = true;
+    void loadDocument(doc);
+  }, [activeDocumentId, documents, loadDocument, pendingNavigation]);
 
   const currentMapping = getMappingForPage(mappings, currentPage);
   const isBookmarkable = !mappings.some(
