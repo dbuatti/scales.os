@@ -43,6 +43,8 @@ import {
   ZoomIn,
   ZoomOut,
   Images,
+  ArrowLeftRight,
+  Scan,
 } from 'lucide-react';
 import type { PdfViewerHandle } from './PdfViewer';
 const PdfViewer = React.lazy(() => import('./PdfViewer'));
@@ -267,6 +269,8 @@ interface ReaderToolbarProps {
   onZoomIn: () => void;
   onZoomOut: () => void;
   onZoomReset: () => void;
+  onFitWidth: () => void;
+  onFitPage: () => void;
   mappings: PageMapping[];
   currentMapping?: PageMapping;
   onJumpPage: (page: number) => void;
@@ -304,6 +308,8 @@ const ReaderToolbar: React.FC<ReaderToolbarProps> = ({
   onZoomIn,
   onZoomOut,
   onZoomReset,
+  onFitWidth,
+  onFitPage,
   mappings,
   currentMapping,
   onJumpPage,
@@ -399,6 +405,27 @@ const ReaderToolbar: React.FC<ReaderToolbarProps> = ({
         Scroll
       </ToggleGroupItem>
     </ToggleGroup>
+
+    <Button
+      variant="outline"
+      size="icon"
+      className="h-10 w-10"
+      onClick={onFitWidth}
+      aria-label="Fit width"
+      title="Fit width"
+    >
+      <ArrowLeftRight className="w-4 h-4" />
+    </Button>
+    <Button
+      variant="outline"
+      size="icon"
+      className="h-10 w-10"
+      onClick={onFitPage}
+      aria-label="Fit page"
+      title="Fit page"
+    >
+      <Scan className="w-4 h-4" />
+    </Button>
 
     <div className="flex items-center rounded-md border">
       <Button
@@ -1200,6 +1227,8 @@ const RepertoirePanel: React.FC = () => {
                 onZoomIn={zoomIn}
                 onZoomOut={zoomOut}
                 onZoomReset={zoomReset}
+                onFitWidth={() => viewerRef.current?.fitWidth()}
+                onFitPage={() => viewerRef.current?.fitPage()}
                 mappings={mappings}
                 currentMapping={currentMapping}
                 onJumpPage={navigatePage}

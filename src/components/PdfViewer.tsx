@@ -33,6 +33,8 @@ function loadPdfjs(): Promise<PdfjsModule> {
 
 export interface PdfViewerHandle {
   scrollToPage: (page: number) => void;
+  fitWidth: () => void;
+  fitPage: () => void;
 }
 
 interface PdfViewerProps {
@@ -215,8 +217,18 @@ const PdfViewer = React.forwardRef<PdfViewerHandle, PdfViewerProps>(({
   const [pageCount, setPageCount] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
   const [containerWidth, setContainerWidth] = useState(0);
+  const [containerHeight, setContainerHeight] = useState(0);
+  const [naturalSize, setNaturalSize] = useState<{ width: number; height: number } | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+
+  const containerWidthRef = useRef(0);
+  containerWidthRef.current = containerWidth;
+  const containerHeightRef = useRef(0);
+  containerHeightRef.current = containerHeight;
+  const naturalSizeRef = useRef(naturalSize);
+  naturalSizeRef.current = naturalSize;
+  const didAutoFitRef = useRef(false);
 
   useEffect(() => {
     void pdfRef.current?.cleanup();
@@ -226,6 +238,8 @@ const PdfViewer = React.forwardRef<PdfViewerHandle, PdfViewerProps>(({
     setPdf(null);
     setPageCount(0);
     setCurrentPage(1);
+    setNaturalSize(null);
+    didAutoFitRef.current = false;
     setError(null);
     onPdfReadyRef.current?.(null);
 
@@ -266,6 +280,15 @@ const PdfViewer = React.forwardRef<PdfViewerHandle, PdfViewerProps>(({
           setCurrentPage(1);
           onDocumentLoaded?.(doc.numPages);
           onPdfReadyRef.current?.(doc);
+          void doc
+            .getPage(1)
+            .then((firstPage) => {
+              const viewport = firstPage.getViewport({ scale: 1 });
+              setNaturalSize({ width: viewport.width, height: viewport.height });
+            })
+            .catch(() => {
+              /* non-critical: fit controls will fall back to container size */
+            });
         })
         .catch((err: unknown) => {
           if (!cancelled) {
@@ -289,22 +312,56 @@ const PdfViewer = React.forwardRef<PdfViewerHandle, PdfViewerProps>(({
     const el = scrollRef.current;
     if (!el) return;
     const observer = new ResizeObserver((entries) => {
-      setContainerWidth(entries[0]?.contentRect.width ?? 0);
+      const rect = entries[0]?.contentRect;
+      if (rect) {
+        setContainerWidth(rect.width);
+        setContainerHeight(rect.height);
+      }
     });
     observer.observe(el);
     setContainerWidth(el.clientWidth);
+    setContainerHeight(el.clientHeight);
     return () => observer.disconnect();
   }, [pdf]);
 
   const pageWidth = useMemo(() => {
     const clampedZoom = Math.min(Math.max(zoom, 0.5), 3);
-    if (layout === 'horizontal') {
-      const base = Math.min(Math.max((containerWidth || 0) * 0.82, 320), 760);
-      return base * clampedZoom;
-    }
-    const base = Math.min(containerWidth || 0, 768);
-    return base * clampedZoom;
-  }, [containerWidth, layout, zoom]);
+    if (naturalSize) return naturalSize.width * clampedZoom;
+    const fallback = Math.max(
+      220,
+      (containerWidth || 0) - (layout === 'horizontal' ? 88 : 40),
+    );
+    return fallback * clampedZoom;
+  }, [naturalSize, zoom, containerWidth, layout]);
+
+  const fitWidth = useCallback(() => {
+    const natural = naturalSizeRef.current;
+    const width = containerWidthRef.current;
+    if (!natural || width <= 0) return;
+    const inset = layout === 'horizontal' ? 88 : 40;
+    const next = (width - inset) / natural.width;
+    onZoomChangeRef.current?.(Math.min(3, Math.max(0.5, next)));
+  }, [layout]);
+
+  const fitPage = useCallback(() => {
+    const natural = naturalSizeRef.current;
+    const width = containerWidthRef.current;
+    const height = containerHeightRef.current;
+    if (!natural || width <= 0 || height <= 0) return;
+    const hInset = layout === 'horizontal' ? 88 : 40;
+    const vInset = 56;
+    const zoomWidth = (width - hInset) / natural.width;
+    const zoomHeight = (height - vInset) / natural.height;
+    onZoomChangeRef.current?.(
+      Math.min(3, Math.max(0.5, Math.min(zoomWidth, zoomHeight))),
+    );
+  }, [layout]);
+
+  useEffect(() => {
+    if (!pdf || !naturalSize || containerWidth <= 0 || didAutoFitRef.current) return;
+    didAutoFitRef.current = true;
+    fitWidth();
+  }, [pdf, naturalSize, containerWidth, fitWidth]);
 
   useEffect(() => {
     return () => {
@@ -342,7 +399,11 @@ const PdfViewer = React.forwardRef<PdfViewerHandle, PdfViewerProps>(({
     [layout],
   );
 
-  useImperativeHandle(ref, () => ({ scrollToPage }), [scrollToPage]);
+  useImperativeHandle(ref, () => ({ scrollToPage, fitWidth, fitPage }), [
+    scrollToPage,
+    fitWidth,
+    fitPage,
+  ]);
 
   useEffect(() => {
     if (!pdf || pageWidth <= 0 || !initialPage || initialPage <= 1 || didJumpRef.current) return;
