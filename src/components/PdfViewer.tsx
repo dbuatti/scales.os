@@ -10,6 +10,9 @@ import { FileText, Loader2, AlertTriangle } from 'lucide-react';
 // graph is deliberate: inlining the pdf.js module into an app chunk breaks its
 // internal top-level evaluation order under minification.
 type PdfjsModule = typeof import('pdfjs-dist');
+
+const PDFJS_WASM_BASE = `${import.meta.env.BASE_URL}pdfjs-wasm/`;
+
 let pdfjsPromise: Promise<PdfjsModule> | null = null;
 
 function loadPdfjs(): Promise<PdfjsModule> {
@@ -167,7 +170,7 @@ const PdfViewer = React.forwardRef<PdfViewerHandle, PdfViewerProps>(({
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    pdfRef.current?.destroy();
+    void pdfRef.current?.cleanup();
     pdfRef.current = null;
     taskRef.current?.destroy();
     taskRef.current = null;
@@ -183,7 +186,9 @@ const PdfViewer = React.forwardRef<PdfViewerHandle, PdfViewerProps>(({
 
     let cancelled = false;
     setLoading(true);
-    const params = typeof source === 'string' ? { url: source } : { data: source };
+    const params = typeof source === 'string'
+      ? { url: source, wasmUrl: PDFJS_WASM_BASE }
+      : { data: source, wasmUrl: PDFJS_WASM_BASE };
 
     (async () => {
       let task: ReturnType<PdfjsModule['getDocument']>;
@@ -202,7 +207,7 @@ const PdfViewer = React.forwardRef<PdfViewerHandle, PdfViewerProps>(({
       task.promise
         .then((doc) => {
           if (cancelled) {
-            doc.destroy();
+            void doc.cleanup();
             return;
           }
           pdfRef.current = doc;
@@ -243,7 +248,7 @@ const PdfViewer = React.forwardRef<PdfViewerHandle, PdfViewerProps>(({
 
   useEffect(() => {
     return () => {
-      pdfRef.current?.destroy();
+      void pdfRef.current?.cleanup();
       pdfRef.current = null;
       taskRef.current?.destroy();
       taskRef.current = null;
