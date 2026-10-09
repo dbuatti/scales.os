@@ -10,6 +10,8 @@ import { Label } from '@/components/ui/label';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Slider } from '@/components/ui/slider';
 import { useMetronome } from '@/context/MetronomeContext';
+import { useGlobalBPM } from '@/context/GlobalBPMContext';
+import TempoControl from './TempoControl';
 
 interface MetronomeProps {
   showSettings?: boolean;
@@ -40,6 +42,8 @@ const Metronome: React.FC<MetronomeProps> = ({ showSettings = true }) => {
     tapTempo,
   } = useMetronome();
 
+  const { currentBPM, setCurrentBPM, handleBpmChange } = useGlobalBPM();
+
   return (
     <div className="flex items-center space-x-4">
       <Button
@@ -54,6 +58,13 @@ const Metronome: React.FC<MetronomeProps> = ({ showSettings = true }) => {
       >
         {isRunning ? 'STOP' : 'START'}
       </Button>
+
+      <TempoControl
+        compact
+        value={currentBPM}
+        onChange={setCurrentBPM}
+        onStep={handleBpmChange}
+      />
 
       <div className="flex items-center gap-1">
         <Button

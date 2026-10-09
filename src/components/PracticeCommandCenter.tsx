@@ -16,10 +16,11 @@ import { useNavigate } from 'react-router-dom';
 import PracticeSummaryPanel from './PracticeSummaryPanel';
 import { Button } from '@/components/ui/button';
 import { showSuccess } from '@/utils/toast';
-import { RefreshCw, Target, Settings2, Keyboard, Plus, Minus, Save, Clock, Activity, Music, Dumbbell, BookOpen, Sparkles } from 'lucide-react';
+import { RefreshCw, Target, Settings2, Keyboard, Save, Clock, Activity, Music, Dumbbell, BookOpen, Sparkles } from 'lucide-react';
 import { useZenMode } from '@/context/ZenModeContext';
 import PageHeader from './PageHeader';
 import QuickAccess, { QuickTarget } from './QuickAccess';
+import TempoControl from './TempoControl';
 import { useRepertoire } from '@/context/RepertoireContext';
 
 const PRACTICE_TABS = [
@@ -46,6 +47,7 @@ const PracticeCommandCenter: React.FC = () => {
   const {
     currentBPM,
     activePermutationHighestBPM,
+    activePracticeItem,
     setCurrentBPM,
     setActivePermutationHighestBPM,
     setIsPermutationManuallyAdjusted,
@@ -56,6 +58,12 @@ const PracticeCommandCenter: React.FC = () => {
   const { isZenMode } = useZenMode();
   const { hasMappingsForSource } = useRepertoire();
   const navigate = useNavigate();
+
+  const targetBpm = activePracticeItem
+    ? activePracticeItem.type === 'scale'
+      ? activePracticeItem.nextGoalBPM
+      : activePracticeItem.nextTargetBPM
+    : null;
 
   const [activeTab, setActiveTab] = useState<'scales' | 'dohnanyi' | 'hanon' | 'repertoire'>('scales');
   const [isTabManuallySelected, setIsTabManuallySelected] = useState(false);
@@ -278,16 +286,12 @@ const PracticeCommandCenter: React.FC = () => {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-8">
-                <div className="flex items-center justify-between">
-                  <span className="text-5xl font-black tracking-tighter text-primary">{currentBPM}</span>
-                  <span className="text-sm font-bold text-muted-foreground uppercase">BPM</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Button variant="outline" size="sm" onClick={() => handleBpmChange(-5)} className="flex-1 font-bold focus-scale h-10">-5</Button>
-                  <Button variant="outline" size="sm" onClick={() => handleBpmChange(-1)} className="flex-1 font-bold focus-scale h-10"><Minus className="w-4 h-4" /></Button>
-                  <Button variant="outline" size="sm" onClick={() => handleBpmChange(1)} className="flex-1 font-bold focus-scale h-10"><Plus className="w-4 h-4" /></Button>
-                  <Button variant="outline" size="sm" onClick={() => handleBpmChange(5)} className="flex-1 font-bold focus-scale h-10">+5</Button>
-                </div>
+                <TempoControl
+                  value={currentBPM}
+                  onChange={setCurrentBPM}
+                  onStep={handleBpmChange}
+                  target={targetBpm}
+                />
                 <div className="pt-6 border-t space-y-4">
                   <div className="flex items-center gap-2 text-[10px] text-muted-foreground uppercase font-black tracking-widest">
                     <Keyboard className="w-3 h-3" />

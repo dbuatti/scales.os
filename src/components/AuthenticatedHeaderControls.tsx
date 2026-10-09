@@ -5,7 +5,7 @@ import HeaderControls from './HeaderControls';
 
 const AuthenticatedHeaderControls: React.FC = () => {
     const { addLogEntry } = useScales();
-    const { currentBPM, handleBpmChange } = useGlobalBPM();
+    const { currentBPM } = useGlobalBPM();
 
     const handleLogSession = (durationMinutes: number) => {
         // When logging a timed session, we log a general entry without specific scale/dohnanyi items, 
@@ -19,8 +19,6 @@ const AuthenticatedHeaderControls: React.FC = () => {
 
     return (
         <HeaderControls 
-            currentBPM={currentBPM} 
-            onBpmChange={handleBpmChange} 
             onLogSession={handleLogSession} 
         />
     );
