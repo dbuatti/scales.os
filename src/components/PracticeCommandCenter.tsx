@@ -3,39 +3,25 @@
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useScales, NextFocus } from '@/context/ScalesContext';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import ScalePracticePanel from './ScalePracticePanel';
-import DohnanyiPracticePanel from './DohnanyiPracticePanel';
-import HanonPracticePanel from './HanonPracticePanel';
-import RepertoirePanel from './RepertoirePanel';
-import { cn, getCategoryColorClasses } from '@/lib/utils';
+import { cn } from '@/lib/utils';
 import { useGlobalBPM } from '@/context/GlobalBPMContext';
-import { MIN_BPM, MAX_BPM } from '@/lib/scales';
 import { formatDistanceToNow, isSameDay } from 'date-fns';
 import { useNavigate } from 'react-router-dom';
 import PracticeSummaryPanel from './PracticeSummaryPanel';
 import { Button } from '@/components/ui/button';
 import { showSuccess } from '@/utils/toast';
-import { RefreshCw, Target, Settings2, Keyboard, Save, Clock, Activity, Music, Dumbbell, BookOpen, Sparkles } from 'lucide-react';
+import { RefreshCw, Target, Settings2, Keyboard, Clock, Activity } from 'lucide-react';
 import { useZenMode } from '@/context/ZenModeContext';
 import PageHeader from './PageHeader';
-import QuickAccess, { QuickTarget } from './QuickAccess';
+import HomeModes from './HomeModes';
 import TempoControl from './TempoControl';
-import { useRepertoire } from '@/context/RepertoireContext';
-
-const PRACTICE_TABS = [
-  { value: 'scales', label: 'Scales', icon: Music, color: 'text-indigo-500' },
-  { value: 'dohnanyi', label: 'Dohnányi', icon: Sparkles, color: 'text-cyan-500' },
-  { value: 'hanon', label: 'Hanon', icon: Dumbbell, color: 'text-amber-500' },
-  { value: 'repertoire', label: 'Repertoire', icon: BookOpen, color: 'text-emerald-500' },
-] as const;
 
 const PracticeCommandCenter: React.FC = () => {
   const {
     addLogEntry,
     allScales,
     log,
-    progressMap,
     updatePracticeStatus,
     updateScaleMasteryBPM,
     scaleMasteryBPMMap,
@@ -46,7 +32,6 @@ const PracticeCommandCenter: React.FC = () => {
 
   const {
     currentBPM,
-    activePermutationHighestBPM,
     activePracticeItem,
     setCurrentBPM,
     setActivePermutationHighestBPM,
@@ -56,7 +41,6 @@ const PracticeCommandCenter: React.FC = () => {
   } = useGlobalBPM();
 
   const { isZenMode } = useZenMode();
-  const { hasMappingsForSource } = useRepertoire();
   const navigate = useNavigate();
 
   const targetBpm = activePracticeItem
@@ -65,19 +49,21 @@ const PracticeCommandCenter: React.FC = () => {
       : activePracticeItem.nextTargetBPM
     : null;
 
-  const [activeTab, setActiveTab] = useState<'scales' | 'dohnanyi' | 'hanon' | 'repertoire'>('scales');
-  const [isTabManuallySelected, setIsTabManuallySelected] = useState(false);
+  const [mode, setMode] = useState<'scales' | 'arpeggios'>('scales');
   const [isEngagingSuggestion, setIsEngagingSuggestion] = useState(false);
   const [scaleQuickPick, setScaleQuickPick] = useState<{ kind: 'scale' | 'arpeggio'; nonce: number } | null>(null);
 
-  // Keyboard Shortcuts
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.target !== document.body) return;
-      
-      if (e.key === 'ArrowUp') { e.preventDefault(); handleBpmChange(1); }
-      else if (e.key === 'ArrowDown') { e.preventDefault(); handleBpmChange(-1); }
-      else if (e.key.toLowerCase() === 's' || e.key === 'Enter') {
+
+      if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        handleBpmChange(1);
+      } else if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        handleBpmChange(-1);
+      } else if (e.key.toLowerCase() === 's' || e.key === 'Enter') {
         e.preventDefault();
         activeLogSnapshotFunction?.();
       }
@@ -86,194 +72,104 @@ const PracticeCommandCenter: React.FC = () => {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [handleBpmChange, activeLogSnapshotFunction]);
 
-  useEffect(() => {
-    if (nextFocus && !isTabManuallySelected && !isEngagingSuggestion) {
-      const targetTab = (nextFocus.type === 'scale' || nextFocus.type === 'arpeggio') ? 'scales' : nextFocus.type;
-      setActiveTab(targetTab as any);
-    }
-  }, [nextFocus, isTabManuallySelected, isEngagingSuggestion]);
+  const handleLoadSuggestion = useCallback(
+    async (item: NextFocus) => {
+      if (!item) return;
+      if (item.type === 'dohnanyi' || item.type === 'hanon') {
+        showSuccess(`Opening Technical for ${item.name}`);
+        navigate('/reader');
+        return;
+      }
+      setIsEngagingSuggestion(true);
+      setIsPermutationManuallyAdjusted(false);
+      setActivePermutationHighestBPM(0);
+      const kind = item.type === 'arpeggio' ? 'arpeggio' : 'scale';
+      setMode(kind === 'arpeggio' ? 'arpeggios' : 'scales');
+      setScaleQuickPick({ kind, nonce: Date.now() });
+      showSuccess(`Loaded suggestion: ${item.scaleItem.key} ${item.scaleItem.type}`);
+      await new Promise((resolve) => setTimeout(resolve, 300));
+      setIsEngagingSuggestion(false);
+    },
+    [setIsPermutationManuallyAdjusted, setActivePermutationHighestBPM, navigate],
+  );
 
-  const handleLoadSuggestion = useCallback(async (item: NextFocus) => {
-    if (!item) return;
-    setIsEngagingSuggestion(true);
-    setIsPermutationManuallyAdjusted(false);
-    setIsTabManuallySelected(false);
-    const targetTab = (item.type === 'scale' || item.type === 'arpeggio') ? 'scales' : item.type;
-    setActiveTab(targetTab as any);
-    setActivePermutationHighestBPM(0);
-    
-    const label = (item.type === 'scale' || item.type === 'arpeggio') 
-      ? `${item.scaleItem.key} ${item.scaleItem.type}` 
-      : (item as any).name;
-      
-    showSuccess(`Loaded suggestion: ${label}`);
-    await new Promise(resolve => setTimeout(resolve, 300)); 
-    setIsEngagingSuggestion(false);
-  }, [setIsPermutationManuallyAdjusted, setActivePermutationHighestBPM]);
-
-  const handleQuickSelect = useCallback((target: QuickTarget) => {
-    setIsTabManuallySelected(true);
-    if (target === 'reader') {
-      navigate('/reader');
-      return;
-    }
-    if (target === 'arpeggios') {
-      setScaleQuickPick({ kind: 'arpeggio', nonce: Date.now() });
-      setActiveTab('scales');
-      return;
-    }
-    if (target === 'scales') {
-      setScaleQuickPick({ kind: 'scale', nonce: Date.now() });
-      setActiveTab('scales');
-      return;
-    }
-    setActiveTab(target);
-  }, [navigate]);
-
-  const handleOpenReader = useCallback(() => {
-    setIsTabManuallySelected(true);
-    navigate('/reader');
-  }, [navigate]);
+  const handleSelectMode = useCallback(
+    (target: 'scales' | 'arpeggios' | 'technical') => {
+      if (target === 'technical') {
+        navigate('/reader');
+        return;
+      }
+      setMode(target);
+      setScaleQuickPick({
+        kind: target === 'arpeggios' ? 'arpeggio' : 'scale',
+        nonce: Date.now(),
+      });
+    },
+    [navigate],
+  );
 
   const todayStats = useMemo(() => {
     const today = new Date();
-    const todayLogs = log.filter(entry => isSameDay(new Date(entry.timestamp), today));
-    
+    const todayLogs = log.filter((entry) => isSameDay(new Date(entry.timestamp), today));
     const totalMinutes = todayLogs.reduce((sum, entry) => sum + entry.durationMinutes, 0);
     const itemsPracticed = todayLogs.reduce((sum, entry) => sum + entry.itemsPracticed.length, 0);
-    
     return { totalMinutes, itemsPracticed };
   }, [log]);
 
   const lastLogEntry = useMemo(() => {
     const entry = log[0];
     if (!entry) return null;
-    return {
-      timestamp: entry.timestamp,
-      duration: entry.durationMinutes,
-    };
+    return { timestamp: entry.timestamp, duration: entry.durationMinutes };
   }, [log]);
 
   const suggestedLabel = nextFocus
-    ? (nextFocus.type === 'scale' || nextFocus.type === 'arpeggio')
+    ? 'scaleItem' in nextFocus
       ? `${nextFocus.scaleItem.key} ${nextFocus.scaleItem.type}`
-      : (nextFocus as any).name
+      : nextFocus.name
     : 'None';
 
   return (
-    <div className={cn("max-w-7xl mx-auto space-y-10 px-4 md:px-8 transition-all duration-500", isZenMode && "max-w-4xl")}>
-      {!isZenMode && (
-        <PageHeader
-          eyebrow="Practice"
-          title="Command Center"
-          description="Focus on your technique, adjust tempo, and track every session."
-          actions={
-            nextFocus && (
-              <Card className="bg-primary/5 border-primary/20 shadow-sm">
-                <CardContent className="p-5 flex items-center gap-6">
-                  <div className="space-y-1">
-                    <p className="text-xs font-bold uppercase tracking-widest text-primary/60">Suggested Focus</p>
-                    <p className="text-lg font-semibold">{suggestedLabel}</p>
-                  </div>
-                  <Button size="lg" onClick={() => handleLoadSuggestion(nextFocus)} disabled={isEngagingSuggestion} className="focus-scale">
-                    <Target className="w-5 h-5 mr-2" />
-                    Start Session
-                  </Button>
-                </CardContent>
-              </Card>
-            )
-          }
-        />
+    <div className={cn('max-w-7xl mx-auto space-y-10 px-4 md:px-8 transition-all duration-500', isZenMode && 'max-w-4xl')}>
+      <PageHeader
+        eyebrow="Practice"
+        title="Practice"
+        description="Pick a mode, adjust tempo, and track every session."
+      />
+
+      <HomeModes active={mode} onSelect={handleSelectMode} />
+
+      {nextFocus && (
+        <Card className="bg-primary/5 border-primary/20 shadow-sm">
+          <CardContent className="flex flex-col gap-4 p-5 sm:flex-row sm:items-center sm:justify-between">
+            <div className="space-y-1">
+              <p className="text-xs font-bold uppercase tracking-widest text-primary/60">Suggested Focus</p>
+              <p className="text-lg font-semibold">{suggestedLabel}</p>
+            </div>
+            <Button size="lg" onClick={() => handleLoadSuggestion(nextFocus)} disabled={isEngagingSuggestion} className="focus-scale">
+              <Target className="w-5 h-5 mr-2" />
+              Start Session
+            </Button>
+          </CardContent>
+        </Card>
       )}
 
-      {!isZenMode && (
-        <section className="space-y-3">
-          <h2 className="text-xs font-black uppercase tracking-[0.2em] text-muted-foreground">
-            Quick Access
-          </h2>
-          <QuickAccess
-            onSelect={handleQuickSelect}
-            activeTarget={
-              activeTab === 'repertoire'
-                ? 'reader'
-                : activeTab === 'scales'
-                  ? scaleQuickPick?.kind === 'arpeggio'
-                    ? 'arpeggios'
-                    : 'scales'
-                  : activeTab
-            }
-            pdfSources={{
-              hanon: hasMappingsForSource('hanon'),
-              dohnanyi: hasMappingsForSource('dohnanyi'),
-            }}
-          />
-        </section>
-      )}
-
-      <div className={cn("grid grid-cols-1 gap-10", !isZenMode && "lg:grid-cols-4")}>
-        <div className={cn("space-y-10", !isZenMode ? "lg:col-span-3" : "col-span-1")}>
+      <div className={cn('grid grid-cols-1 gap-10', !isZenMode && 'lg:grid-cols-4')}>
+        <div className={cn('space-y-10', !isZenMode ? 'lg:col-span-3' : 'col-span-1')}>
           <PracticeSummaryPanel />
-          
-          {!isZenMode && (
-            <Tabs value={activeTab} onValueChange={(v) => {
-              setActiveTab(v as any);
-              setActivePermutationHighestBPM(0);
-              setIsPermutationManuallyAdjusted(false);
-              setIsTabManuallySelected(true);
-            }}>
-              <TabsList className="flex h-auto w-full justify-start gap-1 overflow-x-auto rounded-xl bg-muted/50 p-1">
-                {PRACTICE_TABS.map(({ value, label, icon: Icon, color }) => (
-                  <TabsTrigger
-                    key={value}
-                    value={value}
-                    className="h-11 shrink-0 gap-2 rounded-lg px-4 text-sm font-bold shadow-none transition-all data-[state=active]:bg-background data-[state=active]:shadow-sm"
-                  >
-                    <Icon className={cn('h-4 w-4', color)} />
-                    {label}
-                  </TabsTrigger>
-                ))}
-              </TabsList>
 
-              <TabsContent value="scales" className="pt-8">
-                <ScalePracticePanel
-                  suggestedScalePermutation={(nextFocus?.type === 'scale' || nextFocus?.type === 'arpeggio') ? nextFocus : undefined}
-                  currentBPM={currentBPM}
-                  addLogEntry={addLogEntry}
-                  updatePracticeStatus={updatePracticeStatus}
-                  updateScaleMasteryBPM={updateScaleMasteryBPM}
-                  scaleMasteryBPMMap={scaleMasteryBPMMap}
-                  allScales={allScales}
-                  activeTab={activeTab}
-                  quickPick={scaleQuickPick}
-                />
-              </TabsContent>
-              <TabsContent value="dohnanyi" className="pt-8">
-                <DohnanyiPracticePanel
-                  suggestedDohnanyi={nextFocus?.type === 'dohnanyi' ? nextFocus : undefined}
-                  currentBPM={currentBPM}
-                  addLogEntry={addLogEntry}
-                  updatePracticeStatus={updatePracticeStatus}
-                  progressMap={progressMap}
-                  activeTab={activeTab}
-                  onOpenReader={handleOpenReader}
-                />
-              </TabsContent>
-              <TabsContent value="hanon" className="pt-8">
-                <HanonPracticePanel
-                  suggestedHanon={nextFocus?.type === 'hanon' ? nextFocus : undefined}
-                  currentBPM={currentBPM}
-                  addLogEntry={addLogEntry}
-                  updatePracticeStatus={updatePracticeStatus}
-                  progressMap={progressMap}
-                  activeTab={activeTab}
-                  onOpenReader={handleOpenReader}
-                />
-              </TabsContent>
-              <TabsContent value="repertoire" className="pt-8">
-                <RepertoirePanel />
-              </TabsContent>
-            </Tabs>
-          )}
+          <ScalePracticePanel
+            suggestedScalePermutation={
+              nextFocus?.type === 'scale' || nextFocus?.type === 'arpeggio' ? nextFocus : undefined
+            }
+            currentBPM={currentBPM}
+            addLogEntry={addLogEntry}
+            updatePracticeStatus={updatePracticeStatus}
+            updateScaleMasteryBPM={updateScaleMasteryBPM}
+            scaleMasteryBPMMap={scaleMasteryBPMMap}
+            allScales={allScales}
+            activeTab="scales"
+            quickPick={scaleQuickPick}
+          />
         </div>
 
         {!isZenMode && (
@@ -281,8 +177,8 @@ const PracticeCommandCenter: React.FC = () => {
             <Card className="shadow-md border-primary/10">
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
-                    <Settings2 className="w-4 h-4" />
-                    Tempo Control
+                  <Settings2 className="w-4 h-4" />
+                  Tempo Control
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-8">
@@ -310,7 +206,7 @@ const PracticeCommandCenter: React.FC = () => {
                 </div>
                 <div className="pt-4 flex justify-center">
                   <Button variant="ghost" size="sm" onClick={refetchData} disabled={isScalesContextLoading} className="text-xs font-bold text-muted-foreground hover:text-primary transition-colors">
-                    <RefreshCw className={cn("w-3 h-3 mr-2", isScalesContextLoading && "animate-spin")} />
+                    <RefreshCw className={cn('w-3 h-3 mr-2', isScalesContextLoading && 'animate-spin')} />
                     Sync Progress
                   </Button>
                 </div>
