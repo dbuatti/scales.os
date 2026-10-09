@@ -1,6 +1,7 @@
 import React from 'react';
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import { ScalesProvider } from '@/context/ScalesContext';
+import { RepertoireProvider } from '@/context/RepertoireContext';
 import AppLayout from './AppLayout';
 import AuthenticatedHeaderControls from './AuthenticatedHeaderControls';
 import { Button } from '@/components/ui/button';
@@ -111,9 +112,11 @@ const AuthenticatedShell: React.FC = () => {
 
   return (
     <ScalesProvider>
-      <AppLayout headerRightContent={authenticatedHeaderRightContent} mobileNav={mobileNav}>
-        <Outlet />
-      </AppLayout>
+      <RepertoireProvider>
+        <AppLayout headerRightContent={authenticatedHeaderRightContent} mobileNav={mobileNav}>
+          <Outlet />
+        </AppLayout>
+      </RepertoireProvider>
     </ScalesProvider>
   );
 };

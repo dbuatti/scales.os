@@ -60,7 +60,7 @@ const Metronome: React.FC<MetronomeProps> = ({ showSettings = true }) => {
           onClick={tapTempo}
           variant="outline"
           size="sm"
-          className="font-bold text-xs border-primary/20 text-primary hover:bg-primary/5 focus-scale"
+          className="h-10 font-bold text-xs border-primary/20 text-primary hover:bg-primary/5 focus-scale"
         >
           <Fingerprint className="w-3 h-3 mr-1.5" /> TAP
         </Button>
@@ -72,14 +72,14 @@ const Metronome: React.FC<MetronomeProps> = ({ showSettings = true }) => {
               variant="outline"
               size="sm"
               className={cn(
-                "font-bold text-xs border-primary/20 focus-scale",
+                "h-10 font-bold text-xs border-primary/20 focus-scale",
                 (autoIncrementEnabled || visualFlashEnabled) && "bg-primary/10 text-primary border-primary/40"
               )}
             >
               <Settings2 className="w-3 h-3 mr-1.5" /> SETTINGS
             </Button>
           </PopoverTrigger>
-          <PopoverContent className="w-72 p-4 space-y-6 font-mono">
+          <PopoverContent className="w-72 p-4 space-y-6 text-sm">
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <Label className="text-xs font-bold uppercase tracking-widest">Volume</Label>
@@ -108,7 +108,7 @@ const Metronome: React.FC<MetronomeProps> = ({ showSettings = true }) => {
                   variant={visualFlashEnabled ? "default" : "outline"}
                   size="sm"
                   onClick={toggleVisualFlash}
-                  className="h-7 w-12 p-0"
+                  className="h-9 w-14 p-0"
                 >
                   {visualFlashEnabled ? <Zap className="w-3 h-3" /> : <ZapOff className="w-3 h-3" />}
                 </Button>
@@ -125,7 +125,7 @@ const Metronome: React.FC<MetronomeProps> = ({ showSettings = true }) => {
                   variant={autoIncrementEnabled ? "default" : "outline"}
                   size="sm"
                   onClick={() => setAutoIncrementEnabled(!autoIncrementEnabled)}
-                  className="h-7 text-[10px] px-2"
+                  className="h-9 text-[10px] px-3"
                 >
                   {autoIncrementEnabled ? "ON" : "OFF"}
                 </Button>
@@ -139,7 +139,7 @@ const Metronome: React.FC<MetronomeProps> = ({ showSettings = true }) => {
                       type="number"
                       value={incrementAmount}
                       onChange={(e) => setIncrementAmount(Number(e.target.value))}
-                      className="w-16 h-8 text-xs"
+                      className="w-16 h-9 text-xs"
                     />
                   </div>
                   <div className="flex items-center justify-between gap-4">
@@ -148,7 +148,7 @@ const Metronome: React.FC<MetronomeProps> = ({ showSettings = true }) => {
                       type="number"
                       value={incrementEvery}
                       onChange={(e) => setIncrementEvery(Number(e.target.value))}
-                      className="w-16 h-8 text-xs"
+                      className="w-16 h-9 text-xs"
                     />
                   </div>
                 </div>
@@ -163,7 +163,7 @@ const Metronome: React.FC<MetronomeProps> = ({ showSettings = true }) => {
         onClick={toggleMuted}
         variant="ghost"
         size="icon"
-        className="text-primary hover:bg-primary/10 focus-scale"
+        className="h-10 w-10 text-primary hover:bg-primary/10 focus-scale"
       >
         {isMuted ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
       </Button>
@@ -176,13 +176,13 @@ const Metronome: React.FC<MetronomeProps> = ({ showSettings = true }) => {
       >
         <ToggleGroupItem
           value="quarter"
-          className="data-[state=on]:bg-primary data-[state=on]:text-primary-foreground text-[10px] font-bold h-8 px-3 focus-scale"
+          className="data-[state=on]:bg-primary data-[state=on]:text-primary-foreground text-[10px] font-bold h-10 px-3 focus-scale"
         >
           <Clock className="w-3 h-3 mr-1.5" /> 1/4
         </ToggleGroupItem>
         <ToggleGroupItem
           value="eighth"
-          className="data-[state=on]:bg-primary data-[state=on]:text-primary-foreground text-[10px] font-bold h-8 px-3 focus-scale"
+          className="data-[state=on]:bg-primary data-[state=on]:text-primary-foreground text-[10px] font-bold h-10 px-3 focus-scale"
         >
           <Music className="w-3 h-3 mr-1.5" /> 1/8
         </ToggleGroupItem>
@@ -190,7 +190,7 @@ const Metronome: React.FC<MetronomeProps> = ({ showSettings = true }) => {
 
       <div
         className={cn(
-          "w-12 h-12 rounded-xl transition-all duration-150 flex-shrink-0 border-2 border-primary/10 flex items-center justify-center relative overflow-hidden",
+          "w-12 h-12 rounded-xl transition-all duration-150 flex-shrink-0 border border-primary/10 flex items-center justify-center relative overflow-hidden",
           isRunning ? "bg-muted/10" : "bg-muted/20"
         )}
       >

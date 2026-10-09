@@ -15,11 +15,12 @@ interface DohnanyiPracticePanelProps {
     progressMap: ReturnType<typeof useScales>['progressMap']; // Re-added
     activeTab: 'scales' | 'dohnanyi' | 'hanon' | 'repertoire';
     suggestedDohnanyi: (NextFocus & { type: 'dohnanyi' }) | undefined;
+    onOpenReader?: () => void;
 }
 
 const DohnanyiPracticePanel: React.FC<DohnanyiPracticePanelProps> = ({ 
   currentBPM, addLogEntry, updatePracticeStatus, progressMap, 
-  activeTab, suggestedDohnanyi
+  activeTab, suggestedDohnanyi, onOpenReader
 }) => {
   
   const { 
@@ -144,6 +145,8 @@ const DohnanyiPracticePanel: React.FC<DohnanyiPracticePanelProps> = ({
         highestMasteredBPM={highestMasteredBPM}
         nextGoalBPM={nextBPMGoal}
         maxTargetBPM={DOHNANYI_BPM_TARGETS[DOHNANYI_BPM_TARGETS.length - 1]}
+        exerciseId={currentExerciseBaseId}
+        onOpenReader={onOpenReader}
     />
   );
 };

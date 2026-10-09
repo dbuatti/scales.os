@@ -47,6 +47,7 @@ interface PdfViewerProps {
   className?: string;
   layout?: 'vertical' | 'horizontal';
   zoom?: number;
+  onZoomChange?: (zoom: number) => void;
 }
 
 interface PdfPageProps {
@@ -191,6 +192,7 @@ const PdfViewer = React.forwardRef<PdfViewerHandle, PdfViewerProps>(({
   className,
   layout = 'vertical',
   zoom = 1,
+  onZoomChange,
 }, ref) => {
   const scrollRef = useRef<HTMLDivElement>(null);
   const pagesRef = useRef<HTMLDivElement>(null);
@@ -200,6 +202,10 @@ const PdfViewer = React.forwardRef<PdfViewerHandle, PdfViewerProps>(({
   const didJumpRef = useRef(false);
   const onPageChangeRef = useRef(onPageChange);
   onPageChangeRef.current = onPageChange;
+  const zoomRef = useRef(zoom);
+  zoomRef.current = zoom;
+  const onZoomChangeRef = useRef(onZoomChange);
+  onZoomChangeRef.current = onZoomChange;
 
   const [pdf, setPdf] = useState<PDFDocumentProxy | null>(null);
   const [pageCount, setPageCount] = useState(0);
@@ -354,6 +360,11 @@ const PdfViewer = React.forwardRef<PdfViewerHandle, PdfViewerProps>(({
 
   const handleWheel = useCallback(
     (event: React.WheelEvent<HTMLDivElement>) => {
+      if (event.ctrlKey && onZoomChangeRef.current) {
+        const next = Math.min(3, Math.max(0.5, zoomRef.current - event.deltaY * 0.002));
+        onZoomChangeRef.current(next);
+        return;
+      }
       if (layout !== 'horizontal') return;
       const container = scrollRef.current;
       if (!container) return;
@@ -366,6 +377,52 @@ const PdfViewer = React.forwardRef<PdfViewerHandle, PdfViewerProps>(({
     [layout],
   );
 
+  // Two-finger pinch-zoom on touch devices. Tracked with pointer events and
+  // refs so repeated zoom updates don't re-bind the listeners mid-gesture.
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    const pointers = new Map<number, { x: number; y: number }>();
+    let pinch: { distance: number; zoom: number } | null = null;
+
+    const onPointerDown = (event: PointerEvent) => {
+      if (event.pointerType !== 'touch') return;
+      pointers.set(event.pointerId, { x: event.clientX, y: event.clientY });
+      if (pointers.size === 2) {
+        const [a, b] = [...pointers.values()];
+        pinch = { distance: Math.hypot(a.x - b.x, a.y - b.y), zoom: zoomRef.current };
+      }
+    };
+
+    const onPointerMove = (event: PointerEvent) => {
+      if (!pointers.has(event.pointerId)) return;
+      pointers.set(event.pointerId, { x: event.clientX, y: event.clientY });
+      if (pointers.size >= 2 && pinch && pinch.distance > 0 && onZoomChangeRef.current) {
+        const [a, b] = [...pointers.values()];
+        const distance = Math.hypot(a.x - b.x, a.y - b.y);
+        const next = Math.min(3, Math.max(0.5, pinch.zoom * (distance / pinch.distance)));
+        onZoomChangeRef.current(next);
+        event.preventDefault();
+      }
+    };
+
+    const endPointer = (event: PointerEvent) => {
+      pointers.delete(event.pointerId);
+      if (pointers.size < 2) pinch = null;
+    };
+
+    el.addEventListener('pointerdown', onPointerDown);
+    el.addEventListener('pointermove', onPointerMove, { passive: false });
+    el.addEventListener('pointerup', endPointer);
+    el.addEventListener('pointercancel', endPointer);
+    return () => {
+      el.removeEventListener('pointerdown', onPointerDown);
+      el.removeEventListener('pointermove', onPointerMove);
+      el.removeEventListener('pointerup', endPointer);
+      el.removeEventListener('pointercancel', endPointer);
+    };
+  }, [source]);
+
   useEffect(() => {
     const mapping = getMappingForPage(mappings, currentPage);
     onPageChangeRef.current?.(currentPage, mapping);
@@ -373,7 +430,7 @@ const PdfViewer = React.forwardRef<PdfViewerHandle, PdfViewerProps>(({
 
   if (!source) {
     return (
-      <div className={cn('flex flex-col items-center justify-center rounded-lg border-2 border-dashed border-border/60 min-h-[420px] text-center p-8', className)}>
+      <div className={cn('flex flex-col items-center justify-center rounded-lg border border-dashed border-border/60 min-h-[420px] text-center p-8', className)}>
         <FileText className="w-10 h-10 text-muted-foreground/40 mb-3" />
         <p className="text-sm font-medium text-muted-foreground">Load a PDF to begin</p>
         <p className="text-xs text-muted-foreground/60 mt-1">Your whole method book works here — no need to split it into separate files.</p>
@@ -398,7 +455,7 @@ const PdfViewer = React.forwardRef<PdfViewerHandle, PdfViewerProps>(({
         onScroll={handleScroll}
         onWheel={handleWheel}
         className={cn(
-          'rounded-lg bg-muted/20 border border-border/60 p-4',
+          'rounded-lg bg-muted/20 border border-border/60 p-4 touch-pan-x touch-pan-y',
           layout === 'horizontal' ? 'overflow-x-auto' : 'overflow-auto',
           scrollClassName,
         )}

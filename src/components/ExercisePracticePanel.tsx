@@ -4,8 +4,11 @@ import { Progress } from '@/components/ui/progress';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Label } from '@/components/ui/label';
-import { Check, ListMusic, Target } from 'lucide-react';
+import { Check, ListMusic, Target, FileText, BookOpen } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
+import { useRepertoire } from '@/context/RepertoireContext';
+import { showSuccess } from '@/utils/toast';
 
 interface ExercisePracticePanelProps {
   title: string;
@@ -18,6 +21,8 @@ interface ExercisePracticePanelProps {
   maxTargetBPM: number;
   formatExercise?: (exercise: string) => string;
   scrollable?: boolean;
+  exerciseId?: string;
+  onOpenReader?: () => void;
 }
 
 export const ExercisePracticePanel: React.FC<ExercisePracticePanelProps> = ({
@@ -31,9 +36,20 @@ export const ExercisePracticePanel: React.FC<ExercisePracticePanelProps> = ({
   maxTargetBPM,
   formatExercise,
   scrollable = false,
+  exerciseId,
+  onOpenReader,
 }) => {
+  const { hasMappingForExercise, openExercise } = useRepertoire();
   const isFullyMastered = highestMasteredBPM >= maxTargetBPM;
   const progressValue = Math.min(100, Math.round((highestMasteredBPM / maxTargetBPM) * 100));
+  const hasPdf = exerciseId ? hasMappingForExercise(exerciseId) : false;
+
+  const handleOpenReader = () => {
+    if (exerciseId && openExercise(exerciseId)) {
+      showSuccess('Opening mapped page in Reader');
+    }
+    onOpenReader?.();
+  };
 
   const exerciseButtons = (
     <ToggleGroup
@@ -102,6 +118,27 @@ export const ExercisePracticePanel: React.FC<ExercisePracticePanelProps> = ({
             <Check className="h-4 w-4" />
             Fully mastered at {maxTargetBPM} BPM
           </div>
+        )}
+
+        {onOpenReader && exerciseId && (
+          <Button
+            type="button"
+            variant={hasPdf ? 'default' : 'outline'}
+            className="h-11 w-full gap-2 rounded-lg font-bold"
+            onClick={handleOpenReader}
+          >
+            {hasPdf ? (
+              <>
+                <FileText className="h-4 w-4" />
+                Open in Reader
+              </>
+            ) : (
+              <>
+                <BookOpen className="h-4 w-4" />
+                Map this exercise in Reader
+              </>
+            )}
+          </Button>
         )}
       </div>
     </CardContent>

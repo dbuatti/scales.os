@@ -159,3 +159,25 @@
     @apply hover:scale-100 active:scale-100;
   }
 }
+
+/* Touch hardening: coarse pointers get bigger, calmer targets */
+@media (pointer: coarse) {
+  html {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  button,
+  a,
+  [role='button'],
+  [role='tab'],
+  input,
+  select,
+  textarea {
+    touch-action: manipulation;
+  }
+
+  /* Hover scale is meaningless on touch and can cause jitter */
+  .focus-scale {
+    @apply hover:scale-100 active:scale-[0.98];
+  }
+}

@@ -15,11 +15,6 @@ import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { cn, shallowEqual, getHandColorClasses } from '@/lib/utils';
 import { Label } from '@/components/ui/label';
 import { useGlobalBPM, SNAPSHOT_DEBOUNCE_MS, ActivePracticeItem } from '@/context/GlobalBPMContext';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
 
 interface PermutationSectionProps<T extends string> {
     title: string;
@@ -49,22 +44,16 @@ const PermutationSection = <T extends string>({ title, description, options, sel
             className="flex flex-wrap gap-2"
         >
             {options.map(option => (
-                <Tooltip key={option}>
-                    <TooltipTrigger asChild>
-                        <ToggleGroupItem 
-                            value={option} 
-                            className={cn(
-                                "h-9 px-4 text-xs font-medium data-[state=on]:bg-primary data-[state=on]:text-primary-foreground focus-scale",
-                                getItemClasses?.(option)
-                            )}
-                        >
-                            {option}
-                        </ToggleGroupItem>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                        <p className="text-xs">{option}</p>
-                    </TooltipContent>
-                </Tooltip>
+                <ToggleGroupItem 
+                    key={option}
+                    value={option} 
+                    className={cn(
+                        "h-9 px-4 text-xs font-medium data-[state=on]:bg-primary data-[state=on]:text-primary-foreground focus-scale",
+                        getItemClasses?.(option)
+                    )}
+                >
+                    {option}
+                </ToggleGroupItem>
             ))}
         </ToggleGroup>
     </div>
@@ -80,11 +69,12 @@ interface ScalePracticePanelProps {
     allScales: ReturnType<typeof useScales>['allScales'];
     activeTab: 'scales' | 'dohnanyi' | 'hanon' | 'repertoire';
     suggestedScalePermutation: (NextFocus & { type: 'scale' | 'arpeggio' }) | undefined;
+    quickPick?: { kind: 'scale' | 'arpeggio'; nonce: number } | null;
 }
 
 const ScalePracticePanel: React.FC<ScalePracticePanelProps> = ({ 
   currentBPM, addLogEntry, updatePracticeStatus, updateScaleMasteryBPM, scaleMasteryBPMMap, allScales, 
-  activeTab, suggestedScalePermutation
+  activeTab, suggestedScalePermutation, quickPick
 }) => {
   
   const { 
@@ -145,6 +135,16 @@ const ScalePracticePanel: React.FC<ScalePracticePanelProps> = ({
     setIsPermutationManuallyAdjusted(true);
     showSuccess(`Randomized: ${randomKey} ${randomType}!`);
   };
+
+  useEffect(() => {
+    if (activeTab !== 'scales' || !quickPick) return;
+    const options = quickPick.kind === 'arpeggio' ? ARPEGGIO_TYPES : SCALE_TYPES;
+    if (selectedType !== options[0]) {
+      setSelectedType(options[0]);
+      lastSuccessfulCallKeyRef.current = '';
+    }
+    setIsPermutationManuallyAdjusted(true);
+  }, [quickPick, activeTab, selectedType, setIsPermutationManuallyAdjusted]);
 
   useEffect(() => {
     if (activeTab === 'scales' && suggestedScalePermutation && !isPermutationManuallyAdjusted) {

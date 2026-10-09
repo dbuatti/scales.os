@@ -15,15 +15,17 @@ import { formatDistanceToNow, isSameDay } from 'date-fns';
 import PracticeSummaryPanel from './PracticeSummaryPanel';
 import { Button } from '@/components/ui/button';
 import { showSuccess } from '@/utils/toast';
-import { RefreshCw, Target, Settings2, Keyboard, Plus, Minus, Save, Clock, Activity } from 'lucide-react';
+import { RefreshCw, Target, Settings2, Keyboard, Plus, Minus, Save, Clock, Activity, Music, Dumbbell, BookOpen, Sparkles } from 'lucide-react';
 import { useZenMode } from '@/context/ZenModeContext';
 import PageHeader from './PageHeader';
+import QuickAccess, { QuickTarget } from './QuickAccess';
+import { useRepertoire } from '@/context/RepertoireContext';
 
 const PRACTICE_TABS = [
-  { value: 'scales', label: 'Scales', activeClass: 'data-[state=active]:border-indigo-500 data-[state=active]:text-indigo-600 dark:data-[state=active]:text-indigo-400' },
-  { value: 'dohnanyi', label: 'Dohnányi', activeClass: 'data-[state=active]:border-cyan-500 data-[state=active]:text-cyan-600 dark:data-[state=active]:text-cyan-400' },
-  { value: 'hanon', label: 'Hanon', activeClass: 'data-[state=active]:border-amber-500 data-[state=active]:text-amber-600 dark:data-[state=active]:text-amber-400' },
-  { value: 'repertoire', label: 'Repertoire', activeClass: 'data-[state=active]:border-fuchsia-500 data-[state=active]:text-fuchsia-600 dark:data-[state=active]:text-fuchsia-400' },
+  { value: 'scales', label: 'Scales', icon: Music, color: 'text-indigo-500' },
+  { value: 'dohnanyi', label: 'Dohnányi', icon: Sparkles, color: 'text-cyan-500' },
+  { value: 'hanon', label: 'Hanon', icon: Dumbbell, color: 'text-amber-500' },
+  { value: 'repertoire', label: 'Repertoire', icon: BookOpen, color: 'text-emerald-500' },
 ] as const;
 
 const PracticeCommandCenter: React.FC = () => {
@@ -51,10 +53,12 @@ const PracticeCommandCenter: React.FC = () => {
   } = useGlobalBPM();
 
   const { isZenMode } = useZenMode();
+  const { hasMappingsForSource } = useRepertoire();
 
   const [activeTab, setActiveTab] = useState<'scales' | 'dohnanyi' | 'hanon' | 'repertoire'>('scales');
   const [isTabManuallySelected, setIsTabManuallySelected] = useState(false);
   const [isEngagingSuggestion, setIsEngagingSuggestion] = useState(false);
+  const [scaleQuickPick, setScaleQuickPick] = useState<{ kind: 'scale' | 'arpeggio'; nonce: number } | null>(null);
 
   // Keyboard Shortcuts
   useEffect(() => {
@@ -96,6 +100,30 @@ const PracticeCommandCenter: React.FC = () => {
     await new Promise(resolve => setTimeout(resolve, 300)); 
     setIsEngagingSuggestion(false);
   }, [setIsPermutationManuallyAdjusted, setActivePermutationHighestBPM]);
+
+  const handleQuickSelect = useCallback((target: QuickTarget) => {
+    setIsTabManuallySelected(true);
+    if (target === 'reader') {
+      setActiveTab('repertoire');
+      return;
+    }
+    if (target === 'arpeggios') {
+      setScaleQuickPick({ kind: 'arpeggio', nonce: Date.now() });
+      setActiveTab('scales');
+      return;
+    }
+    if (target === 'scales') {
+      setScaleQuickPick({ kind: 'scale', nonce: Date.now() });
+      setActiveTab('scales');
+      return;
+    }
+    setActiveTab(target);
+  }, []);
+
+  const handleOpenReader = useCallback(() => {
+    setIsTabManuallySelected(true);
+    setActiveTab('repertoire');
+  }, []);
 
   const todayStats = useMemo(() => {
     const today = new Date();
@@ -148,6 +176,30 @@ const PracticeCommandCenter: React.FC = () => {
         />
       )}
 
+      {!isZenMode && (
+        <section className="space-y-3">
+          <h2 className="text-xs font-black uppercase tracking-[0.2em] text-muted-foreground">
+            Quick Access
+          </h2>
+          <QuickAccess
+            onSelect={handleQuickSelect}
+            activeTarget={
+              activeTab === 'repertoire'
+                ? 'reader'
+                : activeTab === 'scales'
+                  ? scaleQuickPick?.kind === 'arpeggio'
+                    ? 'arpeggios'
+                    : 'scales'
+                  : activeTab
+            }
+            pdfSources={{
+              hanon: hasMappingsForSource('hanon'),
+              dohnanyi: hasMappingsForSource('dohnanyi'),
+            }}
+          />
+        </section>
+      )}
+
       <div className={cn("grid grid-cols-1 gap-10", !isZenMode && "lg:grid-cols-4")}>
         <div className={cn("space-y-10", !isZenMode ? "lg:col-span-3" : "col-span-1")}>
           <PracticeSummaryPanel />
@@ -159,16 +211,14 @@ const PracticeCommandCenter: React.FC = () => {
               setIsPermutationManuallyAdjusted(false);
               setIsTabManuallySelected(true);
             }}>
-              <TabsList className="flex h-auto w-full justify-start gap-2 overflow-x-auto rounded-none border-b bg-transparent p-0">
-                {PRACTICE_TABS.map(({ value, label, activeClass }) => (
+              <TabsList className="flex h-auto w-full justify-start gap-1 overflow-x-auto rounded-xl bg-muted/50 p-1">
+                {PRACTICE_TABS.map(({ value, label, icon: Icon, color }) => (
                   <TabsTrigger
                     key={value}
                     value={value}
-                    className={cn(
-                      "shrink-0 rounded-none border-b-4 border-transparent px-1 pb-4 text-base font-bold shadow-none transition-all data-[state=active]:bg-transparent",
-                      activeClass,
-                    )}
+                    className="h-11 shrink-0 gap-2 rounded-lg px-4 text-sm font-bold shadow-none transition-all data-[state=active]:bg-background data-[state=active]:shadow-sm"
                   >
+                    <Icon className={cn('h-4 w-4', color)} />
                     {label}
                   </TabsTrigger>
                 ))}
@@ -184,6 +234,7 @@ const PracticeCommandCenter: React.FC = () => {
                   scaleMasteryBPMMap={scaleMasteryBPMMap}
                   allScales={allScales}
                   activeTab={activeTab}
+                  quickPick={scaleQuickPick}
                 />
               </TabsContent>
               <TabsContent value="dohnanyi" className="pt-8">
@@ -194,6 +245,7 @@ const PracticeCommandCenter: React.FC = () => {
                   updatePracticeStatus={updatePracticeStatus}
                   progressMap={progressMap}
                   activeTab={activeTab}
+                  onOpenReader={handleOpenReader}
                 />
               </TabsContent>
               <TabsContent value="hanon" className="pt-8">
@@ -204,6 +256,7 @@ const PracticeCommandCenter: React.FC = () => {
                   updatePracticeStatus={updatePracticeStatus}
                   progressMap={progressMap}
                   activeTab={activeTab}
+                  onOpenReader={handleOpenReader}
                 />
               </TabsContent>
               <TabsContent value="repertoire" className="pt-8">

@@ -51,7 +51,8 @@ import { useGlobalBPM } from '@/context/GlobalBPMContext';
 import { useScales } from '@/context/ScalesContext';
 import { cn, shallowEqual } from '@/lib/utils';
 import { showSuccess, showError } from '@/utils/toast';
-import { useRepertoireData, SavedDocument } from '@/hooks/use-repertoire-data';
+import { SavedDocument } from '@/hooks/use-repertoire-data';
+import { useRepertoire } from '@/context/RepertoireContext';
 import {
   PageMapping,
   RepertoireMode,
@@ -314,7 +315,7 @@ const ReaderToolbar: React.FC<ReaderToolbarProps> = ({
     <Button
       variant="outline"
       size="icon"
-      className="h-8 w-8"
+      className="h-10 w-10"
       onClick={onPrevious}
       disabled={pageNumber <= 1}
       aria-label="Previous page"
@@ -322,7 +323,7 @@ const ReaderToolbar: React.FC<ReaderToolbarProps> = ({
       <ChevronLeft className="w-4 h-4" />
     </Button>
 
-    <div className="flex items-center gap-1.5 font-mono text-sm">
+    <div className="flex items-center gap-1.5 text-sm">
       <Input
         value={pageInput}
         onChange={(e) => onPageInputChange(e.target.value)}
@@ -334,7 +335,7 @@ const ReaderToolbar: React.FC<ReaderToolbarProps> = ({
         }}
         onBlur={onCommitPageInput}
         aria-label="Page number"
-        className="w-16 h-8 px-2 text-center text-xs"
+        className="w-16 h-10 px-2 text-center text-sm tabular-nums"
       />
       <span className="text-muted-foreground text-xs">/ {pageCount || '—'}</span>
     </div>
@@ -342,7 +343,7 @@ const ReaderToolbar: React.FC<ReaderToolbarProps> = ({
     <Button
       variant="outline"
       size="icon"
-      className="h-8 w-8"
+      className="h-10 w-10"
       onClick={onNext}
       disabled={pageCount > 0 && pageNumber >= pageCount}
       aria-label="Next page"
@@ -351,7 +352,7 @@ const ReaderToolbar: React.FC<ReaderToolbarProps> = ({
     </Button>
 
     <Select value={quality} onValueChange={(value) => onQualityChange(value as 'standard' | 'retina')}>
-      <SelectTrigger className="h-8 w-[104px] text-xs">
+      <SelectTrigger className="h-10 w-[104px] text-xs">
         <SelectValue />
       </SelectTrigger>
       <SelectContent>
@@ -364,7 +365,7 @@ const ReaderToolbar: React.FC<ReaderToolbarProps> = ({
       <Button
         variant="ghost"
         size="icon"
-        className="h-8 w-8 rounded-r-none"
+        className="h-10 w-10 rounded-r-none"
         onClick={onZoomOut}
         disabled={zoom <= 0.5}
         aria-label="Zoom out"
@@ -375,7 +376,7 @@ const ReaderToolbar: React.FC<ReaderToolbarProps> = ({
       <button
         type="button"
         onClick={onZoomReset}
-        className="h-8 min-w-[52px] border-x px-2 text-xs font-bold tabular-nums text-muted-foreground transition-colors hover:text-foreground"
+        className="h-10 min-w-[56px] border-x px-2 text-xs font-bold tabular-nums text-muted-foreground transition-colors hover:text-foreground"
         title="Reset zoom to 100%"
       >
         {Math.round(zoom * 100)}%
@@ -383,7 +384,7 @@ const ReaderToolbar: React.FC<ReaderToolbarProps> = ({
       <Button
         variant="ghost"
         size="icon"
-        className="h-8 w-8 rounded-l-none"
+        className="h-10 w-10 rounded-l-none"
         onClick={onZoomIn}
         disabled={zoom >= 3}
         aria-label="Zoom in"
@@ -402,7 +403,7 @@ const ReaderToolbar: React.FC<ReaderToolbarProps> = ({
               key={mapping.id}
               variant={isCurrent ? 'default' : 'outline'}
               size="sm"
-              className="h-7 px-2 text-[11px] font-bold focus-scale"
+              className="h-9 px-3 text-[11px] font-bold focus-scale"
               onClick={() => onJumpPage(mapping.pageStart)}
               title={`Jump to p.${mapping.pageStart}: ${mapping.label || mapping.exerciseId || 'unlabelled'}`}
             >
@@ -419,7 +420,7 @@ const ReaderToolbar: React.FC<ReaderToolbarProps> = ({
           <Button
             variant="secondary"
             size="sm"
-            className="h-8 font-bold focus-scale"
+            className="h-10 font-bold focus-scale"
             disabled={!canBookmark}
             onClick={onOpenBookmark}
           >
@@ -467,7 +468,7 @@ const ReaderToolbar: React.FC<ReaderToolbarProps> = ({
       <Button
         variant="ghost"
         size="icon"
-        className="h-8 w-8 text-muted-foreground"
+        className="h-10 w-10 text-muted-foreground"
         onClick={onToggleFullscreen}
         aria-label={fullscreen ? 'Exit full screen reader' : 'Full screen reader'}
         title={fullscreen ? 'Exit full screen' : 'Full screen'}
@@ -479,7 +480,7 @@ const ReaderToolbar: React.FC<ReaderToolbarProps> = ({
         <Button
           variant="ghost"
           size="icon"
-          className="h-8 w-8 text-muted-foreground"
+          className="h-10 w-10 text-muted-foreground"
           onClick={onPanelToggle}
           aria-label="Toggle bookmarks panel"
           title="Toggle bookmarks panel"
@@ -512,7 +513,10 @@ const RepertoirePanel: React.FC = () => {
     saveMappings,
     updateLastViewedPage,
     updatePageCount,
-  } = useRepertoireData();
+    registerMappings,
+    pendingNavigation,
+    consumeNavigation,
+  } = useRepertoire();
 
   const [selectedDocId, setSelectedDocId] = useState<string | null>(null);
   const [localDocumentId, setLocalDocumentId] = useState<string | null>(null);
@@ -520,6 +524,7 @@ const RepertoirePanel: React.FC = () => {
   const [source, setSource] = useState<string | null>(null);
   const [pageCount, setPageCount] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
+  const [pendingInitialPage, setPendingInitialPage] = useState<number | null>(null);
   const [pageInput, setPageInput] = useState('1');
   const [mappings, setMappings] = useState<PageMapping[]>([]);
   const [isUploading, setIsUploading] = useState(false);
@@ -572,7 +577,7 @@ const RepertoirePanel: React.FC = () => {
   );
 
   const loadDocument = useCallback(
-    async (doc: SavedDocument) => {
+    async (doc: SavedDocument, initialPage?: number) => {
       try {
         const url = await getSignedUrl(doc);
         clearTimers();
@@ -583,9 +588,10 @@ const RepertoirePanel: React.FC = () => {
         setSelectedDocId(doc.id);
         setLocalDocumentId(null);
         setLocalTitle(null);
+        setPendingInitialPage(initialPage ?? null);
         setSource(url);
         setPageCount(doc.page_count || 0);
-        setCurrentPage(doc.last_viewed_page || 1);
+        setCurrentPage(initialPage ?? (doc.last_viewed_page || 1));
         const loaded = await fetchMappings(doc.id);
         setMappings(sortMappings(loaded));
       } catch (err) {
@@ -605,6 +611,7 @@ const RepertoirePanel: React.FC = () => {
       setSelectedDocId(null);
       setLocalDocumentId(localId);
       setLocalTitle(file.name);
+      setPendingInitialPage(null);
       setSource(url);
       setPageCount(0);
       setCurrentPage(1);
@@ -645,6 +652,7 @@ const RepertoirePanel: React.FC = () => {
       setSelectedDocId(null);
       setLocalDocumentId(null);
       setLocalTitle(null);
+      setPendingInitialPage(null);
       setSource(null);
       setPageCount(0);
       setCurrentPage(1);
@@ -748,6 +756,10 @@ const RepertoirePanel: React.FC = () => {
     [selectedDocId, documents, updatePageCount],
   );
 
+  useEffect(() => {
+    if (activeDocumentId) registerMappings(activeDocumentId, mappings);
+  }, [activeDocumentId, mappings, registerMappings]);
+
   const currentMapping = getMappingForPage(mappings, currentPage);
   const isBookmarkable = !mappings.some(
     (m) => currentPage >= m.pageStart && currentPage <= m.pageEnd,
@@ -766,6 +778,31 @@ const RepertoirePanel: React.FC = () => {
     },
     [pageCount],
   );
+
+  useEffect(() => {
+    if (!pendingNavigation) return;
+    const { docId, page } = pendingNavigation;
+    if (docId === activeDocumentId) {
+      setPendingInitialPage(page);
+      navigatePage(page);
+      consumeNavigation();
+      return;
+    }
+    const doc = documents.find((d) => d.id === docId);
+    if (!doc) {
+      consumeNavigation();
+      return;
+    }
+    void loadDocument(doc, page);
+    consumeNavigation();
+  }, [
+    pendingNavigation,
+    activeDocumentId,
+    documents,
+    navigatePage,
+    loadDocument,
+    consumeNavigation,
+  ]);
 
   const commitPageInput = useCallback(() => {
     const page = parseInt(pageInput, 10);
@@ -1070,11 +1107,12 @@ const RepertoirePanel: React.FC = () => {
                 mappings={mappings}
                 onPageChange={handlePageChange}
                 onDocumentLoaded={handleDocumentLoaded}
-                initialPage={selectedDoc?.last_viewed_page ?? 1}
+                initialPage={pendingInitialPage ?? selectedDoc?.last_viewed_page ?? 1}
                 maxPixelRatio={maxPixelRatio}
                 onBookmark={addBookmark}
                 layout="horizontal"
                 zoom={zoom}
+                onZoomChange={setZoom}
                 className={fullscreen ? 'flex-1 min-h-0' : undefined}
                 scrollClassName={
                   fullscreen

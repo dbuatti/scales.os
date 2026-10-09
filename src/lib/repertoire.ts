@@ -53,6 +53,12 @@ export const getMappingForPage = (
 ): PageMapping | undefined =>
   mappings.find((m) => page >= m.pageStart && page <= m.pageEnd);
 
+export const findMappingForExercise = (
+  mappings: PageMapping[],
+  exerciseId: string,
+): PageMapping | undefined =>
+  exerciseId ? mappings.find((m) => m.exerciseId === exerciseId) : undefined;
+
 export const sortMappings = (mappings: PageMapping[]): PageMapping[] =>
   [...mappings].sort((a, b) => a.pageStart - b.pageStart);
 

@@ -15,11 +15,12 @@ interface HanonPracticePanelProps {
     progressMap: ReturnType<typeof useScales>['progressMap']; // Re-added
     activeTab: 'scales' | 'dohnanyi' | 'hanon' | 'repertoire';
     suggestedHanon: (NextFocus & { type: 'hanon' }) | undefined;
+    onOpenReader?: () => void;
 }
 
 const HanonPracticePanel: React.FC<HanonPracticePanelProps> = ({ 
   currentBPM, addLogEntry, updatePracticeStatus, progressMap, 
-  activeTab, suggestedHanon
+  activeTab, suggestedHanon, onOpenReader
 }) => {
   
   const { 
@@ -146,6 +147,8 @@ const HanonPracticePanel: React.FC<HanonPracticePanelProps> = ({
         maxTargetBPM={HANON_BPM_TARGETS[HANON_BPM_TARGETS.length - 1]}
         formatExercise={(exercise) => exercise.replace('Exercise ', 'Ex. ')}
         scrollable
+        exerciseId={currentExerciseBaseId}
+        onOpenReader={onOpenReader}
     />
   );
 };
