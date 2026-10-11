@@ -1,35 +1,9 @@
 import React, { useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react';
 import type { PDFDocumentProxy } from 'pdfjs-dist';
-import pdfjsUrl from 'pdfjs-dist/legacy/build/pdf.min.mjs?url';
-import pdfWorkerUrl from 'pdfjs-dist/legacy/build/pdf.worker.min.mjs?url';
 import { cn } from '@/lib/utils';
 import { getMappingForPage, PageMapping } from '@/lib/repertoire';
+import { loadPdfjs, PDFJS_WASM_BASE, PdfjsModule } from '@/lib/pdfjs';
 import { FileText, Loader2, AlertTriangle, Bookmark as BookmarkIcon } from 'lucide-react';
-
-// Load pdf.js at runtime from its own asset URL. Keeping it out of the Rollup
-// graph is deliberate: inlining the pdf.js module into an app chunk breaks its
-// internal top-level evaluation order under minification.
-type PdfjsModule = typeof import('pdfjs-dist');
-
-const PDFJS_WASM_BASE = `${import.meta.env.BASE_URL}pdfjs-wasm/`;
-
-let pdfjsPromise: Promise<PdfjsModule> | null = null;
-
-function loadPdfjs(): Promise<PdfjsModule> {
-  if (!pdfjsPromise) {
-    pdfjsPromise = import(/* @vite-ignore */ pdfjsUrl)
-      .then((module) => {
-        const mod = module as unknown as PdfjsModule;
-        mod.GlobalWorkerOptions.workerSrc = pdfWorkerUrl;
-        return mod;
-      })
-      .catch((err) => {
-        pdfjsPromise = null;
-        throw err;
-      });
-  }
-  return pdfjsPromise;
-}
 
 export interface PdfViewerHandle {
   scrollToPage: (page: number) => void;

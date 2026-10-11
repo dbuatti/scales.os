@@ -92,6 +92,54 @@ export const clearLastOpenedDocumentId = (): void => {
   }
 };
 
+export type BookSource = 'hanon' | 'dohnanyi';
+
+const BOOK_STORAGE_PREFIX = 'scales.os.repertoire.book.';
+
+export const detectBookSource = (title: string, text?: string): BookSource | null => {
+  const haystack = `${title || ''}\n${text || ''}`.toLowerCase();
+  if (
+    haystack.includes('dohnanyi') ||
+    haystack.includes('dohnányi') ||
+    haystack.includes('essential finger exercise')
+  ) {
+    return 'dohnanyi';
+  }
+  if (haystack.includes('hanon') || haystack.includes('virtuoso pianist')) {
+    return 'hanon';
+  }
+  return null;
+};
+
+export const getStoredBookSource = (documentId: string): BookSource | null => {
+  if (typeof window === 'undefined') return null;
+  try {
+    const raw = window.localStorage.getItem(`${BOOK_STORAGE_PREFIX}${documentId}`);
+    return raw === 'hanon' || raw === 'dohnanyi' ? raw : null;
+  } catch {
+    return null;
+  }
+};
+
+export const setStoredBookSource = (documentId: string, source: BookSource): void => {
+  if (typeof window === 'undefined') return;
+  try {
+    window.localStorage.setItem(`${BOOK_STORAGE_PREFIX}${documentId}`, source);
+  } catch {
+    // Storage may be unavailable (private mode / quota); ignore.
+  }
+};
+
+export const formatDocumentTitle = (raw: string): string => {
+  const withoutExt = raw.replace(/\.pdf$/i, '').trim();
+  const cleaned = withoutExt
+    .replace(/^imslp\s*\d+\s*-\s*pmlp\s*\d+\s*-/i, '')
+    .replace(/[_-]+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+  return cleaned || withoutExt || 'Untitled';
+};
+
 export const loadMappings = (documentId: string): PageMapping[] => {
   if (typeof window === 'undefined') return [];
   try {

@@ -52,6 +52,7 @@ const PdfViewer = React.lazy(() => import('./PdfViewer'));
 import type { PDFDocumentProxy } from 'pdfjs-dist';
 import FloatingTempoIndicator from './FloatingTempoIndicator';
 import ThumbnailRail from './ThumbnailRail';
+import DocumentCover from './DocumentCover';
 import { useGlobalBPM } from '@/context/GlobalBPMContext';
 import { useScales } from '@/context/ScalesContext';
 import { cn, shallowEqual } from '@/lib/utils';
@@ -73,6 +74,10 @@ import {
   getLastOpenedDocumentId,
   setLastOpenedDocumentId,
   clearLastOpenedDocumentId,
+  detectBookSource,
+  formatDocumentTitle,
+  getStoredBookSource,
+  setStoredBookSource,
 } from '@/lib/repertoire';
 
 const ViewerFallback: React.FC = () => (
@@ -871,6 +876,30 @@ const RepertoirePanel: React.FC = () => {
     void loadDocument(doc);
   }, [activeDocumentId, documents, loadDocument, pendingNavigation]);
 
+  useEffect(() => {
+    if (!pdfProxy || !selectedDoc) return;
+    if (getStoredBookSource(selectedDoc.id)) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const page = await pdfProxy.getPage(1);
+        const content = await page.getTextContent();
+        const text = content.items
+          .map((item) => ('str' in item ? item.str : ''))
+          .join(' ');
+        const detected = detectBookSource(selectedDoc.title, text);
+        if (!cancelled && detected) {
+          setStoredBookSource(selectedDoc.id, detected);
+        }
+      } catch {
+        // non-critical; the filename-based tag still applies
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [pdfProxy, selectedDoc]);
+
   const currentMapping = getMappingForPage(mappings, currentPage);
   const isBookmarkable = !mappings.some(
     (m) => currentPage >= m.pageStart && currentPage <= m.pageEnd,
@@ -1118,9 +1147,10 @@ const RepertoirePanel: React.FC = () => {
           )}
         </div>
 
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
           {filteredDocuments.map((doc) => {
             const isOpen = doc.id === activeDocumentId;
+            const book = getStoredBookSource(doc.id) ?? detectBookSource(doc.title);
             return (
               <div
                 key={doc.id}
@@ -1131,20 +1161,26 @@ const RepertoirePanel: React.FC = () => {
                   if (e.key === 'Enter' || e.key === ' ') handleSelectDocument(doc.id);
                 }}
                 className={cn(
-                  'group relative flex flex-col gap-2 rounded-xl border bg-card/50 p-4 text-left shadow-sm transition-all cursor-pointer active:scale-[0.98]',
+                  'group relative flex flex-col gap-3 rounded-xl border bg-card/50 p-3 text-left shadow-sm transition-all cursor-pointer active:scale-[0.98]',
                   isOpen
                     ? 'border-primary/40 ring-1 ring-primary/20'
                     : 'border-border hover:border-primary/30 hover:shadow-md',
                 )}
               >
-                <div className="flex items-start justify-between">
-                  <div className="rounded-lg bg-primary/10 p-2 text-primary">
-                    <FileText className="h-4 w-4" />
-                  </div>
+                <div className="relative aspect-[3/4] w-full overflow-hidden rounded-lg border bg-muted/40">
+                  <DocumentCover doc={doc} getSignedUrl={getSignedUrl} />
+                  {isOpen && (
+                    <div className="pointer-events-none absolute inset-0 rounded-lg ring-2 ring-inset ring-primary" />
+                  )}
+                  {book && (
+                    <Badge className="absolute left-2 top-2 text-[9px]">
+                      {book === 'hanon' ? 'Hanon' : 'Dohnányi'}
+                    </Badge>
+                  )}
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="h-7 w-7 text-muted-foreground hover:text-destructive"
+                    className="absolute right-1.5 top-1.5 h-7 w-7 text-white/90 hover:bg-black/30 hover:text-white"
                     onClick={(e) => {
                       e.stopPropagation();
                       void handleDeleteDocument(doc);
@@ -1155,7 +1191,9 @@ const RepertoirePanel: React.FC = () => {
                   </Button>
                 </div>
                 <div className="min-w-0">
-                  <p className="truncate text-sm font-bold leading-tight">{doc.title}</p>
+                  <p className="truncate text-sm font-bold leading-tight">
+                    {formatDocumentTitle(doc.title)}
+                  </p>
                   <p className="text-[11px] text-muted-foreground tabular-nums">
                     {doc.page_count}p · p.{doc.last_viewed_page}
                   </p>
