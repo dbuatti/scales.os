@@ -36,31 +36,6 @@ const TempoControl: React.FC<TempoControlProps> = ({
     onChange(clampBpm(parsed));
   };
 
-  const stepButtons = (size: 'sm' | 'default' = 'default') => (
-    <>
-      <Button
-        variant="outline"
-        size={size}
-        className="h-10 w-10 shrink-0 font-bold tabular-nums"
-        onClick={() => onStep(-5)}
-        aria-label="Decrease by 5 BPM"
-        title="Decrease by 5 BPM"
-      >
-        -5
-      </Button>
-      <Button
-        variant="outline"
-        size="icon"
-        className="h-10 w-10 shrink-0"
-        onClick={() => onStep(-1)}
-        aria-label="Decrease by 1 BPM"
-        title="Decrease by 1 BPM"
-      >
-        <Minus className="h-4 w-4" />
-      </Button>
-    </>
-  );
-
   const numberInput = (
     <Input
       value={draft}
@@ -75,54 +50,64 @@ const TempoControl: React.FC<TempoControlProps> = ({
       className={
         compact
           ? 'h-10 w-14 border-0 bg-transparent text-center text-base font-black tabular-nums'
-          : 'h-14 w-20 text-center text-2xl font-black tabular-nums'
+          : 'h-14 w-full text-center text-3xl font-black tabular-nums'
       }
       aria-label="Tempo in BPM"
     />
   );
 
-  const stepButtonsAfter = (size: 'sm' | 'default' = 'default') => (
-    <>
-      <Button
-        variant="outline"
-        size="icon"
-        className="h-10 w-10 shrink-0"
-        onClick={() => onStep(1)}
-        aria-label="Increase by 1 BPM"
-        title="Increase by 1 BPM"
-      >
-        <Plus className="h-4 w-4" />
-      </Button>
-      <Button
-        variant="outline"
-        size={size}
-        className="h-10 w-10 shrink-0 font-bold tabular-nums"
-        onClick={() => onStep(5)}
-        aria-label="Increase by 5 BPM"
-        title="Increase by 5 BPM"
-      >
-        +5
-      </Button>
-    </>
-  );
-
   if (compact) {
     return (
       <div className="flex items-center rounded-lg border bg-card/50 p-0.5">
-        {stepButtons('sm')}
+        <Button
+          variant="outline"
+          size="icon"
+          className="h-10 w-10 shrink-0 font-bold tabular-nums"
+          onClick={() => onStep(-5)}
+          aria-label="Decrease by 5 BPM"
+        >
+          -5
+        </Button>
+        <Button
+          variant="outline"
+          size="icon"
+          className="h-10 w-10 shrink-0"
+          onClick={() => onStep(-1)}
+          aria-label="Decrease by 1 BPM"
+        >
+          <Minus className="h-4 w-4" />
+        </Button>
         {numberInput}
-        {stepButtonsAfter('sm')}
+        <Button
+          variant="outline"
+          size="icon"
+          className="h-10 w-10 shrink-0"
+          onClick={() => onStep(1)}
+          aria-label="Increase by 1 BPM"
+        >
+          <Plus className="h-4 w-4" />
+        </Button>
+        <Button
+          variant="outline"
+          size="icon"
+          className="h-10 w-10 shrink-0 font-bold tabular-nums"
+          onClick={() => onStep(5)}
+          aria-label="Increase by 5 BPM"
+        >
+          +5
+        </Button>
       </div>
     );
   }
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between gap-3">
-        <div className="flex items-center gap-1.5">
-          {stepButtons()}
-          {numberInput}
-          {stepButtonsAfter()}
+      <div className="flex items-end justify-between gap-3">
+        <div className="flex items-baseline gap-2">
+          <div className="w-full max-w-[150px]">{numberInput}</div>
+          <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+            BPM
+          </span>
         </div>
         {typeof target === 'number' && target > 0 && (
           <div className="flex shrink-0 flex-col items-end text-right">
@@ -137,6 +122,45 @@ const TempoControl: React.FC<TempoControlProps> = ({
         )}
       </div>
 
+      <div className="grid grid-cols-4 gap-1.5">
+        <Button
+          variant="outline"
+          size="sm"
+          className="h-10 font-bold tabular-nums"
+          onClick={() => onStep(-5)}
+          aria-label="Decrease by 5 BPM"
+        >
+          -5
+        </Button>
+        <Button
+          variant="outline"
+          size="sm"
+          className="h-10"
+          onClick={() => onStep(-1)}
+          aria-label="Decrease by 1 BPM"
+        >
+          <Minus className="h-4 w-4" />
+        </Button>
+        <Button
+          variant="outline"
+          size="sm"
+          className="h-10"
+          onClick={() => onStep(1)}
+          aria-label="Increase by 1 BPM"
+        >
+          <Plus className="h-4 w-4" />
+        </Button>
+        <Button
+          variant="outline"
+          size="sm"
+          className="h-10 font-bold tabular-nums"
+          onClick={() => onStep(5)}
+          aria-label="Increase by 5 BPM"
+        >
+          +5
+        </Button>
+      </div>
+
       <Slider
         value={[clampBpm(value)]}
         onValueChange={([next]) => onChange(clampBpm(next))}
@@ -146,13 +170,13 @@ const TempoControl: React.FC<TempoControlProps> = ({
         aria-label="Tempo slider"
       />
 
-      <div className="flex flex-wrap gap-1.5">
+      <div className="grid grid-cols-5 gap-1.5">
         {TEMPO_PRESETS.map((preset) => (
           <Button
             key={preset}
             variant={value === preset ? 'default' : 'outline'}
             size="sm"
-            className="h-7 px-2.5 text-[11px] font-bold tabular-nums"
+            className="h-8 px-0 text-[11px] font-bold tabular-nums"
             onClick={() => onChange(preset)}
           >
             {preset}

@@ -44,20 +44,125 @@ const Metronome: React.FC<MetronomeProps> = ({ showSettings = true }) => {
 
   const { currentBPM, setCurrentBPM, handleBpmChange } = useGlobalBPM();
 
+  const runButton = (className?: string) => (
+    <Button
+      onClick={toggleRun}
+      size="lg"
+      className={cn(
+        'h-10 font-bold transition-all text-sm shadow-sm focus-scale',
+        isRunning
+          ? 'bg-destructive hover:bg-destructive/90 text-destructive-foreground'
+          : 'bg-primary hover:bg-primary/90 text-primary-foreground',
+        className,
+      )}
+    >
+      {isRunning ? 'STOP' : 'START'}
+    </Button>
+  );
+
+  const tapButton = (
+    <Button
+      onClick={tapTempo}
+      variant="outline"
+      size="sm"
+      className="h-10 font-bold text-xs border-primary/20 text-primary hover:bg-primary/5 focus-scale"
+    >
+      <Fingerprint className="w-3 h-3 mr-1.5" /> TAP
+    </Button>
+  );
+
+  const muteButton = (
+    <Button
+      onClick={toggleMuted}
+      variant="ghost"
+      size="icon"
+      className="h-10 w-10 text-primary hover:bg-primary/10 focus-scale"
+    >
+      {isMuted ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
+    </Button>
+  );
+
+  const divisionToggle = (
+    <ToggleGroup
+      type="single"
+      value={division}
+      onValueChange={(value) => value && setDivision(value as 'quarter' | 'eighth')}
+      className="bg-muted/50 rounded-lg p-1 flex-shrink-0 border border-primary/10"
+    >
+      <ToggleGroupItem
+        value="quarter"
+        className="data-[state=on]:bg-primary data-[state=on]:text-primary-foreground text-[10px] font-bold h-10 px-3 focus-scale"
+      >
+        <Clock className="w-3 h-3 mr-1.5" /> 1/4
+      </ToggleGroupItem>
+      <ToggleGroupItem
+        value="eighth"
+        className="data-[state=on]:bg-primary data-[state=on]:text-primary-foreground text-[10px] font-bold h-10 px-3 focus-scale"
+      >
+        <Music className="w-3 h-3 mr-1.5" /> 1/8
+      </ToggleGroupItem>
+    </ToggleGroup>
+  );
+
+  const beatIndicator = (
+    <div
+      className={cn(
+        'w-12 h-12 rounded-xl transition-all duration-150 flex-shrink-0 border border-primary/10 flex items-center justify-center relative overflow-hidden',
+        isRunning ? 'bg-muted/10' : 'bg-muted/20',
+      )}
+    >
+      {isRunning && (
+        <div className="absolute top-1 right-1 flex items-center gap-0.5 text-[8px] font-black text-primary/40">
+          <Hash className="w-2 h-2" />
+          {currentMeasure}
+        </div>
+      )}
+      <div
+        className={cn(
+          'absolute bottom-0 w-1 bg-primary/20 transition-transform duration-150 origin-bottom',
+          isRunning ? 'h-full' : 'h-0',
+        )}
+        style={{ transform: `rotate(${pendulumPos * 30}deg)` }}
+      />
+      <div
+        className={cn(
+          'w-3 h-3 rounded-full transition-all duration-100 z-10',
+          isRunning && isBeatActive
+            ? isAccentBeat
+              ? 'bg-warning scale-150 shadow-[0_0_15px_hsl(var(--warning))]'
+              : 'bg-primary scale-125 shadow-[0_0_10px_hsl(var(--primary))]'
+            : 'bg-muted-foreground/20',
+        )}
+      />
+    </div>
+  );
+
+  // Compact stacked layout for narrow containers (e.g. the floating tempo panel).
+  if (!showSettings) {
+    return (
+      <div className="space-y-3">
+        <div className="flex items-center gap-2">
+          {runButton('flex-1')}
+          {tapButton}
+          {muteButton}
+        </div>
+        <TempoControl
+          compact
+          value={currentBPM}
+          onChange={setCurrentBPM}
+          onStep={handleBpmChange}
+        />
+        <div className="flex items-center justify-between gap-2">
+          {divisionToggle}
+          {beatIndicator}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="flex items-center space-x-4">
-      <Button
-        onClick={toggleRun}
-        size="lg"
-        className={cn(
-          "w-24 font-bold transition-all text-sm shadow-lg focus-scale",
-          isRunning
-            ? "bg-destructive hover:bg-destructive/90 text-destructive-foreground"
-            : "bg-primary hover:bg-primary/90 text-primary-foreground"
-        )}
-      >
-        {isRunning ? 'STOP' : 'START'}
-      </Button>
+      {runButton('w-24')}
 
       <TempoControl
         compact
@@ -67,24 +172,16 @@ const Metronome: React.FC<MetronomeProps> = ({ showSettings = true }) => {
       />
 
       <div className="flex items-center gap-1">
-        <Button
-          onClick={tapTempo}
-          variant="outline"
-          size="sm"
-          className="h-10 font-bold text-xs border-primary/20 text-primary hover:bg-primary/5 focus-scale"
-        >
-          <Fingerprint className="w-3 h-3 mr-1.5" /> TAP
-        </Button>
+        {tapButton}
 
-        {showSettings && (
         <Popover>
           <PopoverTrigger asChild>
             <Button
               variant="outline"
               size="sm"
               className={cn(
-                "h-10 font-bold text-xs border-primary/20 focus-scale",
-                (autoIncrementEnabled || visualFlashEnabled) && "bg-primary/10 text-primary border-primary/40"
+                'h-10 font-bold text-xs border-primary/20 focus-scale',
+                (autoIncrementEnabled || visualFlashEnabled) && 'bg-primary/10 text-primary border-primary/40',
               )}
             >
               <Settings2 className="w-3 h-3 mr-1.5" /> SETTINGS
@@ -116,7 +213,7 @@ const Metronome: React.FC<MetronomeProps> = ({ showSettings = true }) => {
                   <p className="text-[10px] text-muted-foreground">Flash screen on beat</p>
                 </div>
                 <Button
-                  variant={visualFlashEnabled ? "default" : "outline"}
+                  variant={visualFlashEnabled ? 'default' : 'outline'}
                   size="sm"
                   onClick={toggleVisualFlash}
                   className="h-9 w-14 p-0"
@@ -133,12 +230,12 @@ const Metronome: React.FC<MetronomeProps> = ({ showSettings = true }) => {
                   <p className="text-[10px] text-muted-foreground">Increase BPM over time</p>
                 </div>
                 <Button
-                  variant={autoIncrementEnabled ? "default" : "outline"}
+                  variant={autoIncrementEnabled ? 'default' : 'outline'}
                   size="sm"
                   onClick={() => setAutoIncrementEnabled(!autoIncrementEnabled)}
                   className="h-9 text-[10px] px-3"
                 >
-                  {autoIncrementEnabled ? "ON" : "OFF"}
+                  {autoIncrementEnabled ? 'ON' : 'OFF'}
                 </Button>
               </div>
 
@@ -167,68 +264,13 @@ const Metronome: React.FC<MetronomeProps> = ({ showSettings = true }) => {
             </div>
           </PopoverContent>
         </Popover>
-        )}
       </div>
 
-      <Button
-        onClick={toggleMuted}
-        variant="ghost"
-        size="icon"
-        className="h-10 w-10 text-primary hover:bg-primary/10 focus-scale"
-      >
-        {isMuted ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
-      </Button>
+      {muteButton}
 
-      <ToggleGroup
-        type="single"
-        value={division}
-        onValueChange={(value) => value && setDivision(value as 'quarter' | 'eighth')}
-        className="bg-muted/50 rounded-lg p-1 flex-shrink-0 border border-primary/10"
-      >
-        <ToggleGroupItem
-          value="quarter"
-          className="data-[state=on]:bg-primary data-[state=on]:text-primary-foreground text-[10px] font-bold h-10 px-3 focus-scale"
-        >
-          <Clock className="w-3 h-3 mr-1.5" /> 1/4
-        </ToggleGroupItem>
-        <ToggleGroupItem
-          value="eighth"
-          className="data-[state=on]:bg-primary data-[state=on]:text-primary-foreground text-[10px] font-bold h-10 px-3 focus-scale"
-        >
-          <Music className="w-3 h-3 mr-1.5" /> 1/8
-        </ToggleGroupItem>
-      </ToggleGroup>
+      {divisionToggle}
 
-      <div
-        className={cn(
-          "w-12 h-12 rounded-xl transition-all duration-150 flex-shrink-0 border border-primary/10 flex items-center justify-center relative overflow-hidden",
-          isRunning ? "bg-muted/10" : "bg-muted/20"
-        )}
-      >
-        {isRunning && (
-          <div className="absolute top-1 right-1 flex items-center gap-0.5 text-[8px] font-black text-primary/40">
-            <Hash className="w-2 h-2" />
-            {currentMeasure}
-          </div>
-        )}
-
-        <div
-          className={cn(
-            "absolute bottom-0 w-1 bg-primary/20 transition-transform duration-150 origin-bottom",
-            isRunning ? "h-full" : "h-0"
-          )}
-          style={{ transform: `rotate(${pendulumPos * 30}deg)` }}
-        />
-
-        <div className={cn(
-            "w-3 h-3 rounded-full transition-all duration-100 z-10",
-            isRunning && isBeatActive
-              ? isAccentBeat
-                ? "bg-warning scale-150 shadow-[0_0_15px_hsl(var(--warning))]"
-                : "bg-primary scale-125 shadow-[0_0_10px_hsl(var(--primary))]"
-              : "bg-muted-foreground/20"
-        )} />
-      </div>
+      {beatIndicator}
     </div>
   );
 };
