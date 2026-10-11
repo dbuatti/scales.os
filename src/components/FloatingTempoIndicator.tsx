@@ -102,7 +102,7 @@ const FloatingTempoIndicator: React.FC<FloatingTempoIndicatorProps> = ({
       ref={panelRef}
       style={style}
       className={cn(
-        'fixed z-[90] w-[300px] rounded-xl border border-primary/30 bg-card/95 shadow-2xl backdrop-blur',
+        'fixed z-[90] w-[300px] overflow-hidden rounded-xl border border-primary/20 bg-card/95 shadow-xl backdrop-blur',
         collapsed ? 'w-auto' : '',
       )}
     >
@@ -131,41 +131,45 @@ const FloatingTempoIndicator: React.FC<FloatingTempoIndicatorProps> = ({
       </div>
 
       {!collapsed && (
-        <div className="p-3 space-y-3">
-          <div className="flex items-start justify-between gap-2">
+        <div className="space-y-4 p-4">
+          <div className="flex items-start justify-between gap-3">
             <div className="min-w-0">
-              <p className="text-sm font-bold truncate">{exerciseLabel}</p>
-              <div className="flex items-center gap-2 text-[10px] text-muted-foreground font-mono">
-                <span className="rounded bg-primary/10 text-primary px-1 py-0.5 font-bold uppercase tracking-wider">
+              <p className="truncate text-sm font-bold">{exerciseLabel}</p>
+              <div className="mt-1 flex flex-wrap items-center gap-1.5 text-[11px] text-muted-foreground tabular-nums">
+                <span className="rounded-md bg-primary/10 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-primary">
                   {mode}
                 </span>
-                <span>{timeSignature}</span>
-                <span className="flex items-center gap-1">
-                  <FileText className="w-3 h-3" />
+                <span className="tabular-nums">{timeSignature}</span>
+                <span className="text-muted-foreground/60">·</span>
+                <span className="flex items-center gap-1 tabular-nums">
+                  <FileText className="h-3 w-3" />
                   {page}/{pageCount}
                 </span>
               </div>
             </div>
-            <div className="text-right shrink-0">
-              <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">
+            <div className="flex shrink-0 flex-col items-end gap-0.5">
+              <span className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground">
                 Target
-              </p>
-              <p className="text-lg font-black text-primary leading-none flex items-center gap-1">
-                <Target className="w-3.5 h-3.5" />
+              </span>
+              <span className="flex items-center gap-1 text-xl font-black leading-none text-primary">
+                <Target className="h-4 w-4" />
                 {targetBpm}
-              </p>
+                <span className="text-[10px] font-bold text-muted-foreground">BPM</span>
+              </span>
             </div>
           </div>
+
+          <div className="h-px bg-border/60" />
 
           <Metronome showSettings={false} />
 
           <Button
-            variant="outline"
+            variant="secondary"
             size="sm"
             onClick={onLog}
-            className="w-full text-xs font-bold focus-scale"
+            className="w-full font-bold focus-scale"
           >
-            <Save className="w-3.5 h-3.5 mr-1.5" />
+            <Save className="h-3.5 w-3.5 mr-1.5" />
             Log Snapshot
           </Button>
         </div>

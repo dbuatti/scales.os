@@ -8,6 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useScales } from '@/context/ScalesContext';
 import { Skeleton } from '@/components/ui/skeleton';
 import GradeTracker from '@/components/GradeTracker';
+import TempoProgressionChart from '@/components/TempoProgressionChart';
 import { Button } from '@/components/ui/button';
 import { Trash2, RefreshCw, PlayCircle, AlertCircle, LayoutDashboard, Piano, History } from 'lucide-react';
 import PageHeader from '@/components/PageHeader';
@@ -92,6 +93,7 @@ const ProgressPage: React.FC = () => {
 
         <TabsContent value="overview" className="space-y-8">
           <PracticeStats />
+          <TempoProgressionChart />
           <RepertoireStats />
           <GradeTracker />
         </TabsContent>
