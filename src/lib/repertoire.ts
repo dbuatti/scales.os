@@ -62,6 +62,18 @@ export const findMappingForExercise = (
 export const sortMappings = (mappings: PageMapping[]): PageMapping[] =>
   [...mappings].sort((a, b) => a.pageStart - b.pageStart);
 
+export const suggestNextExercise = (
+  mappings: PageMapping[],
+  options: ExerciseOption[],
+): ExerciseOption | null => {
+  const mappedIds = new Set(mappings.map((m) => m.exerciseId).filter(Boolean));
+  const lastMapped = [...mappings].reverse().find((m) => m.exerciseId);
+  const source: ExerciseOption['source'] = lastMapped?.exerciseId?.startsWith('Dohnanyi-')
+    ? 'dohnanyi'
+    : 'hanon';
+  return options.find((o) => o.source === source && !mappedIds.has(o.id)) ?? null;
+};
+
 const STORAGE_PREFIX = 'scales.os.repertoire.mappings.';
 const LAST_DOCUMENT_KEY = 'scales.os.repertoire.lastDocument';
 

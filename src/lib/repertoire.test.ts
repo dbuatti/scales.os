@@ -1,11 +1,15 @@
 import { describe, expect, it } from 'vitest';
 import {
+  EXERCISE_OPTIONS,
   clearLastOpenedDocumentId,
+  createEmptyMapping,
   detectBookSource,
   formatDocumentTitle,
   getLastOpenedDocumentId,
   setLastOpenedDocumentId,
+  suggestNextExercise,
 } from './repertoire';
+import type { PageMapping } from './repertoire';
 
 describe('last opened document persistence', () => {
   it('returns null and no-ops when localStorage is unavailable', () => {
@@ -44,5 +48,31 @@ describe('formatDocumentTitle', () => {
 
   it('falls back to the raw name for unknown formats', () => {
     expect(formatDocumentTitle('plain.pdf')).toBe('plain');
+  });
+});
+
+describe('suggestNextExercise', () => {
+  const hanon = EXERCISE_OPTIONS.filter((o) => o.source === 'hanon');
+  const dohnanyi = EXERCISE_OPTIONS.filter((o) => o.source === 'dohnanyi');
+  const mapping = (exerciseId: string): PageMapping => ({
+    ...createEmptyMapping(1),
+    exerciseId,
+  });
+
+  it('suggests the first Hanon exercise when nothing is mapped', () => {
+    expect(suggestNextExercise([], EXERCISE_OPTIONS)?.id).toBe(hanon[0].id);
+  });
+
+  it('suggests the next unmapped Hanon exercise', () => {
+    const suggestion = suggestNextExercise(
+      [mapping(hanon[0].id), mapping(hanon[1].id)],
+      EXERCISE_OPTIONS,
+    );
+    expect(suggestion?.id).toBe(hanon[2].id);
+  });
+
+  it('switches to Dohnányi when the latest mapping is Dohnányi', () => {
+    const suggestion = suggestNextExercise([mapping(dohnanyi[0].id)], EXERCISE_OPTIONS);
+    expect(suggestion?.id).toBe(dohnanyi[1].id);
   });
 });

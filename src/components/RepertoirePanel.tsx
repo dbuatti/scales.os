@@ -78,6 +78,7 @@ import {
   formatDocumentTitle,
   getStoredBookSource,
   setStoredBookSource,
+  suggestNextExercise,
 } from '@/lib/repertoire';
 
 const ViewerFallback: React.FC = () => (
@@ -288,6 +289,7 @@ interface ReaderToolbarProps {
   onOpenBookmark: () => void;
   bookmarkExercise: string;
   onBookmarkExerciseChange: (value: string) => void;
+  bookmarkSuggested: boolean;
   bookmarkLabel: string;
   onBookmarkLabelChange: (value: string) => void;
   onConfirmBookmark: () => void;
@@ -327,6 +329,7 @@ const ReaderToolbar: React.FC<ReaderToolbarProps> = ({
   onOpenBookmark,
   bookmarkExercise,
   onBookmarkExerciseChange,
+  bookmarkSuggested,
   bookmarkLabel,
   onBookmarkLabelChange,
   onConfirmBookmark,
@@ -524,9 +527,16 @@ const ReaderToolbar: React.FC<ReaderToolbarProps> = ({
         </PopoverTrigger>
         <PopoverContent align="end" className="w-72 space-y-3">
           <div className="space-y-1.5">
-            <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-              Exercise
-            </Label>
+            <div className="flex items-center gap-2">
+              <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                Exercise
+              </Label>
+              {bookmarkSuggested && (
+                <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[9px] font-black uppercase tracking-widest text-primary">
+                  Suggested
+                </span>
+              )}
+            </div>
             <Select value={bookmarkExercise} onValueChange={onBookmarkExerciseChange}>
               <SelectTrigger className="h-8 text-xs">
                 <SelectValue placeholder="Choose exercise (optional)" />
@@ -631,6 +641,7 @@ const RepertoirePanel: React.FC = () => {
   const [pdfFilter, setPdfFilter] = useState('');
   const [bookmarkOpen, setBookmarkOpen] = useState(false);
   const [bookmarkExercise, setBookmarkExercise] = useState('');
+  const [bookmarkSuggested, setBookmarkSuggested] = useState(false);
   const [bookmarkLabel, setBookmarkLabel] = useState('');
 
   useEffect(() => {
@@ -806,10 +817,17 @@ const RepertoirePanel: React.FC = () => {
       showError(`Page ${currentPage} is already mapped.`);
       return;
     }
-    setBookmarkExercise('');
+    const suggestion = suggestNextExercise(mappings, EXERCISE_OPTIONS);
+    setBookmarkExercise(suggestion?.id ?? '');
+    setBookmarkSuggested(Boolean(suggestion));
     setBookmarkLabel('');
     setBookmarkOpen(true);
   }, [mappings, currentPage]);
+
+  const handleBookmarkExerciseChange = useCallback((value: string) => {
+    setBookmarkExercise(value);
+    setBookmarkSuggested(false);
+  }, []);
 
   const confirmBookmark = useCallback(() => {
     if (mappings.some((m) => currentPage >= m.pageStart && currentPage <= m.pageEnd)) {
@@ -827,6 +845,7 @@ const RepertoirePanel: React.FC = () => {
     if (!mapping.label) mapping.label = `Page ${currentPage}`;
     persist([...mappings, mapping]);
     setBookmarkOpen(false);
+    setBookmarkSuggested(false);
     showSuccess(`Bookmarked "${mapping.label}" on page ${currentPage}.`);
   }, [mappings, currentPage, bookmarkExercise, bookmarkLabel, persist]);
 
@@ -1301,7 +1320,8 @@ const RepertoirePanel: React.FC = () => {
                 onBookmarkOpenChange={setBookmarkOpen}
                 onOpenBookmark={addBookmark}
                 bookmarkExercise={bookmarkExercise}
-                onBookmarkExerciseChange={setBookmarkExercise}
+                onBookmarkExerciseChange={handleBookmarkExerciseChange}
+                bookmarkSuggested={bookmarkSuggested}
                 bookmarkLabel={bookmarkLabel}
                 onBookmarkLabelChange={setBookmarkLabel}
                 onConfirmBookmark={confirmBookmark}
