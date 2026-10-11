@@ -10,6 +10,7 @@ import Login from '@/pages/Login';
 import Index from '@/pages/Index';
 import ProgressPage from '@/pages/Progress';
 import ReaderPage from '@/pages/ReaderPage';
+import BusinessPlan from '@/pages/BusinessPlan';
 import NotFound from '@/pages/NotFound';
 import ResetPassword from '@/pages/ResetPassword'; // Import the new ResetPassword page
 
@@ -39,6 +40,7 @@ const AuthRouter: React.FC = () => {
           <Route path="/" element={<Index />} />
           <Route path="/progress" element={<ProgressPage />} />
           <Route path="/reader" element={<ReaderPage />} />
+          <Route path="/business-plan" element={<BusinessPlan />} />
         </Route>
         {/* Redirect any public routes to authenticated home if logged in */}
         <Route path="/login" element={<Navigate to="/" replace />} />
@@ -60,6 +62,7 @@ const AuthRouter: React.FC = () => {
         {/* Redirect any protected routes to login if not logged in */}
         <Route path="/progress" element={<Navigate to="/login" replace />} />
         <Route path="/reader" element={<Navigate to="/login" replace />} />
+        <Route path="/business-plan" element={<Navigate to="/login" replace />} />
         <Route path="*" element={<NotFound />} /> {/* Catch-all for public routes */}
       </Routes>
     );
