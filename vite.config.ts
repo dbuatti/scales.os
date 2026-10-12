@@ -5,6 +5,15 @@ import path from "path";
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), "");
+  const projectEnv = loadEnv("project", "/vercel/share", "");
+  const supabaseUrl =
+    env.VITE_SUPABASE_URL ||
+    projectEnv.VITE_SUPABASE_URL ||
+    process.env.VITE_SUPABASE_URL;
+  const supabaseAnonKey =
+    env.VITE_SUPABASE_ANON_KEY ||
+    projectEnv.VITE_SUPABASE_ANON_KEY ||
+    process.env.VITE_SUPABASE_ANON_KEY;
 
   return {
     server: {
@@ -12,8 +21,8 @@ export default defineConfig(({ mode }) => {
       port: 8080,
     },
     define: {
-      "import.meta.env.VITE_SUPABASE_URL": JSON.stringify(env.VITE_SUPABASE_URL),
-      "import.meta.env.VITE_SUPABASE_ANON_KEY": JSON.stringify(env.VITE_SUPABASE_ANON_KEY),
+      "import.meta.env.VITE_SUPABASE_URL": JSON.stringify(supabaseUrl),
+      "import.meta.env.VITE_SUPABASE_ANON_KEY": JSON.stringify(supabaseAnonKey),
     },
     plugins: [dyadComponentTagger(), react()],
     resolve: {
