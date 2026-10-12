@@ -1,28 +1,10 @@
-import { defineConfig } from "vite";
+import { defineConfig, loadEnv } from "vite";
 import dyadComponentTagger from "@dyad-sh/react-vite-component-tagger";
 import react from "@vitejs/plugin-react-swc";
-import fs from "fs";
 import path from "path";
 
-function readProjectEnv() {
-  const filePath = "/vercel/share/.env.project";
-
-  try {
-    const contents = fs.readFileSync(filePath, "utf8");
-    return Object.fromEntries(
-      contents
-        .split(/\r?\n/)
-        .map((line) => line.match(/^([A-Z0-9_]+)=(.*)$/))
-        .filter((match): match is RegExpMatchArray => Boolean(match))
-        .map(([, key, value]) => [key, value.replace(/^['"]|['"]$/g, "")]),
-    );
-  } catch {
-    return {};
-  }
-}
-
-export default defineConfig(() => {
-  const projectEnv = readProjectEnv();
+export default defineConfig(({ mode }) => {
+  const projectEnv = loadEnv(mode, process.cwd(), "");
 
   return {
     server: {
