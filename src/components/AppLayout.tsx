@@ -59,7 +59,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children, headerRightContent, mob
                 "sticky top-0 z-50 w-full border-b border-border/70 bg-background/90 shadow-[0_1px_0_hsl(var(--border)/0.35),0_8px_24px_hsl(228_24%_12%/0.04)] backdrop-blur-lg supports-[backdrop-filter]:bg-background/75 transition-all duration-300",
                 isZenMode ? "h-12 opacity-60 hover:opacity-100" : "h-16"
             )}>
-                <div className="container flex h-full items-center justify-between gap-3">
+                <div className="container flex h-full items-center justify-between gap-4 px-4 sm:px-6">
                     <Link to="/" aria-label="Scales OS home" className={cn("group flex items-center gap-2.5 font-bold text-lg tracking-tight transition-all shrink-0", isZenMode && "text-sm")}>
                         <div aria-hidden="true" className={cn("bg-primary rounded-xl flex items-center justify-center text-primary-foreground shadow-sm transition-all duration-200 group-hover:rotate-[-4deg] group-hover:scale-105", isZenMode ? "w-7 h-7" : "w-9 h-9")}>
                             <Play className={cn("fill-current", isZenMode ? "w-3.5 h-3.5" : "w-4 h-4")} />
