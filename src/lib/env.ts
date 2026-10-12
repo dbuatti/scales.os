@@ -24,9 +24,20 @@ const envSchema = z.object({
 
 export type Env = z.infer<typeof envSchema>;
 
+const runtimeEnv = import.meta.env as Record<string, string | undefined>;
+const processEnv =
+  typeof globalThis !== 'undefined' &&
+  'process' in globalThis &&
+  globalThis.process &&
+  typeof globalThis.process === 'object' &&
+  'env' in globalThis.process
+    ? (globalThis.process.env as Record<string, string | undefined>)
+    : {};
+
 const parsed = envSchema.safeParse({
-  VITE_SUPABASE_URL: import.meta.env.VITE_SUPABASE_URL,
-  VITE_SUPABASE_ANON_KEY: import.meta.env.VITE_SUPABASE_ANON_KEY,
+  VITE_SUPABASE_URL: runtimeEnv.VITE_SUPABASE_URL ?? processEnv.VITE_SUPABASE_URL,
+  VITE_SUPABASE_ANON_KEY:
+    runtimeEnv.VITE_SUPABASE_ANON_KEY ?? processEnv.VITE_SUPABASE_ANON_KEY,
 });
 
 if (!parsed.success) {

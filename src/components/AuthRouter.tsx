@@ -26,9 +26,17 @@ const AuthRouter: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-[calc(100vh-64px)] flex items-center justify-center p-8">
-        <Skeleton className="w-full max-w-6xl h-[600px] bg-card/50" />
-      </div>
+      <main
+        className="flex min-h-[calc(100vh-64px)] items-center justify-center p-6 sm:p-8"
+        aria-busy="true"
+        aria-live="polite"
+      >
+        <div className="flex w-full max-w-6xl flex-col gap-4" role="status">
+          <span className="sr-only">Loading your workspace</span>
+          <Skeleton className="h-8 w-48 bg-card/50" />
+          <Skeleton className="h-[min(600px,calc(100vh-180px))] w-full bg-card/50" />
+        </div>
+      </main>
     );
   }
 

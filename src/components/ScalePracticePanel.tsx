@@ -27,12 +27,12 @@ interface PermutationSectionProps<T extends string> {
 }
 
 const PermutationSection = <T extends string>({ title, description, options, selectedValue, onValueChange, icon, getItemClasses }: PermutationSectionProps<T>) => (
-    <div className="space-y-4 surface p-5 transition-all hover:shadow-md">
+    <div className="flex flex-col gap-4 rounded-xl border border-border/60 bg-card/50 p-5 shadow-sm transition-all hover:shadow-md">
         <div className="flex items-center gap-3">
-            <div className="p-2 rounded-lg bg-primary/10 text-primary">
+            <div className="flex size-9 items-center justify-center rounded-lg bg-primary/10 text-primary">
                 {icon}
             </div>
-            <div className="space-y-0.5">
+            <div className="flex flex-col gap-0.5">
                 <Label className="text-sm font-bold uppercase tracking-wider text-foreground">{title}</Label>
                 <p className="text-[10px] text-muted-foreground leading-tight">{description}</p>
             </div>
@@ -316,7 +316,7 @@ const ScalePracticePanel: React.FC<ScalePracticePanelProps> = ({
   const setOctavesAndAdjust = (octaves: OctaveConfiguration) => { setSelectedOctaves(octaves); setIsPermutationManuallyAdjusted(true); };
 
   return (
-    <CardContent className="p-0 space-y-10">
+    <CardContent className="flex flex-col gap-8 p-0">
         <div className="flex items-center justify-between p-4 bg-primary/5 rounded-xl border border-primary/10">
           <div className="space-y-1">
             <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-primary/60">
@@ -331,11 +331,11 @@ const ScalePracticePanel: React.FC<ScalePracticePanelProps> = ({
           </Button>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
-            <div className="space-y-8">
-                <div className="space-y-4 surface p-5">
+            <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+            <div className="flex flex-col gap-8">
+                <div className="flex flex-col gap-4 rounded-xl border border-border/60 bg-card/50 p-5 shadow-sm">
                     <div className="flex items-center gap-3">
-                        <div className="p-2 rounded-lg bg-primary/10 text-primary">
+                        <div className="flex size-9 items-center justify-center rounded-lg bg-primary/10 text-primary">
                             <Music className="w-5 h-5" />
                         </div>
                         <Label className="text-sm font-bold uppercase tracking-wider text-foreground">Key Selection</Label>
@@ -348,28 +348,28 @@ const ScalePracticePanel: React.FC<ScalePracticePanelProps> = ({
                         disabled={isChromatic}
                     >
                         {availableKeys.map(key => (
-                            <ToggleGroupItem key={key} value={key} className="w-12 h-12 p-0 text-xs font-bold focus-scale">
+                            <ToggleGroupItem key={key} value={key} className="size-12 p-0 text-xs font-bold focus-scale">
                                 {key.split('/')[0]}
                             </ToggleGroupItem>
                         ))}
                     </ToggleGroup>
                 </div>
 
-                <div className="space-y-4 surface p-5">
+                <div className="flex flex-col gap-4 rounded-xl border border-border/60 bg-card/50 p-5 shadow-sm">
                     <div className="flex items-center gap-3">
-                        <div className="p-2 rounded-lg bg-primary/10 text-primary">
+                        <div className="flex size-9 items-center justify-center rounded-lg bg-primary/10 text-primary">
                             <Zap className="w-5 h-5" />
                         </div>
                         <Label className="text-sm font-bold uppercase tracking-wider text-foreground">Type Selection</Label>
                     </div>
                     <div className="grid grid-cols-2 gap-6">
-                        <div className="space-y-3">
+                        <div className="flex flex-col gap-3">
                             <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest border-b pb-1">Scales</p>
                             <ToggleGroup type="single" value={selectedType} onValueChange={(v) => v && setTypeAndAdjust(v)} className="flex flex-col items-stretch gap-2">
                                 {SCALE_TYPES.map(t => <ToggleGroupItem key={t} value={t} className="justify-start h-10 px-4 text-xs font-medium focus-scale">{t}</ToggleGroupItem>)}
                             </ToggleGroup>
                         </div>
-                        <div className="space-y-3">
+                        <div className="flex flex-col gap-3">
                             <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest border-b pb-1">Arpeggios</p>
                             <ToggleGroup type="single" value={selectedType} onValueChange={(v) => v && setTypeAndAdjust(v)} className="flex flex-col items-stretch gap-2">
                                 {ARPEGGIO_TYPES.map(t => <ToggleGroupItem key={t} value={t} className="justify-start h-10 px-4 text-xs font-medium focus-scale">{t.replace(' Arpeggio', '')}</ToggleGroupItem>)}
@@ -379,7 +379,7 @@ const ScalePracticePanel: React.FC<ScalePracticePanelProps> = ({
                 </div>
             </div>
 
-            <div className="space-y-8">
+            <div className="flex flex-col gap-6">
                 <PermutationSection 
                     title="Articulation" 
                     description="Focus on touch and sound quality."
@@ -399,7 +399,7 @@ const ScalePracticePanel: React.FC<ScalePracticePanelProps> = ({
             </div>
         </div>
 
-        <div className="pt-10 border-t space-y-10">
+        <div className="flex flex-col gap-6 border-t pt-8">
             <div className="flex items-center justify-between gap-4">
                 <div className="space-y-1">
                     <div className="flex items-center gap-2">
@@ -431,7 +431,7 @@ const ScalePracticePanel: React.FC<ScalePracticePanelProps> = ({
             </div>
             
             {advancedOpen && (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                 <PermutationSection 
                     title="Direction" 
                     description="Removes muscle-memory autopilot."

@@ -49,18 +49,24 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children, headerRightContent, mob
 
     return (
         <div className={cn("min-h-screen flex flex-col bg-background transition-all duration-500", isZenMode && "bg-background/95")}>
+            <a
+                href="#main-content"
+                className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[60] focus:rounded-md focus:bg-background focus:px-4 focus:py-2 focus:text-sm focus:font-semibold focus:text-foreground focus:shadow-lg"
+            >
+                Skip to main content
+            </a>
             <header className={cn(
-                "sticky top-0 z-50 w-full border-b border-border/60 bg-background/80 backdrop-blur-lg supports-[backdrop-filter]:bg-background/60 transition-all duration-300",
+                "sticky top-0 z-50 w-full border-b border-border/70 bg-background/90 shadow-[0_1px_0_hsl(var(--border)/0.35),0_12px_28px_hsl(222_22%_16%/0.05)] backdrop-blur-lg supports-[backdrop-filter]:bg-background/75 transition-all duration-300",
                 isZenMode ? "h-12 opacity-60 hover:opacity-100" : "h-16"
             )}>
-                <div className="container flex h-full items-center justify-between gap-2">
-                    <Link to="/" className={cn("flex items-center gap-2.5 font-bold text-lg tracking-tight transition-all shrink-0", isZenMode && "text-sm")}>
-                        <div className={cn("bg-primary rounded-xl flex items-center justify-center text-primary-foreground shadow-sm transition-all", isZenMode ? "w-7 h-7" : "w-9 h-9")}>
+                <div className="container flex h-full items-center justify-between gap-4 px-4 sm:px-6">
+                    <Link to="/" aria-label="Scales OS home" className={cn("group flex items-center gap-2.5 font-bold text-lg tracking-tight transition-all shrink-0", isZenMode && "text-sm")}>
+                        <div aria-hidden="true" className={cn("bg-primary rounded-xl flex items-center justify-center text-primary-foreground shadow-sm transition-all duration-200 group-hover:rotate-[-4deg] group-hover:scale-105", isZenMode ? "w-7 h-7" : "w-9 h-9")}>
                             <Play className={cn("fill-current", isZenMode ? "w-3.5 h-3.5" : "w-4 h-4")} />
                         </div>
                         <span className={cn("tracking-tight", isZenMode && "hidden sm:inline")}>Scales</span>
                     </Link>
-                    <nav className="flex items-center gap-2">
+                    <nav aria-label="Primary navigation" className="flex items-center gap-2">
                         {headerRightContent ? (
                             <>
                                 {headerRightContent}
@@ -91,12 +97,12 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children, headerRightContent, mob
                 </div>
             </header>
 
-            <main className={cn("flex-grow container py-8", isZenMode && "py-4 max-w-5xl", mobileNav && "pb-20 md:pb-8")}>
+            <main id="main-content" tabIndex={-1} className={cn("container flex-grow py-8 outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-4", isZenMode && "py-4 max-w-5xl", mobileNav && "pb-20 md:pb-8")}>
                 {children}
             </main>
 
             {mobileNav && (
-                <nav className="sticky bottom-0 z-40 w-full border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 md:hidden">
+                <nav aria-label="Mobile navigation" className="sticky bottom-0 z-40 w-full border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 md:hidden">
                     {mobileNav}
                 </nav>
             )}
@@ -107,9 +113,12 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children, headerRightContent, mob
                         <p className="text-sm text-muted-foreground">
                             Built for pianists. Focused on technique.
                         </p>
-                        <p className="text-xs text-muted-foreground/70">
-                            Scales · Arpeggios · Method books
-                        </p>
+                        <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-xs text-muted-foreground/70 md:justify-end">
+                            <p>Scales · Arpeggios · Method books</p>
+                            <span aria-label="Application version" data-testid="build-version" className="rounded-full border border-border/60 bg-muted/40 px-2 py-0.5 font-semibold tracking-[0.08em]">
+                                UI refresh · v0.4.0
+                            </span>
+                        </div>
                     </div>
                 </footer>
             )}

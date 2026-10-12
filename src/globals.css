@@ -4,25 +4,25 @@
 
 @layer base {
   :root {
-    --background: 240 33% 99%;
-    --foreground: 240 10% 8%;
+    --background: 36 24% 97%;
+    --foreground: 222 22% 16%;
     --card: 0 0% 100%;
-    --card-foreground: 240 10% 8%;
+    --card-foreground: 222 22% 16%;
     --popover: 0 0% 100%;
-    --popover-foreground: 240 10% 8%;
-    --primary: 243 75% 59%;
-    --primary-foreground: 0 0% 100%;
-    --secondary: 240 5% 96%;
-    --secondary-foreground: 240 6% 12%;
-    --muted: 240 5% 96%;
-    --muted-foreground: 240 4% 46%;
-    --accent: 240 5% 96%;
-    --accent-foreground: 240 6% 12%;
-    --destructive: 0 72% 51%;
+    --popover-foreground: 222 22% 16%;
+    --primary: 173 42% 32%;
+    --primary-foreground: 36 30% 98%;
+    --secondary: 34 20% 92%;
+    --secondary-foreground: 222 22% 20%;
+    --muted: 34 18% 93%;
+    --muted-foreground: 220 10% 45%;
+    --accent: 14 62% 62%;
+    --accent-foreground: 222 22% 16%;
+    --destructive: 0 62% 48%;
     --destructive-foreground: 0 0% 100%;
-    --border: 240 6% 90%;
-    --input: 240 6% 90%;
-    --ring: 243 75% 59%;
+    --border: 34 16% 87%;
+    --input: 34 16% 87%;
+    --ring: 173 42% 32%;
     --radius: 0.75rem;
     --warning: 32 95% 44%;
     --warning-foreground: 0 0% 100%;
@@ -108,9 +108,18 @@
   * {
     @apply border-border;
   }
+  html {
+    scroll-behavior: smooth;
+  }
   body {
     @apply bg-background text-foreground antialiased transition-colors duration-300;
+    background-image: radial-gradient(circle at 15% 0%, hsl(var(--primary) / 0.045), transparent 28rem), radial-gradient(circle at 95% 15%, hsl(210 80% 70% / 0.035), transparent 24rem);
+    font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     font-feature-settings: "rlig" 1, "calt" 1;
+  }
+  ::selection {
+    background: hsl(var(--primary) / 0.18);
+    color: hsl(var(--foreground));
   }
   :focus-visible {
     @apply outline-none ring-2 ring-ring ring-offset-2 ring-offset-background;
@@ -120,10 +129,11 @@
 @layer components {
   /* Canonical surfaces — use these instead of ad-hoc card classes */
   .surface {
-    @apply rounded-xl border border-border/60 bg-card shadow-sm;
+    @apply rounded-xl border border-border/60 bg-card/95 shadow-sm;
+    box-shadow: 0 1px 2px hsl(228 24% 12% / 0.03), 0 10px 28px hsl(228 24% 12% / 0.035);
   }
   .surface-interactive {
-    @apply rounded-xl border border-border/60 bg-card shadow-sm transition-all duration-200 hover:border-primary/30 hover:shadow-md;
+    @apply rounded-xl border border-border/60 bg-card shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-md;
   }
 }
 
