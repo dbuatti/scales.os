@@ -161,8 +161,8 @@ const PracticeCommandCenter: React.FC = () => {
         </Card>
       )}
 
-      <div className={cn('grid grid-cols-1 gap-10', !isZenMode && 'lg:grid-cols-4')}>
-        <div className={cn('space-y-10', !isZenMode ? 'lg:col-span-3' : 'col-span-1')}>
+      <div className={cn('grid grid-cols-1 gap-6 xl:gap-8', !isZenMode && 'lg:grid-cols-4')}>
+        <div className={cn('flex min-w-0 flex-col gap-6 xl:gap-8', !isZenMode ? 'lg:col-span-3' : 'col-span-1')}>
           <PracticeSummaryPanel />
 
           <ScalePracticePanel
@@ -181,7 +181,7 @@ const PracticeCommandCenter: React.FC = () => {
         </div>
 
         {!isZenMode && (
-          <div className="space-y-10">
+          <div className="flex flex-col gap-6 xl:gap-8 lg:sticky lg:top-24 lg:self-start">
             <Card className="surface">
               <CardHeader className="pb-2">
                 <CardTitle className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-muted-foreground">
