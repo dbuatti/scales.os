@@ -208,11 +208,11 @@ const PracticeCommandCenter: React.FC = () => {
                     Shortcuts
                   </div>
                   <div className="grid grid-cols-1 gap-3 text-[10px]">
-                    <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg border border-border/50">
+                    <div className="flex items-center justify-between rounded-xl border border-border/50 bg-muted/30 p-3">
                       <span className="font-medium">Save Progress</span>
                       <span className="font-black bg-background px-1.5 py-0.5 rounded border shadow-sm">Enter / S</span>
                     </div>
-                    <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg border border-border/50">
+                    <div className="flex items-center justify-between rounded-xl border border-border/50 bg-muted/30 p-3">
                       <span className="font-medium">Adjust BPM</span>
                       <span className="font-black bg-background px-1.5 py-0.5 rounded border shadow-sm">↑ / ↓</span>
                     </div>

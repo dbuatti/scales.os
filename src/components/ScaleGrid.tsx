@@ -152,8 +152,8 @@ const ScaleGrid = () => {
         />
       </div>
 
-      <div className="overflow-x-auto border rounded-lg">
-        <table className="min-w-full divide-y divide-border">
+      <div className="overflow-hidden overflow-x-auto surface">
+        <table className="min-w-full divide-y divide-border/60">
           <thead>
             <tr className="bg-muted/50">
               <th className="sticky left-0 z-10 px-4 py-2 text-left text-xs font-medium text-muted-foreground bg-muted/50 border-r">Key</th>
@@ -164,7 +164,7 @@ const ScaleGrid = () => {
               ))}
             </tr>
           </thead>
-          <tbody className="divide-y divide-border">
+          <tbody className="divide-y divide-border/60">
             {filteredKeys.map(key => (
               <tr key={key} className="hover:bg-accent/50 transition-colors">
                 <td className="sticky left-0 z-10 px-4 py-2 whitespace-nowrap text-sm font-medium bg-card border-r">
