@@ -11,7 +11,7 @@ import { useNavigate } from 'react-router-dom';
 import PracticeSummaryPanel from './PracticeSummaryPanel';
 import { Button } from '@/components/ui/button';
 import { showSuccess } from '@/utils/toast';
-import { RefreshCw, Target, Settings2, Keyboard, Clock, Activity, Play } from 'lucide-react';
+import { RefreshCw, Target, Settings2, Clock, Activity, Play } from 'lucide-react';
 import { useZenMode } from '@/context/ZenModeContext';
 import PageHeader from './PageHeader';
 import HomeModes from './HomeModes';
@@ -215,82 +215,75 @@ const PracticeCommandCenter: React.FC = () => {
 
         {!isZenMode && (
           <div className="flex flex-col gap-6 xl:gap-8 lg:sticky lg:top-24 lg:self-start">
-            <Card className="surface">
+            <Card style={{ animationDelay: '120ms' }} className="surface animate-in fade-in slide-in-from-bottom-2 fill-mode-both duration-300">
               <CardHeader className="pb-2">
                 <CardTitle className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-muted-foreground">
                   <Settings2 className="h-4 w-4" />
                   Tempo Control
                 </CardTitle>
               </CardHeader>
-              <CardContent className="flex flex-col gap-8">
+              <CardContent className="flex flex-col gap-6">
                 <TempoControl
                   value={currentBPM}
                   onChange={setCurrentBPM}
                   onStep={handleBpmChange}
                   target={targetBpm}
                 />
-                <div className="flex flex-col gap-4 border-t pt-6">
-                  <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-muted-foreground">
-                    <Keyboard className="size-3" />
-                    Shortcuts
-                  </div>
-                  <div className="grid grid-cols-1 gap-3 text-[10px]">
-                    <div className="flex items-center justify-between rounded-xl border border-border/50 bg-muted/30 p-3">
-                      <span className="font-medium">Save Progress</span>
-                      <span className="font-black bg-background px-1.5 py-0.5 rounded border shadow-sm">Enter / S</span>
-                    </div>
-                    <div className="flex items-center justify-between rounded-xl border border-border/50 bg-muted/30 p-3">
-                      <span className="font-medium">Adjust BPM</span>
-                      <span className="font-black bg-background px-1.5 py-0.5 rounded border shadow-sm">↑ / ↓</span>
-                    </div>
-                  </div>
-                </div>
-                <div className="flex justify-center pt-4">
-                  <Button variant="ghost" size="sm" onClick={refetchData} disabled={isScalesContextLoading} className="text-xs font-bold text-muted-foreground transition-colors hover:text-primary">
-                    <RefreshCw className={cn('mr-2 size-3', isScalesContextLoading && 'animate-spin')} />
-                    Sync Progress
+                <div className="flex flex-wrap items-center gap-x-4 gap-y-2 border-t border-border/50 pt-4 text-[11px] text-muted-foreground">
+                  <span className="flex items-center gap-1.5">
+                    <kbd className="rounded border border-border/60 bg-muted/50 px-1.5 py-0.5 font-mono text-[10px]">↑</kbd>
+                    <kbd className="rounded border border-border/60 bg-muted/50 px-1.5 py-0.5 font-mono text-[10px]">↓</kbd>
+                    BPM
+                  </span>
+                  <span className="flex items-center gap-1.5">
+                    <kbd className="rounded border border-border/60 bg-muted/50 px-1.5 py-0.5 font-mono text-[10px]">Enter</kbd>
+                    Log
+                  </span>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={refetchData}
+                    disabled={isScalesContextLoading}
+                    className="ml-auto h-7 px-2 text-[11px] font-bold text-muted-foreground transition-colors hover:text-primary"
+                  >
+                    <RefreshCw className={cn('mr-1.5 size-3', isScalesContextLoading && 'animate-spin')} />
+                    Sync
                   </Button>
                 </div>
               </CardContent>
             </Card>
 
-            <Card className="surface">
+            <Card style={{ animationDelay: '200ms' }} className="surface animate-in fade-in slide-in-from-bottom-2 fill-mode-both duration-300">
               <CardHeader className="pb-3">
                 <CardTitle className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-muted-foreground">
                   <Activity className="h-3.5 w-3.5" />
-                  Today&apos;s activity
+                  Today
                 </CardTitle>
               </CardHeader>
-              <CardContent className="flex flex-col gap-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <Clock className="size-4 text-muted-foreground" />
-                    <span className="text-sm font-medium">Time</span>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="rounded-xl border border-border/50 bg-muted/30 p-3">
+                    <div className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                      <Clock className="size-3.5" />
+                      Minutes
+                    </div>
+                    <p className="mt-1 text-xl font-black tabular-nums">{todayStats.totalMinutes}</p>
                   </div>
-                  <span className="text-lg font-bold tabular-nums">{todayStats.totalMinutes}m</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <Target className="size-4 text-muted-foreground" />
-                    <span className="text-sm font-medium">Items</span>
+                  <div className="rounded-xl border border-border/50 bg-muted/30 p-3">
+                    <div className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                      <Target className="size-3.5" />
+                      Items
+                    </div>
+                    <p className="mt-1 text-xl font-black tabular-nums">{todayStats.itemsPracticed}</p>
                   </div>
-                  <span className="text-lg font-bold tabular-nums">{todayStats.itemsPracticed}</span>
                 </div>
+                {lastLogEntry && (
+                  <p className="text-xs text-muted-foreground">
+                    Last session {formatDistanceToNow(lastLogEntry.timestamp, { addSuffix: true })}
+                  </p>
+                )}
               </CardContent>
             </Card>
-
-            {lastLogEntry && (
-              <Card className="surface">
-                <CardContent className="p-5">
-                  <p className="mb-1.5 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-                    Last session
-                  </p>
-                  <p className="text-base font-semibold tracking-tight">
-                    {formatDistanceToNow(lastLogEntry.timestamp, { addSuffix: true })}
-                  </p>
-                </CardContent>
-              </Card>
-            )}
           </div>
         )}
       </div>
