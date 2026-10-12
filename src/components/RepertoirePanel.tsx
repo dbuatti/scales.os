@@ -693,7 +693,6 @@ const RepertoirePanel: React.FC = () => {
   const lastViewedTimer = useRef<number | null>(null);
   const masteryRef = useRef(exerciseMasteryBPMMap);
   masteryRef.current = exerciseMasteryBPMMap;
-  const hasAutoResumedRef = useRef(false);
 
   const activeDocumentId = selectedDocId || localDocumentId;
   const selectedDoc = useMemo(
@@ -906,22 +905,6 @@ const RepertoirePanel: React.FC = () => {
   useEffect(() => {
     if (activeDocumentId) registerMappings(activeDocumentId, mappings);
   }, [activeDocumentId, mappings, registerMappings]);
-
-  useEffect(() => {
-    if (hasAutoResumedRef.current) return;
-    if (pendingNavigation) {
-      hasAutoResumedRef.current = true;
-      return;
-    }
-    if (activeDocumentId) return;
-    if (documents.length === 0) return;
-    const lastId = getLastOpenedDocumentId();
-    if (!lastId) return;
-    const doc = documents.find((d) => d.id === lastId);
-    if (!doc) return;
-    hasAutoResumedRef.current = true;
-    void loadDocument(doc);
-  }, [activeDocumentId, documents, loadDocument, pendingNavigation]);
 
   useEffect(() => {
     if (!pdfProxy || !selectedDoc) return;
