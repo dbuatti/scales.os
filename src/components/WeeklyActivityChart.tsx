@@ -35,6 +35,12 @@ const WeeklyActivityChart = () => {
     <div className="h-[300px] w-full">
       <ResponsiveContainer width="100%" height="100%">
         <BarChart data={data} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+          <defs>
+            <linearGradient id="volumeGradient" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="hsl(var(--primary))" stopOpacity={1} />
+              <stop offset="100%" stopColor="hsl(var(--primary))" stopOpacity={0.55} />
+            </linearGradient>
+          </defs>
           <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--primary) / 0.1)" />
           <XAxis 
             dataKey="dayName" 
@@ -50,17 +56,25 @@ const WeeklyActivityChart = () => {
           <Tooltip 
             cursor={{ fill: 'hsl(var(--primary) / 0.05)' }}
             contentStyle={{ 
-              backgroundColor: 'hsl(var(--card))', 
+              backgroundColor: 'hsl(var(--card) / 0.9)', 
               borderColor: 'hsl(var(--border))',
               borderRadius: 'var(--radius)',
-              fontSize: '12px'
+              fontSize: '12px',
+              backdropFilter: 'blur(12px)'
             }}
+            formatter={(value) => [`${value} min`, 'Volume']}
           />
-          <Bar dataKey="minutes" radius={[4, 4, 0, 0]}>
+          <Bar
+            dataKey="minutes"
+            radius={[6, 6, 0, 0]}
+            maxBarSize={48}
+            animationDuration={700}
+            animationEasing="ease-out"
+          >
             {data.map((entry, index) => (
               <Cell 
                 key={`cell-${index}`} 
-                fill={entry.minutes > 0 ? 'hsl(var(--primary))' : 'hsl(var(--muted) / 0.5)'} 
+                fill={entry.minutes > 0 ? 'url(#volumeGradient)' : 'hsl(var(--muted) / 0.5)'} 
               />
             ))}
           </Bar>

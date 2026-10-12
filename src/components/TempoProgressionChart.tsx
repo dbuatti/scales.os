@@ -2,8 +2,8 @@
 
 import React, { useMemo, useState } from 'react';
 import {
-  LineChart,
-  Line,
+  AreaChart,
+  Area,
   XAxis,
   YAxis,
   CartesianGrid,
@@ -86,7 +86,13 @@ const TempoProgressionChart = () => {
         ) : (
           <div className="h-[260px] w-full">
             <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={data} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+              <AreaChart data={data} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                <defs>
+                  <linearGradient id="tempoGradient" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="hsl(var(--primary))" stopOpacity={0.35} />
+                    <stop offset="100%" stopColor="hsl(var(--primary))" stopOpacity={0} />
+                  </linearGradient>
+                </defs>
                 <CartesianGrid
                   strokeDasharray="3 3"
                   vertical={false}
@@ -107,22 +113,26 @@ const TempoProgressionChart = () => {
                 <Tooltip
                   cursor={{ stroke: 'hsl(var(--primary) / 0.3)' }}
                   contentStyle={{
-                    backgroundColor: 'hsl(var(--card))',
+                    backgroundColor: 'hsl(var(--card) / 0.9)',
                     borderColor: 'hsl(var(--border))',
                     borderRadius: 'var(--radius)',
                     fontSize: '12px',
+                    backdropFilter: 'blur(12px)',
                   }}
                   formatter={(value) => [`${value} BPM`, 'Tempo']}
                 />
-                <Line
+                <Area
                   type="monotone"
                   dataKey="bpm"
                   stroke="hsl(var(--primary))"
                   strokeWidth={2}
-                  dot={{ r: 3, fill: 'hsl(var(--primary))' }}
-                  activeDot={{ r: 5 }}
+                  fill="url(#tempoGradient)"
+                  dot={{ r: 3, fill: 'hsl(var(--primary))', strokeWidth: 0 }}
+                  activeDot={{ r: 5, stroke: 'hsl(var(--background))', strokeWidth: 2 }}
+                  animationDuration={700}
+                  animationEasing="ease-out"
                 />
-              </LineChart>
+              </AreaChart>
             </ResponsiveContainer>
           </div>
         )}

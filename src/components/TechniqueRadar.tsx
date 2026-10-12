@@ -49,6 +49,12 @@ const TechniqueRadar = () => {
     <div className="h-[300px] w-full">
       <ResponsiveContainer width="100%" height="100%">
         <RadarChart cx="50%" cy="50%" outerRadius="80%" data={data}>
+          <defs>
+            <radialGradient id="radarGradient" cx="50%" cy="50%" r="50%">
+              <stop offset="0%" stopColor="hsl(var(--primary))" stopOpacity={0.5} />
+              <stop offset="100%" stopColor="hsl(var(--primary))" stopOpacity={0.12} />
+            </radialGradient>
+          </defs>
           <PolarGrid stroke="hsl(var(--primary) / 0.2)" />
           <PolarAngleAxis 
             dataKey="subject" 
@@ -59,8 +65,11 @@ const TechniqueRadar = () => {
             name="Mastery"
             dataKey="A"
             stroke="hsl(var(--primary))"
-            fill="hsl(var(--primary))"
-            fillOpacity={0.3}
+            strokeWidth={2}
+            fill="url(#radarGradient)"
+            dot={{ r: 3, fill: 'hsl(var(--primary))', strokeWidth: 0 }}
+            animationDuration={700}
+            animationEasing="ease-out"
           />
         </RadarChart>
       </ResponsiveContainer>

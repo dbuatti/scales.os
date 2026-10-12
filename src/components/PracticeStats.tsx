@@ -67,7 +67,7 @@ const PracticeStats = () => {
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card className="surface-interactive">
+        <Card style={{ animationDelay: '0ms' }} className="surface-interactive animate-in fade-in slide-in-from-bottom-2 fill-mode-both duration-300">
           <CardContent className="flex items-center gap-4 p-5">
             <div className="p-3 rounded-xl bg-primary/10 text-primary">
               <Activity className="h-6 w-6" />
@@ -79,7 +79,7 @@ const PracticeStats = () => {
           </CardContent>
         </Card>
 
-        <Card className="surface-interactive">
+        <Card style={{ animationDelay: '60ms' }} className="surface-interactive animate-in fade-in slide-in-from-bottom-2 fill-mode-both duration-300">
           <CardContent className="flex items-center gap-4 p-5">
             <div className="p-3 rounded-xl bg-orange-500/10 text-orange-500">
               <Flame className="h-6 w-6" />
@@ -91,7 +91,7 @@ const PracticeStats = () => {
           </CardContent>
         </Card>
 
-        <Card className="surface-interactive">
+        <Card style={{ animationDelay: '120ms' }} className="surface-interactive animate-in fade-in slide-in-from-bottom-2 fill-mode-both duration-300">
           <CardContent className="flex items-center gap-4 p-5">
             <div className="p-3 rounded-xl bg-blue-500/10 text-blue-500">
               <Clock className="h-6 w-6" />
@@ -103,7 +103,7 @@ const PracticeStats = () => {
           </CardContent>
         </Card>
 
-        <Card className="surface-interactive">
+        <Card style={{ animationDelay: '180ms' }} className="surface-interactive animate-in fade-in slide-in-from-bottom-2 fill-mode-both duration-300">
           <CardContent className="flex items-center gap-4 p-5">
             <div className="p-3 rounded-xl bg-emerald-500/10 text-emerald-500">
               <Calendar className="h-6 w-6" />
@@ -117,7 +117,7 @@ const PracticeStats = () => {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card className="surface-interactive">
+        <Card style={{ animationDelay: '120ms' }} className="surface-interactive animate-in fade-in slide-in-from-bottom-2 fill-mode-both duration-500">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
               <Target className="h-4 w-4" />
@@ -129,7 +129,7 @@ const PracticeStats = () => {
           </CardContent>
         </Card>
 
-        <Card className="surface-interactive">
+        <Card style={{ animationDelay: '180ms' }} className="surface-interactive animate-in fade-in slide-in-from-bottom-2 fill-mode-both duration-500">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
               <Activity className="h-4 w-4" />
