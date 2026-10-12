@@ -5,16 +5,18 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-export function shallowEqual(objA: any, objB: any): boolean {
+export function shallowEqual(objA: unknown, objB: unknown): boolean {
   if (objA === objB) return true;
   if (typeof objA !== 'object' || objA === null || typeof objB !== 'object' || objB === null) {
     return false;
   }
-  const keysA = Object.keys(objA);
-  const keysB = Object.keys(objB);
+  const a = objA as Record<string, unknown>;
+  const b = objB as Record<string, unknown>;
+  const keysA = Object.keys(a);
+  const keysB = Object.keys(b);
   if (keysA.length !== keysB.length) return false;
   for (let i = 0; i < keysA.length; i++) {
-    if (!Object.prototype.hasOwnProperty.call(objB, keysA[i]) || objA[keysA[i]] !== objB[keysA[i]]) {
+    if (!Object.prototype.hasOwnProperty.call(b, keysA[i]) || a[keysA[i]] !== b[keysA[i]]) {
       return false;
     }
   }

@@ -125,8 +125,6 @@ const progressArrayToMap = (arr: StoredProgressEntry[]): Record<string, ScaleSta
   }, {} as Record<string, ScaleStatus>);
 };
 
-const cleanString = (s: string) => s.replace(/[\s\/\(\)]/g, "");
-
 export const ScalesProvider: React.FC<React.PropsWithChildren> = ({ children }) => {
   const { userId, isLoading: isSessionLoading } = useSupabaseSession();
   const [progressMap, setProgressMap] = useState<Record<string, ScaleStatus>>({});
@@ -310,7 +308,7 @@ export const ScalesProvider: React.FC<React.PropsWithChildren> = ({ children }) 
             if (!parsed) return;
             const scaleItem = ALL_SCALE_ITEMS.find(s => s.id === parsed.scaleId);
             if (!scaleItem) return;
-            category = ARPEGGIO_TYPES.includes(scaleItem.type as any) ? 'arpeggio' : 'scale';
+            category = (ARPEGGIO_TYPES as readonly string[]).includes(scaleItem.type) ? 'arpeggio' : 'scale';
         } else {
             category = req.type;
         }
@@ -339,7 +337,7 @@ export const ScalesProvider: React.FC<React.PropsWithChildren> = ({ children }) 
                 if (!parsed) return false;
                 const scaleItem = ALL_SCALE_ITEMS.find(s => s.id === parsed.scaleId);
                 if (!scaleItem) return false;
-                const isArpeggio = ARPEGGIO_TYPES.includes(scaleItem.type as any);
+                const isArpeggio = (ARPEGGIO_TYPES as readonly string[]).includes(scaleItem.type);
                 if (category === 'arpeggio' && !isArpeggio) return false;
                 if (category === 'scale' && isArpeggio) return false;
             }
@@ -375,20 +373,35 @@ export const ScalesProvider: React.FC<React.PropsWithChildren> = ({ children }) 
                     grade: nextGrade.id,
                     description: selectedRequirement.description,
                 };
-            } else {
-                const item = (selectedRequirement.type === 'dohnanyi' ? ALL_DOHNANYI_ITEMS : ALL_HANON_ITEMS).find(c => c.id === selectedRequirement.exerciseId);
+            } else if (selectedRequirement.type === 'dohnanyi') {
+                const item = ALL_DOHNANYI_ITEMS.find(c => c.id === selectedRequirement.exerciseId);
                 if (item) {
                     const highestBPM = exerciseMasteryBPMMap[selectedRequirement.exerciseId] || 0;
                     return {
-                        type: selectedRequirement.type,
-                        name: item.name as any,
+                        type: 'dohnanyi',
+                        name: item.name,
                         exerciseId: item.id,
                         requiredBPM: selectedRequirement.requiredBPM,
                         currentHighestBPM: highestBPM,
                         nextBPMGoal: highestBPM > 0 ? highestBPM + 3 : 40,
                         grade: nextGrade.id,
                         description: selectedRequirement.description,
-                    } as any;
+                    };
+                }
+            } else {
+                const item = ALL_HANON_ITEMS.find(c => c.id === selectedRequirement.exerciseId);
+                if (item) {
+                    const highestBPM = exerciseMasteryBPMMap[selectedRequirement.exerciseId] || 0;
+                    return {
+                        type: 'hanon',
+                        name: item.name,
+                        exerciseId: item.id,
+                        requiredBPM: selectedRequirement.requiredBPM,
+                        currentHighestBPM: highestBPM,
+                        nextBPMGoal: highestBPM > 0 ? highestBPM + 3 : 40,
+                        grade: nextGrade.id,
+                        description: selectedRequirement.description,
+                    };
                 }
             }
         }

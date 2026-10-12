@@ -52,7 +52,7 @@ const PracticeSummaryPanel: React.FC = () => {
       if (nextGoalBPM === highestBPM) return currentBPM >= nextGoalBPM ? 100 : 0;
       return Math.min(100, Math.max(0, ((currentBPM - highestBPM) / (nextGoalBPM - highestBPM)) * 100));
     } else {
-      const { currentHighestBPM, nextTargetBPM } = activePracticeItem as any;
+      const { currentHighestBPM, nextTargetBPM } = activePracticeItem;
       if (nextTargetBPM === currentHighestBPM) return currentBPM >= nextTargetBPM ? 100 : 0;
       return Math.min(100, Math.max(0, ((currentBPM - currentHighestBPM) / (nextTargetBPM - currentHighestBPM)) * 100));
     }
@@ -146,13 +146,13 @@ const PracticeSummaryPanel: React.FC = () => {
             <div className="space-y-1.5">
               <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Highest</p>
               <p className="text-lg font-bold text-primary">
-                {activePracticeItem.type === 'scale' ? activePracticeItem.highestBPM : (activePracticeItem as any).currentHighestBPM} BPM
+                {activePracticeItem.type === 'scale' ? activePracticeItem.highestBPM : activePracticeItem.currentHighestBPM} BPM
               </p>
             </div>
             <div className="space-y-1.5">
               <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Goal</p>
               <p className="text-lg font-bold text-primary">
-                {activePracticeItem.type === 'scale' ? activePracticeItem.highestBPM + 3 : (activePracticeItem as any).nextTargetBPM} BPM
+                {activePracticeItem.type === 'scale' ? activePracticeItem.highestBPM + 3 : activePracticeItem.nextTargetBPM} BPM
               </p>
             </div>
             {activePracticeItem.type === 'scale' && (

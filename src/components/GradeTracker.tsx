@@ -11,7 +11,7 @@ import { Button } from '@/components/ui/button';
 import { ChevronDown, Award, Trophy, Star, Shield } from 'lucide-react';
 
 const GradeTracker: React.FC = () => {
-    const { progressMap, scaleMasteryBPMMap, exerciseMasteryBPMMap } = useScales();
+    const { scaleMasteryBPMMap, exerciseMasteryBPMMap } = useScales();
 
     const gradeStats = useMemo(() => {
         const stats = PRACTICE_GRADES.map(grade => {
@@ -55,7 +55,7 @@ const GradeTracker: React.FC = () => {
         });
         
         return stats;
-    }, [progressMap, scaleMasteryBPMMap, exerciseMasteryBPMMap]);
+    }, [scaleMasteryBPMMap, exerciseMasteryBPMMap]);
     
     const currentGradeInfo = useMemo(() => {
         const completedGrades = gradeStats.filter(g => g.completion === 100);

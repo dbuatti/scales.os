@@ -91,7 +91,7 @@ export type ScaleItem = {
 export const MIN_BPM = 40;
 export const MAX_BPM = 250;
 
-export const cleanString = (s: string) => s.replace(/[\s\/\(\)]/g, "");
+export const cleanString = (s: string) => s.replace(/[\s/()]/g, "");
 
 export const getScalePermutationId = (
   scaleId: string, 
