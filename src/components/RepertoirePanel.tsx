@@ -1123,7 +1123,7 @@ const RepertoirePanel: React.FC = () => {
         onChange={handleFileInput}
       />
 
-      <div className="flex flex-col gap-4 rounded-xl border bg-card/50 p-5 shadow-sm lg:flex-row lg:items-center lg:justify-between">
+      <div className="flex flex-col gap-4 surface p-5 lg:flex-row lg:items-center lg:justify-between">
         <div className="space-y-0.5">
           <Label className="flex items-center gap-2 text-sm font-bold uppercase tracking-wider text-foreground">
             <Music2 className="w-4 h-4 text-primary" />
@@ -1222,7 +1222,7 @@ const RepertoirePanel: React.FC = () => {
                     if (e.key === 'Enter' || e.key === ' ') handleSelectDocument(doc.id);
                   }}
                   className={cn(
-                    'group relative flex flex-col gap-3 rounded-xl border bg-card/50 p-3 text-left shadow-sm transition-all cursor-pointer active:scale-[0.98]',
+                    'group relative flex flex-col gap-3 rounded-xl border bg-card/70 p-3 text-left shadow-sm backdrop-blur-xl transition-all cursor-pointer active:scale-[0.98]',
                     isOpen
                       ? 'border-primary/40 ring-1 ring-primary/20'
                       : 'border-border hover:border-primary/30 hover:shadow-md',

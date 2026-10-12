@@ -27,7 +27,7 @@ interface PermutationSectionProps<T extends string> {
 }
 
 const PermutationSection = <T extends string>({ title, description, options, selectedValue, onValueChange, icon, getItemClasses }: PermutationSectionProps<T>) => (
-    <div className="flex flex-col gap-4 rounded-xl border border-border/60 bg-card/50 p-5 shadow-sm transition-all hover:shadow-md">
+    <div className="flex flex-col gap-4 surface p-5 transition-all hover:shadow-md">
         <div className="flex items-center gap-3">
             <div className="flex size-9 items-center justify-center rounded-lg bg-primary/10 text-primary">
                 {icon}
@@ -317,7 +317,7 @@ const ScalePracticePanel: React.FC<ScalePracticePanelProps> = ({
 
   return (
     <CardContent className="flex flex-col gap-8 p-0">
-        <div className="flex items-center justify-between p-4 bg-primary/5 rounded-xl border border-primary/10">
+        <div className="flex items-center justify-between p-4 bg-primary/5 rounded-2xl border border-primary/10">
           <div className="space-y-1">
             <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-primary/60">
               <LayoutGrid className="w-3 h-3" />
@@ -333,7 +333,7 @@ const ScalePracticePanel: React.FC<ScalePracticePanelProps> = ({
 
             <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
             <div className="flex flex-col gap-8">
-                <div className="flex flex-col gap-4 rounded-xl border border-border/60 bg-card/50 p-5 shadow-sm">
+                <div className="flex flex-col gap-4 surface p-5">
                     <div className="flex items-center gap-3">
                         <div className="flex size-9 items-center justify-center rounded-lg bg-primary/10 text-primary">
                             <Music className="w-5 h-5" />
@@ -355,7 +355,7 @@ const ScalePracticePanel: React.FC<ScalePracticePanelProps> = ({
                     </ToggleGroup>
                 </div>
 
-                <div className="flex flex-col gap-4 rounded-xl border border-border/60 bg-card/50 p-5 shadow-sm">
+                <div className="flex flex-col gap-4 surface p-5">
                     <div className="flex items-center gap-3">
                         <div className="flex size-9 items-center justify-center rounded-lg bg-primary/10 text-primary">
                             <Zap className="w-5 h-5" />
