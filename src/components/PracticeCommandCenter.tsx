@@ -140,21 +140,27 @@ const PracticeCommandCenter: React.FC = () => {
       <HomeModes active={mode} onSelect={handleSelectMode} />
 
       {nextFocus && (
-        <Card className="surface overflow-hidden border-primary/20 bg-gradient-to-br from-primary/[0.09] via-card to-card">
-          <CardContent className="flex flex-col gap-4 p-5 sm:flex-row sm:items-center sm:justify-between">
-            <div className="flex items-center gap-3.5">
-              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
-                <Target className="h-5 w-5" />
+        <Card className="surface overflow-hidden border-primary/20 bg-gradient-to-br from-primary/[0.1] via-card to-card shadow-md shadow-primary/[0.04]">
+          <CardContent className="flex flex-col gap-5 p-5 sm:flex-row sm:items-center sm:justify-between sm:p-6">
+            <div className="flex min-w-0 items-center gap-3.5">
+              <div className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary ring-1 ring-primary/15">
+                <Target className="size-5" />
               </div>
-              <div className="space-y-0.5">
-                <p className="text-[10px] font-bold uppercase tracking-widest text-primary">
-                  Suggested focus
-                </p>
-                <p className="text-lg font-bold tracking-tight">{suggestedLabel}</p>
+              <div className="min-w-0 space-y-1">
+                <div className="flex items-center gap-2">
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-primary">
+                    Suggested focus
+                  </p>
+                  <span className="size-1.5 rounded-full bg-primary" aria-hidden="true" />
+                  <span className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+                    Ready
+                  </span>
+                </div>
+                <p className="truncate text-lg font-bold tracking-tight sm:text-xl">{suggestedLabel}</p>
               </div>
             </div>
-            <Button size="lg" onClick={() => handleLoadSuggestion(nextFocus)} disabled={isEngagingSuggestion} className="font-bold shadow-sm focus-scale">
-              <Play className="mr-2 h-4 w-4" />
+            <Button size="lg" onClick={() => handleLoadSuggestion(nextFocus)} disabled={isEngagingSuggestion} className="w-full font-bold shadow-sm focus-scale sm:w-auto">
+              <Play data-icon="inline-start" />
               Start session
             </Button>
           </CardContent>
