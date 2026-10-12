@@ -140,7 +140,7 @@ const PracticeCommandCenter: React.FC = () => {
       <HomeModes active={mode} onSelect={handleSelectMode} />
 
       {nextFocus && (
-        <Card className="surface overflow-hidden border-primary/20 bg-gradient-to-br from-primary/[0.1] via-card to-card shadow-md shadow-primary/[0.04]">
+        <Card className="surface overflow-hidden border-primary/20 bg-gradient-to-br from-primary/[0.09] via-card to-card shadow-md shadow-primary/[0.05]">
           <CardContent className="flex flex-col gap-5 p-5 sm:flex-row sm:items-center sm:justify-between sm:p-6">
             <div className="flex min-w-0 items-center gap-3.5">
               <div className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary ring-1 ring-primary/15">

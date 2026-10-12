@@ -56,7 +56,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children, headerRightContent, mob
                 Skip to main content
             </a>
             <header className={cn(
-                "sticky top-0 z-50 w-full border-b border-border/70 bg-background/90 shadow-[0_1px_0_hsl(var(--border)/0.35),0_8px_24px_hsl(228_24%_12%/0.04)] backdrop-blur-lg supports-[backdrop-filter]:bg-background/75 transition-all duration-300",
+                "sticky top-0 z-50 w-full border-b border-border/70 bg-background/90 shadow-[0_1px_0_hsl(var(--border)/0.35),0_12px_28px_hsl(222_22%_16%/0.05)] backdrop-blur-lg supports-[backdrop-filter]:bg-background/75 transition-all duration-300",
                 isZenMode ? "h-12 opacity-60 hover:opacity-100" : "h-16"
             )}>
                 <div className="container flex h-full items-center justify-between gap-4 px-4 sm:px-6">
