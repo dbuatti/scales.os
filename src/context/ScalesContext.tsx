@@ -137,75 +137,88 @@ export const ScalesProvider: React.FC<React.PropsWithChildren> = ({ children }) 
 
   const isLoading = isSessionLoading || isDataLoading;
 
-  const fetchData = useCallback(async (id: string) => {
+  const fetchData = useCallback(async (id: string): Promise<boolean> => {
     setIsDataLoading(true);
-    
-    const { data: progressData, error: progressError } = await supabase
-      .from('user_progress')
-      .select('practice_id, status')
-      .eq('user_id', id);
+    let ok = true;
 
-    if (progressError) {
-      showError("Failed to load practice progress.");
-    } else if (progressData) {
-      setProgressMap(progressArrayToMap(progressData as StoredProgressEntry[]));
+    try {
+      const { data: progressData, error: progressError } = await supabase
+        .from('user_progress')
+        .select('practice_id, status')
+        .eq('user_id', id);
+
+      if (progressError) {
+        showError("Failed to load practice progress.");
+        ok = false;
+      } else if (progressData) {
+        setProgressMap(progressArrayToMap(progressData as StoredProgressEntry[]));
+      }
+
+      const { data: scaleMasteryData, error: scaleMasteryError } = await supabase
+        .from('scale_permutations_mastery')
+        .select('scale_permutation_id, highest_mastered_bpm')
+        .eq('user_id', id);
+
+      if (scaleMasteryError) {
+        showError("Failed to load scale BPM progress.");
+        ok = false;
+      } else if (scaleMasteryData) {
+        const bpmMap = scaleMasteryData.reduce((acc, item) => {
+          acc[item.scale_permutation_id] = item.highest_mastered_bpm;
+          return acc;
+        }, {} as Record<string, number>);
+        setScaleMasteryBPMMap(bpmMap);
+      }
+
+      const { data: exerciseMasteryData, error: exerciseMasteryError } = await supabase
+        .from('exercise_mastery')
+        .select('exercise_id, highest_mastered_bpm')
+        .eq('user_id', id);
+
+      if (exerciseMasteryError) {
+        showError("Failed to load exercise BPM progress.");
+        ok = false;
+      } else if (exerciseMasteryData) {
+        const bpmMap = exerciseMasteryData.reduce((acc, item) => {
+          acc[item.exercise_id] = item.highest_mastered_bpm;
+          return acc;
+        }, {} as Record<string, number>);
+        setExerciseMasteryBPMMap(bpmMap);
+      }
+
+      const { data: logData, error: logError } = await supabase
+        .from('practice_logs')
+        .select('id, duration_minutes, scales_practiced, notes, created_at')
+        .eq('user_id', id)
+        .order('created_at', { ascending: false });
+
+      if (logError) {
+        showError("Failed to load practice logs.");
+        ok = false;
+      } else if (logData) {
+        const formattedLog: PracticeLogEntry[] = logData.map(item => ({
+          id: item.id,
+          timestamp: new Date(item.created_at).getTime(),
+          durationMinutes: item.duration_minutes,
+          itemsPracticed: item.scales_practiced || [],
+          notes: item.notes || '',
+        }));
+        setLog(formattedLog);
+      }
+    } catch (error) {
+      console.error('Failed to load practice data', error);
+      showError("Failed to load practice data.");
+      ok = false;
+    } finally {
+      setIsDataLoading(false);
     }
-    
-    const { data: scaleMasteryData, error: scaleMasteryError } = await supabase
-      .from('scale_permutations_mastery')
-      .select('scale_permutation_id, highest_mastered_bpm')
-      .eq('user_id', id);
 
-    if (scaleMasteryError) {
-      showError("Failed to load scale BPM progress.");
-    } else if (scaleMasteryData) {
-      const bpmMap = scaleMasteryData.reduce((acc, item) => {
-        acc[item.scale_permutation_id] = item.highest_mastered_bpm;
-        return acc;
-      }, {} as Record<string, number>);
-      setScaleMasteryBPMMap(bpmMap);
-    }
-
-    const { data: exerciseMasteryData, error: exerciseMasteryError } = await supabase
-      .from('exercise_mastery')
-      .select('exercise_id, highest_mastered_bpm')
-      .eq('user_id', id);
-
-    if (exerciseMasteryError) {
-      showError("Failed to load exercise BPM progress.");
-    } else if (exerciseMasteryData) {
-      const bpmMap = exerciseMasteryData.reduce((acc, item) => {
-        acc[item.exercise_id] = item.highest_mastered_bpm;
-        return acc;
-      }, {} as Record<string, number>);
-      setExerciseMasteryBPMMap(bpmMap);
-    }
-
-    const { data: logData, error: logError } = await supabase
-      .from('practice_logs')
-      .select('id, duration_minutes, scales_practiced, notes, created_at')
-      .eq('user_id', id)
-      .order('created_at', { ascending: false });
-
-    if (logError) {
-      showError("Failed to load practice logs.");
-    } else if (logData) {
-      const formattedLog: PracticeLogEntry[] = logData.map(item => ({
-        id: item.id,
-        timestamp: new Date(item.created_at).getTime(),
-        durationMinutes: item.duration_minutes,
-        itemsPracticed: item.scales_practiced || [],
-        notes: item.notes || '',
-      }));
-      setLog(formattedLog);
-    }
-
-    setIsDataLoading(false);
+    return ok;
   }, []);
 
   useEffect(() => {
     if (userId) {
-      fetchData(userId);
+      void fetchData(userId);
     } else if (!isSessionLoading) {
       setProgressMap({});
       setScaleMasteryBPMMap({});
@@ -216,36 +229,51 @@ export const ScalesProvider: React.FC<React.PropsWithChildren> = ({ children }) 
   }, [userId, isSessionLoading, fetchData]);
 
   const refetchData = useCallback(async () => {
-    if (userId) {
-      showSuccess("Refreshing practice data...");
-      await fetchData(userId);
-      showSuccess("Practice data refreshed!");
-    } else {
+    if (!userId) {
       showError("Cannot refresh data: User not logged in.");
+      return;
     }
+    const ok = await fetchData(userId);
+    if (ok) showSuccess("Practice data refreshed!");
   }, [userId, fetchData]);
 
   const clearExerciseMastery = useCallback(async () => {
     if (!userId) return;
-    await supabase.from('exercise_mastery').delete().eq('user_id', userId).like('exercise_id', 'Dohnanyi-%');
-    await supabase.from('exercise_mastery').delete().eq('user_id', userId).like('exercise_id', 'Hanon-%');
-    showSuccess("Exercise mastery cleared.");
-    await refetchData();
-  }, [userId, refetchData]);
+    const { error } = await supabase.from('exercise_mastery').delete().eq('user_id', userId).like('exercise_id', 'Dohnanyi-%');
+    if (error) {
+      showError("Failed to clear Dohnányi mastery.");
+      return;
+    }
+    const { error: hanonError } = await supabase.from('exercise_mastery').delete().eq('user_id', userId).like('exercise_id', 'Hanon-%');
+    if (hanonError) {
+      showError("Failed to clear Hanon mastery.");
+      return;
+    }
+    await fetchData(userId);
+    showSuccess("Exercise mastery cleared!");
+  }, [userId, fetchData]);
 
   const clearScaleMastery = useCallback(async () => {
     if (!userId) return;
-    await supabase.from('scale_permutations_mastery').delete().eq('user_id', userId);
-    showSuccess("Scale mastery cleared.");
-    await refetchData();
-  }, [userId, refetchData]);
+    const { error } = await supabase.from('scale_permutations_mastery').delete().eq('user_id', userId);
+    if (error) {
+      showError("Failed to clear scale mastery.");
+      return;
+    }
+    await fetchData(userId);
+    showSuccess("Scale mastery cleared!");
+  }, [userId, fetchData]);
 
   const clearAllLogs = useCallback(async () => {
     if (!userId) return;
-    await supabase.from('practice_logs').delete().eq('user_id', userId);
-    showSuccess("Logs cleared.");
-    await refetchData();
-  }, [userId, refetchData]);
+    const { error } = await supabase.from('practice_logs').delete().eq('user_id', userId);
+    if (error) {
+      showError("Failed to clear practice logs.");
+      return;
+    }
+    await fetchData(userId);
+    showSuccess("Practice logs cleared!");
+  }, [userId, fetchData]);
 
   const nextFocus: NextFocus = useMemo(() => {
     if (isSessionLoading || isDataLoading) return null;
@@ -373,37 +401,55 @@ export const ScalesProvider: React.FC<React.PropsWithChildren> = ({ children }) 
     if (!userId) return;
 
     if (status === 'untouched') {
-      await supabase.from('user_progress').delete().eq('user_id', userId).eq('practice_id', practiceId);
+      const { error } = await supabase.from('user_progress').delete().eq('user_id', userId).eq('practice_id', practiceId);
+      if (error) {
+        showError("Failed to update practice status.");
+        return;
+      }
       setProgressMap(prev => {
         const newState = { ...prev };
         delete newState[practiceId];
         return newState;
       });
     } else {
-      await supabase.from('user_progress').upsert({ user_id: userId, practice_id: practiceId, status: status }, { onConflict: 'user_id, practice_id' });
+      const { error } = await supabase.from('user_progress').upsert({ user_id: userId, practice_id: practiceId, status }, { onConflict: 'user_id, practice_id' });
+      if (error) {
+        showError("Failed to update practice status.");
+        return;
+      }
       setProgressMap(prev => ({ ...prev, [practiceId]: status }));
     }
   }, [userId]);
-  
+
   const updateScaleMasteryBPM = useCallback(async (scalePermutationId: string, newBPM: number) => {
     if (!userId) return;
-    await supabase.from('scale_permutations_mastery').upsert({ user_id: userId, scale_permutation_id: scalePermutationId, highest_mastered_bpm: newBPM, last_practiced_at: new Date().toISOString() }, { onConflict: 'user_id, scale_permutation_id' });
+    const { error } = await supabase.from('scale_permutations_mastery').upsert({ user_id: userId, scale_permutation_id: scalePermutationId, highest_mastered_bpm: newBPM, last_practiced_at: new Date().toISOString() }, { onConflict: 'user_id, scale_permutation_id' });
+    if (error) {
+      showError("Failed to save scale progress.");
+      return;
+    }
     setScaleMasteryBPMMap(prev => ({ ...prev, [scalePermutationId]: newBPM }));
   }, [userId]);
 
   const updateExerciseMasteryBPM = useCallback(async (exerciseId: string, newBPM: number) => {
     if (!userId) return;
-    await supabase.from('exercise_mastery').upsert({ user_id: userId, exercise_id: exerciseId, highest_mastered_bpm: newBPM, last_practiced_at: new Date().toISOString() }, { onConflict: 'user_id, exercise_id' });
+    const { error } = await supabase.from('exercise_mastery').upsert({ user_id: userId, exercise_id: exerciseId, highest_mastered_bpm: newBPM, last_practiced_at: new Date().toISOString() }, { onConflict: 'user_id, exercise_id' });
+    if (error) {
+      showError("Failed to update exercise mastery.");
+      return;
+    }
     setExerciseMasteryBPMMap(prev => ({ ...prev, [exerciseId]: newBPM }));
   }, [userId]);
 
   const addLogEntry = useCallback(async (entry: Omit<PracticeLogEntry, 'id' | 'timestamp'>) => {
     if (!userId) return;
-    const { data } = await supabase.from('practice_logs').insert({ user_id: userId, duration_minutes: entry.durationMinutes, scales_practiced: entry.itemsPracticed, notes: entry.notes }).select('id, created_at').single();
-    if (data) {
-      const finalEntry: PracticeLogEntry = { ...entry, id: data.id, timestamp: new Date(data.created_at).getTime() };
-      setLog(prev => [finalEntry, ...prev]);
+    const { data, error } = await supabase.from('practice_logs').insert({ user_id: userId, duration_minutes: entry.durationMinutes, scales_practiced: entry.itemsPracticed, notes: entry.notes }).select('id, created_at').single();
+    if (error || !data) {
+      showError("Failed to save practice session.");
+      return;
     }
+    const finalEntry: PracticeLogEntry = { ...entry, id: data.id, timestamp: new Date(data.created_at).getTime() };
+    setLog(prev => [finalEntry, ...prev]);
   }, [userId]);
 
   const contextValue = useMemo(() => ({

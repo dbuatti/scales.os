@@ -6,28 +6,31 @@ import { GlobalBPMProvider } from "./context/GlobalBPMContext";
 import { MetronomeProvider } from "./context/MetronomeContext";
 import { ZenModeProvider } from "./context/ZenModeContext";
 import AuthRouter from "./components/AuthRouter";
+import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "@/components/theme-provider";
 
 const queryClient = new QueryClient();
 
 const App = () => {
   return (
-    <QueryClientProvider client={queryClient}>
-      <GlobalBPMProvider>
-        <MetronomeProvider>
-          <ZenModeProvider>
-            <ThemeProvider defaultTheme="soft-focus" storageKey="theme" attribute="data-theme">
-              <TooltipProvider>
-                <Sonner />
-                <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
-                  <AuthRouter />
-                </BrowserRouter>
-              </TooltipProvider>
-            </ThemeProvider>
-          </ZenModeProvider>
-        </MetronomeProvider>
-      </GlobalBPMProvider>
-    </QueryClientProvider>
+    <ErrorBoundary>
+      <QueryClientProvider client={queryClient}>
+        <GlobalBPMProvider>
+          <MetronomeProvider>
+            <ZenModeProvider>
+              <ThemeProvider>
+                <TooltipProvider>
+                  <Sonner />
+                  <BrowserRouter>
+                    <AuthRouter />
+                  </BrowserRouter>
+                </TooltipProvider>
+              </ThemeProvider>
+            </ZenModeProvider>
+          </MetronomeProvider>
+        </GlobalBPMProvider>
+      </QueryClientProvider>
+    </ErrorBoundary>
   );
 };
 

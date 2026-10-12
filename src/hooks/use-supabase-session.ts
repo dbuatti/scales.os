@@ -8,22 +8,35 @@ export const useSupabaseSession = () => {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const fetchSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      setSession(session);
-      setUserId(session?.user?.id || null);
+    let active = true;
+
+    const applySession = (nextSession: Session | null) => {
+      if (!active) return;
+      setSession(nextSession);
+      setUserId(nextSession?.user?.id ?? null);
       setIsLoading(false);
     };
 
-    fetchSession();
+    const fetchSession = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        applySession(session);
+      } catch (error) {
+        console.error('Failed to load Supabase session', error);
+        applySession(null);
+      }
+    };
+
+    void fetchSession();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
-      setUserId(session?.user?.id || null);
-      setIsLoading(false);
+      applySession(session);
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      active = false;
+      subscription.unsubscribe();
+    };
   }, []);
 
   return { session, userId, isLoading };
