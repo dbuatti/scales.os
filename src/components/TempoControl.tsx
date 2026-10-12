@@ -49,7 +49,7 @@ const TempoControl: React.FC<TempoControlProps> = ({
       max={MAX_BPM}
       className={
         compact
-          ? 'h-9 w-12 border-0 bg-transparent px-1 text-center text-base font-black tabular-nums'
+          ? 'h-9 w-12 rounded-lg border-0 bg-transparent px-1 text-center text-base font-black tabular-nums focus-visible:ring-0 focus-visible:ring-offset-0'
           : 'h-14 w-full text-center text-3xl font-black tabular-nums'
       }
       aria-label="Tempo in BPM"
@@ -58,39 +58,39 @@ const TempoControl: React.FC<TempoControlProps> = ({
 
   if (compact) {
     return (
-      <div className="flex shrink-0 items-center rounded-lg border bg-card/50 p-0.5">
+      <div className="flex shrink-0 items-center gap-0.5 rounded-xl border border-border/60 bg-card/60 p-1 backdrop-blur-xl">
         <Button
-          variant="outline"
+          variant="ghost"
           size="icon"
-          className="h-9 w-9 shrink-0 font-bold tabular-nums"
+          className="h-8 w-8 shrink-0 rounded-lg text-xs font-bold tabular-nums text-muted-foreground hover:bg-background/70 hover:text-foreground focus-scale"
           onClick={() => onStep(-5)}
           aria-label="Decrease by 5 BPM"
         >
           -5
         </Button>
         <Button
-          variant="outline"
+          variant="ghost"
           size="icon"
-          className="h-9 w-9 shrink-0"
+          className="h-8 w-8 shrink-0 rounded-lg text-muted-foreground hover:bg-background/70 hover:text-foreground focus-scale"
           onClick={() => onStep(-1)}
           aria-label="Decrease by 1 BPM"
         >
-          <Minus className="h-4 w-4" />
+          <Minus className="h-3.5 w-3.5" />
         </Button>
         {numberInput}
         <Button
-          variant="outline"
+          variant="ghost"
           size="icon"
-          className="h-9 w-9 shrink-0"
+          className="h-8 w-8 shrink-0 rounded-lg text-muted-foreground hover:bg-background/70 hover:text-foreground focus-scale"
           onClick={() => onStep(1)}
           aria-label="Increase by 1 BPM"
         >
-          <Plus className="h-4 w-4" />
+          <Plus className="h-3.5 w-3.5" />
         </Button>
         <Button
-          variant="outline"
+          variant="ghost"
           size="icon"
-          className="h-9 w-9 shrink-0 font-bold tabular-nums"
+          className="h-8 w-8 shrink-0 rounded-lg text-xs font-bold tabular-nums text-muted-foreground hover:bg-background/70 hover:text-foreground focus-scale"
           onClick={() => onStep(5)}
           aria-label="Increase by 5 BPM"
         >

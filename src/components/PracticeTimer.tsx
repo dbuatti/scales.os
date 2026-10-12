@@ -54,9 +54,9 @@ const PracticeTimer: React.FC<PracticeTimerProps> = ({ onLogSession, isCondensed
 
   if (isCondensed) {
     return (
-        <div className="flex items-center gap-2">
-            <div className="flex flex-col items-center">
-                <div className="min-w-[60px] text-center text-lg font-bold tabular-nums tracking-tight">
+        <div className="flex items-center gap-1 rounded-xl border border-border/60 bg-card/60 p-1 backdrop-blur-xl">
+            <div className="flex flex-col items-center px-1.5">
+                <div className="min-w-[56px] text-center text-base font-black tabular-nums tracking-tight">
                     {formatTime(time)}
                 </div>
                 {sessionGoal && (
@@ -65,20 +65,20 @@ const PracticeTimer: React.FC<PracticeTimerProps> = ({ onLogSession, isCondensed
             </div>
 
             {isRunning ? (
-                <Button onClick={handlePause} variant="secondary" size="icon" className="h-9 w-9 focus-scale">
+                <Button onClick={handlePause} variant="secondary" size="icon" className="h-8 w-8 rounded-lg focus-scale">
                     <Pause className="h-4 w-4" />
                 </Button>
             ) : (
-                <Button onClick={handleStart} size="icon" className="h-9 w-9 focus-scale" disabled={time > 0}>
+                <Button onClick={handleStart} size="icon" className="h-8 w-8 rounded-lg focus-scale">
                     <Play className="h-4 w-4" />
                 </Button>
             )}
 
-            <Button onClick={handleLog} size="icon" className="h-9 w-9 focus-scale" disabled={time === 0 || isRunning}>
+            <Button onClick={handleLog} variant="ghost" size="icon" className="h-8 w-8 rounded-lg text-muted-foreground hover:bg-background/70 hover:text-foreground focus-scale" disabled={time === 0 || isRunning}>
                 <LogIn className="h-4 w-4" />
             </Button>
 
-            <Button onClick={handleReset} variant="outline" size="icon" className="h-9 w-9 focus-scale" disabled={time === 0}>
+            <Button onClick={handleReset} variant="ghost" size="icon" className="h-8 w-8 rounded-lg text-muted-foreground hover:bg-background/70 hover:text-foreground focus-scale" disabled={time === 0}>
                 <RotateCcw className="h-4 w-4" />
             </Button>
         </div>

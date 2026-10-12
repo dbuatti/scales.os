@@ -49,8 +49,10 @@ const Metronome: React.FC<MetronomeProps> = ({ showSettings = true }) => {
       onClick={toggleRun}
       size="lg"
       className={cn(
-        'h-9 shrink-0 font-bold focus-scale',
-        isRunning && 'bg-destructive text-destructive-foreground hover:bg-destructive/90',
+        'h-9 shrink-0 rounded-lg font-bold tracking-wide shadow-sm focus-scale',
+        isRunning
+          ? 'bg-destructive text-destructive-foreground hover:bg-destructive/90'
+          : 'bg-primary text-primary-foreground shadow-primary/25 hover:bg-primary/90',
         className,
       )}
     >
@@ -61,9 +63,9 @@ const Metronome: React.FC<MetronomeProps> = ({ showSettings = true }) => {
   const tapButton = (
     <Button
       onClick={tapTempo}
-      variant="outline"
+      variant="ghost"
       size="sm"
-      className="h-9 shrink-0 border-border/60 font-bold focus-scale"
+      className="h-9 shrink-0 rounded-lg font-bold text-muted-foreground hover:bg-background/70 hover:text-foreground focus-scale"
     >
       <Fingerprint className="mr-1.5 h-3.5 w-3.5" /> TAP
     </Button>
@@ -74,7 +76,7 @@ const Metronome: React.FC<MetronomeProps> = ({ showSettings = true }) => {
       onClick={toggleMuted}
       variant="ghost"
       size="icon"
-      className="h-9 w-9 shrink-0 text-muted-foreground hover:bg-muted hover:text-foreground focus-scale"
+      className="h-9 w-9 shrink-0 rounded-lg text-muted-foreground hover:bg-background/70 hover:text-foreground focus-scale"
     >
       {isMuted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
     </Button>
@@ -105,8 +107,8 @@ const Metronome: React.FC<MetronomeProps> = ({ showSettings = true }) => {
   const beatIndicator = (
     <div
       className={cn(
-        'relative flex h-11 w-11 flex-shrink-0 items-center justify-center overflow-hidden rounded-xl border border-border/60 transition-all duration-150',
-        isRunning ? 'bg-muted/10' : 'bg-muted/20',
+        'relative flex h-11 w-11 flex-shrink-0 items-center justify-center overflow-hidden rounded-xl border border-border/60 bg-card/50 transition-all duration-150',
+        isRunning && 'border-primary/30',
       )}
     >
       {isRunning && (
@@ -159,7 +161,7 @@ const Metronome: React.FC<MetronomeProps> = ({ showSettings = true }) => {
   }
 
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex items-center gap-1 rounded-xl border border-border/60 bg-card/60 p-1 backdrop-blur-xl">
       <div className="hidden lg:block">{beatIndicator}</div>
 
       {runButton('w-20')}
@@ -171,18 +173,19 @@ const Metronome: React.FC<MetronomeProps> = ({ showSettings = true }) => {
         onStep={handleBpmChange}
       />
 
-      <div className="flex items-center gap-1">
+      <div className="flex items-center gap-0.5">
         <div className="hidden sm:block">{tapButton}</div>
 
         <Popover>
           <PopoverTrigger asChild>
             <Button
-              variant="outline"
+              variant="ghost"
               size="icon"
               aria-label="Metronome settings"
               className={cn(
-                'h-9 w-9 border-border/60 focus-scale',
-                (autoIncrementEnabled || visualFlashEnabled) && 'border-primary/40 bg-primary/10 text-primary',
+                'h-9 w-9 shrink-0 rounded-lg text-muted-foreground hover:bg-background/70 hover:text-foreground focus-scale',
+                (autoIncrementEnabled || visualFlashEnabled) &&
+                  'bg-primary/10 text-primary hover:bg-primary/15 hover:text-primary',
               )}
             >
               <Settings2 className="h-4 w-4" />
