@@ -67,8 +67,8 @@ const ProgressPage: React.FC = () => {
         }
       />
 
-      <Tabs defaultValue="overview" className="space-y-8">
-        <TabsList className="flex h-auto w-full justify-start gap-1 overflow-x-auto rounded-none border-b border-border/60 bg-transparent p-0">
+      <Tabs defaultValue="overview" className="flex flex-col gap-8">
+        <TabsList aria-label="Progress sections" className="flex h-auto w-full justify-start gap-1 overflow-x-auto rounded-none border-b border-border/60 bg-transparent p-0">
           <TabsTrigger
             value="overview"
             className="shrink-0 gap-2 rounded-none border-b-2 border-transparent px-3 pb-3 pt-1 text-sm font-bold text-muted-foreground shadow-none transition-colors data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:text-primary"
