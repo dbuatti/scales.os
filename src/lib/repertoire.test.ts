@@ -8,6 +8,7 @@ import {
   friendlyExerciseLabel,
   getLastOpenedDocumentId,
   getMappingForPage,
+  getMappingOverlaps,
   setLastOpenedDocumentId,
   suggestNextExercise,
 } from './repertoire';
@@ -114,6 +115,28 @@ describe('getMappingForPage', () => {
     const mappings = [mapping(1, 2, 'A'), mapping(2, 3, 'B')];
     expect(getMappingForPage(mappings, 2)?.label).toBe('B');
     expect(getMappingForPage(mappings, 1)?.label).toBe('A');
+  });
+});
+
+describe('getMappingOverlaps', () => {
+  const mapping = (pageStart: number, pageEnd: number, label: string): PageMapping => ({
+    ...createEmptyMapping(pageStart),
+    pageEnd,
+    label,
+  });
+
+  it('reports the shared page and other label for a shared page', () => {
+    const a = mapping(1, 2, 'A');
+    const b = mapping(2, 3, 'B');
+    expect(getMappingOverlaps(a, [a, b])).toEqual([
+      { otherId: b.id, label: 'B', pages: [2] },
+    ]);
+  });
+
+  it('returns nothing for adjacent, non-overlapping mappings', () => {
+    const a = mapping(1, 2, 'A');
+    const b = mapping(3, 4, 'B');
+    expect(getMappingOverlaps(a, [a, b])).toEqual([]);
   });
 });
 

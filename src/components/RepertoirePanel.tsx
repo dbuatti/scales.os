@@ -80,6 +80,7 @@ import {
   setStoredBookSource,
   suggestNextExercise,
   friendlyExerciseLabel,
+  getMappingOverlaps,
 } from '@/lib/repertoire';
 
 const ViewerFallback: React.FC = () => (
@@ -95,11 +96,13 @@ const ZOOM_STEP = 0.15;
 
 const MappingRow: React.FC<{
   mapping: PageMapping;
+  allMappings: PageMapping[];
   pageCount: number;
   onChange: (id: string, patch: Partial<PageMapping>) => void;
   onDelete: (id: string) => void;
   isCurrent: boolean;
-}> = ({ mapping, pageCount, onChange, onDelete, isCurrent }) => {
+}> = ({ mapping, allMappings, pageCount, onChange, onDelete, isCurrent }) => {
+  const overlaps = getMappingOverlaps(mapping, allMappings);
   const handleExercise = (value: string) => {
     const option = EXERCISE_OPTIONS.find((opt) => opt.id === value);
     if (option) {
@@ -257,6 +260,21 @@ const MappingRow: React.FC<{
           </Select>
         </div>
       </div>
+
+      {overlaps.length > 0 && (
+        <div className="space-y-1">
+          {overlaps.map((overlap) => (
+            <p
+              key={overlap.otherId}
+              className="rounded-md bg-muted/60 px-2 py-1 text-[10px] leading-snug text-muted-foreground"
+            >
+              Shares page{overlap.pages.length > 1 ? 's' : ''}{' '}
+              <span className="font-semibold text-foreground">{overlap.pages.join(', ')}</span> with{' '}
+              <span className="font-semibold text-foreground">{overlap.label}</span>
+            </p>
+          ))}
+        </div>
+      )}
     </div>
   );
 };
@@ -1468,6 +1486,7 @@ const RepertoirePanel: React.FC = () => {
                           <MappingRow
                             key={mapping.id}
                             mapping={mapping}
+                            allMappings={mappings}
                             pageCount={pageCount}
                             onChange={updateMapping}
                             onDelete={deleteMapping}

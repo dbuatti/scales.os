@@ -11,7 +11,7 @@ import { useNavigate } from 'react-router-dom';
 import PracticeSummaryPanel from './PracticeSummaryPanel';
 import { Button } from '@/components/ui/button';
 import { showSuccess } from '@/utils/toast';
-import { RefreshCw, Target, Settings2, Keyboard, Clock, Activity } from 'lucide-react';
+import { RefreshCw, Target, Settings2, Keyboard, Clock, Activity, Play } from 'lucide-react';
 import { useZenMode } from '@/context/ZenModeContext';
 import PageHeader from './PageHeader';
 import HomeModes from './HomeModes';
@@ -139,15 +139,22 @@ const PracticeCommandCenter: React.FC = () => {
       <HomeModes active={mode} onSelect={handleSelectMode} />
 
       {nextFocus && (
-        <Card className="bg-primary/5 border-primary/20 shadow-sm">
+        <Card className="overflow-hidden rounded-2xl border-primary/20 bg-primary/5 shadow-sm">
           <CardContent className="flex flex-col gap-4 p-5 sm:flex-row sm:items-center sm:justify-between">
-            <div className="space-y-1">
-              <p className="text-xs font-bold uppercase tracking-widest text-primary/60">Suggested Focus</p>
-              <p className="text-lg font-semibold">{suggestedLabel}</p>
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                <Target className="h-5 w-5" />
+              </div>
+              <div className="space-y-0.5">
+                <p className="text-[10px] font-bold uppercase tracking-widest text-primary/70">
+                  Suggested focus
+                </p>
+                <p className="text-lg font-bold tracking-tight">{suggestedLabel}</p>
+              </div>
             </div>
-            <Button size="lg" onClick={() => handleLoadSuggestion(nextFocus)} disabled={isEngagingSuggestion} className="focus-scale">
-              <Target className="w-5 h-5 mr-2" />
-              Start Session
+            <Button size="lg" onClick={() => handleLoadSuggestion(nextFocus)} disabled={isEngagingSuggestion} className="font-bold focus-scale">
+              <Play className="w-4 h-4 mr-2" />
+              Start session
             </Button>
           </CardContent>
         </Card>
@@ -213,11 +220,11 @@ const PracticeCommandCenter: React.FC = () => {
               </CardContent>
             </Card>
 
-            <Card className="bg-primary/5 border-none shadow-none">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-xs font-bold uppercase tracking-widest text-primary/60 flex items-center gap-2">
-                  <Activity className="w-3 h-3" />
-                  Today's Activity
+            <Card className="rounded-2xl border border-border/60 bg-card/50 shadow-sm">
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                  <Activity className="w-3.5 h-3.5" />
+                  Today&apos;s activity
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -226,23 +233,27 @@ const PracticeCommandCenter: React.FC = () => {
                     <Clock className="w-4 h-4 text-muted-foreground" />
                     <span className="text-sm font-medium">Time</span>
                   </div>
-                  <span className="text-lg font-bold">{todayStats.totalMinutes}m</span>
+                  <span className="text-lg font-bold tabular-nums">{todayStats.totalMinutes}m</span>
                 </div>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <Target className="w-4 h-4 text-muted-foreground" />
                     <span className="text-sm font-medium">Items</span>
                   </div>
-                  <span className="text-lg font-bold">{todayStats.itemsPracticed}</span>
+                  <span className="text-lg font-bold tabular-nums">{todayStats.itemsPracticed}</span>
                 </div>
               </CardContent>
             </Card>
 
             {lastLogEntry && (
-              <Card className="bg-muted/10 border-none shadow-none">
+              <Card className="rounded-2xl border border-border/60 bg-card/50 shadow-sm">
                 <CardContent className="p-5">
-                  <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest mb-2">Last Session</p>
-                  <p className="text-base font-medium">{formatDistanceToNow(lastLogEntry.timestamp, { addSuffix: true })}</p>
+                  <p className="mb-1.5 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                    Last session
+                  </p>
+                  <p className="text-base font-semibold tracking-tight">
+                    {formatDistanceToNow(lastLogEntry.timestamp, { addSuffix: true })}
+                  </p>
                 </CardContent>
               </Card>
             )}

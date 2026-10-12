@@ -69,6 +69,33 @@ export const findMappingForExercise = (
 ): PageMapping | undefined =>
   exerciseId ? mappings.find((m) => m.exerciseId === exerciseId) : undefined;
 
+export interface MappingOverlap {
+  otherId: string;
+  label: string;
+  pages: number[];
+}
+
+export const getMappingOverlaps = (
+  mapping: PageMapping,
+  all: PageMapping[],
+): MappingOverlap[] => {
+  const overlaps: MappingOverlap[] = [];
+  for (const other of all) {
+    if (other.id === mapping.id) continue;
+    const start = Math.max(mapping.pageStart, other.pageStart);
+    const end = Math.min(mapping.pageEnd, other.pageEnd);
+    if (start > end) continue;
+    const pages: number[] = [];
+    for (let page = start; page <= end; page += 1) pages.push(page);
+    overlaps.push({
+      otherId: other.id,
+      label: other.label || other.exerciseId || `Page ${other.pageStart}`,
+      pages,
+    });
+  }
+  return overlaps;
+};
+
 export const sortMappings = (mappings: PageMapping[]): PageMapping[] =>
   [...mappings].sort((a, b) => a.pageStart - b.pageStart);
 

@@ -48,15 +48,15 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children, headerRightContent, mob
     return (
         <div className={cn("min-h-screen flex flex-col bg-background transition-all duration-500", isZenMode && "bg-background/95")}>
             <header className={cn(
-                "sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 transition-all duration-300",
-                isZenMode && "h-12 opacity-50 hover:opacity-100"
+                "sticky top-0 z-50 w-full border-b border-border/60 bg-background/80 backdrop-blur-lg supports-[backdrop-filter]:bg-background/60 transition-all duration-300",
+                isZenMode ? "h-12 opacity-60 hover:opacity-100" : "h-16"
             )}>
-                <div className="container flex h-full items-center justify-between gap-2 py-2">
-                    <Link to="/" className={cn("flex items-center gap-2 font-bold text-xl tracking-tight transition-all shrink-0", isZenMode && "text-sm")}>
-                        <div className={cn("bg-primary rounded-lg flex items-center justify-center text-primary-foreground transition-all", isZenMode ? "w-6 h-6" : "w-8 h-8")}>
-                            <Play className={cn("fill-current", isZenMode ? "w-3 h-3" : "w-5 h-5")} />
+                <div className="container flex h-full items-center justify-between gap-2">
+                    <Link to="/" className={cn("flex items-center gap-2.5 font-bold text-lg tracking-tight transition-all shrink-0", isZenMode && "text-sm")}>
+                        <div className={cn("bg-primary rounded-xl flex items-center justify-center text-primary-foreground shadow-sm transition-all", isZenMode ? "w-7 h-7" : "w-9 h-9")}>
+                            <Play className={cn("fill-current", isZenMode ? "w-3.5 h-3.5" : "w-4 h-4")} />
                         </div>
-                        <span className={cn(isZenMode && "hidden sm:inline")}>Scales</span>
+                        <span className={cn("tracking-tight", isZenMode && "hidden sm:inline")}>Scales</span>
                     </Link>
                     <nav className="flex items-center gap-2">
                         {headerRightContent ? (
@@ -100,10 +100,13 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children, headerRightContent, mob
             )}
 
             {!isZenMode && (
-                <footer className="border-t py-6 md:py-0">
-                    <div className="container flex flex-col items-center justify-between gap-4 md:h-24 md:flex-row">
-                        <p className="text-center text-sm leading-loose text-muted-foreground md:text-left">
+                <footer className="border-t border-border/60 py-8">
+                    <div className="container flex flex-col items-center justify-between gap-2 text-center md:flex-row md:text-left">
+                        <p className="text-sm text-muted-foreground">
                             Built for pianists. Focused on technique.
+                        </p>
+                        <p className="text-xs text-muted-foreground/70">
+                            Scales · Arpeggios · Method books
                         </p>
                     </div>
                 </footer>
