@@ -5,7 +5,16 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import {
   Select,
   SelectContent,
@@ -25,8 +34,10 @@ import {
   Trash2,
   ChevronLeft,
   ChevronRight,
+  ChevronDown,
   ChevronsLeft,
   ChevronsRight,
+  MoreHorizontal,
   Columns2,
   Rows2,
   FileText,
@@ -362,111 +373,52 @@ const ReaderToolbar: React.FC<ReaderToolbarProps> = ({
   onPanelToggle,
 }) => (
   <div className="flex flex-wrap items-center gap-1.5 surface p-1.5">
-    <Button
-      variant="outline"
-      size="icon"
-      className="h-9 w-9"
-      onClick={onPrevious}
-      disabled={pageNumber <= 1}
-      aria-label="Previous page"
-    >
-      <ChevronLeft className="w-4 h-4" />
-    </Button>
-
-    <div className="flex items-center gap-1.5 text-sm">
-      <Input
-        value={pageInput}
-        onChange={(e) => onPageInputChange(e.target.value)}
-        onKeyDown={(e) => {
-          if (e.key === 'Enter') {
-            e.preventDefault();
-            onCommitPageInput();
-          }
-        }}
-        onBlur={onCommitPageInput}
-        aria-label="Page number"
-        className="w-16 h-9 px-2 text-center text-sm tabular-nums"
-      />
-      <span className="text-muted-foreground text-xs">/ {pageCount || '—'}</span>
-    </div>
-
-    <Button
-      variant="outline"
-      size="icon"
-      className="h-9 w-10"
-      onClick={onNext}
-      disabled={pageCount > 0 && pageNumber >= pageCount}
-      aria-label="Next page"
-    >
-      <ChevronRight className="w-4 h-4" />
-    </Button>
-
-    <div className="mx-0.5 hidden h-6 w-px bg-border/60 sm:block" />
-    <Select value={quality} onValueChange={(value) => onQualityChange(value as 'standard' | 'retina')}>
-      <SelectTrigger className="h-9 w-[104px] text-xs">
-        <SelectValue />
-      </SelectTrigger>
-      <SelectContent>
-        <SelectItem value="standard" className="text-xs">Standard</SelectItem>
-        <SelectItem value="retina" className="text-xs">Retina</SelectItem>
-      </SelectContent>
-    </Select>
-
-    {!fullscreen && (
-      <ToggleGroup
-        type="single"
-        value={layout}
-        onValueChange={(value) => value && onLayoutChange(value as 'vertical' | 'horizontal')}
-        className="rounded-xl border border-border/50 bg-muted/40 p-1"
-      >
-        <ToggleGroupItem
-          value="horizontal"
-          className="h-9 px-3 text-[11px] font-bold data-[state=on]:bg-primary data-[state=on]:text-primary-foreground"
-          aria-label="Pages view"
-          title="Pages (spread) view"
-        >
-          <Columns2 className="w-3.5 h-3.5 mr-1.5" />
-          Pages
-        </ToggleGroupItem>
-        <ToggleGroupItem
-          value="vertical"
-          className="h-9 px-3 text-[11px] font-bold data-[state=on]:bg-primary data-[state=on]:text-primary-foreground"
-          aria-label="Continuous scroll view"
-          title="Continuous scroll view"
-        >
-          <Rows2 className="w-3.5 h-3.5 mr-1.5" />
-          Scroll
-        </ToggleGroupItem>
-      </ToggleGroup>
-    )}
-
-    <div className="mx-0.5 hidden h-6 w-px bg-border/60 sm:block" />
-    <Button
-      variant="outline"
-      size="icon"
-      className="h-9 w-9"
-      onClick={onFitWidth}
-      aria-label="Fit width"
-      title="Fit width"
-    >
-      <ArrowLeftRight className="w-4 h-4" />
-    </Button>
-    <Button
-      variant="outline"
-      size="icon"
-      className="h-9 w-10"
-      onClick={onFitPage}
-      aria-label="Fit page"
-      title="Fit page"
-    >
-      <Scan className="w-4 h-4" />
-    </Button>
-
-    <div className="flex items-center rounded-md border">
+    <div className="flex items-center gap-0.5">
       <Button
         variant="ghost"
         size="icon"
-        className="h-9 w-10 rounded-r-none"
+        className="h-9 w-9"
+        onClick={onPrevious}
+        disabled={pageNumber <= 1}
+        aria-label="Previous page"
+      >
+        <ChevronLeft className="w-4 h-4" />
+      </Button>
+
+      <div className="flex items-center gap-1.5 px-1 text-sm">
+        <Input
+          value={pageInput}
+          onChange={(e) => onPageInputChange(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') {
+              e.preventDefault();
+              onCommitPageInput();
+            }
+          }}
+          onBlur={onCommitPageInput}
+          aria-label="Page number"
+          className="h-9 w-14 border-transparent bg-muted/40 px-1 text-center text-sm tabular-nums focus-visible:bg-background"
+        />
+        <span className="text-muted-foreground text-xs tabular-nums">/ {pageCount || '—'}</span>
+      </div>
+
+      <Button
+        variant="ghost"
+        size="icon"
+        className="h-9 w-9"
+        onClick={onNext}
+        disabled={pageCount > 0 && pageNumber >= pageCount}
+        aria-label="Next page"
+      >
+        <ChevronRight className="w-4 h-4" />
+      </Button>
+    </div>
+
+    <div className="flex items-center">
+      <Button
+        variant="ghost"
+        size="icon"
+        className="h-9 w-9"
         onClick={onZoomOut}
         disabled={zoom <= 0.5}
         aria-label="Zoom out"
@@ -477,7 +429,7 @@ const ReaderToolbar: React.FC<ReaderToolbarProps> = ({
       <button
         type="button"
         onClick={onZoomReset}
-        className="h-9 min-w-[56px] border-x px-2 text-xs font-bold tabular-nums text-muted-foreground transition-colors hover:text-foreground"
+        className="h-9 min-w-[52px] rounded-lg px-1.5 text-xs font-bold tabular-nums text-muted-foreground transition-colors hover:bg-muted/60 hover:text-foreground"
         title="Reset zoom to 100%"
       >
         {Math.round(zoom * 100)}%
@@ -485,7 +437,7 @@ const ReaderToolbar: React.FC<ReaderToolbarProps> = ({
       <Button
         variant="ghost"
         size="icon"
-        className="h-9 w-10 rounded-l-none"
+        className="h-9 w-9"
         onClick={onZoomIn}
         disabled={zoom >= 3}
         aria-label="Zoom in"
@@ -496,10 +448,9 @@ const ReaderToolbar: React.FC<ReaderToolbarProps> = ({
     </div>
 
     {mappings.length > 0 && (
-      <div className="flex flex-wrap items-center gap-1.5 min-w-0 ml-0.5">
-        <div className="mx-0.5 hidden h-6 w-px bg-border/60 sm:block" />
+      <div className="flex min-w-0 items-center gap-0.5">
         <Button
-          variant="outline"
+          variant="ghost"
           size="icon"
           className="h-9 w-9 shrink-0"
           onClick={onPreviousExercise}
@@ -508,8 +459,49 @@ const ReaderToolbar: React.FC<ReaderToolbarProps> = ({
         >
           <ChevronsLeft className="w-4 h-4" />
         </Button>
+
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-9 max-w-[190px] gap-1.5 px-2.5 font-bold focus-scale"
+              title="Jump to exercise"
+            >
+              <ListMusic className="w-3.5 h-3.5 shrink-0 text-primary" />
+              <span className="truncate text-xs">
+                {currentMapping
+                  ? currentMapping.label || currentMapping.exerciseId || `p.${currentMapping.pageStart}`
+                  : 'Jump to exercise'}
+              </span>
+              <ChevronDown className="w-3.5 h-3.5 shrink-0 text-muted-foreground" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="start" className="max-h-72 w-64 overflow-y-auto">
+            <DropdownMenuLabel className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+              Exercises
+            </DropdownMenuLabel>
+            {mappings.map((mapping) => {
+              const isCurrent = mapping.id === currentMapping?.id;
+              return (
+                <DropdownMenuItem
+                  key={mapping.id}
+                  onSelect={() => onJumpPage(mapping.pageStart)}
+                  className={cn(
+                    'gap-2 text-xs font-medium',
+                    isCurrent && 'bg-primary/10 text-primary focus:bg-primary/10 focus:text-primary',
+                  )}
+                >
+                  <span className="shrink-0 tabular-nums text-muted-foreground">p.{mapping.pageStart}</span>
+                  <span className="truncate">{mapping.label || mapping.exerciseId || 'Unlabelled'}</span>
+                </DropdownMenuItem>
+              );
+            })}
+          </DropdownMenuContent>
+        </DropdownMenu>
+
         <Button
-          variant="outline"
+          variant="ghost"
           size="icon"
           className="h-9 w-9 shrink-0"
           onClick={onNextExercise}
@@ -518,25 +510,10 @@ const ReaderToolbar: React.FC<ReaderToolbarProps> = ({
         >
           <ChevronsRight className="w-4 h-4" />
         </Button>
-        {mappings.map((mapping) => {
-          const isCurrent = mapping.id === currentMapping?.id;
-          return (
-            <Button
-              key={mapping.id}
-              variant={isCurrent ? 'default' : 'outline'}
-              size="sm"
-              className="h-9 px-3 text-[11px] font-bold focus-scale"
-              onClick={() => onJumpPage(mapping.pageStart)}
-              title={`Jump to p.${mapping.pageStart}: ${mapping.label || mapping.exerciseId || 'unlabelled'}`}
-            >
-              {mapping.label || mapping.exerciseId || `p.${mapping.pageStart}`}
-            </Button>
-          );
-        })}
       </div>
     )}
 
-    <div className="ml-auto flex items-center gap-2">
+    <div className="ml-auto flex items-center gap-1.5">
       <Popover open={bookmarkOpen} onOpenChange={onBookmarkOpenChange}>
         <PopoverTrigger asChild>
           <Button
@@ -546,8 +523,8 @@ const ReaderToolbar: React.FC<ReaderToolbarProps> = ({
             disabled={!canBookmark}
             onClick={onOpenBookmark}
           >
-            <Bookmark className="w-3.5 h-3.5 mr-1.5" />
-            Bookmark page {pageNumber}
+            <Bookmark className="w-3.5 h-3.5 sm:mr-1.5" />
+            <span className="hidden sm:inline">Bookmark page {pageNumber}</span>
           </Button>
         </PopoverTrigger>
         <PopoverContent align="end" className="w-72 space-y-3">
@@ -603,10 +580,66 @@ const ReaderToolbar: React.FC<ReaderToolbarProps> = ({
         </PopoverContent>
       </Popover>
 
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-9 w-9 text-muted-foreground"
+            aria-label="View options"
+            title="View options"
+          >
+            <MoreHorizontal className="w-4 h-4" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end" className="w-52">
+          <DropdownMenuLabel className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+            Quality
+          </DropdownMenuLabel>
+          <DropdownMenuRadioGroup
+            value={quality}
+            onValueChange={(value) => onQualityChange(value as 'standard' | 'retina')}
+          >
+            <DropdownMenuRadioItem value="standard" className="text-xs">Standard</DropdownMenuRadioItem>
+            <DropdownMenuRadioItem value="retina" className="text-xs">Retina</DropdownMenuRadioItem>
+          </DropdownMenuRadioGroup>
+          {!fullscreen && (
+            <>
+              <DropdownMenuSeparator />
+              <DropdownMenuLabel className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                Layout
+              </DropdownMenuLabel>
+              <DropdownMenuRadioGroup
+                value={layout}
+                onValueChange={(value) => onLayoutChange(value as 'vertical' | 'horizontal')}
+              >
+                <DropdownMenuRadioItem value="horizontal" className="gap-2 text-xs">
+                  <Columns2 className="w-3.5 h-3.5" />
+                  Pages
+                </DropdownMenuRadioItem>
+                <DropdownMenuRadioItem value="vertical" className="gap-2 text-xs">
+                  <Rows2 className="w-3.5 h-3.5" />
+                  Scroll
+                </DropdownMenuRadioItem>
+              </DropdownMenuRadioGroup>
+            </>
+          )}
+          <DropdownMenuSeparator />
+          <DropdownMenuItem onSelect={() => onFitWidth()} className="gap-2 text-xs">
+            <ArrowLeftRight className="w-3.5 h-3.5" />
+            Fit width
+          </DropdownMenuItem>
+          <DropdownMenuItem onSelect={() => onFitPage()} className="gap-2 text-xs">
+            <Scan className="w-3.5 h-3.5" />
+            Fit page
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+
       <Button
         variant="ghost"
         size="icon"
-        className="h-9 w-10 text-muted-foreground"
+        className="h-9 w-9 text-muted-foreground"
         onClick={onToggleFullscreen}
         aria-label={fullscreen ? 'Exit full screen reader' : 'Full screen reader'}
         title={fullscreen ? 'Exit full screen' : 'Full screen'}
@@ -618,7 +651,7 @@ const ReaderToolbar: React.FC<ReaderToolbarProps> = ({
         <Button
           variant="ghost"
           size="icon"
-          className="h-9 w-10 text-muted-foreground"
+          className="h-9 w-9 text-muted-foreground"
           onClick={onPanelToggle}
           aria-label="Toggle bookmarks panel"
           title="Toggle bookmarks panel"
