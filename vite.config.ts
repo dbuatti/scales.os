@@ -1,28 +1,17 @@
-import { defineConfig, loadEnv } from "vite";
+import { defineConfig } from "vite";
 import dyadComponentTagger from "@dyad-sh/react-vite-component-tagger";
 import react from "@vitejs/plugin-react-swc";
 import path from "path";
 
-export default defineConfig(({ mode }) => {
-  const env = loadEnv(mode, process.cwd(), "");
-  const projectEnv = loadEnv("project", "/vercel/share", "");
-  const supabaseUrl =
-    env.VITE_SUPABASE_URL ||
-    projectEnv.VITE_SUPABASE_URL ||
-    process.env.VITE_SUPABASE_URL;
-  const supabaseAnonKey =
-    env.VITE_SUPABASE_ANON_KEY ||
-    projectEnv.VITE_SUPABASE_ANON_KEY ||
-    process.env.VITE_SUPABASE_ANON_KEY;
-
+export default defineConfig(() => {
   return {
     server: {
       host: "::",
       port: 8080,
     },
     define: {
-      "import.meta.env.VITE_SUPABASE_URL": JSON.stringify(supabaseUrl),
-      "import.meta.env.VITE_SUPABASE_ANON_KEY": JSON.stringify(supabaseAnonKey),
+      "import.meta.env.VITE_SUPABASE_URL": JSON.stringify(process.env.VITE_SUPABASE_URL),
+      "import.meta.env.VITE_SUPABASE_ANON_KEY": JSON.stringify(process.env.VITE_SUPABASE_ANON_KEY),
     },
     plugins: [dyadComponentTagger(), react()],
     resolve: {
