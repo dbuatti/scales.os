@@ -189,16 +189,16 @@ const PracticeCommandCenter: React.FC = () => {
                   Tempo Control
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-8">
+              <CardContent className="flex flex-col gap-8">
                 <TempoControl
                   value={currentBPM}
                   onChange={setCurrentBPM}
                   onStep={handleBpmChange}
                   target={targetBpm}
                 />
-                <div className="pt-6 border-t space-y-4">
-                  <div className="flex items-center gap-2 text-[10px] text-muted-foreground uppercase font-black tracking-widest">
-                    <Keyboard className="w-3 h-3" />
+                <div className="flex flex-col gap-4 border-t pt-6">
+                  <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+                    <Keyboard className="size-3" />
                     Shortcuts
                   </div>
                   <div className="grid grid-cols-1 gap-3 text-[10px]">
@@ -212,9 +212,9 @@ const PracticeCommandCenter: React.FC = () => {
                     </div>
                   </div>
                 </div>
-                <div className="pt-4 flex justify-center">
-                  <Button variant="ghost" size="sm" onClick={refetchData} disabled={isScalesContextLoading} className="text-xs font-bold text-muted-foreground hover:text-primary transition-colors">
-                    <RefreshCw className={cn('w-3 h-3 mr-2', isScalesContextLoading && 'animate-spin')} />
+                <div className="flex justify-center pt-4">
+                  <Button variant="ghost" size="sm" onClick={refetchData} disabled={isScalesContextLoading} className="text-xs font-bold text-muted-foreground transition-colors hover:text-primary">
+                    <RefreshCw className={cn('mr-2 size-3', isScalesContextLoading && 'animate-spin')} />
                     Sync Progress
                   </Button>
                 </div>
@@ -228,17 +228,17 @@ const PracticeCommandCenter: React.FC = () => {
                   Today&apos;s activity
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
+              <CardContent className="flex flex-col gap-4">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <Clock className="w-4 h-4 text-muted-foreground" />
+                    <Clock className="size-4 text-muted-foreground" />
                     <span className="text-sm font-medium">Time</span>
                   </div>
                   <span className="text-lg font-bold tabular-nums">{todayStats.totalMinutes}m</span>
                 </div>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <Target className="w-4 h-4 text-muted-foreground" />
+                    <Target className="size-4 text-muted-foreground" />
                     <span className="text-sm font-medium">Items</span>
                   </div>
                   <span className="text-lg font-bold tabular-nums">{todayStats.itemsPracticed}</span>
