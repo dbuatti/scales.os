@@ -49,7 +49,7 @@ const TempoControl: React.FC<TempoControlProps> = ({
       max={MAX_BPM}
       className={
         compact
-          ? 'h-10 w-14 border-0 bg-transparent text-center text-base font-black tabular-nums'
+          ? 'h-9 w-12 border-0 bg-transparent px-1 text-center text-base font-black tabular-nums'
           : 'h-14 w-full text-center text-3xl font-black tabular-nums'
       }
       aria-label="Tempo in BPM"
@@ -58,11 +58,11 @@ const TempoControl: React.FC<TempoControlProps> = ({
 
   if (compact) {
     return (
-      <div className="flex items-center rounded-lg border bg-card/50 p-0.5">
+      <div className="flex shrink-0 items-center rounded-lg border bg-card/50 p-0.5">
         <Button
           variant="outline"
           size="icon"
-          className="h-10 w-10 shrink-0 font-bold tabular-nums"
+          className="h-9 w-9 shrink-0 font-bold tabular-nums"
           onClick={() => onStep(-5)}
           aria-label="Decrease by 5 BPM"
         >
@@ -71,7 +71,7 @@ const TempoControl: React.FC<TempoControlProps> = ({
         <Button
           variant="outline"
           size="icon"
-          className="h-10 w-10 shrink-0"
+          className="h-9 w-9 shrink-0"
           onClick={() => onStep(-1)}
           aria-label="Decrease by 1 BPM"
         >
@@ -81,7 +81,7 @@ const TempoControl: React.FC<TempoControlProps> = ({
         <Button
           variant="outline"
           size="icon"
-          className="h-10 w-10 shrink-0"
+          className="h-9 w-9 shrink-0"
           onClick={() => onStep(1)}
           aria-label="Increase by 1 BPM"
         >
@@ -90,7 +90,7 @@ const TempoControl: React.FC<TempoControlProps> = ({
         <Button
           variant="outline"
           size="icon"
-          className="h-10 w-10 shrink-0 font-bold tabular-nums"
+          className="h-9 w-9 shrink-0 font-bold tabular-nums"
           onClick={() => onStep(5)}
           aria-label="Increase by 5 BPM"
         >

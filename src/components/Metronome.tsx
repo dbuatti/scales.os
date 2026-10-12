@@ -49,10 +49,8 @@ const Metronome: React.FC<MetronomeProps> = ({ showSettings = true }) => {
       onClick={toggleRun}
       size="lg"
       className={cn(
-        'h-10 font-bold transition-all text-sm shadow-sm focus-scale',
-        isRunning
-          ? 'bg-destructive hover:bg-destructive/90 text-destructive-foreground'
-          : 'bg-primary hover:bg-primary/90 text-primary-foreground',
+        'h-9 shrink-0 font-bold focus-scale',
+        isRunning && 'bg-destructive text-destructive-foreground hover:bg-destructive/90',
         className,
       )}
     >
@@ -65,9 +63,9 @@ const Metronome: React.FC<MetronomeProps> = ({ showSettings = true }) => {
       onClick={tapTempo}
       variant="outline"
       size="sm"
-      className="h-10 font-bold text-xs border-primary/20 text-primary hover:bg-primary/5 focus-scale"
+      className="h-9 shrink-0 border-border/60 font-bold focus-scale"
     >
-      <Fingerprint className="w-3 h-3 mr-1.5" /> TAP
+      <Fingerprint className="mr-1.5 h-3.5 w-3.5" /> TAP
     </Button>
   );
 
@@ -76,9 +74,9 @@ const Metronome: React.FC<MetronomeProps> = ({ showSettings = true }) => {
       onClick={toggleMuted}
       variant="ghost"
       size="icon"
-      className="h-10 w-10 text-primary hover:bg-primary/10 focus-scale"
+      className="h-9 w-9 shrink-0 text-muted-foreground hover:bg-muted hover:text-foreground focus-scale"
     >
-      {isMuted ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
+      {isMuted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
     </Button>
   );
 
@@ -87,19 +85,19 @@ const Metronome: React.FC<MetronomeProps> = ({ showSettings = true }) => {
       type="single"
       value={division}
       onValueChange={(value) => value && setDivision(value as 'quarter' | 'eighth')}
-      className="bg-muted/50 rounded-lg p-1 flex-shrink-0 border border-primary/10"
+      className="flex-shrink-0 rounded-lg border border-border/60 bg-muted/50 p-1"
     >
       <ToggleGroupItem
         value="quarter"
-        className="data-[state=on]:bg-primary data-[state=on]:text-primary-foreground text-[10px] font-bold h-10 px-3 focus-scale"
+        className="h-8 px-3 text-[10px] font-bold focus-scale data-[state=on]:bg-primary data-[state=on]:text-primary-foreground"
       >
-        <Clock className="w-3 h-3 mr-1.5" /> 1/4
+        <Clock className="mr-1.5 h-3 w-3" /> 1/4
       </ToggleGroupItem>
       <ToggleGroupItem
         value="eighth"
-        className="data-[state=on]:bg-primary data-[state=on]:text-primary-foreground text-[10px] font-bold h-10 px-3 focus-scale"
+        className="h-8 px-3 text-[10px] font-bold focus-scale data-[state=on]:bg-primary data-[state=on]:text-primary-foreground"
       >
-        <Music className="w-3 h-3 mr-1.5" /> 1/8
+        <Music className="mr-1.5 h-3 w-3" /> 1/8
       </ToggleGroupItem>
     </ToggleGroup>
   );
@@ -107,7 +105,7 @@ const Metronome: React.FC<MetronomeProps> = ({ showSettings = true }) => {
   const beatIndicator = (
     <div
       className={cn(
-        'w-12 h-12 rounded-xl transition-all duration-150 flex-shrink-0 border border-primary/10 flex items-center justify-center relative overflow-hidden',
+        'relative flex h-11 w-11 flex-shrink-0 items-center justify-center overflow-hidden rounded-xl border border-border/60 transition-all duration-150',
         isRunning ? 'bg-muted/10' : 'bg-muted/20',
       )}
     >
@@ -161,8 +159,10 @@ const Metronome: React.FC<MetronomeProps> = ({ showSettings = true }) => {
   }
 
   return (
-    <div className="flex items-center space-x-4">
-      {runButton('w-24')}
+    <div className="flex items-center gap-2">
+      <div className="hidden lg:block">{beatIndicator}</div>
+
+      {runButton('w-20')}
 
       <TempoControl
         compact
@@ -172,23 +172,29 @@ const Metronome: React.FC<MetronomeProps> = ({ showSettings = true }) => {
       />
 
       <div className="flex items-center gap-1">
-        {tapButton}
+        <div className="hidden sm:block">{tapButton}</div>
 
         <Popover>
           <PopoverTrigger asChild>
             <Button
               variant="outline"
-              size="sm"
+              size="icon"
+              aria-label="Metronome settings"
               className={cn(
-                'h-10 font-bold text-xs border-primary/20 focus-scale',
-                (autoIncrementEnabled || visualFlashEnabled) && 'bg-primary/10 text-primary border-primary/40',
+                'h-9 w-9 border-border/60 focus-scale',
+                (autoIncrementEnabled || visualFlashEnabled) && 'border-primary/40 bg-primary/10 text-primary',
               )}
             >
-              <Settings2 className="w-3 h-3 mr-1.5" /> SETTINGS
+              <Settings2 className="h-4 w-4" />
             </Button>
           </PopoverTrigger>
-          <PopoverContent className="w-72 p-4 space-y-6 text-sm">
-            <div className="space-y-4">
+          <PopoverContent align="end" className="w-72 space-y-6 p-4 text-sm">
+            <div className="space-y-3">
+              <Label className="text-xs font-bold uppercase tracking-widest">Subdivision</Label>
+              {divisionToggle}
+            </div>
+
+            <div className="space-y-4 border-t pt-4">
               <div className="flex items-center justify-between">
                 <Label className="text-xs font-bold uppercase tracking-widest">Volume</Label>
                 <span className="text-[10px] font-bold text-muted-foreground">{Math.round(volume * 100)}%</span>
@@ -267,10 +273,6 @@ const Metronome: React.FC<MetronomeProps> = ({ showSettings = true }) => {
       </div>
 
       {muteButton}
-
-      {divisionToggle}
-
-      {beatIndicator}
     </div>
   );
 };
