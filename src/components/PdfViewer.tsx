@@ -123,8 +123,10 @@ const PdfPage: React.FC<PdfPageProps> = ({
     <div
       ref={wrapperRef}
       className={cn(
-        'relative rounded-md overflow-hidden border bg-white shadow-sm transition-all',
-        isActive ? 'ring-2 ring-primary ring-offset-2 ring-offset-background' : 'border-border/60',
+        'relative overflow-hidden rounded-lg border bg-white transition-all',
+        isActive
+          ? 'border-primary/60 shadow-lg shadow-primary/10 ring-1 ring-primary/40'
+          : 'border-border/60 shadow-sm',
       )}
       style={{ aspectRatio: `1 / ${aspectRatio}` }}
     >
@@ -141,7 +143,7 @@ const PdfPage: React.FC<PdfPageProps> = ({
           <span className="rounded bg-primary/10 px-1 py-0.5 text-primary">{mode}</span>
         </div>
       )}
-      <div className="absolute bottom-2 right-2 rounded bg-background/80 px-1.5 py-0.5 text-[10px] font-bold text-muted-foreground">
+      <div className="absolute bottom-2 right-2 rounded-md border border-border/50 bg-background/70 px-1.5 py-0.5 text-[10px] font-bold tabular-nums text-muted-foreground backdrop-blur">
         {pageNumber}
       </div>
       {showBookmark && (
@@ -508,7 +510,7 @@ const PdfViewer = React.forwardRef<PdfViewerHandle, PdfViewerProps>(({
         onScroll={handleScroll}
         onWheel={handleWheel}
         className={cn(
-          'rounded-lg bg-muted/20 border border-border/60 p-4 touch-pan-x touch-pan-y',
+          'rounded-xl border border-border/50 bg-muted/30 p-4 touch-pan-x touch-pan-y',
           layout === 'horizontal' ? 'overflow-x-auto' : 'overflow-auto',
           scrollClassName,
         )}

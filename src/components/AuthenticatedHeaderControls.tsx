@@ -3,7 +3,7 @@ import { useScales } from '@/context/ScalesContext';
 import { useGlobalBPM } from '@/context/GlobalBPMContext';
 import HeaderControls from './HeaderControls';
 
-const AuthenticatedHeaderControls: React.FC = () => {
+const AuthenticatedHeaderControls: React.FC<{ showMetronome?: boolean }> = ({ showMetronome = true }) => {
     const { addLogEntry } = useScales();
     const { currentBPM } = useGlobalBPM();
 
@@ -20,6 +20,7 @@ const AuthenticatedHeaderControls: React.FC = () => {
     return (
         <HeaderControls 
             onLogSession={handleLogSession} 
+            showMetronome={showMetronome}
         />
     );
 };

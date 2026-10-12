@@ -67,6 +67,8 @@ const MobileNavItem: React.FC<MobileNavItemProps> = ({ to, icon, label }) => {
 
 const AuthenticatedShell: React.FC = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const isReader = location.pathname.startsWith('/reader');
 
   const handleLogout = async () => {
     const { error } = await supabase.auth.signOut();
@@ -80,7 +82,7 @@ const AuthenticatedShell: React.FC = () => {
 
   const authenticatedHeaderRightContent = (
     <div className="flex items-center gap-3">
-      <AuthenticatedHeaderControls />
+      <AuthenticatedHeaderControls showMetronome={!isReader} />
       <div className="hidden h-6 w-px bg-border md:block" />
       <nav className="hidden items-center gap-1 md:flex">
         <NavLink to="/" icon={<Play className="w-4 h-4" />} label="Practice" />

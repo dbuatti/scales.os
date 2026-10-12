@@ -6,13 +6,14 @@ import Metronome from './Metronome';
 
 interface HeaderControlsProps {
   onLogSession: (durationMinutes: number) => void;
+  showMetronome?: boolean;
 }
 
-const HeaderControls: React.FC<HeaderControlsProps> = ({ onLogSession }) => {
+const HeaderControls: React.FC<HeaderControlsProps> = ({ onLogSession, showMetronome = true }) => {
   return (
     <div className="flex items-center space-x-2 sm:space-x-4">
       {/* 1. Metronome (with integrated BPM control) */}
-      <Metronome />
+      {showMetronome && <Metronome />}
 
       {/* 2. Timer (Condensed) */}
       <div className="hidden md:block">

@@ -1169,20 +1169,6 @@ const RepertoirePanel: React.FC = () => {
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
-          <Button
-            variant="outline"
-            className="font-bold focus-scale h-9"
-            onClick={() => fileInputRef.current?.click()}
-            disabled={isUploading}
-          >
-            {isUploading ? (
-              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-            ) : (
-              <Upload className="w-4 h-4 mr-2" />
-            )}
-            Upload PDF
-          </Button>
-
           {activeDocumentId && (
             <Button
               variant="ghost"
@@ -1344,12 +1330,12 @@ const RepertoirePanel: React.FC = () => {
             className={cn(
               'min-w-0',
               fullscreen
-                ? 'fixed inset-0 z-50 flex flex-col gap-3 bg-background p-4'
+                ? 'fixed inset-0 z-50 flex flex-col gap-3 bg-background/80 p-4 backdrop-blur-2xl'
                 : 'space-y-3',
             )}
           >
             {fullscreen && (
-              <div className="flex shrink-0 items-center justify-between gap-3">
+              <div className="surface flex shrink-0 items-center justify-between gap-3 px-3 py-2">
                 <div className="flex min-w-0 items-center gap-2">
                   <FileText className="h-4 w-4 shrink-0 text-primary" />
                   <span className="truncate text-sm font-bold">
@@ -1357,7 +1343,7 @@ const RepertoirePanel: React.FC = () => {
                   </span>
                 </div>
                 <Button
-                  variant="outline"
+                  variant="secondary"
                   size="sm"
                   onClick={() => setFullscreen(false)}
                   className="shrink-0 font-bold focus-scale"
@@ -1411,15 +1397,10 @@ const RepertoirePanel: React.FC = () => {
             </div>
 
             {pageCount > 0 && (
-              <div className="flex items-center gap-3">
-                <Progress
-                  value={Math.min(100, (currentPage / pageCount) * 100)}
-                  className="h-1.5"
-                />
-                <span className="shrink-0 text-[10px] font-bold uppercase tracking-widest text-muted-foreground tabular-nums">
-                  {currentPage} / {pageCount}
-                </span>
-              </div>
+              <Progress
+                value={Math.min(100, (currentPage / pageCount) * 100)}
+                className="h-1 shrink-0"
+              />
             )}
 
             <Suspense fallback={<ViewerFallback />}>
@@ -1440,7 +1421,7 @@ const RepertoirePanel: React.FC = () => {
                 className={fullscreen ? 'flex-1 min-h-0' : undefined}
                 scrollClassName={
                   fullscreen
-                    ? 'h-full min-h-0 rounded-none border-0 bg-background'
+                    ? 'h-full min-h-0 rounded-none border-0 bg-transparent'
                     : 'h-[calc(100vh-15rem)] min-h-[520px]'
                 }
               />
