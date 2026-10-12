@@ -2,7 +2,7 @@ import React from 'react';
 import { useGlobalBPM } from '@/context/GlobalBPMContext';
 import { useScales } from '@/context/ScalesContext';
 import { Card, CardContent } from '@/components/ui/card';
-import { Save, AlertCircle, Music, Hand, Piano } from 'lucide-react';
+import { Save, AlertCircle, Music, Hand, Piano, TrendingUp, Target } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { showSuccess } from '@/utils/toast';
@@ -87,7 +87,11 @@ const PracticeSummaryPanel: React.FC = () => {
   return (
     <Card className="surface overflow-hidden shadow-md">
       <CardContent className="p-0">
-        <div className="p-8 space-y-8">
+        <div className="relative isolate space-y-8 p-8">
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute -right-24 -top-24 -z-10 h-56 w-56 rounded-full bg-primary/10 blur-3xl"
+          />
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-8">
             <div className="space-y-2">
               <h2 className="text-3xl font-black tracking-tight text-primary">
@@ -142,42 +146,46 @@ const PracticeSummaryPanel: React.FC = () => {
             <Progress value={masteryPercentage} className="h-3 shadow-sm" />
           </div>
 
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 pt-8 border-t border-primary/5">
-            <div className="space-y-1.5">
-              <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Highest</p>
-              <p className="text-lg font-bold text-primary">
+          <div className="grid grid-cols-2 gap-4 border-t border-border/40 pt-8 md:grid-cols-4">
+            <div className="rounded-xl border border-border/50 bg-muted/30 p-3">
+              <div className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+                <TrendingUp className="h-3.5 w-3.5" />
+                Highest
+              </div>
+              <p className="mt-1 text-lg font-black tabular-nums text-primary">
                 {activePracticeItem.type === 'scale' ? activePracticeItem.highestBPM : activePracticeItem.currentHighestBPM} BPM
               </p>
             </div>
-            <div className="space-y-1.5">
-              <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Goal</p>
-              <p className="text-lg font-bold text-primary">
+            <div className="rounded-xl border border-border/50 bg-muted/30 p-3">
+              <div className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+                <Target className="h-3.5 w-3.5" />
+                Goal
+              </div>
+              <p className="mt-1 text-lg font-black tabular-nums text-primary">
                 {activePracticeItem.type === 'scale' ? activePracticeItem.highestBPM + 3 : activePracticeItem.nextTargetBPM} BPM
               </p>
             </div>
             {activePracticeItem.type === 'scale' && (
               <>
-                <div className="flex items-center gap-4 p-3 rounded-xl bg-primary/5 border border-primary/10">
-                  <div className="flex flex-col items-center justify-center h-12 w-12 rounded-lg bg-primary/10 text-primary">
-                    <Music className="h-4 w-4 mb-0.5 opacity-50" />
-                    <span className="text-xl font-black leading-none">{getOctaveNumber(activePracticeItem.octaves)}</span>
+                <div className="flex items-center gap-3 rounded-xl border border-border/50 bg-muted/30 p-3">
+                  <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                    <Music className="h-4 w-4" />
                   </div>
-                  <div className="space-y-0.5">
-                    <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Octaves</p>
-                    <p className="text-xs font-bold text-primary/70 truncate max-w-[80px]">{activePracticeItem.octaves.split(' ')[0]}</p>
+                  <div className="min-w-0">
+                    <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Octaves</p>
+                    <p className="truncate text-sm font-bold text-primary">{getOctaveNumber(activePracticeItem.octaves)}</p>
                   </div>
                 </div>
                 <div className={cn(
-                  "flex items-center gap-4 p-3 rounded-xl border transition-colors",
+                  "flex items-center gap-3 rounded-xl border p-3",
                   getHandColorClasses(activePracticeItem.handConfig).split(' ').filter(c => !c.startsWith('data-')).join(' ')
                 )}>
-                  <div className="flex flex-col items-center justify-center h-12 w-12 rounded-lg bg-current/10">
-                    <Hand className="h-4 w-4 mb-0.5 opacity-50" />
-                    <span className="text-[10px] font-black leading-none">{getHandLabel(activePracticeItem.handConfig)}</span>
+                  <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-current/10">
+                    <Hand className="h-4 w-4" />
                   </div>
-                  <div className="space-y-0.5">
+                  <div className="min-w-0">
                     <p className="text-[10px] font-black uppercase tracking-widest opacity-70">Hands</p>
-                    <p className="text-xs font-bold truncate max-w-[80px]">{activePracticeItem.handConfig.split(' ')[0]}</p>
+                    <p className="truncate text-sm font-bold">{getHandLabel(activePracticeItem.handConfig)}</p>
                   </div>
                 </div>
               </>
