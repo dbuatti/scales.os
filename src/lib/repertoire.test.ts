@@ -5,7 +5,9 @@ import {
   createEmptyMapping,
   detectBookSource,
   formatDocumentTitle,
+  friendlyExerciseLabel,
   getLastOpenedDocumentId,
+  getMappingForPage,
   setLastOpenedDocumentId,
   suggestNextExercise,
 } from './repertoire';
@@ -76,3 +78,42 @@ describe('suggestNextExercise', () => {
     expect(suggestion?.id).toBe(dohnanyi[1].id);
   });
 });
+
+describe('friendlyExerciseLabel', () => {
+  const hanon = EXERCISE_OPTIONS.filter((o) => o.source === 'hanon');
+  const dohnanyi = EXERCISE_OPTIONS.filter((o) => o.source === 'dohnanyi');
+
+  it('formats Hanon options as "Hanon No. N"', () => {
+    expect(friendlyExerciseLabel(hanon[0])).toBe('Hanon No. 1');
+    expect(friendlyExerciseLabel(hanon[7])).toBe('Hanon No. 8');
+  });
+
+  it('formats Dohnányi options as "Dohnányi No. N"', () => {
+    expect(friendlyExerciseLabel(dohnanyi[0])).toBe('Dohnányi No. 1');
+    expect(friendlyExerciseLabel(dohnanyi[2])).toBe('Dohnányi No. 3');
+  });
+});
+
+describe('getMappingForPage', () => {
+  const mapping = (pageStart: number, pageEnd: number, label: string): PageMapping => ({
+    ...createEmptyMapping(pageStart),
+    pageEnd,
+    label,
+  });
+
+  it('returns the mapping that covers the page', () => {
+    const mappings = [mapping(1, 2, 'A'), mapping(5, 6, 'B')];
+    expect(getMappingForPage(mappings, 5)?.label).toBe('B');
+  });
+
+  it('returns undefined when no mapping covers the page', () => {
+    expect(getMappingForPage([mapping(1, 2, 'A')], 9)).toBeUndefined();
+  });
+
+  it('prefers the exercise that starts on a page shared with a previous exercise', () => {
+    const mappings = [mapping(1, 2, 'A'), mapping(2, 3, 'B')];
+    expect(getMappingForPage(mappings, 2)?.label).toBe('B');
+    expect(getMappingForPage(mappings, 1)?.label).toBe('A');
+  });
+});
+

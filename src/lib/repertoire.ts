@@ -50,8 +50,18 @@ export const EXERCISE_OPTIONS = buildExerciseOptions();
 export const getMappingForPage = (
   mappings: PageMapping[],
   page: number,
-): PageMapping | undefined =>
-  mappings.find((m) => page >= m.pageStart && page <= m.pageEnd);
+): PageMapping | undefined => {
+  // A page can belong to more than one exercise (the tail of one and the start
+  // of the next). Prefer the mapping whose start page is closest to `page`, so
+  // the exercise that actually begins on this page wins.
+  let best: PageMapping | undefined;
+  for (const mapping of mappings) {
+    if (page >= mapping.pageStart && page <= mapping.pageEnd) {
+      if (!best || mapping.pageStart > best.pageStart) best = mapping;
+    }
+  }
+  return best;
+};
 
 export const findMappingForExercise = (
   mappings: PageMapping[],
@@ -72,6 +82,33 @@ export const suggestNextExercise = (
     ? 'dohnanyi'
     : 'hanon';
   return options.find((o) => o.source === source && !mappedIds.has(o.id)) ?? null;
+};
+
+const ROMAN: Record<string, number> = {
+  I: 1,
+  II: 2,
+  III: 3,
+  IV: 4,
+  V: 5,
+  VI: 6,
+  VII: 7,
+  VIII: 8,
+  IX: 9,
+  X: 10,
+};
+
+export const friendlyExerciseLabel = (option: ExerciseOption): string => {
+  if (option.source === 'hanon') {
+    const num = option.label.match(/\d+/)?.[0];
+    return num ? `Hanon No. ${num}` : option.label;
+  }
+  if (option.source === 'dohnanyi') {
+    const match = option.label.match(/exercise\s+([a-z]+)/i);
+    const numeral = match?.[1]?.toUpperCase() ?? '';
+    const num = ROMAN[numeral];
+    return num ? `Dohnányi No. ${num}` : option.label;
+  }
+  return option.label;
 };
 
 const STORAGE_PREFIX = 'scales.os.repertoire.mappings.';

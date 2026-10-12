@@ -79,6 +79,7 @@ import {
   getStoredBookSource,
   setStoredBookSource,
   suggestNextExercise,
+  friendlyExerciseLabel,
 } from '@/lib/repertoire';
 
 const ViewerFallback: React.FC = () => (
@@ -293,6 +294,7 @@ interface ReaderToolbarProps {
   bookmarkLabel: string;
   onBookmarkLabelChange: (value: string) => void;
   onConfirmBookmark: () => void;
+  overlappingLabels: string[];
   fullscreen: boolean;
   onToggleFullscreen: () => void;
   showPanelToggle: boolean;
@@ -333,6 +335,7 @@ const ReaderToolbar: React.FC<ReaderToolbarProps> = ({
   bookmarkLabel,
   onBookmarkLabelChange,
   onConfirmBookmark,
+  overlappingLabels,
   fullscreen,
   onToggleFullscreen,
   showPanelToggle,
@@ -562,6 +565,15 @@ const ReaderToolbar: React.FC<ReaderToolbarProps> = ({
               className="h-8 text-xs"
             />
           </div>
+          {overlappingLabels.length > 0 && (
+            <p className="rounded-md bg-muted/60 px-2 py-1.5 text-[10px] leading-snug text-muted-foreground">
+              This page also belongs to{' '}
+              <span className="font-semibold text-foreground">
+                {overlappingLabels.join(', ')}
+              </span>
+              . A page can carry more than one exercise.
+            </p>
+          )}
           <Button size="sm" onClick={onConfirmBookmark} className="w-full font-bold focus-scale">
             <Plus className="w-3.5 h-3.5 mr-1.5" />
             Add bookmark on page {pageNumber}
@@ -813,16 +825,12 @@ const RepertoirePanel: React.FC = () => {
   );
 
   const addBookmark = useCallback(() => {
-    if (mappings.some((m) => currentPage >= m.pageStart && currentPage <= m.pageEnd)) {
-      showError(`Page ${currentPage} is already mapped.`);
-      return;
-    }
     const suggestion = suggestNextExercise(mappings, EXERCISE_OPTIONS);
     setBookmarkExercise(suggestion?.id ?? '');
     setBookmarkSuggested(Boolean(suggestion));
-    setBookmarkLabel('');
+    setBookmarkLabel(suggestion ? friendlyExerciseLabel(suggestion) : '');
     setBookmarkOpen(true);
-  }, [mappings, currentPage]);
+  }, [mappings]);
 
   const handleBookmarkExerciseChange = useCallback((value: string) => {
     setBookmarkExercise(value);
@@ -830,11 +838,6 @@ const RepertoirePanel: React.FC = () => {
   }, []);
 
   const confirmBookmark = useCallback(() => {
-    if (mappings.some((m) => currentPage >= m.pageStart && currentPage <= m.pageEnd)) {
-      setBookmarkOpen(false);
-      showError(`Page ${currentPage} is already mapped.`);
-      return;
-    }
     const mapping = createEmptyMapping(currentPage);
     if (bookmarkExercise) {
       const option = EXERCISE_OPTIONS.find((opt) => opt.id === bookmarkExercise);
@@ -847,7 +850,10 @@ const RepertoirePanel: React.FC = () => {
     setBookmarkOpen(false);
     setBookmarkSuggested(false);
     showSuccess(`Bookmarked "${mapping.label}" on page ${currentPage}.`);
-  }, [mappings, currentPage, bookmarkExercise, bookmarkLabel, persist]);
+    if (pageCount > currentPage) {
+      viewerRef.current?.scrollToPage(currentPage + 1);
+    }
+  }, [mappings, currentPage, bookmarkExercise, bookmarkLabel, persist, pageCount]);
 
   const handlePageChange = useCallback(
     (page: number) => {
@@ -920,9 +926,14 @@ const RepertoirePanel: React.FC = () => {
   }, [pdfProxy, selectedDoc]);
 
   const currentMapping = getMappingForPage(mappings, currentPage);
-  const isBookmarkable = !mappings.some(
-    (m) => currentPage >= m.pageStart && currentPage <= m.pageEnd,
-  );
+  // A page can carry more than one exercise (the tail of one and the start of
+  // the next), so every page stays bookmarkable; duplicates are prevented by
+  // the "next exercise" suggestion rather than by blocking the page.
+  const isBookmarkable = true;
+  const overlappingLabels = mappings
+    .filter((m) => currentPage >= m.pageStart && currentPage <= m.pageEnd)
+    .map((m) => m.label)
+    .filter(Boolean);
   const maxPixelRatio = quality === 'retina' ? 3 : 1.5;
 
   const navigatePage = useCallback(
@@ -1325,6 +1336,7 @@ const RepertoirePanel: React.FC = () => {
                 bookmarkLabel={bookmarkLabel}
                 onBookmarkLabelChange={setBookmarkLabel}
                 onConfirmBookmark={confirmBookmark}
+                overlappingLabels={overlappingLabels}
                 fullscreen={fullscreen}
                 onToggleFullscreen={() => setFullscreen((prev) => !prev)}
                 showPanelToggle={!fullscreen}
@@ -1459,9 +1471,7 @@ const RepertoirePanel: React.FC = () => {
                             pageCount={pageCount}
                             onChange={updateMapping}
                             onDelete={deleteMapping}
-                            isCurrent={
-                              currentPage >= mapping.pageStart && currentPage <= mapping.pageEnd
-                            }
+                            isCurrent={currentMapping?.id === mapping.id}
                           />
                         ))}
                       </div>

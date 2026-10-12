@@ -530,7 +530,6 @@ const PdfViewer = React.forwardRef<PdfViewerHandle, PdfViewerProps>(({
           )}
           {pages.map((page) => {
             const mapping = getMappingForPage(mappings, page);
-            const isMapped = Boolean(mapping);
             return (
               <div
                 key={page}
@@ -551,7 +550,7 @@ const PdfViewer = React.forwardRef<PdfViewerHandle, PdfViewerProps>(({
                     isActive={page === currentPage}
                     maxPixelRatio={maxPixelRatio}
                     layout={layout}
-                    showBookmark={!isMapped && page === currentPage && Boolean(onBookmark)}
+                    showBookmark={page === currentPage && Boolean(onBookmark)}
                     onBookmark={onBookmark ? () => onBookmark(page) : undefined}
                   />
                 )}
