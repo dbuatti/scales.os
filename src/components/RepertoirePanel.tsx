@@ -1454,7 +1454,7 @@ const RepertoirePanel: React.FC = () => {
 
           {!fullscreen && (
             <aside className="space-y-3 min-w-0">
-              <Card>
+              <Card className="surface">
                 <CardHeader className="pb-3">
                   <div className="flex items-center justify-between gap-3">
                     <CardTitle className="text-sm font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
@@ -1483,7 +1483,7 @@ const RepertoirePanel: React.FC = () => {
                 )}
               </Card>
 
-              <Card className="border-primary/20">
+              <Card className="surface border-primary/20">
                 <CardHeader className="pb-3">
                   <div className="flex items-center justify-between gap-3">
                     <CardTitle className="text-sm font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-2">

@@ -101,7 +101,7 @@ const ProgressPage: React.FC = () => {
 
         <TabsContent value="technique" className="flex flex-col gap-8">
           {stasisItems.length > 0 && (
-            <Card className="border-warning/50 bg-warning/5">
+            <Card className="surface border-warning/40 bg-warning/5">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-warning">
                   <AlertCircle className="w-5 h-5" />
@@ -138,7 +138,7 @@ const ProgressPage: React.FC = () => {
         <TabsContent value="history" className="flex flex-col gap-8">
           <PracticeLog />
 
-          <Card className="border-destructive/30">
+          <Card className="surface border-destructive/30">
             <CardHeader>
               <CardTitle className="text-destructive">Danger Zone</CardTitle>
               <CardDescription>

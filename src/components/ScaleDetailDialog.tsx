@@ -182,7 +182,7 @@ const ScaleDetailDialog = React.forwardRef<HTMLButtonElement, ScaleDetailDialogP
       <DialogTrigger asChild ref={ref}>
         {children}
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[1000px] max-h-[90vh] overflow-y-auto border border-border/60 bg-card shadow-md">
+      <DialogContent className="max-h-[90vh] overflow-y-auto rounded-2xl border border-border/50 bg-card/80 shadow-2xl backdrop-blur-2xl sm:max-w-[1000px]">
         <DialogHeader className="border-b border-border/60 pb-4">
           <DialogTitle className="text-xl font-black tracking-tight">
             {scaleItem.key} {scaleItem.type} - Detailed Mastery
