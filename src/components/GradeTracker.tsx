@@ -87,7 +87,7 @@ const GradeTracker: React.FC = () => {
     };
 
     return (
-        <Card className="border border-border/60 bg-card/50 shadow-sm">
+        <Card className="surface">
             <CardHeader className="flex flex-row items-center justify-between gap-4 space-y-0 border-b border-border/60 p-5">
                 <div className="space-y-1.5">
                     <div className="flex items-center gap-2.5">

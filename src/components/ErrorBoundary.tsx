@@ -34,7 +34,7 @@ class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundarySta
     if (this.state.hasError) {
       return (
         <div className="flex min-h-screen items-center justify-center bg-background p-6">
-          <Card className="w-full max-w-md border border-border/60 bg-card/50 shadow-sm">
+          <Card className="w-full max-w-md surface">
             <CardContent className="flex flex-col items-center gap-4 p-8 text-center">
               <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-destructive/10 text-destructive">
                 <AlertTriangle className="h-6 w-6" />

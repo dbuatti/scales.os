@@ -32,7 +32,7 @@ const Login: React.FC = () => {
 
   return (
     <div className="flex min-h-[calc(100vh-64px)] items-center justify-center px-4 py-12">
-      <Card className="w-full max-w-md rounded-2xl border border-border/60 bg-card/80 shadow-md backdrop-blur">
+      <Card className="surface w-full max-w-md shadow-md">
         <CardHeader className="space-y-1.5 p-6 text-center">
           <div className="mx-auto mb-1 flex h-11 w-11 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-sm">
             <Music className="h-5 w-5" />
@@ -53,7 +53,7 @@ const Login: React.FC = () => {
                     defaultButtonBackground: 'hsl(var(--secondary))',
                     defaultButtonBackgroundHover: 'hsl(var(--secondary)/0.8)',
                     defaultButtonText: 'hsl(var(--foreground))',
-                    inputBackground: 'hsl(var(--input))',
+                    inputBackground: 'hsl(var(--card))',
                     inputBorder: 'hsl(var(--border))',
                     inputBorderHover: 'hsl(var(--primary))',
                     inputBorderFocus: 'hsl(var(--primary))',

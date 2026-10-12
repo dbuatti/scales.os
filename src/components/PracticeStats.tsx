@@ -67,49 +67,49 @@ const PracticeStats = () => {
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card className="bg-card border border-primary/10 shadow-sm transition-all hover:shadow-md hover:border-primary/20">
-          <CardContent className="p-6 flex items-center gap-4">
+        <Card className="surface-interactive">
+          <CardContent className="flex items-center gap-4 p-5">
             <div className="p-3 rounded-xl bg-primary/10 text-primary">
-              <Activity className="w-6 h-6" />
+              <Activity className="h-6 w-6" />
             </div>
             <div>
-              <p className="text-2xl font-black tracking-tighter">{stats.completionPercentage}%</p>
+              <p className="text-2xl font-black tracking-tight tabular-nums">{stats.completionPercentage}%</p>
               <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Overall Mastery</p>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="bg-card border border-primary/10 shadow-sm transition-all hover:shadow-md hover:border-primary/20">
-          <CardContent className="p-6 flex items-center gap-4">
+        <Card className="surface-interactive">
+          <CardContent className="flex items-center gap-4 p-5">
             <div className="p-3 rounded-xl bg-orange-500/10 text-orange-500">
-              <Flame className="w-6 h-6" />
+              <Flame className="h-6 w-6" />
             </div>
             <div>
-              <p className="text-2xl font-black tracking-tighter">{stats.streak} Days</p>
+              <p className="text-2xl font-black tracking-tight tabular-nums">{stats.streak} Days</p>
               <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Practice Streak</p>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="bg-card border border-primary/10 shadow-sm transition-all hover:shadow-md hover:border-primary/20">
-          <CardContent className="p-6 flex items-center gap-4">
+        <Card className="surface-interactive">
+          <CardContent className="flex items-center gap-4 p-5">
             <div className="p-3 rounded-xl bg-blue-500/10 text-blue-500">
-              <Clock className="w-6 h-6" />
+              <Clock className="h-6 w-6" />
             </div>
             <div>
-              <p className="text-2xl font-black tracking-tighter">{stats.totalDurationMinutes}m</p>
+              <p className="text-2xl font-black tracking-tight tabular-nums">{stats.totalDurationMinutes}m</p>
               <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Total Time</p>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="bg-card border border-primary/10 shadow-sm transition-all hover:shadow-md hover:border-primary/20">
-          <CardContent className="p-6 flex items-center gap-4">
+        <Card className="surface-interactive">
+          <CardContent className="flex items-center gap-4 p-5">
             <div className="p-3 rounded-xl bg-emerald-500/10 text-emerald-500">
-              <Calendar className="w-6 h-6" />
+              <Calendar className="h-6 w-6" />
             </div>
             <div>
-              <p className="text-2xl font-black tracking-tighter">{stats.totalSessions}</p>
+              <p className="text-2xl font-black tracking-tight tabular-nums">{stats.totalSessions}</p>
               <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Total Sessions</p>
             </div>
           </CardContent>
@@ -117,10 +117,10 @@ const PracticeStats = () => {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card className="bg-card border border-primary/10 shadow-sm transition-all hover:shadow-md hover:border-primary/20">
+        <Card className="surface-interactive">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
-              <Target className="w-4 h-4" />
+              <Target className="h-4 w-4" />
               Technique Balance
             </CardTitle>
           </CardHeader>
@@ -129,10 +129,10 @@ const PracticeStats = () => {
           </CardContent>
         </Card>
 
-        <Card className="bg-card border border-primary/10 shadow-sm transition-all hover:shadow-md hover:border-primary/20">
+        <Card className="surface-interactive">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
-              <Activity className="w-4 h-4" />
+              <Activity className="h-4 w-4" />
               Weekly Volume (Minutes)
             </CardTitle>
           </CardHeader>

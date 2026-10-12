@@ -12,7 +12,7 @@ const PracticeLog = () => {
 
   if (log.length === 0) {
     return (
-      <Card className="border border-border/60 bg-card/50 shadow-sm">
+      <Card className="surface">
         <CardHeader className="flex flex-row items-center gap-3 space-y-0 border-b border-border/60 p-4">
           <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10 text-primary">
             <History className="h-5 w-5" />
@@ -37,7 +37,7 @@ const PracticeLog = () => {
   }, {} as Record<string, string>);
   
   return (
-    <Card className="border border-border/60 bg-card/50 shadow-sm">
+    <Card className="surface">
       <CardHeader className="flex flex-row items-center gap-3 space-y-0 border-b border-border/60 p-4">
         <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10 text-primary">
           <History className="h-5 w-5" />

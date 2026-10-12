@@ -3,6 +3,7 @@ import PracticeStats from '@/components/PracticeStats';
 import RepertoireStats from '@/components/RepertoireStats';
 import ScaleGrid from '@/components/ScaleGrid';
 import PracticeLog from '@/components/PracticeLog';
+import PageContainer from '@/components/PageContainer';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useScales } from '@/context/ScalesContext';
@@ -44,16 +45,16 @@ const ProgressPage: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="mx-auto max-w-7xl space-y-10">
+      <PageContainer>
         <PageHeader eyebrow="Progress" title="Your Mastery" description="Review your mastery across all techniques and manage your practice stasis." />
         <Skeleton className="h-40 w-full bg-card/50" />
         <Skeleton className="h-[500px] w-full bg-card/50" />
-      </div>
+      </PageContainer>
     );
   }
 
   return (
-    <div className="mx-auto max-w-7xl space-y-8">
+    <PageContainer>
       <PageHeader
         eyebrow="Progress"
         title="Your Mastery"
@@ -171,7 +172,7 @@ const ProgressPage: React.FC = () => {
           </Card>
         </TabsContent>
       </Tabs>
-    </div>
+    </PageContainer>
   );
 };
 

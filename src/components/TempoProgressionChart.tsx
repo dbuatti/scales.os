@@ -47,7 +47,7 @@ const TempoProgressionChart = () => {
   const latestBpm = active ? active.points[active.points.length - 1].bpm : null;
 
   return (
-    <Card className="bg-card border border-primary/10 shadow-sm transition-all hover:shadow-md hover:border-primary/20">
+    <Card className="surface-interactive">
       <CardHeader className="pb-2">
         <div className="flex items-start justify-between gap-3">
           <div className="space-y-1">

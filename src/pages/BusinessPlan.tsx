@@ -13,7 +13,7 @@ interface SectionProps {
 }
 
 const Section: React.FC<SectionProps> = ({ icon, title, children }) => (
-  <Card className="bg-card/60 shadow-sm">
+  <Card className="surface">
     <CardContent className="p-6">
       <div className="mb-3 flex items-center gap-2">
         <span className="rounded-lg bg-primary/10 p-1.5 text-primary">{icon}</span>
@@ -41,7 +41,7 @@ const BusinessPlan: React.FC = () => {
   if (!isAdmin(email)) {
     return (
       <div className="mx-auto max-w-xl px-4 py-16">
-        <Card className="bg-card/60 shadow-sm">
+        <Card className="surface">
           <CardContent className="flex flex-col items-center gap-4 p-8 text-center">
             <div className="rounded-full bg-destructive/10 p-3 text-destructive">
               <ShieldAlert className="h-6 w-6" />

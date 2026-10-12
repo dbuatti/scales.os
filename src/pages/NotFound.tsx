@@ -8,7 +8,7 @@ const NotFound = () => {
 
   return (
     <div className="flex min-h-[calc(100vh-64px)] items-center justify-center bg-background p-4">
-      <Card className="w-full max-w-md border border-border/60 bg-card/50 shadow-sm">
+      <Card className="w-full max-w-md surface">
         <CardHeader className="flex flex-row items-center gap-2.5 space-y-0 border-b border-border/60 p-4">
           <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-destructive/10 text-destructive">
             <AlertTriangle className="h-4 w-4" />

@@ -361,7 +361,7 @@ const ReaderToolbar: React.FC<ReaderToolbarProps> = ({
   panelOpen,
   onPanelToggle,
 }) => (
-  <div className="flex flex-wrap items-center gap-1.5 rounded-xl border border-border/60 bg-card/50 p-1.5">
+  <div className="flex flex-wrap items-center gap-1.5 surface p-1.5">
     <Button
       variant="outline"
       size="icon"
@@ -417,7 +417,7 @@ const ReaderToolbar: React.FC<ReaderToolbarProps> = ({
         type="single"
         value={layout}
         onValueChange={(value) => value && onLayoutChange(value as 'vertical' | 'horizontal')}
-        className="bg-muted/50 rounded-lg p-1 border border-primary/10"
+        className="rounded-lg border border-border/60 bg-muted/40 p-1"
       >
         <ToggleGroupItem
           value="horizontal"

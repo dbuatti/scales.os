@@ -53,7 +53,7 @@ const HomeModes: React.FC<HomeModesProps> = ({ active, onSelect }) => (
           onClick={() => onSelect(mode.id)}
           aria-pressed={isActive}
           className={cn(
-            'group relative flex items-center gap-4 overflow-hidden rounded-2xl border bg-card/50 p-5 text-left shadow-sm transition-all duration-200',
+            'group relative flex items-center gap-4 overflow-hidden surface p-5 text-left',
             'hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-md active:translate-y-0 active:scale-[0.99]',
             isActive ? 'border-primary/40 ring-1 ring-primary/20' : 'border-border/60',
           )}

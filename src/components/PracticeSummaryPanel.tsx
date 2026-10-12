@@ -85,7 +85,7 @@ const PracticeSummaryPanel: React.FC = () => {
   const displayType = getDisplayType();
 
   return (
-    <Card className="overflow-hidden border border-border/60 bg-card shadow-md">
+    <Card className="surface overflow-hidden shadow-md">
       <CardContent className="p-0">
         <div className="p-8 space-y-8">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-8">
@@ -110,7 +110,7 @@ const PracticeSummaryPanel: React.FC = () => {
             <div className="flex items-center gap-8">
               <div className="text-right">
                 <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest mb-1">Current Tempo</p>
-                <p className="text-5xl font-black tracking-tighter text-primary">{currentBPM} <span className="text-lg font-bold text-muted-foreground">BPM</span></p>
+                <p className="text-5xl font-black tracking-tight tabular-nums text-primary">{currentBPM} <span className="text-lg font-bold text-muted-foreground">BPM</span></p>
               </div>
               <div className="flex flex-col gap-3">
                 <Button 
@@ -119,7 +119,7 @@ const PracticeSummaryPanel: React.FC = () => {
                   size="lg"
                   className="h-12 px-8 font-bold shadow-md focus-scale"
                 >
-                  <Save className="w-5 h-5 mr-2" />
+                  <Save className="h-5 w-5 mr-2" />
                   Save Progress
                 </Button>
                 <Button 
@@ -127,7 +127,7 @@ const PracticeSummaryPanel: React.FC = () => {
                   onClick={handlePivot}
                   className="h-10 px-8 text-xs font-bold text-muted-foreground hover:text-destructive hover:bg-destructive/5 transition-colors"
                 >
-                  <AlertCircle className="w-4 h-4 mr-2" />
+                  <AlertCircle className="h-4 w-4 mr-2" />
                   Too Hard / Pivot
                 </Button>
               </div>
@@ -158,8 +158,8 @@ const PracticeSummaryPanel: React.FC = () => {
             {activePracticeItem.type === 'scale' && (
               <>
                 <div className="flex items-center gap-4 p-3 rounded-xl bg-primary/5 border border-primary/10">
-                  <div className="flex flex-col items-center justify-center w-12 h-12 rounded-lg bg-primary/10 text-primary">
-                    <Music className="w-4 h-4 mb-0.5 opacity-50" />
+                  <div className="flex flex-col items-center justify-center h-12 w-12 rounded-lg bg-primary/10 text-primary">
+                    <Music className="h-4 w-4 mb-0.5 opacity-50" />
                     <span className="text-xl font-black leading-none">{getOctaveNumber(activePracticeItem.octaves)}</span>
                   </div>
                   <div className="space-y-0.5">
@@ -171,8 +171,8 @@ const PracticeSummaryPanel: React.FC = () => {
                   "flex items-center gap-4 p-3 rounded-xl border transition-colors",
                   getHandColorClasses(activePracticeItem.handConfig).split(' ').filter(c => !c.startsWith('data-')).join(' ')
                 )}>
-                  <div className="flex flex-col items-center justify-center w-12 h-12 rounded-lg bg-current/10">
-                    <Hand className="w-4 h-4 mb-0.5 opacity-50" />
+                  <div className="flex flex-col items-center justify-center h-12 w-12 rounded-lg bg-current/10">
+                    <Hand className="h-4 w-4 mb-0.5 opacity-50" />
                     <span className="text-[10px] font-black leading-none">{getHandLabel(activePracticeItem.handConfig)}</span>
                   </div>
                   <div className="space-y-0.5">

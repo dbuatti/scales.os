@@ -86,7 +86,7 @@ const PracticeTimer: React.FC<PracticeTimerProps> = ({ onLogSession, isCondensed
   }
 
   return (
-    <Card className="w-full border border-border/60 bg-card/50 shadow-sm">
+    <Card className="w-full surface">
       <CardHeader className="flex flex-row items-center gap-2.5 space-y-0 border-b border-border/60 p-4">
         <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10 text-primary">
           <Target className="h-4 w-4" />

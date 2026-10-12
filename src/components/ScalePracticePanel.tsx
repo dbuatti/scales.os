@@ -27,7 +27,7 @@ interface PermutationSectionProps<T extends string> {
 }
 
 const PermutationSection = <T extends string>({ title, description, options, selectedValue, onValueChange, icon, getItemClasses }: PermutationSectionProps<T>) => (
-    <div className="space-y-4 p-5 rounded-xl border bg-card/50 shadow-sm transition-all hover:shadow-md">
+    <div className="space-y-4 surface p-5 transition-all hover:shadow-md">
         <div className="flex items-center gap-3">
             <div className="p-2 rounded-lg bg-primary/10 text-primary">
                 {icon}
@@ -333,7 +333,7 @@ const ScalePracticePanel: React.FC<ScalePracticePanelProps> = ({
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
             <div className="space-y-8">
-                <div className="space-y-4 p-5 rounded-xl border bg-card/50 shadow-sm">
+                <div className="space-y-4 surface p-5">
                     <div className="flex items-center gap-3">
                         <div className="p-2 rounded-lg bg-primary/10 text-primary">
                             <Music className="w-5 h-5" />
@@ -355,7 +355,7 @@ const ScalePracticePanel: React.FC<ScalePracticePanelProps> = ({
                     </ToggleGroup>
                 </div>
 
-                <div className="space-y-4 p-5 rounded-xl border bg-card/50 shadow-sm">
+                <div className="space-y-4 surface p-5">
                     <div className="flex items-center gap-3">
                         <div className="p-2 rounded-lg bg-primary/10 text-primary">
                             <Zap className="w-5 h-5" />

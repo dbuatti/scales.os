@@ -58,7 +58,7 @@ const ResetPassword: React.FC = () => {
 
   return (
     <div className="flex min-h-[calc(100vh-64px)] items-center justify-center p-4">
-      <Card className="w-full max-w-md border border-border/60 bg-card/50 shadow-sm">
+      <Card className="w-full max-w-md surface">
         <CardHeader className="space-y-2 p-6">
           <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary/10 text-primary">
             <KeyRound className="h-5 w-5" />

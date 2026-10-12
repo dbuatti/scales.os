@@ -24,10 +24,12 @@ const NavLink: React.FC<NavLinkProps> = ({ to, icon, label }) => {
     return (
         <Button
             asChild
-            variant={isActive ? "secondary" : "ghost"}
+            variant="ghost"
             className={cn(
-                "flex items-center gap-2 px-4 py-2 transition-all",
-                isActive ? "font-medium" : "text-muted-foreground hover:text-foreground"
+                "flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-all",
+                isActive
+                    ? "bg-primary/10 text-primary hover:bg-primary/15 hover:text-primary"
+                    : "text-muted-foreground hover:text-foreground"
             )}
         >
             <Link to={to}>

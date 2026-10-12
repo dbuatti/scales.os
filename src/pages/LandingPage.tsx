@@ -149,7 +149,7 @@ const LandingPage: React.FC = () => {
             return (
               <Card
                 key={feature.title}
-                className="bg-card/60 shadow-sm transition-all duration-200 hover:border-primary/30 hover:shadow-md"
+                className="surface-interactive"
               >
                 <CardContent className="p-6">
                   <div className="mb-4 inline-flex rounded-lg bg-primary/10 p-2.5 text-primary">
@@ -179,10 +179,10 @@ const LandingPage: React.FC = () => {
               <Card
                 key={plan.name}
                 className={cn(
-                  'relative flex flex-col bg-card/60 shadow-sm transition-all duration-200',
+                  'surface relative flex flex-col transition-all duration-200',
                   plan.highlight
                     ? 'border-primary/50 ring-1 ring-primary/30 shadow-md'
-                    : 'border-border/60',
+                    : '',
                 )}
               >
                 {plan.highlight && (

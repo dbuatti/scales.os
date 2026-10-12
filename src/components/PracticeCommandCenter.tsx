@@ -16,6 +16,7 @@ import { useZenMode } from '@/context/ZenModeContext';
 import PageHeader from './PageHeader';
 import HomeModes from './HomeModes';
 import TempoControl from './TempoControl';
+import PageContainer from './PageContainer';
 
 const PracticeCommandCenter: React.FC = () => {
   const {
@@ -129,7 +130,7 @@ const PracticeCommandCenter: React.FC = () => {
     : 'None';
 
   return (
-    <div className={cn('max-w-7xl mx-auto space-y-10 px-4 md:px-8 transition-all duration-500', isZenMode && 'max-w-4xl')}>
+    <PageContainer className={cn('transition-all duration-500', isZenMode && 'max-w-4xl')}>
       <PageHeader
         eyebrow="Practice"
         title="Practice"
@@ -139,21 +140,21 @@ const PracticeCommandCenter: React.FC = () => {
       <HomeModes active={mode} onSelect={handleSelectMode} />
 
       {nextFocus && (
-        <Card className="overflow-hidden rounded-2xl border-primary/20 bg-primary/5 shadow-sm">
+        <Card className="surface border-primary/20 bg-primary/5">
           <CardContent className="flex flex-col gap-4 p-5 sm:flex-row sm:items-center sm:justify-between">
-            <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+            <div className="flex items-center gap-3.5">
+              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
                 <Target className="h-5 w-5" />
               </div>
               <div className="space-y-0.5">
-                <p className="text-[10px] font-bold uppercase tracking-widest text-primary/70">
+                <p className="text-[10px] font-bold uppercase tracking-widest text-primary">
                   Suggested focus
                 </p>
                 <p className="text-lg font-bold tracking-tight">{suggestedLabel}</p>
               </div>
             </div>
-            <Button size="lg" onClick={() => handleLoadSuggestion(nextFocus)} disabled={isEngagingSuggestion} className="font-bold focus-scale">
-              <Play className="w-4 h-4 mr-2" />
+            <Button size="lg" onClick={() => handleLoadSuggestion(nextFocus)} disabled={isEngagingSuggestion} className="font-bold shadow-sm focus-scale">
+              <Play className="mr-2 h-4 w-4" />
               Start session
             </Button>
           </CardContent>
@@ -181,10 +182,10 @@ const PracticeCommandCenter: React.FC = () => {
 
         {!isZenMode && (
           <div className="space-y-10">
-            <Card className="shadow-md border-primary/10">
+            <Card className="surface">
               <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
-                  <Settings2 className="w-4 h-4" />
+                <CardTitle className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-muted-foreground">
+                  <Settings2 className="h-4 w-4" />
                   Tempo Control
                 </CardTitle>
               </CardHeader>
@@ -220,10 +221,10 @@ const PracticeCommandCenter: React.FC = () => {
               </CardContent>
             </Card>
 
-            <Card className="rounded-2xl border border-border/60 bg-card/50 shadow-sm">
+            <Card className="surface">
               <CardHeader className="pb-3">
-                <CardTitle className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-                  <Activity className="w-3.5 h-3.5" />
+                <CardTitle className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-muted-foreground">
+                  <Activity className="h-3.5 w-3.5" />
                   Today&apos;s activity
                 </CardTitle>
               </CardHeader>
@@ -246,7 +247,7 @@ const PracticeCommandCenter: React.FC = () => {
             </Card>
 
             {lastLogEntry && (
-              <Card className="rounded-2xl border border-border/60 bg-card/50 shadow-sm">
+              <Card className="surface">
                 <CardContent className="p-5">
                   <p className="mb-1.5 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
                     Last session
@@ -260,7 +261,7 @@ const PracticeCommandCenter: React.FC = () => {
           </div>
         )}
       </div>
-    </div>
+    </PageContainer>
   );
 };
 

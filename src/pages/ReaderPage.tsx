@@ -1,10 +1,11 @@
 import React from 'react';
 import RepertoirePanel from '@/components/RepertoirePanel';
+import PageContainer from '@/components/PageContainer';
 
 const ReaderPage: React.FC = () => (
-  <div className="mx-auto max-w-7xl space-y-6 px-4 md:px-8">
+  <PageContainer className="space-y-6">
     <RepertoirePanel />
-  </div>
+  </PageContainer>
 );
 
 export default ReaderPage;
