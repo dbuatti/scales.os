@@ -45,7 +45,7 @@ const ProgressPage: React.FC = () => {
 
   if (isLoading) {
     return (
-      <PageContainer>
+      <PageContainer aria-busy="true" aria-live="polite">
         <PageHeader eyebrow="Progress" title="Your Mastery" description="Review your mastery across all techniques and manage your practice stasis." />
         <Skeleton className="h-40 w-full bg-card/50" />
         <Skeleton className="h-[500px] w-full bg-card/50" />

@@ -49,6 +49,12 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children, headerRightContent, mob
 
     return (
         <div className={cn("min-h-screen flex flex-col bg-background transition-all duration-500", isZenMode && "bg-background/95")}>
+            <a
+                href="#main-content"
+                className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[60] focus:rounded-md focus:bg-background focus:px-4 focus:py-2 focus:text-sm focus:font-semibold focus:text-foreground focus:shadow-lg"
+            >
+                Skip to main content
+            </a>
             <header className={cn(
                 "sticky top-0 z-50 w-full border-b border-border/60 bg-background/80 backdrop-blur-lg supports-[backdrop-filter]:bg-background/60 transition-all duration-300",
                 isZenMode ? "h-12 opacity-60 hover:opacity-100" : "h-16"
@@ -91,7 +97,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children, headerRightContent, mob
                 </div>
             </header>
 
-            <main className={cn("flex-grow container py-8", isZenMode && "py-4 max-w-5xl", mobileNav && "pb-20 md:pb-8")}>
+            <main id="main-content" tabIndex={-1} className={cn("flex-grow container py-8", isZenMode && "py-4 max-w-5xl", mobileNav && "pb-20 md:pb-8")}>
                 {children}
             </main>
 
