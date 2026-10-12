@@ -14,7 +14,7 @@ function readProjectEnv() {
         .split(/\r?\n/)
         .map((line) => line.match(/^([A-Z0-9_]+)=(.*)$/))
         .filter((match): match is RegExpMatchArray => Boolean(match))
-        .map(([, key, value]) => [key, value.replace(/^['\"]|['\"]$/g, "")]),
+        .map(([, key, value]) => [key, value.replace(/^['"]|['"]$/g, "")]),
     );
   } catch {
     return {};

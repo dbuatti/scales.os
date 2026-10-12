@@ -54,13 +54,13 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children, headerRightContent, mob
                 isZenMode ? "h-12 opacity-60 hover:opacity-100" : "h-16"
             )}>
                 <div className="container flex h-full items-center justify-between gap-2">
-                    <Link to="/" className={cn("flex items-center gap-2.5 font-bold text-lg tracking-tight transition-all shrink-0", isZenMode && "text-sm")}>
-                        <div className={cn("bg-primary rounded-xl flex items-center justify-center text-primary-foreground shadow-sm transition-all", isZenMode ? "w-7 h-7" : "w-9 h-9")}>
+                    <Link to="/" aria-label="Scales OS home" className={cn("flex items-center gap-2.5 font-bold text-lg tracking-tight transition-all shrink-0", isZenMode && "text-sm")}>
+                        <div aria-hidden="true" className={cn("bg-primary rounded-xl flex items-center justify-center text-primary-foreground shadow-sm transition-all", isZenMode ? "w-7 h-7" : "w-9 h-9")}>
                             <Play className={cn("fill-current", isZenMode ? "w-3.5 h-3.5" : "w-4 h-4")} />
                         </div>
                         <span className={cn("tracking-tight", isZenMode && "hidden sm:inline")}>Scales</span>
                     </Link>
-                    <nav className="flex items-center gap-2">
+                    <nav aria-label="Primary navigation" className="flex items-center gap-2">
                         {headerRightContent ? (
                             <>
                                 {headerRightContent}
@@ -96,7 +96,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children, headerRightContent, mob
             </main>
 
             {mobileNav && (
-                <nav className="sticky bottom-0 z-40 w-full border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 md:hidden">
+                <nav aria-label="Mobile navigation" className="sticky bottom-0 z-40 w-full border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 md:hidden">
                     {mobileNav}
                 </nav>
             )}
