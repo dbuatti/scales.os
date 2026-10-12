@@ -102,13 +102,13 @@ const FloatingTempoIndicator: React.FC<FloatingTempoIndicatorProps> = ({
       ref={panelRef}
       style={style}
       className={cn(
-        'fixed z-[90] w-[300px] overflow-hidden rounded-xl border border-primary/20 bg-card/95 shadow-xl backdrop-blur',
+        'fixed z-[90] w-[300px] overflow-hidden rounded-2xl border border-border/50 bg-card/80 shadow-2xl backdrop-blur-xl',
         collapsed ? 'w-auto' : '',
       )}
     >
       <div
         onPointerDown={onPointerDown}
-        className="flex items-center justify-between gap-2 rounded-t-xl bg-primary/10 px-3 py-1.5 cursor-grab active:cursor-grabbing touch-none"
+        className="flex items-center justify-between gap-2 rounded-t-2xl border-b border-border/40 bg-primary/10 px-3 py-1.5 cursor-grab active:cursor-grabbing touch-none"
       >
         <div className="flex items-center gap-1.5 min-w-0">
           <GripVertical className="w-3.5 h-3.5 text-primary/60 shrink-0" />
