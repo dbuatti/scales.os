@@ -32,7 +32,7 @@ const NavLink: React.FC<NavLinkProps> = ({ to, icon, label }) => {
                     : "text-muted-foreground hover:text-foreground"
             )}
         >
-            <Link to={to}>
+            <Link to={to} aria-current={isActive ? 'page' : undefined}>
                 {icon}
                 <span className="text-sm">{label}</span>
             </Link>
@@ -53,9 +53,10 @@ const MobileNavItem: React.FC<MobileNavItemProps> = ({ to, icon, label }) => {
     return (
         <Link
             to={to}
+            aria-current={isActive ? 'page' : undefined}
             className={cn(
-                "flex flex-1 flex-col items-center justify-center gap-0.5 py-2 text-[10px] font-bold uppercase tracking-widest transition-colors",
-                isActive ? "text-primary" : "text-muted-foreground"
+                "flex min-h-16 flex-1 flex-col items-center justify-center gap-0.5 py-2 text-[10px] font-bold uppercase tracking-widest transition-colors focus-visible:z-10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring",
+                isActive ? "bg-primary/10 text-primary" : "text-muted-foreground hover:bg-muted/60 hover:text-foreground"
             )}
         >
             {icon}
@@ -106,7 +107,7 @@ const AuthenticatedShell: React.FC = () => {
       <button
         type="button"
         onClick={handleLogout}
-        className="flex flex-1 flex-col items-center justify-center gap-0.5 py-2 text-[10px] font-bold uppercase tracking-widest text-muted-foreground transition-colors hover:text-destructive"
+        className="flex min-h-16 flex-1 flex-col items-center justify-center gap-0.5 py-2 text-[10px] font-bold uppercase tracking-widest text-muted-foreground transition-colors hover:bg-muted/60 hover:text-destructive focus-visible:z-10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring"
       >
         <LogOut className="w-5 h-5" />
         <span>Logout</span>

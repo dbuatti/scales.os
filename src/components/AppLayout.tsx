@@ -59,7 +59,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children, headerRightContent, mob
                 "sticky top-0 z-50 w-full border-b border-border/60 bg-background/80 backdrop-blur-lg supports-[backdrop-filter]:bg-background/60 transition-all duration-300",
                 isZenMode ? "h-12 opacity-60 hover:opacity-100" : "h-16"
             )}>
-                <div className="container flex h-full items-center justify-between gap-2">
+                <div className="container flex h-full items-center justify-between gap-3">
                     <Link to="/" aria-label="Scales OS home" className={cn("flex items-center gap-2.5 font-bold text-lg tracking-tight transition-all shrink-0", isZenMode && "text-sm")}>
                         <div aria-hidden="true" className={cn("bg-primary rounded-xl flex items-center justify-center text-primary-foreground shadow-sm transition-all", isZenMode ? "w-7 h-7" : "w-9 h-9")}>
                             <Play className={cn("fill-current", isZenMode ? "w-3.5 h-3.5" : "w-4 h-4")} />
@@ -97,7 +97,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children, headerRightContent, mob
                 </div>
             </header>
 
-            <main id="main-content" tabIndex={-1} className={cn("flex-grow container py-8", isZenMode && "py-4 max-w-5xl", mobileNav && "pb-20 md:pb-8")}>
+            <main id="main-content" tabIndex={-1} className={cn("container flex-grow py-8 outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-4", isZenMode && "py-4 max-w-5xl", mobileNav && "pb-20 md:pb-8")}>
                 {children}
             </main>
 
