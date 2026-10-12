@@ -43,7 +43,7 @@ interface HomeModesProps {
 
 const HomeModes: React.FC<HomeModesProps> = ({ active, onSelect }) => (
   <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-    {MODES.map((mode) => {
+    {MODES.map((mode, index) => {
       const Icon = mode.icon;
       const isActive = active === mode.id;
       return (
@@ -52,8 +52,9 @@ const HomeModes: React.FC<HomeModesProps> = ({ active, onSelect }) => (
           type="button"
           onClick={() => onSelect(mode.id)}
           aria-pressed={isActive}
+          style={{ animationDelay: `${index * 60}ms` }}
           className={cn(
-            'group relative flex items-center gap-4 overflow-hidden surface p-5 text-left',
+            'group relative flex items-center gap-4 overflow-hidden surface p-5 text-left animate-in fade-in slide-in-from-bottom-2 fill-mode-both duration-300',
             'transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-lg hover:shadow-primary/10 active:translate-y-0 active:scale-[0.99]',
             isActive ? 'border-primary/40 ring-1 ring-primary/20' : 'border-border/50',
           )}

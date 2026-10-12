@@ -44,6 +44,14 @@ const PracticeCommandCenter: React.FC = () => {
   const { isZenMode } = useZenMode();
   const navigate = useNavigate();
 
+  const greeting = useMemo(() => {
+    const hour = new Date().getHours();
+    if (hour < 5) return 'Late night session';
+    if (hour < 12) return 'Good morning';
+    if (hour < 18) return 'Good afternoon';
+    return 'Good evening';
+  }, []);
+
   const targetBpm = activePracticeItem
     ? activePracticeItem.type === 'scale'
       ? activePracticeItem.nextGoalBPM
@@ -132,7 +140,7 @@ const PracticeCommandCenter: React.FC = () => {
   return (
     <PageContainer className={cn('transition-all duration-500', isZenMode && 'max-w-4xl')}>
       <PageHeader
-        eyebrow="Practice"
+        eyebrow={greeting}
         title="Practice"
         description="Pick a mode, adjust tempo, and track every session."
       />
@@ -140,10 +148,14 @@ const PracticeCommandCenter: React.FC = () => {
       <HomeModes active={mode} onSelect={handleSelectMode} />
 
       {nextFocus && (
-        <Card className="surface overflow-hidden border-primary/20 bg-gradient-to-br from-primary/[0.09] via-card to-card shadow-md shadow-primary/[0.05]">
-          <CardContent className="flex flex-col gap-5 p-5 sm:flex-row sm:items-center sm:justify-between sm:p-6">
-            <div className="flex min-w-0 items-center gap-3.5">
-              <div className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary ring-1 ring-primary/15">
+        <Card className="surface relative overflow-hidden border-primary/20 bg-gradient-to-br from-primary/[0.10] via-card/60 to-card/60 shadow-md shadow-primary/[0.06] animate-in fade-in slide-in-from-bottom-2 duration-300">
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute -right-20 -top-20 h-52 w-52 rounded-full bg-primary/15 blur-3xl"
+          />
+          <CardContent className="relative flex flex-col gap-5 p-6 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex min-w-0 items-center gap-4">
+              <div className="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-primary/10 text-primary ring-1 ring-inset ring-primary/15">
                 <Target className="size-5" />
               </div>
               <div className="min-w-0 space-y-1">
@@ -156,13 +168,28 @@ const PracticeCommandCenter: React.FC = () => {
                     Ready
                   </span>
                 </div>
-                <p className="truncate text-lg font-bold tracking-tight sm:text-xl">{suggestedLabel}</p>
+                <p className="truncate text-xl font-black tracking-tight sm:text-2xl">{suggestedLabel}</p>
               </div>
             </div>
-            <Button size="lg" onClick={() => handleLoadSuggestion(nextFocus)} disabled={isEngagingSuggestion} className="w-full font-bold shadow-sm focus-scale sm:w-auto">
-              <Play data-icon="inline-start" />
-              Start session
-            </Button>
+            <div className="flex items-center gap-4">
+              {targetBpm ? (
+                <div className="hidden text-right sm:block">
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                    Target
+                  </p>
+                  <p className="text-xl font-black tabular-nums text-primary">{targetBpm} BPM</p>
+                </div>
+              ) : null}
+              <Button
+                size="lg"
+                onClick={() => handleLoadSuggestion(nextFocus)}
+                disabled={isEngagingSuggestion}
+                className="w-full font-bold shadow-sm shadow-primary/20 focus-scale sm:w-auto"
+              >
+                <Play data-icon="inline-start" />
+                Start session
+              </Button>
+            </div>
           </CardContent>
         </Card>
       )}

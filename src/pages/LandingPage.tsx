@@ -105,7 +105,7 @@ const LandingPage: React.FC = () => {
       <section className="relative overflow-hidden border-b border-border/60">
         <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-primary/10 via-transparent to-transparent" />
         <div className="pointer-events-none absolute -top-32 left-1/2 h-72 w-72 -translate-x-1/2 rounded-full bg-primary/20 blur-3xl" />
-        <div className="container relative mx-auto max-w-4xl py-24 text-center md:py-32">
+        <div className="container relative mx-auto max-w-4xl py-24 text-center md:py-32 animate-in fade-in slide-in-from-bottom-3 duration-500">
           <Badge variant="secondary" className="mb-5 border-border/60 text-primary">
             The practice companion for pianists
           </Badge>
@@ -137,22 +137,23 @@ const LandingPage: React.FC = () => {
 
       {/* Features */}
       <section className="container mx-auto max-w-6xl px-4 py-20">
-        <h2 className="text-center text-3xl font-bold tracking-tight">
+        <h2 className="text-center text-3xl font-black tracking-tight">
           Everything you need to practice deliberately
         </h2>
         <p className="mx-auto mt-3 max-w-2xl text-center text-muted-foreground">
           A focused toolkit for technique, tempo and progress — nothing you don&apos;t need.
         </p>
         <div className="mt-12 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {FEATURES.map((feature) => {
+          {FEATURES.map((feature, index) => {
             const Icon = feature.icon;
             return (
               <Card
                 key={feature.title}
-                className="surface-interactive"
+                style={{ animationDelay: `${index * 50}ms` }}
+                className="surface-interactive animate-in fade-in slide-in-from-bottom-2 fill-mode-both duration-300"
               >
                 <CardContent className="p-6">
-                  <div className="mb-4 inline-flex rounded-lg bg-primary/10 p-2.5 text-primary">
+                  <div className="mb-4 inline-flex rounded-xl bg-primary/10 p-2.5 text-primary ring-1 ring-inset ring-primary/10">
                     <Icon className="h-5 w-5" />
                   </div>
                   <h3 className="text-base font-bold">{feature.title}</h3>
@@ -167,7 +168,7 @@ const LandingPage: React.FC = () => {
       {/* Pricing */}
       <section id="pricing" className="border-t border-border/60 bg-muted/30">
         <div className="container mx-auto max-w-4xl px-4 py-20">
-          <h2 className="text-center text-3xl font-bold tracking-tight">
+          <h2 className="text-center text-3xl font-black tracking-tight">
             Simple, honest pricing
           </h2>
           <p className="mx-auto mt-3 max-w-xl text-center text-muted-foreground">
@@ -175,13 +176,14 @@ const LandingPage: React.FC = () => {
             everywhere.
           </p>
           <div className="mt-12 grid grid-cols-1 gap-6 md:grid-cols-2">
-            {PLANS.map((plan) => (
+            {PLANS.map((plan, index) => (
               <Card
                 key={plan.name}
+                style={{ animationDelay: `${index * 60}ms` }}
                 className={cn(
-                  'surface relative flex flex-col transition-all duration-200',
+                  'surface relative flex flex-col transition-all duration-200 animate-in fade-in slide-in-from-bottom-2 fill-mode-both',
                   plan.highlight
-                    ? 'border-primary/50 ring-1 ring-primary/30 shadow-md'
+                    ? 'border-primary/50 ring-1 ring-primary/30 shadow-lg shadow-primary/10'
                     : '',
                 )}
               >
@@ -220,7 +222,7 @@ const LandingPage: React.FC = () => {
       {/* CTA */}
       <section className="border-t border-border/60">
         <div className="container mx-auto max-w-3xl px-4 py-20 text-center">
-          <h2 className="text-3xl font-bold tracking-tight">Ready to transform your practice?</h2>
+          <h2 className="text-3xl font-black tracking-tight">Ready to transform your practice?</h2>
           <p className="mt-3 text-lg text-muted-foreground">
             Join today and experience a smarter, more effective way to reach your musical goals.
           </p>
