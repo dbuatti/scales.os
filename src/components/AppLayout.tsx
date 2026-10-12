@@ -113,9 +113,12 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children, headerRightContent, mob
                         <p className="text-sm text-muted-foreground">
                             Built for pianists. Focused on technique.
                         </p>
-                        <p className="text-xs text-muted-foreground/70">
-                            Scales · Arpeggios · Method books
-                        </p>
+                        <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-xs text-muted-foreground/70 md:justify-end">
+                            <p>Scales · Arpeggios · Method books</p>
+                            <span aria-label="Application version" data-testid="build-version" className="rounded-full border border-border/60 bg-muted/40 px-2 py-0.5 font-semibold tracking-[0.08em]">
+                                UI refresh · v0.4.0
+                            </span>
+                        </div>
                     </div>
                 </footer>
             )}
