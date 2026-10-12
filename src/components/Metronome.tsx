@@ -87,7 +87,7 @@ const Metronome: React.FC<MetronomeProps> = ({ showSettings = true }) => {
       type="single"
       value={division}
       onValueChange={(value) => value && setDivision(value as 'quarter' | 'eighth')}
-      className="flex-shrink-0 rounded-lg border border-border/60 bg-muted/50 p-1"
+      className="flex-shrink-0 rounded-lg border border-border/50 bg-muted/40 p-1"
     >
       <ToggleGroupItem
         value="quarter"

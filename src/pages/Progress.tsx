@@ -114,7 +114,7 @@ const ProgressPage: React.FC = () => {
               <CardContent>
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
                   {stasisItems.map(([id]) => (
-                    <div key={id} className="flex items-center justify-between rounded-lg border bg-card p-3 shadow-sm">
+                    <div key={id} className="flex items-center justify-between rounded-xl border border-border/50 bg-card/60 p-3 shadow-sm backdrop-blur-xl">
                       <span className="max-w-[200px] truncate text-sm font-medium">{id.split('-').slice(0, 2).join(' ')}</span>
                       <Button
                         variant="ghost"

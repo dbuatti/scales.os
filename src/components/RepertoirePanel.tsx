@@ -417,7 +417,7 @@ const ReaderToolbar: React.FC<ReaderToolbarProps> = ({
         type="single"
         value={layout}
         onValueChange={(value) => value && onLayoutChange(value as 'vertical' | 'horizontal')}
-        className="rounded-lg border border-border/60 bg-muted/40 p-1"
+        className="rounded-xl border border-border/50 bg-muted/40 p-1"
       >
         <ToggleGroupItem
           value="horizontal"

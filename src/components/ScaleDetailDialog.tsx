@@ -62,7 +62,7 @@ interface PermutationSectionProps<T extends string> {
 }
 
 const PermutationSection = <T extends string>({ title, description, options, selectedValue, onValueChange, icon, getItemClasses }: PermutationSectionProps<T>) => (
-    <div className="space-y-3 rounded-xl border border-border/60 bg-muted/30 p-4">
+    <div className="space-y-3 rounded-2xl border border-border/50 bg-muted/20 p-4">
         <div className="mb-2 flex items-center gap-2">
             {icon}
             <Label className="text-sm font-bold">{title}</Label>

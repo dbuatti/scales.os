@@ -104,7 +104,7 @@ const GradeTracker: React.FC = () => {
             </CardHeader>
             <CardContent className="space-y-6 p-5">
                 {nextGrade && (
-                    <div className="space-y-3 rounded-xl border border-border/60 bg-muted/30 p-4">
+                    <div className="space-y-3 rounded-2xl border border-border/50 bg-muted/20 p-4">
                         <div className="flex items-end justify-between gap-3">
                             <div className="space-y-1">
                                 <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Current objective</span>
@@ -128,7 +128,7 @@ const GradeTracker: React.FC = () => {
                         {gradeStats.map(grade => (
                             <div key={grade.id} className={cn(
                                 "space-y-2 rounded-lg border p-3 transition-all",
-                                grade.completion === 100 ? "border-success/30 bg-success/5" : "border-border/60 bg-muted/30"
+                                grade.completion === 100 ? "border-success/30 bg-success/5" : "border-border/50 bg-muted/20"
                             )}>
                                 <div className="flex justify-between text-[10px] font-bold uppercase tracking-widest">
                                     <span className={cn(grade.completion === 100 ? 'text-success' : 'text-muted-foreground')}>Grade {grade.id}: {grade.name}</span>
