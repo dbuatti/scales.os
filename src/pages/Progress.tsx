@@ -92,14 +92,14 @@ const ProgressPage: React.FC = () => {
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="overview" className="space-y-8">
+        <TabsContent value="overview" className="flex flex-col gap-8">
           <PracticeStats />
           <TempoProgressionChart />
           <RepertoireStats />
           <GradeTracker />
         </TabsContent>
 
-        <TabsContent value="technique" className="space-y-8">
+        <TabsContent value="technique" className="flex flex-col gap-8">
           {stasisItems.length > 0 && (
             <Card className="border-warning/50 bg-warning/5">
               <CardHeader>
@@ -135,7 +135,7 @@ const ProgressPage: React.FC = () => {
           <ScaleGrid />
         </TabsContent>
 
-        <TabsContent value="history" className="space-y-8">
+        <TabsContent value="history" className="flex flex-col gap-8">
           <PracticeLog />
 
           <Card className="border-destructive/30">
