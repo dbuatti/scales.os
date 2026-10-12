@@ -3,7 +3,6 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Play, Pause, RotateCcw, LogIn, Target } from 'lucide-react';
 import { showSuccess } from '@/utils/toast';
-import { cn } from '@/lib/utils';
 import { Progress } from '@/components/ui/progress';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 
@@ -32,7 +31,7 @@ const PracticeTimer: React.FC<PracticeTimerProps> = ({ onLogSession, isCondensed
     setIsRunning(false);
     setTime(0);
   };
-  
+
   const handleLog = () => {
     if (time === 0) return;
     const durationMinutes = Math.round(time / 60);
@@ -52,56 +51,58 @@ const PracticeTimer: React.FC<PracticeTimerProps> = ({ onLogSession, isCondensed
   }, [isRunning]);
 
   const progress = sessionGoal ? Math.min(100, (time / (sessionGoal * 60)) * 100) : 0;
-  
+
   if (isCondensed) {
     return (
-        <div className="flex items-center space-x-2">
+        <div className="flex items-center gap-2">
             <div className="flex flex-col items-center">
-                <div className="text-lg font-mono font-extrabold text-primary tracking-tighter min-w-[60px] text-center">
+                <div className="min-w-[60px] text-center text-lg font-bold tabular-nums tracking-tight">
                     {formatTime(time)}
                 </div>
                 {sessionGoal && (
-                    <Progress value={progress} className="h-1 w-full mt-0.5" />
+                    <Progress value={progress} className="mt-0.5 h-1 w-full" />
                 )}
             </div>
-            
+
             {isRunning ? (
-                <Button onClick={handlePause} variant="secondary" size="icon" className="w-8 h-8 bg-destructive hover:bg-destructive/90 text-destructive-foreground focus-scale">
-                    <Pause className="w-4 h-4" />
+                <Button onClick={handlePause} variant="secondary" size="icon" className="h-9 w-9 focus-scale">
+                    <Pause className="h-4 w-4" />
                 </Button>
             ) : (
-                <Button onClick={handleStart} size="icon" className="w-8 h-8 bg-primary hover:bg-primary/90 text-primary-foreground focus-scale" disabled={time > 0}>
-                    <Play className="w-4 h-4" />
+                <Button onClick={handleStart} size="icon" className="h-9 w-9 focus-scale" disabled={time > 0}>
+                    <Play className="h-4 w-4" />
                 </Button>
             )}
-            
-            <Button onClick={handleLog} size="icon" className="w-8 h-8 bg-accent hover:bg-accent/80 text-accent-foreground focus-scale" disabled={time === 0 || isRunning}>
-                <LogIn className="w-4 h-4" />
+
+            <Button onClick={handleLog} size="icon" className="h-9 w-9 focus-scale" disabled={time === 0 || isRunning}>
+                <LogIn className="h-4 w-4" />
             </Button>
-            
-            <Button onClick={handleReset} variant="outline" size="icon" className="w-8 h-8 border-muted-foreground text-muted-foreground hover:bg-accent focus-scale" disabled={time === 0}>
-                <RotateCcw className="w-4 h-4" />
+
+            <Button onClick={handleReset} variant="outline" size="icon" className="h-9 w-9 focus-scale" disabled={time === 0}>
+                <RotateCcw className="h-4 w-4" />
             </Button>
         </div>
     );
   }
 
   return (
-    <Card className="w-full bg-card border-2 border-primary/20 shadow-xl relative overflow-hidden">
-      <div className="crt-overlay" />
-      <CardHeader className="p-4 border-b border-primary/10 relative z-10">
-        <CardTitle className="text-center text-sm font-mono tracking-widest text-muted-foreground uppercase">Session Timer</CardTitle>
+    <Card className="w-full border border-border/60 bg-card/50 shadow-sm">
+      <CardHeader className="flex flex-row items-center gap-2.5 space-y-0 border-b border-border/60 p-4">
+        <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10 text-primary">
+          <Target className="h-4 w-4" />
+        </div>
+        <CardTitle className="text-sm font-bold">Session Timer</CardTitle>
       </CardHeader>
-      <CardContent className="flex flex-col items-center space-y-6 p-8 relative z-10">
-        <div className="space-y-2 w-full text-center">
-            <div className="text-7xl font-mono font-extrabold text-primary tracking-tighter">
+      <CardContent className="flex flex-col items-center space-y-6 p-8">
+        <div className="w-full space-y-2 text-center">
+            <div className="text-6xl font-black tabular-nums tracking-tight">
                 {formatTime(time)}
             </div>
             {sessionGoal && (
                 <div className="space-y-1">
                     <div className="flex justify-between text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
                         <span>Goal: {sessionGoal}m</span>
-                        <span>{Math.round(progress)}%</span>
+                        <span className="tabular-nums">{Math.round(progress)}%</span>
                     </div>
                     <Progress value={progress} className="h-2" />
                 </div>
@@ -110,11 +111,11 @@ const PracticeTimer: React.FC<PracticeTimerProps> = ({ onLogSession, isCondensed
 
         <div className="w-full space-y-2">
             <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-                <Target className="w-3 h-3" /> Set Session Goal (Minutes)
+                <Target className="h-3 w-3" /> Set session goal (minutes)
             </div>
-            <ToggleGroup 
-                type="single" 
-                value={sessionGoal?.toString()} 
+            <ToggleGroup
+                type="single"
+                value={sessionGoal?.toString()}
                 onValueChange={(v) => setSessionGoal(v ? parseInt(v) : null)}
                 className="justify-start gap-2"
             >
@@ -129,26 +130,27 @@ const PracticeTimer: React.FC<PracticeTimerProps> = ({ onLogSession, isCondensed
             </ToggleGroup>
         </div>
 
-        <div className="flex space-x-3 w-full">
+        <div className="flex w-full gap-3">
           {isRunning ? (
-            <Button onClick={handlePause} variant="secondary" size="lg" className="flex-1 bg-destructive hover:bg-destructive/90 text-destructive-foreground text-lg font-mono focus-scale">
-              <Pause className="w-5 h-5 mr-2" /> PAUSE
+            <Button onClick={handlePause} variant="secondary" size="lg" className="flex-1 font-bold focus-scale">
+              <Pause className="mr-2 h-5 w-5" /> Pause
             </Button>
           ) : (
-            <Button onClick={handleStart} size="lg" className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground text-lg font-mono focus-scale">
-              <Play className="w-5 h-5 mr-2" /> START
+            <Button onClick={handleStart} size="lg" className="flex-1 font-bold focus-scale">
+              <Play className="mr-2 h-5 w-5" /> Start
             </Button>
           )}
-          <Button onClick={handleReset} variant="outline" size="lg" className="border-muted-foreground text-muted-foreground hover:bg-accent font-mono focus-scale">
-            <RotateCcw className="w-5 h-5" />
+          <Button onClick={handleReset} variant="outline" size="lg" className="focus-scale">
+            <RotateCcw className="h-5 w-5" />
           </Button>
         </div>
-        <Button 
-            onClick={handleLog} 
+        <Button
+            onClick={handleLog}
             disabled={time === 0 || isRunning}
-            className="w-full text-lg py-6 bg-accent hover:bg-accent/80 transition-all duration-300 text-accent-foreground font-mono shadow-lg shadow-accent/20 focus-scale"
+            size="lg"
+            className="w-full font-bold focus-scale"
         >
-            <LogIn className="w-6 h-6 mr-2" /> LOG DURATION
+            <LogIn className="mr-2 h-5 w-5" /> Log duration
         </Button>
       </CardContent>
     </Card>

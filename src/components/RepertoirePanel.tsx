@@ -85,8 +85,8 @@ import {
 } from '@/lib/repertoire';
 
 const ViewerFallback: React.FC = () => (
-  <div className="flex flex-col items-center justify-center rounded-lg border-2 border-dashed border-border/60 min-h-[420px] text-center p-8">
-    <Loader2 className="w-8 h-8 text-muted-foreground/40 animate-spin mb-3" />
+  <div className="flex min-h-[420px] flex-col items-center justify-center rounded-xl border border-dashed border-border/60 p-8 text-center">
+    <Loader2 className="mb-3 h-7 w-7 animate-spin text-muted-foreground/40" />
     <p className="text-sm font-medium text-muted-foreground">Loading PDF viewer…</p>
   </div>
 );

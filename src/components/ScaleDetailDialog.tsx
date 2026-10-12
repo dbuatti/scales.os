@@ -9,7 +9,7 @@ import {
 } from '@/lib/scales';
 import { useScales, ScaleStatus } from '@/context/ScalesContext';
 import { cn, getHandColorClasses } from '@/lib/utils';
-import { Check, Clock, X, Music, Gauge, Repeat, Hand, Target, Zap, Palette } from 'lucide-react';
+import { Check, Clock, X, Music, Gauge, Repeat, Hand, Target, Palette } from 'lucide-react';
 import { showError, showSuccess } from '@/utils/toast';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { Label } from '@/components/ui/label';
@@ -30,24 +30,24 @@ const DEFAULT_OCTAVES = OCTAVE_CONFIGURATIONS[1]; // "2 Octaves (Standard)"
 const getStatusIcon = (status: ScaleStatus) => {
   switch (status) {
     case 'mastered':
-      return <Check className="w-4 h-4 text-success-foreground" />;
+      return <Check className="h-4 w-4" />;
     case 'practiced':
-      return <Clock className="w-4 h-4 text-warning-foreground" />;
+      return <Clock className="h-4 w-4" />;
     case 'untouched':
     default:
-      return <X className="w-4 h-4 text-muted-foreground" />;
+      return <X className="h-4 w-4" />;
   }
 };
 
 const getStatusClasses = (status: ScaleStatus) => {
   switch (status) {
     case 'mastered':
-      return 'bg-success hover:bg-success/90';
+      return 'border-success/40 bg-success/10 text-success hover:bg-success/15';
     case 'practiced':
-      return 'bg-warning hover:bg-warning/90';
+      return 'border-warning/40 bg-warning/10 text-warning hover:bg-warning/15';
     case 'untouched':
     default:
-      return 'bg-muted/20 hover:bg-muted/40';
+      return 'border-border/60 text-muted-foreground hover:bg-muted/50';
   }
 };
 
@@ -62,17 +62,17 @@ interface PermutationSectionProps<T extends string> {
 }
 
 const PermutationSection = <T extends string>({ title, description, options, selectedValue, onValueChange, icon, getItemClasses }: PermutationSectionProps<T>) => (
-    <div className="space-y-3 p-3 rounded-lg border border-primary/30 bg-secondary/50">
-        <div className="flex items-center gap-2 mb-2">
+    <div className="space-y-3 rounded-xl border border-border/60 bg-muted/30 p-4">
+        <div className="mb-2 flex items-center gap-2">
             {icon}
-            <Label className="text-md font-semibold text-primary block font-mono text-glow">{title}</Label>
+            <Label className="text-sm font-bold">{title}</Label>
         </div>
-        <p className="text-xs text-muted-foreground italic mb-2 text-primary/70">{description}</p>
+        <p className="mb-2 text-xs text-muted-foreground">{description}</p>
         <ToggleGroup 
             type="single" 
             value={selectedValue} 
             onValueChange={(value) => value && onValueChange(value as T)}
-            className="flex flex-wrap justify-start gap-2 w-full"
+            className="flex w-full flex-wrap justify-start gap-2"
         >
             {options.map(option => (
                 <ToggleGroupItem 
@@ -80,11 +80,11 @@ const PermutationSection = <T extends string>({ title, description, options, sel
                     value={option} 
                     aria-label={`Select ${option}`}
                     className={cn(
-                        "data-[state=on]:bg-primary data-[state=on]:text-primary-foreground data-[state=on]:shadow-md data-[state=on]:border-primary/80 border border-border text-xs px-2 py-1 h-auto font-mono",
-                        getItemClasses?.(option) || (selectedValue === option ? "bg-primary text-primary-foreground" : "bg-card text-foreground")
+                        "border border-border/60 text-xs px-2 py-1 h-auto data-[state=on]:bg-primary data-[state=on]:text-primary-foreground data-[state=on]:border-primary",
+                        getItemClasses?.(option)
                     )}
                 >
-                    {option.split(' ')[0]}
+                    {option}
                 </ToggleGroupItem>
             ))}
         </ToggleGroup>
@@ -182,26 +182,22 @@ const ScaleDetailDialog = React.forwardRef<HTMLButtonElement, ScaleDetailDialogP
       <DialogTrigger asChild ref={ref}>
         {children}
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[1000px] max-h-[90vh] overflow-y-auto bg-card/95 border-4 border-primary/80 shadow-2xl shadow-primary/40 relative overflow-hidden">
-        {/* Subtle CRT glow overlay */}
-        <div className="absolute inset-0 pointer-events-none opacity-30">
-          <div className="h-full w-full bg-gradient-to-b from-transparent via-primary/5 to-transparent" />
-        </div>
-        <DialogHeader className="p-4 border-b-2 border-primary/50 relative z-10">
-          <DialogTitle className="text-primary font-mono text-2xl text-glow">
+      <DialogContent className="sm:max-w-[1000px] max-h-[90vh] overflow-y-auto border border-border/60 bg-card shadow-md">
+        <DialogHeader className="border-b border-border/60 pb-4">
+          <DialogTitle className="text-xl font-black tracking-tight">
             {scaleItem.key} {scaleItem.type} - Detailed Mastery
           </DialogTitle>
         </DialogHeader>
         
         {/* Permutation Selection Sections */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-4 relative z-10">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
             <PermutationSection
                 title="OCTAVE RANGE"
                 description="Increase range to test consistency and endurance."
                 options={OCTAVE_CONFIGURATIONS}
                 selectedValue={selectedOctaves}
                 onValueChange={setSelectedOctaves as (value: OctaveConfiguration) => void}
-                icon={<Music className="w-5 h-5 text-primary/70" />}
+                icon={<Music className="h-4 w-4 text-primary" />}
             />
             <PermutationSection
                 title="DIRECTION & STARTING POINT"
@@ -209,7 +205,7 @@ const ScaleDetailDialog = React.forwardRef<HTMLButtonElement, ScaleDetailDialogP
                 options={DIRECTION_TYPES}
                 selectedValue={selectedDirection}
                 onValueChange={setSelectedDirection as (value: DirectionType) => void}
-                icon={<Repeat className="w-5 h-5 text-primary/70" />}
+                icon={<Repeat className="h-4 w-4 text-primary" />}
             />
             <PermutationSection
                 title="HAND CONFIGURATION"
@@ -217,7 +213,7 @@ const ScaleDetailDialog = React.forwardRef<HTMLButtonElement, ScaleDetailDialogP
                 options={HAND_CONFIGURATIONS}
                 selectedValue={selectedHandConfig}
                 onValueChange={setSelectedHandConfig as (value: HandConfiguration) => void}
-                icon={<Hand className="w-5 h-5 text-primary/70" />}
+                icon={<Hand className="h-4 w-4 text-primary" />}
                 getItemClasses={getHandColorClasses}
             />
             <PermutationSection
@@ -226,7 +222,7 @@ const ScaleDetailDialog = React.forwardRef<HTMLButtonElement, ScaleDetailDialogP
                 options={RHYTHMIC_PERMUTATIONS}
                 selectedValue={selectedRhythm}
                 onValueChange={setSelectedRhythm as (value: RhythmicPermutation) => void}
-                icon={<Gauge className="w-5 h-5 text-primary/70" />}
+                icon={<Gauge className="h-4 w-4 text-primary" />}
             />
             <PermutationSection
                 title="ACCENT & WEIGHT DISTRIBUTION"
@@ -234,7 +230,7 @@ const ScaleDetailDialog = React.forwardRef<HTMLButtonElement, ScaleDetailDialogP
                 options={ACCENT_DISTRIBUTIONS}
                 selectedValue={selectedAccent}
                 onValueChange={setSelectedAccent as (value: AccentDistribution) => void}
-                icon={<Target className="w-5 h-5 text-primary/70" />}
+                icon={<Target className="h-4 w-4 text-primary" />}
             />
             <PermutationSection
                 title="ARTICULATION"
@@ -242,26 +238,26 @@ const ScaleDetailDialog = React.forwardRef<HTMLButtonElement, ScaleDetailDialogP
                 options={ARTICULATIONS}
                 selectedValue={selectedArticulation}
                 onValueChange={setSelectedArticulation as (value: Articulation) => void}
-                icon={<Palette className="w-5 h-5 text-primary/70" />}
+                icon={<Palette className="h-4 w-4 text-primary" />}
             />
         </div>
 
-        <div className="overflow-x-auto mt-6 relative z-10">
-          <table className="w-full divide-y divide-border">
+        <div className="mt-6 overflow-x-auto">
+          <table className="w-full divide-y divide-border/60">
             <thead>
-              <tr className="bg-secondary/50">
-                <th className="px-4 py-2 text-left text-xs font-medium text-foreground/70 min-w-[150px] text-primary/80">Tempo Level</th>
+              <tr className="bg-muted/40">
+                <th className="min-w-[150px] px-4 py-2 text-left text-xs font-bold uppercase tracking-wider text-muted-foreground">Tempo Level</th>
                 {TEMPO_LEVELS.map(tempo => (
-                  <th key={tempo} className="px-4 py-2 text-center text-xs font-medium text-foreground/70 min-w-[100px] text-primary/80">
+                  <th key={tempo} className="min-w-[100px] px-4 py-2 text-center text-xs font-bold uppercase tracking-wider text-muted-foreground">
                     {tempo.split(' ')[0]}
                   </th>
                 ))}
               </tr>
             </thead>
-            <tbody className="divide-y divide-border">
+            <tbody className="divide-y divide-border/60">
               {ARTICULATIONS.map(articulation => (
-                <tr key={articulation} className="hover:bg-accent/50 transition-colors">
-                  <td className="px-4 py-2 whitespace-nowrap text-sm font-medium text-primary/90">
+                <tr key={articulation} className="transition-colors hover:bg-muted/40">
+                  <td className="whitespace-nowrap px-4 py-2 text-sm font-medium">
                     {articulation}
                   </td>
                   {TEMPO_LEVELS.map(tempo => {
@@ -287,18 +283,17 @@ const ScaleDetailDialog = React.forwardRef<HTMLButtonElement, ScaleDetailDialogP
                             setSelectedArticulation(articulation);
                             setSelectedTempo(tempo);
                           }}
-                          className={cn(
-                            "w-full h-10 flex flex-col items-center justify-center rounded-md transition-colors duration-150 border border-primary/30",
-                            status === 'mastered' ? 'bg-success hover:bg-success/90 shadow-md shadow-success/30' : status === 'practiced' ? 'bg-warning hover:bg-warning/90 shadow-md shadow-warning/30' : getStatusClasses(status),
-                            articulation === selectedArticulation && tempo === selectedTempo && "ring-2 ring-offset-2 ring-primary ring-offset-background"
-                          )}
+                          variant="outline"
                           size="sm"
+                          className={cn(
+                            "h-9 w-full gap-1 border px-3 text-xs font-bold tabular-nums transition-all duration-200",
+                            getStatusClasses(status),
+                            articulation === selectedArticulation && tempo === selectedTempo && "ring-2 ring-ring ring-offset-2 ring-offset-background"
+                          )}
                           aria-label={`${articulation} at ${tempo} status: ${statusText}. Click to cycle status.`}
                         >
                           {getStatusIcon(status)}
-                          <span className="text-xs font-mono mt-1 text-foreground/80 text-primary/70">
-                            {currentHighestBPM > 0 ? `${currentHighestBPM} BPM` : ''}
-                          </span>
+                          <span>{currentHighestBPM > 0 ? `${currentHighestBPM} BPM` : ''}</span>
                         </Button>
                       </td>
                     );
@@ -309,12 +304,12 @@ const ScaleDetailDialog = React.forwardRef<HTMLButtonElement, ScaleDetailDialogP
           </table>
         </div>
         
-        <div className="flex flex-col gap-2 mt-4 pt-4 border-t border-primary/30 relative z-10">
-            <p className="text-sm text-muted-foreground text-primary/70">
-              Click a cell to toggle its mastery: Untouched/Practiced → Mastered ({getTempoLevelBPMThreshold(selectedTempo)} BPM) / Mastered → Untouched.
+        <div className="mt-4 flex flex-col gap-2 border-t border-border/60 pt-4">
+            <p className="text-sm text-muted-foreground">
+              Click a cell to toggle mastery: Untouched/Practiced → Mastered ({getTempoLevelBPMThreshold(selectedTempo)} BPM), or Mastered → Untouched.
             </p>
-            <p className="text-xs text-muted-foreground text-primary/70">
-                Currently selected permutation: <span className="font-mono text-foreground text-primary/90">{selectedArticulation}, {selectedDirection}, {selectedHandConfig}, {selectedRhythm}, {selectedAccent}, {selectedOctaves}</span>. Highest BPM: <span className={cn("font-mono font-bold", currentHighestBPMForSelectedPermutation >= getTempoLevelBPMThreshold(TEMPO_LEVELS[3]) ? 'text-success text-glow' : currentHighestBPMForSelectedPermutation > 0 ? 'text-warning text-glow' : 'text-muted-foreground')}>{currentHighestBPMForSelectedPermutation} BPM</span>
+            <p className="text-xs text-muted-foreground">
+                Selected permutation: <span className="font-medium text-foreground">{selectedArticulation}, {selectedDirection}, {selectedHandConfig}, {selectedRhythm}, {selectedAccent}, {selectedOctaves}</span>. Highest BPM: <span className={cn("font-bold tabular-nums", currentHighestBPMForSelectedPermutation >= getTempoLevelBPMThreshold(TEMPO_LEVELS[3]) ? 'text-success' : currentHighestBPMForSelectedPermutation > 0 ? 'text-warning' : 'text-muted-foreground')}>{currentHighestBPMForSelectedPermutation} BPM</span>
             </p>
         </div>
       </DialogContent>

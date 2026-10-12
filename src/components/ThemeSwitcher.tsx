@@ -33,7 +33,7 @@ const ThemeSwitcher: React.FC = () => {
           <span className="sr-only">Toggle theme</span>
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="font-mono">
+      <DropdownMenuContent align="end">
         <DropdownMenuItem onClick={() => setTheme("soft-focus")} className="flex items-center gap-2">
           <Sun className="h-4 w-4 text-orange-400" /> Soft Focus (ADHD Friendly)
         </DropdownMenuItem>

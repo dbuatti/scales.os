@@ -131,10 +131,10 @@ const RepertoireStats = () => {
               {stats.topTitles.map(([title, count]) => (
                 <div
                   key={title}
-                  className="flex items-center justify-between p-3 rounded-lg bg-secondary/40 border border-border/60"
+                  className="flex items-center justify-between rounded-lg border border-border/60 bg-muted/30 p-3"
                 >
-                  <span className="text-sm font-medium truncate">{title}</span>
-                  <span className="ml-3 shrink-0 text-xs font-mono text-muted-foreground">
+                  <span className="truncate text-sm font-medium">{title}</span>
+                  <span className="ml-3 shrink-0 text-xs tabular-nums text-muted-foreground">
                     {count} time{count === 1 ? '' : 's'}
                   </span>
                 </div>
