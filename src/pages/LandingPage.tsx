@@ -104,22 +104,25 @@ const LandingPage: React.FC = () => {
       {/* Hero */}
       <section className="relative overflow-hidden border-b border-border/60">
         <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-primary/10 via-transparent to-transparent" />
-        <div className="container relative mx-auto max-w-4xl px-4 py-24 text-center md:py-32">
-          <Badge variant="secondary" className="mb-5 text-primary">
+        <div className="pointer-events-none absolute -top-32 left-1/2 h-72 w-72 -translate-x-1/2 rounded-full bg-primary/20 blur-3xl" />
+        <div className="container relative mx-auto max-w-4xl py-24 text-center md:py-32">
+          <Badge variant="secondary" className="mb-5 border-border/60 text-primary">
             The practice companion for pianists
           </Badge>
-          <h1 className="text-4xl font-black leading-tight tracking-tight text-foreground md:text-6xl">
+          <h1 className="text-4xl font-black leading-[1.05] tracking-tight text-foreground md:text-6xl">
             Master your scales.
             <br />
-            Automate your progress.
+            <span className="bg-gradient-to-r from-primary to-primary/50 bg-clip-text text-transparent">
+              Automate your progress.
+            </span>
           </h1>
-          <p className="mx-auto mt-5 max-w-2xl text-lg text-muted-foreground">
+          <p className="mx-auto mt-6 max-w-2xl text-lg text-muted-foreground">
             Structured scales & arpeggios, a metronome that follows you, and your method
             books — Hanon, Dohnányi or anything else — in one place, with a tempo log that
             tracks every session.
           </p>
           <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
-            <Button asChild size="lg" className="font-bold">
+            <Button asChild size="lg" className="font-bold shadow-sm">
               <Link to="/login">
                 <Play className="mr-2 h-4 w-4" />
                 Start free

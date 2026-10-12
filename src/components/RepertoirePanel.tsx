@@ -31,6 +31,7 @@ import {
   Rows2,
   FileText,
   Music2,
+  BookOpen,
   ListMusic,
   X,
   Cloud,
@@ -360,11 +361,11 @@ const ReaderToolbar: React.FC<ReaderToolbarProps> = ({
   panelOpen,
   onPanelToggle,
 }) => (
-  <div className="flex flex-wrap items-center gap-2">
+  <div className="flex flex-wrap items-center gap-1.5 rounded-xl border border-border/60 bg-card/50 p-1.5">
     <Button
       variant="outline"
       size="icon"
-      className="h-10 w-10"
+      className="h-9 w-9"
       onClick={onPrevious}
       disabled={pageNumber <= 1}
       aria-label="Previous page"
@@ -384,7 +385,7 @@ const ReaderToolbar: React.FC<ReaderToolbarProps> = ({
         }}
         onBlur={onCommitPageInput}
         aria-label="Page number"
-        className="w-16 h-10 px-2 text-center text-sm tabular-nums"
+        className="w-16 h-9 px-2 text-center text-sm tabular-nums"
       />
       <span className="text-muted-foreground text-xs">/ {pageCount || '—'}</span>
     </div>
@@ -392,7 +393,7 @@ const ReaderToolbar: React.FC<ReaderToolbarProps> = ({
     <Button
       variant="outline"
       size="icon"
-      className="h-10 w-10"
+      className="h-9 w-10"
       onClick={onNext}
       disabled={pageCount > 0 && pageNumber >= pageCount}
       aria-label="Next page"
@@ -400,8 +401,9 @@ const ReaderToolbar: React.FC<ReaderToolbarProps> = ({
       <ChevronRight className="w-4 h-4" />
     </Button>
 
+    <div className="mx-0.5 hidden h-6 w-px bg-border/60 sm:block" />
     <Select value={quality} onValueChange={(value) => onQualityChange(value as 'standard' | 'retina')}>
-      <SelectTrigger className="h-10 w-[104px] text-xs">
+      <SelectTrigger className="h-9 w-[104px] text-xs">
         <SelectValue />
       </SelectTrigger>
       <SelectContent>
@@ -419,7 +421,7 @@ const ReaderToolbar: React.FC<ReaderToolbarProps> = ({
       >
         <ToggleGroupItem
           value="horizontal"
-          className="h-10 px-3 text-[11px] font-bold data-[state=on]:bg-primary data-[state=on]:text-primary-foreground"
+          className="h-9 px-3 text-[11px] font-bold data-[state=on]:bg-primary data-[state=on]:text-primary-foreground"
           aria-label="Pages view"
           title="Pages (spread) view"
         >
@@ -428,7 +430,7 @@ const ReaderToolbar: React.FC<ReaderToolbarProps> = ({
         </ToggleGroupItem>
         <ToggleGroupItem
           value="vertical"
-          className="h-10 px-3 text-[11px] font-bold data-[state=on]:bg-primary data-[state=on]:text-primary-foreground"
+          className="h-9 px-3 text-[11px] font-bold data-[state=on]:bg-primary data-[state=on]:text-primary-foreground"
           aria-label="Continuous scroll view"
           title="Continuous scroll view"
         >
@@ -438,10 +440,11 @@ const ReaderToolbar: React.FC<ReaderToolbarProps> = ({
       </ToggleGroup>
     )}
 
+    <div className="mx-0.5 hidden h-6 w-px bg-border/60 sm:block" />
     <Button
       variant="outline"
       size="icon"
-      className="h-10 w-10"
+      className="h-9 w-9"
       onClick={onFitWidth}
       aria-label="Fit width"
       title="Fit width"
@@ -451,7 +454,7 @@ const ReaderToolbar: React.FC<ReaderToolbarProps> = ({
     <Button
       variant="outline"
       size="icon"
-      className="h-10 w-10"
+      className="h-9 w-10"
       onClick={onFitPage}
       aria-label="Fit page"
       title="Fit page"
@@ -463,7 +466,7 @@ const ReaderToolbar: React.FC<ReaderToolbarProps> = ({
       <Button
         variant="ghost"
         size="icon"
-        className="h-10 w-10 rounded-r-none"
+        className="h-9 w-10 rounded-r-none"
         onClick={onZoomOut}
         disabled={zoom <= 0.5}
         aria-label="Zoom out"
@@ -474,7 +477,7 @@ const ReaderToolbar: React.FC<ReaderToolbarProps> = ({
       <button
         type="button"
         onClick={onZoomReset}
-        className="h-10 min-w-[56px] border-x px-2 text-xs font-bold tabular-nums text-muted-foreground transition-colors hover:text-foreground"
+        className="h-9 min-w-[56px] border-x px-2 text-xs font-bold tabular-nums text-muted-foreground transition-colors hover:text-foreground"
         title="Reset zoom to 100%"
       >
         {Math.round(zoom * 100)}%
@@ -482,7 +485,7 @@ const ReaderToolbar: React.FC<ReaderToolbarProps> = ({
       <Button
         variant="ghost"
         size="icon"
-        className="h-10 w-10 rounded-l-none"
+        className="h-9 w-10 rounded-l-none"
         onClick={onZoomIn}
         disabled={zoom >= 3}
         aria-label="Zoom in"
@@ -493,7 +496,8 @@ const ReaderToolbar: React.FC<ReaderToolbarProps> = ({
     </div>
 
     {mappings.length > 0 && (
-      <div className="flex flex-wrap items-center gap-1.5 min-w-0 ml-1">
+      <div className="flex flex-wrap items-center gap-1.5 min-w-0 ml-0.5">
+        <div className="mx-0.5 hidden h-6 w-px bg-border/60 sm:block" />
         <Button
           variant="outline"
           size="icon"
@@ -538,7 +542,7 @@ const ReaderToolbar: React.FC<ReaderToolbarProps> = ({
           <Button
             variant="secondary"
             size="sm"
-            className="h-10 font-bold focus-scale"
+            className="h-9 font-bold focus-scale"
             disabled={!canBookmark}
             onClick={onOpenBookmark}
           >
@@ -602,7 +606,7 @@ const ReaderToolbar: React.FC<ReaderToolbarProps> = ({
       <Button
         variant="ghost"
         size="icon"
-        className="h-10 w-10 text-muted-foreground"
+        className="h-9 w-10 text-muted-foreground"
         onClick={onToggleFullscreen}
         aria-label={fullscreen ? 'Exit full screen reader' : 'Full screen reader'}
         title={fullscreen ? 'Exit full screen' : 'Full screen'}
@@ -614,7 +618,7 @@ const ReaderToolbar: React.FC<ReaderToolbarProps> = ({
         <Button
           variant="ghost"
           size="icon"
-          className="h-10 w-10 text-muted-foreground"
+          className="h-9 w-10 text-muted-foreground"
           onClick={onPanelToggle}
           aria-label="Toggle bookmarks panel"
           title="Toggle bookmarks panel"
@@ -1195,75 +1199,102 @@ const RepertoirePanel: React.FC = () => {
           )}
         </div>
 
-        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
-          {filteredDocuments.map((doc) => {
-            const isOpen = doc.id === activeDocumentId;
-            const book = getStoredBookSource(doc.id) ?? detectBookSource(doc.title);
-            return (
-              <div
-                key={doc.id}
-                role="button"
-                tabIndex={0}
-                onClick={() => handleSelectDocument(doc.id)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' || e.key === ' ') handleSelectDocument(doc.id);
-                }}
-                className={cn(
-                  'group relative flex flex-col gap-3 rounded-xl border bg-card/50 p-3 text-left shadow-sm transition-all cursor-pointer active:scale-[0.98]',
-                  isOpen
-                    ? 'border-primary/40 ring-1 ring-primary/20'
-                    : 'border-border hover:border-primary/30 hover:shadow-md',
-                )}
-              >
-                <div className="relative aspect-[3/4] w-full overflow-hidden rounded-lg border bg-muted/40">
-                  <DocumentCover doc={doc} getSignedUrl={getSignedUrl} />
-                  {isOpen && (
-                    <div className="pointer-events-none absolute inset-0 rounded-lg ring-2 ring-inset ring-primary" />
+        {documents.length === 0 ? (
+          <div className="flex flex-col items-center justify-center gap-3 rounded-xl border border-dashed border-border/60 bg-card/30 px-6 py-14 text-center">
+            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10 text-primary">
+              <BookOpen className="h-6 w-6" />
+            </div>
+            <div className="space-y-1">
+              <p className="text-base font-bold">Add your first method book</p>
+              <p className="mx-auto max-w-sm text-sm text-muted-foreground">
+                Upload a PDF — Hanon, Dohnányi, Czerny — then map its pages to exercises to
+                practice straight from the score.
+              </p>
+            </div>
+            <Button
+              onClick={() => fileInputRef.current?.click()}
+              disabled={isUploading}
+              className="mt-1 font-bold focus-scale"
+            >
+              {isUploading ? (
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              ) : (
+                <Upload className="h-4 w-4 mr-2" />
+              )}
+              Upload PDF
+            </Button>
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
+            {filteredDocuments.map((doc) => {
+              const isOpen = doc.id === activeDocumentId;
+              const book = getStoredBookSource(doc.id) ?? detectBookSource(doc.title);
+              return (
+                <div
+                  key={doc.id}
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => handleSelectDocument(doc.id)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') handleSelectDocument(doc.id);
+                  }}
+                  className={cn(
+                    'group relative flex flex-col gap-3 rounded-xl border bg-card/50 p-3 text-left shadow-sm transition-all cursor-pointer active:scale-[0.98]',
+                    isOpen
+                      ? 'border-primary/40 ring-1 ring-primary/20'
+                      : 'border-border hover:border-primary/30 hover:shadow-md',
                   )}
-                  {book && (
-                    <Badge className="absolute left-2 top-2 text-[9px]">
-                      {book === 'hanon' ? 'Hanon' : 'Dohnányi'}
-                    </Badge>
-                  )}
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="absolute right-1.5 top-1.5 h-7 w-7 text-white/90 hover:bg-black/30 hover:text-white"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      void handleDeleteDocument(doc);
-                    }}
-                    title="Delete"
-                  >
-                    <Trash2 className="h-3.5 w-3.5" />
-                  </Button>
+                >
+                  <div className="relative aspect-[3/4] w-full overflow-hidden rounded-lg border bg-muted/40">
+                    <DocumentCover doc={doc} getSignedUrl={getSignedUrl} />
+                    {isOpen && (
+                      <div className="pointer-events-none absolute inset-0 rounded-lg ring-2 ring-inset ring-primary" />
+                    )}
+                    {book && (
+                      <Badge className="absolute left-2 top-2 text-[9px]">
+                        {book === 'hanon' ? 'Hanon' : 'Dohnányi'}
+                      </Badge>
+                    )}
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="absolute right-1.5 top-1.5 h-7 w-7 text-white/90 hover:bg-black/30 hover:text-white"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        void handleDeleteDocument(doc);
+                      }}
+                      title="Delete"
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </Button>
+                  </div>
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-bold leading-tight">
+                      {formatDocumentTitle(doc.title)}
+                    </p>
+                    <p className="text-[11px] text-muted-foreground tabular-nums">
+                      {doc.page_count}p · p.{doc.last_viewed_page}
+                    </p>
+                  </div>
                 </div>
-                <div className="min-w-0">
-                  <p className="truncate text-sm font-bold leading-tight">
-                    {formatDocumentTitle(doc.title)}
-                  </p>
-                  <p className="text-[11px] text-muted-foreground tabular-nums">
-                    {doc.page_count}p · p.{doc.last_viewed_page}
-                  </p>
-                </div>
-              </div>
-            );
-          })}
+              );
+            })}
 
-          <button
-            type="button"
-            onClick={() => fileInputRef.current?.click()}
-            disabled={isUploading}
-            className="flex flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-border bg-card/30 p-4 text-center text-muted-foreground transition-colors hover:border-primary/40 hover:text-primary"
-          >
-            {isUploading ? (
-              <Loader2 className="h-5 w-5 animate-spin" />
-            ) : (
-              <Upload className="h-5 w-5" />
-            )}
-            <span className="text-xs font-bold">Upload PDF</span>
-          </button>
-        </div>
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={isUploading}
+              className="flex flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-border bg-card/30 p-4 text-center text-muted-foreground transition-colors hover:border-primary/40 hover:text-primary"
+            >
+              {isUploading ? (
+                <Loader2 className="h-5 w-5 animate-spin" />
+              ) : (
+                <Upload className="h-5 w-5" />
+              )}
+              <span className="text-xs font-bold">Upload PDF</span>
+            </button>
+          </div>
+        )}
       </section>
 
       {!isCloudEnabled && (

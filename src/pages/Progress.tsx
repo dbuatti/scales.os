@@ -67,24 +67,24 @@ const ProgressPage: React.FC = () => {
       />
 
       <Tabs defaultValue="overview" className="space-y-8">
-        <TabsList className="flex h-auto w-full justify-start gap-2 overflow-x-auto rounded-none border-b bg-transparent p-0">
+        <TabsList className="flex h-auto w-full justify-start gap-1 overflow-x-auto rounded-none border-b border-border/60 bg-transparent p-0">
           <TabsTrigger
             value="overview"
-            className="shrink-0 gap-2 rounded-none border-b-4 border-transparent px-1 pb-4 font-bold shadow-none data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:text-primary"
+            className="shrink-0 gap-2 rounded-none border-b-2 border-transparent px-3 pb-3 pt-1 text-sm font-bold text-muted-foreground shadow-none transition-colors data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:text-primary"
           >
             <LayoutDashboard className="h-4 w-4" />
             Overview
           </TabsTrigger>
           <TabsTrigger
             value="technique"
-            className="shrink-0 gap-2 rounded-none border-b-4 border-transparent px-1 pb-4 font-bold shadow-none data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:text-primary"
+            className="shrink-0 gap-2 rounded-none border-b-2 border-transparent px-3 pb-3 pt-1 text-sm font-bold text-muted-foreground shadow-none transition-colors data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:text-primary"
           >
             <Piano className="h-4 w-4" />
             Technique
           </TabsTrigger>
           <TabsTrigger
             value="history"
-            className="shrink-0 gap-2 rounded-none border-b-4 border-transparent px-1 pb-4 font-bold shadow-none data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:text-primary"
+            className="shrink-0 gap-2 rounded-none border-b-2 border-transparent px-3 pb-3 pt-1 text-sm font-bold text-muted-foreground shadow-none transition-colors data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:text-primary"
           >
             <History className="h-4 w-4" />
             History

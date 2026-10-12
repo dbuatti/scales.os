@@ -14,8 +14,8 @@ const PracticeSummaryPanel: React.FC = () => {
 
   if (!activePracticeItem) {
     return (
-      <Card className="border-2 border-dashed bg-muted/20">
-        <CardContent className="flex flex-col items-center gap-6 p-12 text-center md:p-16">
+      <Card className="border border-dashed border-border/60 bg-card/50">
+        <CardContent className="flex flex-col items-center gap-5 p-12 text-center md:p-16">
           <div className="rounded-2xl bg-primary/10 p-4 text-primary">
             <Piano className="h-8 w-8" />
           </div>
@@ -85,7 +85,7 @@ const PracticeSummaryPanel: React.FC = () => {
   const displayType = getDisplayType();
 
   return (
-    <Card className="overflow-hidden border-none shadow-lg bg-card ring-1 ring-primary/5">
+    <Card className="overflow-hidden border border-border/60 bg-card shadow-md">
       <CardContent className="p-0">
         <div className="p-8 space-y-8">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-8">
