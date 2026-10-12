@@ -19,7 +19,7 @@ interface NavLinkProps {
 
 const NavLink: React.FC<NavLinkProps> = ({ to, icon, label }) => {
     const location = useLocation();
-    const isActive = location.pathname === to;
+    const isActive = to === '/' ? location.pathname === '/' : location.pathname.startsWith(to);
 
     return (
         <Button
@@ -48,7 +48,7 @@ interface MobileNavItemProps {
 
 const MobileNavItem: React.FC<MobileNavItemProps> = ({ to, icon, label }) => {
     const location = useLocation();
-    const isActive = location.pathname === to;
+    const isActive = to === '/' ? location.pathname === '/' : location.pathname.startsWith(to);
 
     return (
         <Link
