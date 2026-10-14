@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   MAX_LABEL_LENGTH,
   bpmSchema,
+  passwordResetSchema,
   pageMappingListSchema,
   pageMappingRowSchema,
   pageMappingSchema,
@@ -126,5 +127,23 @@ describe('pageMappingRowSchema', () => {
     expect(parsed.target_bpm).toBe(60);
     expect(parsed.label).toBe('');
     expect(parsed.mode).toBe('technical');
+  });
+});
+
+describe('passwordResetSchema', () => {
+  it('accepts a matching password of sufficient length', () => {
+    expect(passwordResetSchema.safeParse({ password: 'secret1', confirmPassword: 'secret1' }).success).toBe(true);
+  });
+
+  it('rejects passwords shorter than the minimum', () => {
+    const result = passwordResetSchema.safeParse({ password: 'abc', confirmPassword: 'abc' });
+    expect(result.success).toBe(false);
+    expect(result.success === false && result.error.issues[0].message).toMatch(/at least 6/);
+  });
+
+  it('rejects mismatched confirmation', () => {
+    const result = passwordResetSchema.safeParse({ password: 'secret1', confirmPassword: 'secret2' });
+    expect(result.success).toBe(false);
+    expect(result.success === false && result.error.issues[0].path).toEqual(['confirmPassword']);
   });
 });

@@ -49,11 +49,12 @@ const AuthRouter: React.FC = () => {
           <Route path="/progress" element={<ProgressPage />} />
           <Route path="/reader" element={<ReaderPage />} />
           <Route path="/business-plan" element={<BusinessPlan />} />
+          {/* Recovery links sign the user in, so this must stay reachable with a session */}
+          <Route path="/reset-password" element={<ResetPassword />} />
         </Route>
         {/* Redirect any public routes to authenticated home if logged in */}
         <Route path="/login" element={<Navigate to="/" replace />} />
         <Route path="/landing" element={<Navigate to="/" replace />} />
-        <Route path="/reset-password" element={<Navigate to="/" replace />} /> {/* Redirect if logged in */}
         <Route path="*" element={<NotFound />} /> {/* Catch-all for protected routes */}
       </Routes>
     );

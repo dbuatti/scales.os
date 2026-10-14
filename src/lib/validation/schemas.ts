@@ -73,6 +73,20 @@ export const documentTitleInputSchema = z.object({
   title: z.string().trim().min(1).max(MAX_TITLE_LENGTH),
 });
 
+export const MIN_PASSWORD_LENGTH = 6;
+
+export const passwordResetSchema = z
+  .object({
+    password: z
+      .string()
+      .min(MIN_PASSWORD_LENGTH, `Password must be at least ${MIN_PASSWORD_LENGTH} characters long`),
+    confirmPassword: z.string(),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: 'Passwords do not match',
+    path: ['confirmPassword'],
+  });
+
 export const practiceLogInputSchema = z.object({
   durationMinutes: z.number().int().min(0).max(24 * 60),
   notes: z.string().max(MAX_NOTES_LENGTH).optional().default(''),
