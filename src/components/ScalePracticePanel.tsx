@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { RotateCcw, Music, Gauge, Repeat, Hand, Target, Zap, Palette, LayoutGrid, Shuffle, ChevronDown } from 'lucide-react';
 import { 
   KEYS, SCALE_TYPES, ARPEGGIO_TYPES, ARTICULATIONS, 
-  Key, Articulation, TempoLevel,
+  Key, Articulation, 
   DirectionType, HandConfiguration, RhythmicPermutation, AccentDistribution, OctaveConfiguration,
   DIRECTION_TYPES, HAND_CONFIGURATIONS, RHYTHMIC_PERMUTATIONS, ACCENT_DISTRIBUTIONS, OCTAVE_CONFIGURATIONS,
   getScalePermutationId, parseScalePermutationId, cleanString
@@ -15,6 +15,7 @@ import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { cn, shallowEqual, getHandColorClasses } from '@/lib/utils';
 import { Label } from '@/components/ui/label';
 import { useGlobalBPM, SNAPSHOT_DEBOUNCE_MS, ActivePracticeItem } from '@/context/GlobalBPMContext';
+import { nextGoalBPM } from '@/lib/tempo';
 
 interface PermutationSectionProps<T extends string> {
     title: string;
@@ -228,7 +229,7 @@ const ScalePracticePanel: React.FC<ScalePracticePanelProps> = ({
   }, [result, scaleMasteryBPMMap, selectedArticulation, selectedDirection, selectedHandConfig, selectedRhythm, selectedAccent, selectedOctaves]);
 
   const highestMasteredBPM = getHighestBPMForCurrentPermutation();
-  const nextBPMGoal = highestMasteredBPM > 0 ? highestMasteredBPM + 3 : 40;
+  const nextBPMGoal = nextGoalBPM(highestMasteredBPM);
 
   const modifiedAdvancedCount = [
     selectedDirection !== DIRECTION_TYPES[2],
@@ -284,6 +285,7 @@ const ScalePracticePanel: React.FC<ScalePracticePanelProps> = ({
     
     const newActivePracticeItem: ActivePracticeItem = result ? {
         type: 'scale',
+        scalePermutationId: result.scalePermutationId,
         key: result.scaleItem.key,
         scaleType: result.scaleItem.type,
         articulation: selectedArticulation,

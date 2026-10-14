@@ -11,6 +11,7 @@ import {
 import { useSupabaseSession } from '@/hooks/use-supabase-session';
 import { supabase } from '@/integrations/supabase/client';
 import { showSuccess, showError } from '@/utils/toast';
+import { nextGoalBPM } from '@/lib/tempo';
 
 // --- Types ---
 
@@ -101,7 +102,7 @@ interface ScalesContextType {
   log: PracticeLogEntry[];
   isLoading: boolean;
   nextFocus: NextFocus;
-  updatePracticeStatus: (practiceId: string, status: ScaleStatus) => void;
+  updatePracticeStatus: (practiceId: string, status: ScaleStatus) => Promise<boolean>;
   updateScaleMasteryBPM: (scalePermutationId: string, newBPM: number) => void;
   updateExerciseMasteryBPM: (exerciseId: string, newBPM: number) => void;
   addLogEntry: (entry: Omit<PracticeLogEntry, 'id' | 'timestamp'>) => void;
@@ -136,7 +137,6 @@ export const ScalesProvider: React.FC<React.PropsWithChildren> = ({ children }) 
   const isLoading = isSessionLoading || isDataLoading;
 
   const fetchData = useCallback(async (id: string): Promise<boolean> => {
-    setIsDataLoading(true);
     let ok = true;
 
     try {
@@ -216,6 +216,7 @@ export const ScalesProvider: React.FC<React.PropsWithChildren> = ({ children }) 
 
   useEffect(() => {
     if (userId) {
+      setIsDataLoading(true);
       void fetchData(userId);
     } else if (!isSessionLoading) {
       setProgressMap({});
@@ -369,7 +370,7 @@ export const ScalesProvider: React.FC<React.PropsWithChildren> = ({ children }) 
                     scalePermutationId: selectedRequirement.scalePermutationId,
                     requiredBPM: selectedRequirement.requiredBPM,
                     currentHighestBPM: highestBPM,
-                    nextBPMGoal: highestBPM > 0 ? highestBPM + 3 : 40,
+                    nextBPMGoal: nextGoalBPM(highestBPM),
                     grade: nextGrade.id,
                     description: selectedRequirement.description,
                 };
@@ -383,7 +384,7 @@ export const ScalesProvider: React.FC<React.PropsWithChildren> = ({ children }) 
                         exerciseId: item.id,
                         requiredBPM: selectedRequirement.requiredBPM,
                         currentHighestBPM: highestBPM,
-                        nextBPMGoal: highestBPM > 0 ? highestBPM + 3 : 40,
+                        nextBPMGoal: nextGoalBPM(highestBPM),
                         grade: nextGrade.id,
                         description: selectedRequirement.description,
                     };
@@ -398,7 +399,7 @@ export const ScalesProvider: React.FC<React.PropsWithChildren> = ({ children }) 
                         exerciseId: item.id,
                         requiredBPM: selectedRequirement.requiredBPM,
                         currentHighestBPM: highestBPM,
-                        nextBPMGoal: highestBPM > 0 ? highestBPM + 3 : 40,
+                        nextBPMGoal: nextGoalBPM(highestBPM),
                         grade: nextGrade.id,
                         description: selectedRequirement.description,
                     };
@@ -410,28 +411,30 @@ export const ScalesProvider: React.FC<React.PropsWithChildren> = ({ children }) 
     return null;
   }, [scaleMasteryBPMMap, exerciseMasteryBPMMap, progressMap, isSessionLoading, isDataLoading]);
 
-  const updatePracticeStatus = useCallback(async (practiceId: string, status: ScaleStatus) => {
-    if (!userId) return;
+  const updatePracticeStatus = useCallback(async (practiceId: string, status: ScaleStatus): Promise<boolean> => {
+    if (!userId) return false;
 
     if (status === 'untouched') {
       const { error } = await supabase.from('user_progress').delete().eq('user_id', userId).eq('practice_id', practiceId);
       if (error) {
         showError("Failed to update practice status.");
-        return;
+        return false;
       }
       setProgressMap(prev => {
         const newState = { ...prev };
         delete newState[practiceId];
         return newState;
       });
-    } else {
-      const { error } = await supabase.from('user_progress').upsert({ user_id: userId, practice_id: practiceId, status }, { onConflict: 'user_id, practice_id' });
-      if (error) {
-        showError("Failed to update practice status.");
-        return;
-      }
-      setProgressMap(prev => ({ ...prev, [practiceId]: status }));
+      return true;
     }
+
+    const { error } = await supabase.from('user_progress').upsert({ user_id: userId, practice_id: practiceId, status }, { onConflict: 'user_id, practice_id' });
+    if (error) {
+      showError("Failed to update practice status.");
+      return false;
+    }
+    setProgressMap(prev => ({ ...prev, [practiceId]: status }));
+    return true;
   }, [userId]);
 
   const updateScaleMasteryBPM = useCallback(async (scalePermutationId: string, newBPM: number) => {

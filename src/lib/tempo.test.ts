@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { clampBpm, stepBpm } from './tempo';
+import { clampBpm, nextGoalBPM, stepBpm } from './tempo';
 
 describe('clampBpm', () => {
   it('clamps to the supported range', () => {
@@ -18,5 +18,16 @@ describe('stepBpm', () => {
     expect(stepBpm(120, 5)).toBe(125);
     expect(stepBpm(249, 5)).toBe(250);
     expect(stepBpm(41, -5)).toBe(40);
+  });
+});
+
+describe('nextGoalBPM', () => {
+  it('starts at 40 BPM when nothing has been mastered yet', () => {
+    expect(nextGoalBPM(0)).toBe(40);
+  });
+
+  it('steps 3 BPM above the highest mastered tempo', () => {
+    expect(nextGoalBPM(40)).toBe(43);
+    expect(nextGoalBPM(120)).toBe(123);
   });
 });

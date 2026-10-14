@@ -9,7 +9,7 @@ import { showSuccess } from '@/utils/toast';
 import { cn, getHandColorClasses, getCategoryColorClasses } from '@/lib/utils';
 
 const PracticeSummaryPanel: React.FC = () => {
-  const { activePracticeItem, currentBPM, activeLogSnapshotFunction } = useGlobalBPM();
+  const { activePracticeItem, currentBPM, activeLogSnapshotFunction, setIsPermutationManuallyAdjusted } = useGlobalBPM();
   const { updatePracticeStatus } = useScales();
 
   if (!activePracticeItem) {
@@ -31,19 +31,12 @@ const PracticeSummaryPanel: React.FC = () => {
     );
   }
 
-  const handlePivot = () => {
-    let id = '';
-    if (activePracticeItem.type === 'scale') {
-      const { key, scaleType, articulation, octaves, handConfig } = activePracticeItem;
-      // Reconstruct ID for stasis
-      id = `${key}-${scaleType.replace(/\s/g, "")}-${articulation.replace(/\s/g, "")}-Asc+Descstandard-${handConfig.replace(/\s/g, "")}-Straight-Noaccentneutralevenness-${octaves.replace(/\s/g, "")}`;
-    } else {
-      id = activePracticeItem.exerciseId;
-    }
-    
-    updatePracticeStatus(id, 'stasis');
-    showSuccess("Item moved to stasis. The app will pivot to other tasks.");
-    window.location.reload(); // Refresh to trigger new nextFocus
+  const handlePivot = async () => {
+    const id = activePracticeItem.type === 'scale' ? activePracticeItem.scalePermutationId : activePracticeItem.exerciseId;
+    const saved = await updatePracticeStatus(id, 'stasis');
+    if (!saved) return;
+    setIsPermutationManuallyAdjusted(false);
+    showSuccess("Moved to stasis. Pivoting to your next focus.");
   };
 
   const masteryPercentage = (() => {
@@ -162,7 +155,7 @@ const PracticeSummaryPanel: React.FC = () => {
                 Goal
               </div>
               <p className="mt-1 text-lg font-black tabular-nums text-primary">
-                {activePracticeItem.type === 'scale' ? activePracticeItem.highestBPM + 3 : activePracticeItem.nextTargetBPM} BPM
+                {activePracticeItem.type === 'scale' ? activePracticeItem.nextGoalBPM : activePracticeItem.nextTargetBPM} BPM
               </p>
             </div>
             {activePracticeItem.type === 'scale' && (

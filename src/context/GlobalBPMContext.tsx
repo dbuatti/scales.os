@@ -5,7 +5,7 @@ import { clampBpm } from '@/lib/tempo';
 export const SNAPSHOT_DEBOUNCE_MS = 1000; // 1 second debounce
 
 export type ActivePracticeItem = 
-  | { type: 'scale', key: string, scaleType: string, articulation: string, octaves: string, handConfig: string, highestBPM: number, nextGoalBPM: number }
+  | { type: 'scale', scalePermutationId: string, key: string, scaleType: string, articulation: string, octaves: string, handConfig: string, highestBPM: number, nextGoalBPM: number }
   | { type: 'dohnanyi', name: string, exerciseId: string, nextTargetBPM: number, currentHighestBPM: number, isMastered: boolean }
   | { type: 'hanon', name: string, exerciseId: string, nextTargetBPM: number, currentHighestBPM: number, isMastered: boolean }
   | { type: 'repertoire', name: string, exerciseId: string, nextTargetBPM: number, currentHighestBPM: number, isMastered: boolean }
