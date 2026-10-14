@@ -45,6 +45,14 @@ const TechniqueRadar = () => {
     }));
   }, [scaleMasteryBPMMap, exerciseMasteryBPMMap]);
 
+  if (!data.some((category) => category.A > 0)) {
+    return (
+      <div className="flex h-[300px] items-center justify-center px-6 text-center text-sm text-muted-foreground">
+        Master a scale, arpeggio or exercise to see your technique balance.
+      </div>
+    );
+  }
+
   return (
     <div className="h-[300px] w-full">
       <ResponsiveContainer width="100%" height="100%">

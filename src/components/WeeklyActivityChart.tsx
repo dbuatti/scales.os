@@ -31,6 +31,14 @@ const WeeklyActivityChart = () => {
     return last7Days;
   }, [log]);
 
+  if (!data.some((day) => day.minutes > 0)) {
+    return (
+      <div className="flex h-[300px] items-center justify-center text-center text-sm text-muted-foreground">
+        No timed practice this week yet.
+      </div>
+    );
+  }
+
   return (
     <div className="h-[300px] w-full">
       <ResponsiveContainer width="100%" height="100%">

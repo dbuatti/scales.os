@@ -76,6 +76,7 @@ const Metronome: React.FC<MetronomeProps> = ({ showSettings = true }) => {
       onClick={toggleMuted}
       variant="ghost"
       size="icon"
+      aria-label={isMuted ? 'Unmute metronome' : 'Mute metronome'}
       className="h-9 w-9 shrink-0 rounded-lg text-muted-foreground hover:bg-background/70 hover:text-foreground focus-scale"
     >
       {isMuted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}

@@ -122,6 +122,7 @@ const FloatingTempoIndicator: React.FC<FloatingTempoIndicatorProps> = ({
         <Button
           variant="ghost"
           size="icon"
+          aria-label={collapsed ? 'Expand tempo panel' : 'Collapse tempo panel'}
           className="h-6 w-6 text-primary/70 hover:bg-primary/10 shrink-0"
           onPointerDown={(e) => e.stopPropagation()}
           onClick={() => setCollapsed((prev) => !prev)}

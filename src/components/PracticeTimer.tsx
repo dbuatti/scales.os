@@ -65,20 +65,20 @@ const PracticeTimer: React.FC<PracticeTimerProps> = ({ onLogSession, isCondensed
             </div>
 
             {isRunning ? (
-                <Button onClick={handlePause} variant="secondary" size="icon" className="h-8 w-8 rounded-lg focus-scale">
+                <Button onClick={handlePause} variant="secondary" size="icon" aria-label="Pause timer" className="h-8 w-8 rounded-lg focus-scale">
                     <Pause className="h-4 w-4" />
                 </Button>
             ) : (
-                <Button onClick={handleStart} size="icon" className="h-8 w-8 rounded-lg focus-scale">
+                <Button onClick={handleStart} size="icon" aria-label="Start timer" className="h-8 w-8 rounded-lg focus-scale">
                     <Play className="h-4 w-4" />
                 </Button>
             )}
 
-            <Button onClick={handleLog} variant="ghost" size="icon" className="h-8 w-8 rounded-lg text-muted-foreground hover:bg-background/70 hover:text-foreground focus-scale" disabled={time === 0 || isRunning}>
+            <Button onClick={handleLog} variant="ghost" size="icon" aria-label="Log session" className="h-8 w-8 rounded-lg text-muted-foreground hover:bg-background/70 hover:text-foreground focus-scale" disabled={time === 0 || isRunning}>
                 <LogIn className="h-4 w-4" />
             </Button>
 
-            <Button onClick={handleReset} variant="ghost" size="icon" className="h-8 w-8 rounded-lg text-muted-foreground hover:bg-background/70 hover:text-foreground focus-scale" disabled={time === 0}>
+            <Button onClick={handleReset} variant="ghost" size="icon" aria-label="Reset timer" className="h-8 w-8 rounded-lg text-muted-foreground hover:bg-background/70 hover:text-foreground focus-scale" disabled={time === 0}>
                 <RotateCcw className="h-4 w-4" />
             </Button>
         </div>
