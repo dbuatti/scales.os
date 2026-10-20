@@ -86,7 +86,8 @@ const ScalePracticePanel: React.FC<ScalePracticePanelProps> = ({
     activePracticeItem: globalActivePracticeItem,
     setCurrentBPM,
     isPermutationManuallyAdjusted,
-    setIsPermutationManuallyAdjusted
+    setIsPermutationManuallyAdjusted,
+    autoNudgeBPMOnSnapshot
   } = useGlobalBPM();
   
   const lastSnapshotTimestampRef = useRef<number>(0); 
@@ -275,7 +276,10 @@ const ScalePracticePanel: React.FC<ScalePracticePanelProps> = ({
       }],
       notes: `Snapshot: ${scaleItem.key} ${scaleItem.type} at ${currentBPM} BPM`,
     });
-  }, [currentBPM, result, highestMasteredBPM, updateScaleMasteryBPM, addLogEntry, selectedArticulation, selectedDirection, selectedHandConfig, selectedRhythm, selectedAccent, selectedOctaves]);
+
+    // Auto-nudge BPM after snapshot (app-wide, caps at goal + small overshoot)
+    autoNudgeBPMOnSnapshot({ increment: 3, overshootAllowance: 2 });
+  }, [currentBPM, result, highestMasteredBPM, updateScaleMasteryBPM, addLogEntry, selectedArticulation, selectedDirection, selectedHandConfig, selectedRhythm, selectedAccent, selectedOctaves, autoNudgeBPMOnSnapshot]);
 
   useEffect(() => {
     const currentHighestBPMForActivePermutation = getHighestBPMForCurrentPermutation();

@@ -28,6 +28,7 @@ import {
   Bookmark,
   Images,
   Library,
+  ClipboardList,
 } from 'lucide-react';
 import type { PdfViewerHandle } from './PdfViewer';
 const PdfViewer = React.lazy(() => import('./PdfViewer'));
@@ -36,6 +37,7 @@ import FloatingTempoIndicator from './FloatingTempoIndicator';
 import ReaderToolbar from './ReaderToolbar';
 import ThumbnailRail from './ThumbnailRail';
 import DocumentCover from './DocumentCover';
+import ClipboardImport from './ClipboardImport';
 import { useGlobalBPM } from '@/context/GlobalBPMContext';
 import { useScales } from '@/context/ScalesContext';
 import { cn, shallowEqual } from '@/lib/utils';
@@ -65,6 +67,8 @@ import {
   friendlyExerciseLabel,
   getMappingOverlaps,
 } from '@/lib/repertoire';
+import { generateCacheId, loadPDFCached, updateCachedPageCount, cachePDF } from '@/lib/pdf-cache';
+import { ImportedFile } from './ClipboardImport';
 
 const ViewerFallback: React.FC = () => (
   <div className="flex min-h-[420px] flex-col items-center justify-center rounded-xl border border-dashed border-border/60 p-8 text-center">
@@ -264,12 +268,7 @@ const MappingRow: React.FC<{
 
 const RepertoirePanel: React.FC = () => {
   const { addLogEntry, updateExerciseMasteryBPM, exerciseMasteryBPMMap } = useScales();
-  const {
-    currentBPM,
-    setActivePracticeItem,
-    setActiveLogSnapshotFunction,
-    activePracticeItem: globalActivePracticeItem,
-  } = useGlobalBPM();
+  const { currentBPM, activePracticeItem: globalActivePracticeItem, setActivePracticeItem, setActiveLogSnapshotFunction, autoNudgeBPMOnSnapshot } = useGlobalBPM();
   const {
     documents,
     isCloudEnabled,
@@ -307,6 +306,7 @@ const RepertoirePanel: React.FC = () => {
   const [bookmarkExercise, setBookmarkExercise] = useState('');
   const [bookmarkSuggested, setBookmarkSuggested] = useState(false);
   const [bookmarkLabel, setBookmarkLabel] = useState('');
+  const [clipboardImportOpen, setClipboardImportOpen] = useState(false);
 
   useEffect(() => {
     const previous = document.body.style.overflow;
@@ -359,12 +359,30 @@ const RepertoirePanel: React.FC = () => {
         setLocalTitle(null);
         setPendingInitialPage(initialPage ?? null);
         setLastOpenedDocumentId(doc.id);
-        setSource(url);
+        
+        // Try to load from cache first
+        const cacheId = generateCacheId(url, doc.title);
+        const { data, fromCache } = await loadPDFCached(url, doc.title, async () => {
+          const response = await fetch(url);
+          if (!response.ok) throw new Error('Failed to fetch PDF');
+          return response.arrayBuffer();
+        });
+        
+        // Create object URL from cached data
+        const blob = new Blob([data], { type: 'application/pdf' });
+        const objectUrl = URL.createObjectURL(blob);
+        objectUrlRef.current = objectUrl;
+        setSource(objectUrl);
+        
         setPageCount(doc.page_count || 0);
         setCurrentPage(initialPage ?? (doc.last_viewed_page || 1));
         setFullscreen(true);
         const loaded = await fetchMappings(doc.id);
         setMappings(sortMappings(loaded));
+        
+        if (fromCache) {
+          showSuccess(`Loaded "${doc.title}" from local cache.`);
+        }
       } catch (err) {
         showError(err instanceof Error ? err.message : 'Failed to open document.');
       }
@@ -373,11 +391,22 @@ const RepertoirePanel: React.FC = () => {
   );
 
   const loadLocalFile = useCallback(
-    (file: File) => {
+    async (file: File) => {
       clearTimers();
       if (objectUrlRef.current) URL.revokeObjectURL(objectUrlRef.current);
-      const url = URL.createObjectURL(file);
+      
+      // Read file as ArrayBuffer for caching
+      const arrayBuffer = await file.arrayBuffer();
+      const cacheId = generateCacheId(`local:${file.name}`, file.name);
+      
+      // Cache the file
+      await cachePDF(cacheId, `local:${file.name}`, arrayBuffer, 0, file.name);
+      
+      // Create object URL
+      const blob = new Blob([arrayBuffer], { type: 'application/pdf' });
+      const url = URL.createObjectURL(blob);
       objectUrlRef.current = url;
+      
       const localId = `local:${file.name}-${file.size}`;
       setSelectedDocId(null);
       setLocalDocumentId(localId);
@@ -408,6 +437,50 @@ const RepertoirePanel: React.FC = () => {
       }
     },
     [uploadDocument, loadDocument, loadLocalFile],
+  );
+
+  const handleClipboardImport = useCallback(
+    (files: ImportedFile[], mappings: PageMapping[]) => {
+      // For each PDF file, create a local entry and cache it
+      files.forEach(async (file) => {
+        if (file.type === 'pdf' && file.data && file.file) {
+          const localId = `local:${file.name}-${file.size}`;
+          // Cache the PDF
+          const cacheId = generateCacheId(`local:${file.name}`, file.name);
+          await cachePDF(cacheId, `local:${file.name}`, file.data, 0, file.name);
+          
+          // Create object URL for immediate viewing
+          const blob = new Blob([file.data], { type: 'application/pdf' });
+          const url = URL.createObjectURL(blob);
+          
+          // If no document is currently open, load this one
+          if (!activeDocumentId) {
+            if (objectUrlRef.current) URL.revokeObjectURL(objectUrlRef.current);
+            objectUrlRef.current = url;
+            setSelectedDocId(null);
+            setLocalDocumentId(localId);
+            setLocalTitle(file.name);
+            setSource(url);
+            setPageCount(0);
+            setCurrentPage(1);
+            setFullscreen(true);
+            setMappings(sortMappings(mappings));
+          } else {
+            // Add mappings to current document
+            const nextPageStart = pageCount > 0 ? pageCount + 1 : 1;
+            const adjustedMappings = mappings.map((m, i) => ({
+              ...m,
+              pageStart: m.pageStart + nextPageStart - 1,
+              pageEnd: m.pageEnd + nextPageStart - 1,
+            }));
+            setMappings(prev => sortMappings([...prev, ...adjustedMappings]));
+            // Update page count will happen when PDF loads
+          }
+        }
+      });
+      showSuccess(`Imported ${files.filter(f => f.type === 'pdf').length} PDF placeholders.`);
+    },
+    [activeDocumentId, pageCount],
   );
 
   const handleFileInput = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -526,6 +599,12 @@ const RepertoirePanel: React.FC = () => {
         const doc = documents.find((d) => d.id === selectedDocId);
         if (doc && doc.page_count !== count) {
           void updatePageCount(selectedDocId, count);
+        }
+        // Update cached page count
+        const url = doc ? `${window.location.origin}/api/storage${doc.storage_path}` : '';
+        if (url) {
+          const cacheId = generateCacheId(url, doc.title);
+          updateCachedPageCount(cacheId, count);
         }
       }
     },
@@ -724,6 +803,9 @@ const RepertoirePanel: React.FC = () => {
       notes: `Repertoire Snapshot: ${label} (page ${currentPage}) at ${currentBPM} BPM.`,
     });
 
+    // Auto-nudge BPM after snapshot (app-wide, caps at goal + small overshoot)
+    autoNudgeBPMOnSnapshot({ increment: 3, overshootAllowance: 2 });
+
     showSuccess(
       currentBPM > previousHighest && currentMapping.exerciseId
         ? `Mastery updated! ${label} at ${currentBPM} BPM.`
@@ -736,6 +818,7 @@ const RepertoirePanel: React.FC = () => {
     exerciseMasteryBPMMap,
     updateExerciseMasteryBPM,
     addLogEntry,
+    autoNudgeBPMOnSnapshot,
   ]);
 
   useEffect(() => {
@@ -766,6 +849,16 @@ const RepertoirePanel: React.FC = () => {
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            className="h-9 font-bold focus-scale"
+            onClick={() => setClipboardImportOpen(true)}
+            title="Import from clipboard or Dropbox (parses BPMs from filenames)"
+          >
+            <ClipboardList className="w-4 h-4 mr-1.5" />
+            Import from Clipboard
+          </Button>
           {activeDocumentId && (
             <Button
               variant="ghost"
@@ -1139,6 +1232,15 @@ const RepertoirePanel: React.FC = () => {
           beatsPerMeasure={beatsPerMeasure}
           onLog={handleLogSnapshot}
         />
+      )}
+
+      {clipboardImportOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
+          <ClipboardImport
+            onImport={handleClipboardImport}
+            onClose={() => setClipboardImportOpen(false)}
+          />
+        </div>
       )}
     </CardContent>
   );

@@ -26,6 +26,7 @@ interface PdfViewerProps {
   onZoomChange?: (zoom: number) => void;
   initialFit?: 'width' | 'page';
   onPdfReady?: (pdf: PDFDocumentProxy | null) => void;
+  defaultLayout?: 'vertical' | 'horizontal';
 }
 
 interface PdfPageProps {
@@ -170,11 +171,12 @@ const PdfViewer = React.forwardRef<PdfViewerHandle, PdfViewerProps>(({
   onBookmark,
   scrollClassName = 'h-[70vh] min-h-[480px]',
   className,
-  layout = 'vertical',
+  layout = 'horizontal',
   zoom = 1,
   onZoomChange,
   initialFit = 'width',
   onPdfReady,
+  defaultLayout = 'horizontal',
 }, ref) => {
   const scrollRef = useRef<HTMLDivElement>(null);
   const pagesRef = useRef<HTMLDivElement>(null);

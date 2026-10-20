@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useMemo, useCallback, useEffect } from 'react';
 import { MIN_BPM, MAX_BPM } from '@/lib/scales';
-import { clampBpm } from '@/lib/tempo';
+import { clampBpm, nextGoalBPM } from '@/lib/tempo';
 
 export const SNAPSHOT_DEBOUNCE_MS = 1000; // 1 second debounce
 
@@ -11,18 +11,24 @@ export type ActivePracticeItem =
   | { type: 'repertoire', name: string, exerciseId: string, nextTargetBPM: number, currentHighestBPM: number, isMastered: boolean }
   | null;
 
+export interface AutoNudgeConfig {
+  increment: number;
+  overshootAllowance: number;
+}
+
 interface GlobalBPMContextType {
   currentBPM: number;
   activePermutationHighestBPM: number;
   activePracticeItem: ActivePracticeItem;
   activeLogSnapshotFunction: (() => void) | null;
-  isPermutationManuallyAdjusted: boolean; // New state for manual permutation adjustments
+  isPermutationManuallyAdjusted: boolean;
   handleBpmChange: (delta: number) => void;
   setCurrentBPM: (bpm: number) => void;
   setActivePermutationHighestBPM: (bpm: number) => void;
   setActivePracticeItem: (item: ActivePracticeItem) => void;
   setActiveLogSnapshotFunction: (func: (() => void) | null) => void;
-  setIsPermutationManuallyAdjusted: (isAdjusted: boolean) => void; // New setter
+  setIsPermutationManuallyAdjusted: (isAdjusted: boolean) => void;
+  autoNudgeBPMOnSnapshot: (config?: Partial<AutoNudgeConfig>) => void;
 }
 
 const GlobalBPMContext = createContext<GlobalBPMContextType | undefined>(undefined);
@@ -33,12 +39,12 @@ export const GlobalBPMProvider: React.FC<React.PropsWithChildren> = ({ children 
   const [activePracticeItem, setActivePracticeItemState] = useState<ActivePracticeItem>(null);
   const [activeLogSnapshotFunction, setActiveLogSnapshotFunction] = useState<(() => void) | null>(null);
   const [isBpmManuallyAdjusted, setIsBpmManuallyAdjusted] = useState(false);
-  const [isPermutationManuallyAdjusted, setIsPermutationManuallyAdjusted] = useState(false); // New state
+  const [isPermutationManuallyAdjusted, setIsPermutationManuallyAdjusted] = useState(false);
 
   // Wrapper for setCurrentBPM to also set the manual adjustment flag
   const setCurrentBPM = useCallback((bpm: number) => {
     setCurrentBPMState(clampBpm(bpm));
-    setIsBpmManuallyAdjusted(true); // Mark as manually adjusted
+    setIsBpmManuallyAdjusted(true);
   }, []);
 
   const handleBpmChange = useCallback((delta: number) => {
@@ -46,16 +52,34 @@ export const GlobalBPMProvider: React.FC<React.PropsWithChildren> = ({ children 
       const newBPM = Math.min(MAX_BPM, Math.max(MIN_BPM, prev + delta));
       return newBPM;
     });
-    setIsBpmManuallyAdjusted(true); // Mark as manually adjusted
+    setIsBpmManuallyAdjusted(true);
   }, []);
-  
+
+  // Auto-nudge BPM on snapshot: increment by 2-3 BPM, cap at goal tempo with slight overshoot allowance
+  const autoNudgeBPMOnSnapshot = useCallback((config?: Partial<AutoNudgeConfig>) => {
+    const { increment = 3, overshootAllowance = 2 } = config || {};
+    if (!activePracticeItem) return;
+
+    let goalBPM: number;
+    if (activePracticeItem.type === 'scale') {
+      goalBPM = activePracticeItem.nextGoalBPM;
+    } else {
+      goalBPM = activePracticeItem.nextTargetBPM;
+    }
+
+    setCurrentBPMState(prev => {
+      const nextBPM = Math.min(MAX_BPM, prev + increment);
+      // Cap at goal + overshoot allowance
+      const cappedBPM = Math.min(nextBPM, goalBPM + overshootAllowance);
+      return clampBpm(cappedBPM);
+    });
+    setIsBpmManuallyAdjusted(true);
+  }, [activePracticeItem]);
+
   // Wrapper for setActivePracticeItem to reset manual adjustment flag
   const setActivePracticeItem = useCallback((item: ActivePracticeItem) => {
     setActivePracticeItemState(item);
-    // Reset BPM manual adjustment flag when a new practice item is selected
-    setIsBpmManuallyAdjusted(false); 
-    // IMPORTANT: isPermutationManuallyAdjusted is NOT reset here.
-    // It is reset only when a suggestion is loaded or tab is changed in PracticeCommandCenter.
+    setIsBpmManuallyAdjusted(false);
   }, []);
 
   // Effect to manage currentBPM based on activePracticeItem, but only if not manually adjusted
@@ -64,18 +88,16 @@ export const GlobalBPMProvider: React.FC<React.PropsWithChildren> = ({ children 
       let targetBPM: number;
       if (activePracticeItem.type === 'scale') {
         targetBPM = activePracticeItem.nextGoalBPM;
-      } else { // dohnanyi or hanon
+      } else {
         targetBPM = activePracticeItem.nextTargetBPM;
       }
 
-      // Only update currentBPM if it's different from the targetBPM
       if (currentBPM !== targetBPM) {
-        setCurrentBPMState(targetBPM); // Use internal state setter to avoid marking as manual
+        setCurrentBPMState(targetBPM);
       }
     } else if (!activePracticeItem && !isBpmManuallyAdjusted) {
-      // If no active practice item and not manually adjusted, reset to a default BPM (e.g., 100)
       if (currentBPM !== 100) {
-        setCurrentBPMState(100); // Use internal state setter
+        setCurrentBPMState(100);
       }
     }
   }, [activePracticeItem, isBpmManuallyAdjusted, currentBPM]);
@@ -92,18 +114,20 @@ export const GlobalBPMProvider: React.FC<React.PropsWithChildren> = ({ children 
     setActivePracticeItem,
     setActiveLogSnapshotFunction,
     setIsPermutationManuallyAdjusted,
+    autoNudgeBPMOnSnapshot,
   }), [
-    currentBPM, 
-    activePermutationHighestBPM, 
-    activePracticeItem, 
-    activeLogSnapshotFunction, 
+    currentBPM,
+    activePermutationHighestBPM,
+    activePracticeItem,
+    activeLogSnapshotFunction,
     isPermutationManuallyAdjusted,
-    handleBpmChange, 
-    setCurrentBPM, 
-    setActivePermutationHighestBPM, 
-    setActivePracticeItem, 
+    handleBpmChange,
+    setCurrentBPM,
+    setActivePermutationHighestBPM,
+    setActivePracticeItem,
     setActiveLogSnapshotFunction,
-    setIsPermutationManuallyAdjusted
+    setIsPermutationManuallyAdjusted,
+    autoNudgeBPMOnSnapshot,
   ]);
 
   return (
