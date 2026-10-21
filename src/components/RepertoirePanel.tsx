@@ -360,27 +360,24 @@ const RepertoirePanel: React.FC = () => {
         setPendingInitialPage(initialPage ?? null);
         setLastOpenedDocumentId(doc.id);
         
-        // Try to load from cache first for instant display
-        try {
-          const { data, fromCache } = await loadPDFCached(url, doc.title, async () => {
-            const response = await fetch(url);
-            if (!response.ok) throw new Error('Failed to fetch PDF');
-            return response.arrayBuffer();
-          });
-          
-          const blob = new Blob([data], { type: 'application/pdf' });
-          const objectUrl = URL.createObjectURL(blob);
-          objectUrlRef.current = objectUrl;
-          setSource(objectUrl);
-          
-          if (fromCache) {
-            showSuccess(`Loaded "${doc.title}" from local cache.`);
+        // Use direct URL for reliable PDF loading
+        // Caching is attempted in the background
+        setSource(url);
+        
+        // Background cache attempt (non-blocking)
+        loadPDFCached(url, doc.title, async () => {
+          const response = await fetch(url);
+          if (!response.ok) throw new Error('Failed to fetch PDF');
+          return response.arrayBuffer();
+        }).then(({ data, fromCache }) => {
+          if (!fromCache) {
+            // Cache the fetched data
+            const cacheId = generateCacheId(url, doc.title);
+            cachePDF(cacheId, url, data, 0, doc.title).catch(() => {});
           }
-        } catch (cacheErr) {
-          // Fallback to direct URL if caching/fetch fails
-          console.warn('PDF cache fetch failed, using direct URL:', cacheErr);
-          setSource(url);
-        }
+        }).catch((err) => {
+          console.warn('Background PDF cache failed:', err);
+        });
         
         setPageCount(doc.page_count || 0);
         setCurrentPage(initialPage ?? (doc.last_viewed_page || 1));
