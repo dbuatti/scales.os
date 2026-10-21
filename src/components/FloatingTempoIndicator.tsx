@@ -272,6 +272,10 @@ const FloatingTempoIndicator: React.FC<FloatingTempoIndicatorProps> = ({
             />
           </div>
 
+          <p className="text-[9px] text-muted-foreground/50 text-center">
+            Type BPM or goal · Log snapshot to auto-nudge +3
+          </p>
+
           {/* Target BPM - editable */}
             <div className="flex items-center gap-1.5 text-xs" title="Set your goal BPM for this exercise. Auto-nudge caps at this + 2 BPM.">
               <Target className={cn('w-3 h-3 shrink-0', targetBpm > 0 ? 'text-primary/70' : 'text-warning animate-pulse')} />
