@@ -36,7 +36,7 @@ const FloatingTempoIndicator: React.FC<FloatingTempoIndicatorProps> = ({
   const panelRef = useRef<HTMLDivElement>(null);
   const dragOffsetRef = useRef<{ dx: number; dy: number } | null>(null);
   const [position, setPosition] = useState<{ x: number; y: number } | null>(null);
-  const [collapsed, setCollapsed] = useState(false);
+  const [collapsed, setCollapsed] = useState(true);
   const [isMobile, setIsMobile] = useState(false);
   const [expanded, setExpanded] = useState(false);
   const [targetDraft, setTargetDraft] = useState(String(targetBpm));
@@ -151,6 +151,17 @@ const FloatingTempoIndicator: React.FC<FloatingTempoIndicatorProps> = ({
             {currentBPM}
           </span>
         </div>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-7 w-7 text-emerald-500 hover:text-emerald-400"
+          onPointerDown={(e) => e.stopPropagation()}
+          onClick={(e) => { e.stopPropagation(); onLog(); }}
+          aria-label="Log snapshot"
+          title="Log snapshot"
+        >
+          <Save className="w-3.5 h-3.5" />
+        </Button>
         <Button
           variant="ghost"
           size="icon"
