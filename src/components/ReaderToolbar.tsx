@@ -270,6 +270,17 @@ const ReaderToolbar: React.FC<ReaderToolbarProps> = ({
     )}
 
     <div className="ml-auto flex items-center gap-1.5">
+      {/* Layout toggle - visible */}
+      <Button
+        variant={layout === 'horizontal' ? 'default' : 'outline'}
+        size="sm"
+        className="h-9 gap-1.5 font-bold focus-scale"
+        onClick={() => onLayoutChange(layout === 'horizontal' ? 'vertical' : 'horizontal')}
+        title={layout === 'horizontal' ? 'Switch to vertical scroll' : 'Switch to horizontal pages'}
+      >
+        {layout === 'horizontal' ? <Columns2 className="w-3.5 h-3.5" /> : <Rows2 className="w-3.5 h-3.5" />}
+        <span className="hidden sm:inline">{layout === 'horizontal' ? 'Pages' : 'Scroll'}</span>
+      </Button>
       <Popover open={bookmarkOpen} onOpenChange={onBookmarkOpenChange}>
         <PopoverTrigger asChild>
           <Button
