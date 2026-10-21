@@ -14,6 +14,7 @@ export type ActivePracticeItem =
 export interface AutoNudgeConfig {
   increment: number;
   overshootAllowance: number;
+  snapshotBpm?: number; // The BPM from the latest snapshot
 }
 
 interface GlobalBPMContextType {
@@ -57,7 +58,7 @@ export const GlobalBPMProvider: React.FC<React.PropsWithChildren> = ({ children 
 
   // Auto-nudge BPM on snapshot: increment by 2-3 BPM, cap at goal tempo with slight overshoot allowance
   const autoNudgeBPMOnSnapshot = useCallback((config?: Partial<AutoNudgeConfig>) => {
-    const { increment = 3, overshootAllowance = 2 } = config || {};
+    const { increment = 3, overshootAllowance = 2, snapshotBpm } = config || {};
     if (!activePracticeItem) return;
 
     let goalBPM: number;
@@ -68,7 +69,9 @@ export const GlobalBPMProvider: React.FC<React.PropsWithChildren> = ({ children 
     }
 
     setCurrentBPMState(prev => {
-      const nextBPM = Math.min(MAX_BPM, prev + increment);
+      // Use snapshot BPM as base if provided, otherwise use current BPM
+      const baseBPM = snapshotBpm && snapshotBpm > 0 ? snapshotBpm : prev;
+      const nextBPM = Math.min(MAX_BPM, baseBPM + increment);
       // Cap at goal + overshoot allowance
       const cappedBPM = Math.min(nextBPM, goalBPM + overshootAllowance);
       return clampBpm(cappedBPM);

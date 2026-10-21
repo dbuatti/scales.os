@@ -813,14 +813,26 @@ const RepertoirePanel: React.FC = () => {
       notes: `Repertoire Snapshot: ${label} (page ${currentPage}) at ${currentBPM} BPM.`,
     });
 
-    // Auto-nudge BPM after snapshot (app-wide, caps at goal + small overshoot)
-    autoNudgeBPMOnSnapshot({ increment: 3, overshootAllowance: 2 });
+    const goalBpm = currentMapping.targetBpm;
+    const reachedGoal = goalBpm > 0 && currentBPM >= goalBpm;
 
-    showSuccess(
-      currentBPM > previousHighest && currentMapping.exerciseId
-        ? `Mastery updated! ${label} at ${currentBPM} BPM.`
-        : `Snapshot logged: ${label} at ${currentBPM} BPM.`,
-    );
+    // Auto-nudge BPM after snapshot: use snapshot BPM as base, nudge towards goal
+    autoNudgeBPMOnSnapshot({ increment: 3, overshootAllowance: 2, snapshotBpm: currentBPM });
+
+    if (reachedGoal) {
+      showSuccess(
+        currentBPM > previousHighest && currentMapping.exerciseId
+          ? `Goal reached! ${label} mastered at ${currentBPM} BPM (target: ${goalBpm}).`
+          : `Snapshot logged: ${label} at ${currentBPM} BPM. Goal reached!`,
+      );
+    } else {
+      const remaining = goalBpm > 0 ? goalBpm - currentBPM : 0;
+      showSuccess(
+        currentBPM > previousHighest && currentMapping.exerciseId
+          ? `Mastery updated! ${label} at ${currentBPM} BPM.${remaining > 0 ? ' ' + remaining + ' BPM to goal.' : ''}`
+          : `Snapshot logged: ${label} at ${currentBPM} BPM.${remaining > 0 ? ' ' + remaining + ' BPM to goal.' : ''}`,
+      );
+    }
   }, [
     currentMapping,
     currentPage,

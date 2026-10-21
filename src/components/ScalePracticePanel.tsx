@@ -253,11 +253,22 @@ const ScalePracticePanel: React.FC<ScalePracticePanelProps> = ({
     lastSnapshotTimestampRef.current = now;
     lastSuccessfulCallKeyRef.current = currentCallKey;
 
+    const goalBpm = nextBPMGoal;
+    const reachedGoal = currentBPM >= goalBpm;
+
     if (currentBPM > highestMasteredBPM) {
         updateScaleMasteryBPM(scalePermutationId, currentBPM);
-        showSuccess(`Mastery updated to ${currentBPM} BPM!`);
+        if (reachedGoal) {
+            showSuccess(`Goal reached! ${scaleItem.key} ${scaleItem.type} mastered at ${currentBPM} BPM.`);
+        } else {
+            showSuccess(`Mastery updated to ${currentBPM} BPM! ${goalBpm - currentBPM} BPM to goal.`);
+        }
     } else {
-        showSuccess(`Snapshot logged at ${currentBPM} BPM.`);
+        if (reachedGoal) {
+            showSuccess(`Snapshot logged at ${currentBPM} BPM. Goal reached!`);
+        } else {
+            showSuccess(`Snapshot logged at ${currentBPM} BPM. ${goalBpm - currentBPM} BPM to goal.`);
+        }
     }
 
     addLogEntry({
@@ -277,9 +288,9 @@ const ScalePracticePanel: React.FC<ScalePracticePanelProps> = ({
       notes: `Snapshot: ${scaleItem.key} ${scaleItem.type} at ${currentBPM} BPM`,
     });
 
-    // Auto-nudge BPM after snapshot (app-wide, caps at goal + small overshoot)
-    autoNudgeBPMOnSnapshot({ increment: 3, overshootAllowance: 2 });
-  }, [currentBPM, result, highestMasteredBPM, updateScaleMasteryBPM, addLogEntry, selectedArticulation, selectedDirection, selectedHandConfig, selectedRhythm, selectedAccent, selectedOctaves, autoNudgeBPMOnSnapshot]);
+    // Auto-nudge BPM after snapshot: use snapshot BPM as base, nudge towards goal
+    autoNudgeBPMOnSnapshot({ increment: 3, overshootAllowance: 2, snapshotBpm: currentBPM });
+  }, [currentBPM, result, highestMasteredBPM, updateScaleMasteryBPM, addLogEntry, selectedArticulation, selectedDirection, selectedHandConfig, selectedRhythm, selectedAccent, selectedOctaves, autoNudgeBPMOnSnapshot, nextBPMGoal]);
 
   useEffect(() => {
     const currentHighestBPMForActivePermutation = getHighestBPMForCurrentPermutation();

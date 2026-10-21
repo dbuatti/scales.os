@@ -37,6 +37,11 @@ const FloatingTempoIndicator: React.FC<FloatingTempoIndicatorProps> = ({
   const [collapsed, setCollapsed] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [expanded, setExpanded] = useState(false);
+  const [targetDraft, setTargetDraft] = useState(String(targetBpm));
+
+  useEffect(() => {
+    setTargetDraft(String(targetBpm));
+  }, [targetBpm]);
 
   useEffect(() => {
     const mq = window.matchMedia('(max-width: 767px)');
@@ -242,17 +247,23 @@ const FloatingTempoIndicator: React.FC<FloatingTempoIndicatorProps> = ({
               {onTargetBpmChange ? (
                 <input
                   type="number"
-                  value={targetBpm}
-                  onChange={(e) => {
-                    const val = parseInt(e.target.value, 10);
+                  value={targetDraft}
+                  onChange={(e) => setTargetDraft(e.target.value)}
+                  onBlur={() => {
+                    const val = parseInt(targetDraft, 10);
                     if (!isNaN(val) && val >= 40 && val <= 250) {
                       onTargetBpmChange(val);
+                    } else {
+                      setTargetDraft(String(targetBpm));
                     }
                   }}
-                  className="w-12 h-6 text-xs font-bold text-foreground tabular-nums bg-background/50 border border-border/60 rounded px-1 text-center focus:ring-1 focus:ring-ring"
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') (e.target as HTMLInputElement).blur();
+                  }}
+                  className="w-14 h-6 text-xs font-bold text-foreground tabular-nums bg-background/50 border border-border/60 rounded px-1 text-center focus:ring-1 focus:ring-ring focus:border-primary"
                   min={40}
                   max={250}
-                  aria-label="Target BPM"
+                  aria-label="Goal BPM"
                 />
               ) : (
                 <span className="font-bold text-foreground tabular-nums">{targetBpm}</span>
