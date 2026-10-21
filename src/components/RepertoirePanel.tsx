@@ -68,7 +68,7 @@ import {
   friendlyExerciseLabel,
   getMappingOverlaps,
 } from '@/lib/repertoire';
-import { generateCacheId, loadPDFCached, updateCachedPageCount, cachePDF, getCachedPDFByUrl } from '@/lib/pdf-cache';
+import { generateCacheId, loadPDFCached, updateCachedPageCount, cachePDF, getCachedPDF } from '@/lib/pdf-cache';
 import { ImportedFile } from '@/lib/clipboard-import';
 
 const ViewerFallback: React.FC = () => (
@@ -362,9 +362,10 @@ const RepertoirePanel: React.FC = () => {
         setPendingInitialPage(initialPage ?? null);
         setLastOpenedDocumentId(doc.id);
         
-// Try cache first for instant loading
-        const cached = await getCachedPDFByUrl(url);
-        if (cached) {
+// Try cache first for instant loading (use stable doc ID as cache key)
+        const cacheId = 'doc-' + doc.id;
+        const cached = await getCachedPDF(cacheId);
+        if (cached && cached.data && cached.data.byteLength > 0) {
           const blob = new Blob([cached.data], { type: 'application/pdf' });
           const objectUrl = URL.createObjectURL(blob);
           objectUrlRef.current = objectUrl;
@@ -374,14 +375,13 @@ const RepertoirePanel: React.FC = () => {
           // Use direct URL for immediate display
           setSource(url);
           
-          // Background: fetch and cache for next time
+          // Background: fetch and cache for next time (using stable cache key)
           fetch(url)
             .then(res => {
               if (!res.ok) throw new Error('Fetch failed');
               return res.arrayBuffer();
             })
             .then(data => {
-              const cacheId = generateCacheId(url, doc.title);
               return cachePDF(cacheId, url, data, doc.page_count || 0, doc.title);
             })
             .catch(err => console.warn('Background cache failed:', err));
@@ -612,11 +612,9 @@ const RepertoirePanel: React.FC = () => {
         if (doc && doc.page_count !== count) {
           void updatePageCount(selectedDocId, count);
         }
-        // Update cached page count
-        const url = doc ? `${window.location.origin}/api/storage${doc.storage_path}` : '';
-        if (url) {
-          const cacheId = generateCacheId(url, doc.title);
-          updateCachedPageCount(cacheId, count);
+        // Update cached page count (use stable doc ID as cache key)
+        if (doc) {
+          updateCachedPageCount('doc-' + doc.id, count);
         }
       }
     },
@@ -1277,7 +1275,7 @@ const RepertoirePanel: React.FC = () => {
         </div>
       )}
 
-      {source && showIndex && mappings.length > 0 && (
+      {source && showIndex && mappings.length > 0 && pageCount > 0 && (
         <div className="fixed inset-0 z-[95] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
           <div className="w-full max-w-lg max-h-[80vh] overflow-y-auto rounded-2xl border border-border/60 bg-card shadow-2xl">
             <div className="sticky top-0 flex items-center justify-between gap-3 px-5 py-4 border-b border-border/40 bg-card/95 backdrop-blur-sm">
@@ -1303,6 +1301,7 @@ const RepertoirePanel: React.FC = () => {
                     key={mapping.id}
                     type="button"
                     onClick={() => {
+                      viewerRef.current?.scrollToPage(mapping.pageStart);
                       navigatePage(mapping.pageStart);
                       setShowIndex(false);
                     }}
