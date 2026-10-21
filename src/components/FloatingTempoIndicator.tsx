@@ -3,7 +3,7 @@ import { useGlobalBPM } from '@/context/GlobalBPMContext';
 import { useMetronome } from '@/context/MetronomeContext';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
-import { GripVertical, Minimize2, Maximize2, Target, Save, FileText, Play, Pause, ChevronDown, ChevronUp, X } from 'lucide-react';
+import { GripVertical, Minimize2, Maximize2, Target, Save, FileText, ChevronDown, ChevronUp, X } from "lucide-react";
 import Metronome from './Metronome';
 
 interface FloatingTempoIndicatorProps {
@@ -129,28 +129,22 @@ const FloatingTempoIndicator: React.FC<FloatingTempoIndicatorProps> = ({
         )}
         onPointerDown={onPointerDown}
       >
-        {/* Circular start/stop with BPM inside */}
-        <div className={cn(
-          'relative flex items-center justify-center rounded-full border-2 transition-all duration-200 w-14 h-14',
-          isRunning ? 'border-emerald-500 bg-emerald-500/20' : 'border-border/60 bg-card/50'
-        )}>
-          <button
-            className={cn(
-              'w-10 h-10 rounded-full flex items-center justify-center transition-all duration-150 focus:outline-none',
-              isRunning
-                ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/30'
-                : 'bg-primary/10 text-primary hover:bg-primary/20'
-            )}
-            onClick={toggleRun}
-            aria-label={isRunning ? 'Stop metronome' : 'Start metronome'}
-          >
-            {isRunning ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4 ml-0.5" />}
-          </button>
-          {/* BPM inside circle */}
-          <span className="absolute bottom-0.5 text-[8px] font-black tabular-nums text-foreground leading-none pointer-events-none">
-            {currentBPM}
-          </span>
-        </div>
+        {/* Circular start/stop — BPM is the button */}
+        <button
+          className={cn(
+            'relative flex items-center justify-center rounded-full border-2 transition-all duration-200 w-14 h-14 font-black tabular-nums text-lg focus:outline-none focus:ring-2 focus:ring-ring',
+            isRunning
+              ? 'border-emerald-500 bg-emerald-500 text-white shadow-lg shadow-emerald-500/30 scale-105'
+              : 'border-border/60 bg-card/80 text-foreground hover:border-primary/40 hover:bg-primary/5 hover:scale-105',
+          )}
+          onClick={toggleRun}
+          aria-label={isRunning ? 'Stop metronome' : 'Start metronome'}
+        >
+          {currentBPM}
+          {isRunning && (
+            <div className="absolute inset-[-4px] rounded-full border-2 border-emerald-500/40 animate-ping pointer-events-none" />
+          )}
+        </button>
         <Button
           variant="ghost"
           size="icon"
@@ -228,31 +222,22 @@ const FloatingTempoIndicator: React.FC<FloatingTempoIndicatorProps> = ({
       <div className="p-3 space-y-3">
         {/* Top row: Circle + BPM + Target + Controls */}
         <div className="flex items-center gap-3">
-          {/* Circular start/stop with BPM inside */}
-          <div className={cn(
-            'relative flex items-center justify-center rounded-full border-2 transition-all duration-200 shrink-0 w-16 h-16',
-            isRunning ? 'border-emerald-500 bg-emerald-500/20' : 'border-border/60 bg-card/50'
-          )}>
-            <button
-              className={cn(
-                'w-11 h-11 rounded-full flex items-center justify-center transition-all duration-150 focus:outline-none',
-                isRunning
-                  ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/30'
-                  : 'bg-primary/10 text-primary hover:bg-primary/20'
-              )}
-              onClick={toggleRun}
-              aria-label={isRunning ? 'Stop metronome' : 'Start metronome'}
-            >
-              {isRunning ? <Pause className="w-5 h-5" /> : <Play className="w-5 h-5 ml-0.5" />}
-            </button>
-            {/* BPM inside circle */}
-            <span className="absolute bottom-1 text-[9px] font-black tabular-nums text-foreground leading-none pointer-events-none bg-background/80 px-1 rounded">
-              {currentBPM}
-            </span>
-            {isRunning && (
-              <div className="absolute inset-[-4px] rounded-full border-2 border-emerald-500/30 animate-ping pointer-events-none" />
+          {/* Circular start/stop — BPM is the button */}
+          <button
+            className={cn(
+              'relative flex items-center justify-center rounded-full border-2 transition-all duration-200 shrink-0 w-16 h-16 text-xl font-black tabular-nums focus:outline-none focus:ring-2 focus:ring-ring',
+              isRunning
+                ? 'border-emerald-500 bg-emerald-500 text-white shadow-lg shadow-emerald-500/30 scale-105'
+                : 'border-border/60 bg-card/80 text-foreground hover:border-primary/40 hover:bg-primary/5 hover:scale-105',
             )}
-          </div>
+            onClick={toggleRun}
+            aria-label={isRunning ? 'Stop metronome' : 'Start metronome'}
+          >
+            {currentBPM}
+            {isRunning && (
+              <div className="absolute inset-[-4px] rounded-full border-2 border-emerald-500/40 animate-ping pointer-events-none" />
+            )}
+          </button>
 
           {/* BPM controls column */}
           <div className="flex flex-col gap-1.5 flex-1 min-w-0">
