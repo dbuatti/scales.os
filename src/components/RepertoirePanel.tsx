@@ -267,7 +267,7 @@ const MappingRow: React.FC<{
 };
 
 const RepertoirePanel: React.FC = () => {
-  const { addLogEntry, updateExerciseMasteryBPM, exerciseMasteryBPMMap } = useScales();
+  const { addLogEntry, updateExerciseMasteryBPM, exerciseMasteryBPMMap, log } = useScales();
   const { currentBPM, activePracticeItem: globalActivePracticeItem, setActivePracticeItem, setActiveLogSnapshotFunction, autoNudgeBPMOnSnapshot } = useGlobalBPM();
   const {
     documents,
@@ -1268,6 +1268,7 @@ const RepertoirePanel: React.FC = () => {
           mode={MODE_LABELS[activeMode]}
           beatsPerMeasure={beatsPerMeasure}
           onLog={handleLogSnapshot}
+          snapshotCount={log.filter(e => e.itemsPracticed.some(i => i.type === 'repertoire' && i.repertoireName === (currentMapping?.label || currentMapping?.exerciseId))).length}
           onTargetBpmChange={(bpm) => {
             if (currentMapping) {
               updateMapping(currentMapping.id, { targetBpm: bpm });

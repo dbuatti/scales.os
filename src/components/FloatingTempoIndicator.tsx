@@ -15,6 +15,7 @@ interface FloatingTempoIndicatorProps {
   mode: string;
   beatsPerMeasure: number;
   onLog: () => void;
+  snapshotCount?: number;
   onTargetBpmChange?: (bpm: number) => void;
 }
 
@@ -27,6 +28,7 @@ const FloatingTempoIndicator: React.FC<FloatingTempoIndicatorProps> = ({
   mode,
   beatsPerMeasure,
   onLog,
+  snapshotCount = 0,
   onTargetBpmChange,
 }) => {
   const { currentBPM, handleBpmChange } = useGlobalBPM();
@@ -300,6 +302,15 @@ const FloatingTempoIndicator: React.FC<FloatingTempoIndicatorProps> = ({
             <FileText className="h-3 w-3" />
             {page}/{pageCount}
           </span>
+          {snapshotCount > 0 && (
+            <>
+              <span className="text-muted-foreground/40">·</span>
+              <span className="flex items-center gap-1 text-emerald-500 font-medium">
+                <Save className="h-3 w-3" />
+                {snapshotCount} snapshot{snapshotCount === 1 ? '' : 's'}
+              </span>
+            </>
+          )}
         </div>
 
         {/* Expanded section */}
