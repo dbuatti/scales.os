@@ -67,7 +67,7 @@ import {
   friendlyExerciseLabel,
   getMappingOverlaps,
 } from '@/lib/repertoire';
-import { generateCacheId, loadPDFCached, updateCachedPageCount, cachePDF } from '@/lib/pdf-cache';
+import { generateCacheId, loadPDFCached, updateCachedPageCount, cachePDF, getCachedPDFByUrl } from '@/lib/pdf-cache';
 import { ImportedFile } from '@/lib/clipboard-import';
 
 const ViewerFallback: React.FC = () => (
@@ -360,24 +360,30 @@ const RepertoirePanel: React.FC = () => {
         setPendingInitialPage(initialPage ?? null);
         setLastOpenedDocumentId(doc.id);
         
-        // Use direct URL for reliable PDF loading
-        // Caching is attempted in the background
-        setSource(url);
-        
-        // Background cache attempt (non-blocking)
-        loadPDFCached(url, doc.title, async () => {
-          const response = await fetch(url);
-          if (!response.ok) throw new Error('Failed to fetch PDF');
-          return response.arrayBuffer();
-        }).then(({ data, fromCache }) => {
-          if (!fromCache) {
-            // Cache the fetched data
-            const cacheId = generateCacheId(url, doc.title);
-            cachePDF(cacheId, url, data, 0, doc.title).catch(() => {});
-          }
-        }).catch((err) => {
-          console.warn('Background PDF cache failed:', err);
-        });
+// Try cache first for instant loading
+        const cached = await getCachedPDFByUrl(url);
+        if (cached) {
+          const blob = new Blob([cached.data], { type: 'application/pdf' });
+          const objectUrl = URL.createObjectURL(blob);
+          objectUrlRef.current = objectUrl;
+          setSource(objectUrl);
+          showSuccess(`Loaded "${doc.title}" from cache.`);
+        } else {
+          // Use direct URL for immediate display
+          setSource(url);
+          
+          // Background: fetch and cache for next time
+          fetch(url)
+            .then(res => {
+              if (!res.ok) throw new Error('Fetch failed');
+              return res.arrayBuffer();
+            })
+            .then(data => {
+              const cacheId = generateCacheId(url, doc.title);
+              return cachePDF(cacheId, url, data, doc.page_count || 0, doc.title);
+            })
+            .catch(err => console.warn('Background cache failed:', err));
+        }
         
         setPageCount(doc.page_count || 0);
         setCurrentPage(initialPage ?? (doc.last_viewed_page || 1));
@@ -731,7 +737,10 @@ const RepertoirePanel: React.FC = () => {
       if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || target?.isContentEditable) {
         return;
       }
-      if (e.key === 'ArrowLeft') {
+      if (e.key === 'l' || e.key === 'L') {
+        e.preventDefault();
+        setLayout((prev) => (prev === 'horizontal' ? 'vertical' : 'horizontal'));
+      } else if (e.key === 'ArrowLeft') {
         e.preventDefault();
         navigatePage(currentPage - 1);
       } else if (e.key === 'ArrowRight') {
@@ -1135,7 +1144,7 @@ const RepertoirePanel: React.FC = () => {
                 zoom ·{' '}
                 <kbd className="px-1 rounded bg-muted border border-border/60 font-mono">0</kbd>
                 {' '}
-                reset · bookmark from the page or the panel
+                reset · bookmark from the page or the panel · L layout
               </p>
             )}
           </div>

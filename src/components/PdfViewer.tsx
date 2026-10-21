@@ -512,8 +512,8 @@ const PdfViewer = React.forwardRef<PdfViewerHandle, PdfViewerProps>(({
         onScroll={handleScroll}
         onWheel={handleWheel}
         className={cn(
-          'rounded-xl border border-border/50 bg-muted/30 p-4 touch-pan-x touch-pan-y',
-          layout === 'horizontal' ? 'overflow-x-auto' : 'overflow-auto',
+          'rounded-xl border border-border/50 bg-muted/30 p-4 touch-pan-x touch-pan-y overscroll-x-contain',
+          layout === 'horizontal' ? 'overflow-x-scroll' : 'overflow-auto',
           scrollClassName,
         )}
       >
