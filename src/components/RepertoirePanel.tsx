@@ -360,29 +360,33 @@ const RepertoirePanel: React.FC = () => {
         setPendingInitialPage(initialPage ?? null);
         setLastOpenedDocumentId(doc.id);
         
-        // Try to load from cache first
-        const cacheId = generateCacheId(url, doc.title);
-        const { data, fromCache } = await loadPDFCached(url, doc.title, async () => {
-          const response = await fetch(url);
-          if (!response.ok) throw new Error('Failed to fetch PDF');
-          return response.arrayBuffer();
-        });
-        
-        // Create object URL from cached data
-        const blob = new Blob([data], { type: 'application/pdf' });
-        const objectUrl = URL.createObjectURL(blob);
-        objectUrlRef.current = objectUrl;
-        setSource(objectUrl);
+        // Try to load from cache first for instant display
+        try {
+          const { data, fromCache } = await loadPDFCached(url, doc.title, async () => {
+            const response = await fetch(url);
+            if (!response.ok) throw new Error('Failed to fetch PDF');
+            return response.arrayBuffer();
+          });
+          
+          const blob = new Blob([data], { type: 'application/pdf' });
+          const objectUrl = URL.createObjectURL(blob);
+          objectUrlRef.current = objectUrl;
+          setSource(objectUrl);
+          
+          if (fromCache) {
+            showSuccess(`Loaded "${doc.title}" from local cache.`);
+          }
+        } catch (cacheErr) {
+          // Fallback to direct URL if caching/fetch fails
+          console.warn('PDF cache fetch failed, using direct URL:', cacheErr);
+          setSource(url);
+        }
         
         setPageCount(doc.page_count || 0);
         setCurrentPage(initialPage ?? (doc.last_viewed_page || 1));
         setFullscreen(true);
         const loaded = await fetchMappings(doc.id);
         setMappings(sortMappings(loaded));
-        
-        if (fromCache) {
-          showSuccess(`Loaded "${doc.title}" from local cache.`);
-        }
       } catch (err) {
         showError(err instanceof Error ? err.message : 'Failed to open document.');
       }
