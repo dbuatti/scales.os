@@ -31,7 +31,7 @@ const FloatingTempoIndicator: React.FC<FloatingTempoIndicatorProps> = ({
   snapshotCount = 0,
   onTargetBpmChange,
 }) => {
-  const { currentBPM, handleBpmChange } = useGlobalBPM();
+  const { currentBPM, handleBpmChange, setCurrentBPM } = useGlobalBPM();
   const { isRunning, toggleRun, setBeatsPerMeasure, autoIncrementEnabled, setAutoIncrementEnabled, incrementAmount, setIncrementAmount, incrementEvery, setIncrementEvery } = useMetronome();
   const panelRef = useRef<HTMLDivElement>(null);
   const dragOffsetRef = useRef<{ dx: number; dy: number } | null>(null);
@@ -40,10 +40,16 @@ const FloatingTempoIndicator: React.FC<FloatingTempoIndicatorProps> = ({
   const [isMobile, setIsMobile] = useState(false);
   const [expanded, setExpanded] = useState(false);
   const [targetDraft, setTargetDraft] = useState(String(targetBpm));
+  const [bpmDraft, setBpmDraft] = useState(String(currentBPM));
+  const [editingBpm, setEditingBpm] = useState(false);
 
   useEffect(() => {
     setTargetDraft(String(targetBpm));
   }, [targetBpm]);
+
+  useEffect(() => {
+    if (!editingBpm) setBpmDraft(String(currentBPM));
+  }, [currentBPM, editingBpm]);
 
   useEffect(() => {
     const mq = window.matchMedia('(max-width: 767px)');
@@ -239,7 +245,34 @@ const FloatingTempoIndicator: React.FC<FloatingTempoIndicatorProps> = ({
 
           {/* BPM controls column */}
           <div className="flex flex-col gap-1.5 flex-1 min-w-0">
-            {/* Target BPM - editable */}
+            {/* Editable BPM input */}
+          <div className="flex items-center gap-2">
+            <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">BPM</span>
+            <input
+              type="number"
+              value={editingBpm ? bpmDraft : currentBPM}
+              onChange={(e) => { setEditingBpm(true); setBpmDraft(e.target.value); }}
+              onFocus={() => { setEditingBpm(true); setBpmDraft(String(currentBPM)); }}
+              onBlur={() => {
+                setEditingBpm(false);
+                const val = parseInt(bpmDraft, 10);
+                if (!isNaN(val) && val >= 40 && val <= 250) {
+                  setCurrentBPM(val);
+                } else {
+                  setBpmDraft(String(currentBPM));
+                }
+              }}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') (e.target as HTMLInputElement).blur();
+              }}
+              className="w-16 h-8 text-sm font-black text-foreground tabular-nums bg-background/50 border border-border/60 rounded-lg px-2 text-center focus:ring-2 focus:ring-ring focus:border-primary"
+              min={40}
+              max={250}
+              aria-label="Current BPM"
+            />
+          </div>
+
+          {/* Target BPM - editable */}
             <div className="flex items-center gap-1.5 text-xs" title="Set your goal BPM for this exercise. Auto-nudge caps at this + 2 BPM.">
               <Target className={cn('w-3 h-3 shrink-0', targetBpm > 0 ? 'text-primary/70' : 'text-warning animate-pulse')} />
               <span className="text-muted-foreground/60">Goal</span>
