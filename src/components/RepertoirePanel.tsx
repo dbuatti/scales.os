@@ -29,6 +29,7 @@ import {
   Images,
   Library,
   ClipboardList,
+  ChevronRight,
 } from 'lucide-react';
 import type { PdfViewerHandle } from './PdfViewer';
 const PdfViewer = React.lazy(() => import('./PdfViewer'));
@@ -301,6 +302,7 @@ const RepertoirePanel: React.FC = () => {
   const [thumbnailsOpen, setThumbnailsOpen] = useState(true);
   const [pdfProxy, setPdfProxy] = useState<PDFDocumentProxy | null>(null);
   const [fullscreen, setFullscreen] = useState(false);
+  const [showIndex, setShowIndex] = useState(false);
   const [pdfFilter, setPdfFilter] = useState('');
   const [bookmarkOpen, setBookmarkOpen] = useState(false);
   const [bookmarkExercise, setBookmarkExercise] = useState('');
@@ -390,6 +392,7 @@ const RepertoirePanel: React.FC = () => {
         setFullscreen(true);
         const loaded = await fetchMappings(doc.id);
         setMappings(sortMappings(loaded));
+        setShowIndex(loaded.length > 0);
       } catch (err) {
         showError(err instanceof Error ? err.message : 'Failed to open document.');
       }
@@ -423,7 +426,9 @@ const RepertoirePanel: React.FC = () => {
       setPageCount(0);
       setCurrentPage(1);
       setFullscreen(true);
-      setMappings(sortMappings(loadLocalMappings(localId)));
+      const localMappings = sortMappings(loadLocalMappings(localId));
+      setMappings(localMappings);
+      setShowIndex(localMappings.length > 0);
     },
     [clearTimers],
   );
@@ -737,7 +742,9 @@ const RepertoirePanel: React.FC = () => {
       if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || target?.isContentEditable) {
         return;
       }
-      if (e.key === 'l' || e.key === 'L') {
+      if (e.key === 'Escape') {
+        setShowIndex(false);
+      } else if (e.key === 'l' || e.key === 'L') {
         e.preventDefault();
         setLayout((prev) => (prev === 'horizontal' ? 'vertical' : 'horizontal'));
       } else if (e.key === 'ArrowLeft') {
@@ -879,8 +886,20 @@ const RepertoirePanel: React.FC = () => {
             title="Import from clipboard or Dropbox (parses BPMs from filenames)"
           >
             <ClipboardList className="w-4 h-4 mr-1.5" />
-            Import from Clipboard
+            Import
           </Button>
+          {mappings.length > 0 && (
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-9 font-bold focus-scale"
+              onClick={() => setShowIndex(true)}
+              title="Show exercise index"
+            >
+              <ListMusic className="w-4 h-4 mr-1.5" />
+              Index
+            </Button>
+          )}
           {activeDocumentId && (
             <Button
               variant="ghost"
@@ -1255,6 +1274,148 @@ const RepertoirePanel: React.FC = () => {
               </Card>
             </aside>
           )}
+        </div>
+      )}
+
+      {source && showIndex && mappings.length > 0 && (
+        <div className="fixed inset-0 z-[95] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="w-full max-w-lg max-h-[80vh] overflow-y-auto rounded-2xl border border-border/60 bg-card shadow-2xl">
+            <div className="sticky top-0 flex items-center justify-between gap-3 px-5 py-4 border-b border-border/40 bg-card/95 backdrop-blur-sm">
+              <div className="flex items-center gap-2">
+                <ListMusic className="w-5 h-5 text-primary" />
+                <h3 className="text-base font-bold text-foreground">Exercise Index</h3>
+              </div>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 text-muted-foreground"
+                onClick={() => setShowIndex(false)}
+                aria-label="Close index"
+              >
+                <X className="w-4 h-4" />
+              </Button>
+            </div>
+            <div className="p-3 space-y-2">
+              {sortMappings(mappings).map((mapping) => {
+                const isCurrent = currentPage >= mapping.pageStart && currentPage <= mapping.pageEnd;
+                return (
+                  <button
+                    key={mapping.id}
+                    type="button"
+                    onClick={() => {
+                      navigatePage(mapping.pageStart);
+                      setShowIndex(false);
+                    }}
+                    className={cn(
+                      'w-full flex items-center justify-between gap-3 rounded-xl border p-3 text-left transition-all duration-150 active:scale-[0.98]',
+                      isCurrent
+                        ? 'border-primary/50 bg-primary/10 shadow-sm'
+                        : 'border-border/60 bg-card/50 hover:border-primary/30 hover:bg-primary/5 hover:shadow-sm',
+                    )}
+                  >
+                    <div className="flex items-center gap-3 min-w-0 flex-1">
+                      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary text-xs font-black tabular-nums">
+                        {mapping.pageStart}
+                      </div>
+                      <div className="min-w-0">
+                        <p className="truncate text-sm font-bold text-foreground">
+                          {mapping.label || mapping.exerciseId || 'Page ' + mapping.pageStart}
+                        </p>
+                        <p className="text-[11px] text-muted-foreground">
+                          {mapping.mode === 'technical' ? 'Technical' : 'Repertoire'}
+                          {mapping.targetBpm > 0 && (
+                            <span className="ml-1.5 font-medium text-primary">· {mapping.targetBpm} BPM goal</span>
+                          )}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-1.5 shrink-0">
+                      {isCurrent && (
+                        <Badge className="text-[9px] bg-primary/20 text-primary border-primary/30">Current</Badge>
+                      )}
+                      <ChevronRight className="w-4 h-4 text-muted-foreground" />
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+            <div className="px-5 py-3 border-t border-border/40 bg-muted/20">
+              <p className="text-[11px] text-muted-foreground text-center">
+                Click any exercise to jump to its page · Press <kbd className="px-1 rounded bg-muted border border-border/60 font-mono text-[10px]">Esc</kbd> to close
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {source && showIndex && mappings.length > 0 && (
+        <div className="fixed inset-0 z-[95] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="w-full max-w-lg max-h-[80vh] overflow-y-auto rounded-2xl border border-border/60 bg-card shadow-2xl">
+            <div className="sticky top-0 flex items-center justify-between gap-3 px-5 py-4 border-b border-border/40 bg-card/95 backdrop-blur-sm">
+              <div className="flex items-center gap-2">
+                <ListMusic className="w-5 h-5 text-primary" />
+                <h3 className="text-base font-bold text-foreground">Exercise Index</h3>
+              </div>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 text-muted-foreground"
+                onClick={() => setShowIndex(false)}
+                aria-label="Close index"
+              >
+                <X className="w-4 h-4" />
+              </Button>
+            </div>
+            <div className="p-3 space-y-2">
+              {sortMappings(mappings).map((mapping) => {
+                const isCurrent = currentPage >= mapping.pageStart && currentPage <= mapping.pageEnd;
+                return (
+                  <button
+                    key={mapping.id}
+                    type="button"
+                    onClick={() => {
+                      navigatePage(mapping.pageStart);
+                      setShowIndex(false);
+                    }}
+                    className={cn(
+                      'w-full flex items-center justify-between gap-3 rounded-xl border p-3 text-left transition-all duration-150 active:scale-[0.98]',
+                      isCurrent
+                        ? 'border-primary/50 bg-primary/10 shadow-sm'
+                        : 'border-border/60 bg-card/50 hover:border-primary/30 hover:bg-primary/5 hover:shadow-sm',
+                    )}
+                  >
+                    <div className="flex items-center gap-3 min-w-0 flex-1">
+                      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary text-xs font-black tabular-nums">
+                        {mapping.pageStart}
+                      </div>
+                      <div className="min-w-0">
+                        <p className="truncate text-sm font-bold text-foreground">
+                          {mapping.label || mapping.exerciseId || 'Page ' + mapping.pageStart}
+                        </p>
+                        <p className="text-[11px] text-muted-foreground">
+                          {mapping.mode === 'technical' ? 'Technical' : 'Repertoire'}
+                          {mapping.targetBpm > 0 && (
+                            <span className="ml-1.5 font-medium text-primary">· {mapping.targetBpm} BPM goal</span>
+                          )}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-1.5 shrink-0">
+                      {isCurrent && (
+                        <Badge className="text-[9px] bg-primary/20 text-primary border-primary/30">Current</Badge>
+                      )}
+                      <ChevronRight className="w-4 h-4 text-muted-foreground" />
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+            <div className="px-5 py-3 border-t border-border/40 bg-muted/20">
+              <p className="text-[11px] text-muted-foreground text-center">
+                Click any exercise to jump to its page
+              </p>
+            </div>
+          </div>
         </div>
       )}
 
