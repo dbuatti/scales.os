@@ -1306,7 +1306,7 @@ const RepertoirePanel: React.FC = () => {
                       // Delay navigation to ensure DOM is ready after index closes
                       setTimeout(() => {
                         viewerRef.current?.scrollToPage(mapping.pageStart);
-                        navigatePage(mapping.pageStart);
+                        setCurrentPage(mapping.pageStart);
                       }, 100);
                     }}
                     className={cn(

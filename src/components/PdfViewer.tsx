@@ -375,12 +375,27 @@ const PdfViewer = React.forwardRef<PdfViewerHandle, PdfViewerProps>(({
     (page: number) => {
       const container = scrollRef.current;
       const target = pageRefs.current.get(page);
-      if (container && target) {
-        if (layout === 'horizontal') {
-          const padding = (container.clientWidth - target.offsetWidth) / 2;
-          container.scrollLeft = Math.max(0, target.offsetLeft - padding);
+      if (container) {
+        if (target) {
+          if (layout === 'horizontal') {
+            const padding = (container.clientWidth - target.offsetWidth) / 2;
+            container.scrollLeft = Math.max(0, target.offsetLeft - padding);
+          } else {
+            container.scrollTop = target.offsetTop;
+          }
         } else {
-          container.scrollTop = target.offsetTop;
+          // Page not rendered yet — estimate scroll position
+          const pageEl = pageRefs.current.get(1);
+          if (pageEl) {
+            const pageWidth = pageEl.offsetWidth || 200;
+            const pageHeight = pageEl.offsetHeight || 300;
+            const gap = layout === 'horizontal' ? 24 : 16;
+            if (layout === 'horizontal') {
+              container.scrollLeft = Math.max(0, (page - 1) * (pageWidth + gap));
+            } else {
+              container.scrollTop = Math.max(0, (page - 1) * (pageHeight + gap));
+            }
+          }
         }
         setCurrentPage(page);
       }
