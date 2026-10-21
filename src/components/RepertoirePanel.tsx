@@ -902,29 +902,44 @@ const RepertoirePanel: React.FC = () => {
         </div>
 
         {documents.length === 0 ? (
-          <div className="flex flex-col items-center justify-center gap-3 rounded-xl border border-dashed border-border/60 bg-card/30 px-6 py-14 text-center">
-            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10 text-primary">
-              <BookOpen className="h-6 w-6" />
+          <div className="flex flex-col items-center justify-center gap-4 rounded-xl border border-dashed border-border/60 bg-card/30 px-6 py-16 text-center">
+            <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+              <BookOpen className="h-8 w-8" />
             </div>
-            <div className="space-y-1">
-              <p className="text-base font-bold">Add your first method book</p>
-              <p className="mx-auto max-w-sm text-sm text-muted-foreground">
-                Upload a PDF — Hanon, Dohnányi, Czerny — then map its pages to exercises to
-                practice straight from the score.
+            <div className="space-y-2 max-w-md">
+              <p className="text-lg font-bold text-foreground">Add your first method book</p>
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                Upload a PDF — Hanon, Dohnányi, Czerny — then map its pages to exercises.
+                The floating tempo panel follows the page you are viewing.
               </p>
             </div>
-            <Button
-              onClick={() => fileInputRef.current?.click()}
-              disabled={isUploading}
-              className="mt-1 font-bold focus-scale"
-            >
-              {isUploading ? (
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-              ) : (
-                <Upload className="h-4 w-4 mr-2" />
-              )}
-              Upload PDF
-            </Button>
+            <div className="flex flex-wrap items-center justify-center gap-3 mt-2">
+              <Button
+                onClick={() => fileInputRef.current?.click()}
+                disabled={isUploading}
+                className="font-bold focus-scale"
+                size="lg"
+              >
+                {isUploading ? (
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                ) : (
+                  <Upload className="h-4 w-4 mr-2" />
+                )}
+                Upload PDF
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => setClipboardImportOpen(true)}
+                className="font-bold focus-scale"
+                size="lg"
+              >
+                <ClipboardList className="h-4 w-4 mr-2" />
+                Import from Clipboard
+              </Button>
+            </div>
+            <p className="text-xs text-muted-foreground/60 mt-2">
+              Tip: Paste a Dropbox folder listing to bulk-import PDFs with auto-detected BPMs
+            </p>
           </div>
         ) : (
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
@@ -941,10 +956,10 @@ const RepertoirePanel: React.FC = () => {
                     if (e.key === 'Enter' || e.key === ' ') handleSelectDocument(doc.id);
                   }}
                   className={cn(
-                    'group relative flex flex-col gap-3 rounded-xl border bg-card/70 p-3 text-left shadow-sm backdrop-blur-xl transition-all cursor-pointer active:scale-[0.98]',
+                    'group relative flex flex-col gap-3 rounded-xl border bg-card/70 p-3 text-left shadow-sm backdrop-blur-xl transition-all duration-200 cursor-pointer hover:shadow-lg hover:-translate-y-0.5 active:scale-[0.98]',
                     isOpen
-                      ? 'border-primary/40 ring-1 ring-primary/20'
-                      : 'border-border hover:border-primary/30 hover:shadow-md',
+                      ? 'border-primary/50 ring-2 ring-primary/20 shadow-md shadow-primary/5'
+                      : 'border-border/60 hover:border-primary/40',
                   )}
                 >
                   <div className="relative aspect-[3/4] w-full overflow-hidden rounded-lg border bg-muted/40">

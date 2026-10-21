@@ -147,8 +147,8 @@ export const ClipboardImport: React.FC<ClipboardImportProps> = ({ onImport, onCl
         {/* Paste area */}
         <div
           className={cn(
-            'relative rounded-xl border-2 border-dashed p-6 text-center transition-colors',
-            importedFiles.length > 0 ? 'border-border/60 bg-card/50' : 'border-primary/40 bg-primary/5'
+            'relative rounded-xl border-2 border-dashed p-8 text-center transition-all duration-200',
+            importedFiles.length > 0 ? 'border-border/60 bg-card/50' : 'border-primary/30 bg-primary/5 hover:border-primary/50 hover:bg-primary/10'
           )}
           onPaste={handlePaste}
         >

@@ -233,9 +233,9 @@ const FloatingTempoIndicator: React.FC<FloatingTempoIndicatorProps> = ({
           {/* BPM controls column */}
           <div className="flex flex-col gap-1.5 flex-1 min-w-0">
             {/* Target BPM - editable */}
-            <div className="flex items-center gap-1.5 text-xs">
+            <div className="flex items-center gap-1.5 text-xs" title="Set your goal BPM for this exercise. Auto-nudge caps at this + 2 BPM.">
               <Target className="w-3 h-3 text-primary/70 shrink-0" />
-              <span className="text-muted-foreground/60">Target</span>
+              <span className="text-muted-foreground/60">Goal</span>
               {onTargetBpmChange ? (
                 <input
                   type="number"
