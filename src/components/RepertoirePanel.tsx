@@ -68,7 +68,7 @@ import {
   getMappingOverlaps,
 } from '@/lib/repertoire';
 import { generateCacheId, loadPDFCached, updateCachedPageCount, cachePDF } from '@/lib/pdf-cache';
-import { ImportedFile } from './ClipboardImport';
+import { ImportedFile } from '@/lib/clipboard-import';
 
 const ViewerFallback: React.FC = () => (
   <div className="flex min-h-[420px] flex-col items-center justify-center rounded-xl border border-dashed border-border/60 p-8 text-center">
@@ -1104,7 +1104,7 @@ const RepertoirePanel: React.FC = () => {
                 initialPage={pendingInitialPage ?? selectedDoc?.last_viewed_page ?? 1}
                 maxPixelRatio={maxPixelRatio}
                 onBookmark={addBookmark}
-                layout={fullscreen ? 'vertical' : layout}
+                layout={layout}
                 initialFit={fullscreen ? 'page' : 'width'}
                 zoom={zoom}
                 onZoomChange={setZoom}
@@ -1232,6 +1232,11 @@ const RepertoirePanel: React.FC = () => {
           mode={MODE_LABELS[activeMode]}
           beatsPerMeasure={beatsPerMeasure}
           onLog={handleLogSnapshot}
+          onTargetBpmChange={(bpm) => {
+            if (currentMapping) {
+              updateMapping(currentMapping.id, { targetBpm: bpm });
+            }
+          }}
         />
       )}
 
