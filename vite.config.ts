@@ -61,7 +61,7 @@ export default defineConfig(({ mode }) => {
           ],
         },
         workbox: {
-          globPatterns: ["**/*.{js,css,html,ico,png,svg,woff2,wasm}"],
+          globPatterns: ["**/*.{js,mjs,css,html,ico,png,svg,woff2,wasm}"],
           runtimeCaching: [
             {
               urlPattern: /^https:\/\/.*\.supabase\.co\/.*/i,

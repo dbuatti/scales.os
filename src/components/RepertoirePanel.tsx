@@ -1301,9 +1301,13 @@ const RepertoirePanel: React.FC = () => {
                     key={mapping.id}
                     type="button"
                     onClick={() => {
-                      viewerRef.current?.scrollToPage(mapping.pageStart);
-                      navigatePage(mapping.pageStart);
+                      setPendingInitialPage(mapping.pageStart);
                       setShowIndex(false);
+                      // Delay navigation to ensure DOM is ready after index closes
+                      setTimeout(() => {
+                        viewerRef.current?.scrollToPage(mapping.pageStart);
+                        navigatePage(mapping.pageStart);
+                      }, 100);
                     }}
                     className={cn(
                       'w-full flex items-center justify-between gap-3 rounded-xl border p-3 text-left transition-all duration-150 active:scale-[0.98]',
