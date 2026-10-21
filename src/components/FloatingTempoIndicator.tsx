@@ -111,7 +111,7 @@ const FloatingTempoIndicator: React.FC<FloatingTempoIndicatorProps> = ({
 
   const style: React.CSSProperties = position
     ? { left: position.x, top: position.y }
-    : { right: 16, bottom: isMobile ? 84 : 24 };
+    : { right: 24, bottom: isMobile ? 96 : 32 };
 
   // Color based on metronome state
   const ringColor = isRunning ? 'border-emerald-500/50' : 'border-border/40';
@@ -176,7 +176,7 @@ const FloatingTempoIndicator: React.FC<FloatingTempoIndicatorProps> = ({
       style={style}
       className={cn(
         'fixed z-[90] overflow-hidden rounded-2xl border shadow-2xl backdrop-blur-xl transition-all duration-200',
-        expanded ? 'w-[480px]' : 'w-[340px]',
+        expanded ? 'w-[min(480px,calc(100vw-48px))]' : 'w-[min(340px,calc(100vw-48px))]',
         bgColor,
       )}
     >
