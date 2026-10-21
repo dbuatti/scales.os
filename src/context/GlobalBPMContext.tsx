@@ -89,10 +89,16 @@ export const GlobalBPMProvider: React.FC<React.PropsWithChildren> = ({ children 
   useEffect(() => {
     if (activePracticeItem && !isBpmManuallyAdjusted) {
       let targetBPM: number;
+      // Load from most recent and highest snapshot when available
       if (activePracticeItem.type === 'scale') {
-        targetBPM = activePracticeItem.nextGoalBPM;
+        const highest = activePracticeItem.highestBPM || 0;
+        targetBPM = highest > 0 ? highest : activePracticeItem.nextGoalBPM;
+      } else if (activePracticeItem.type === 'repertoire') {
+        const highest = activePracticeItem.currentHighestBPM || 0;
+        targetBPM = highest > 0 ? highest : 60;
       } else {
-        targetBPM = activePracticeItem.nextTargetBPM;
+        const highest = activePracticeItem.currentHighestBPM || 0;
+        targetBPM = highest > 0 ? highest : activePracticeItem.nextTargetBPM;
       }
 
       if (currentBPM !== targetBPM) {
