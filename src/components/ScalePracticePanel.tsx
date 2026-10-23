@@ -28,21 +28,21 @@ interface PermutationSectionProps<T extends string> {
 }
 
 const PermutationSection = <T extends string>({ title, description, options, selectedValue, onValueChange, icon, getItemClasses }: PermutationSectionProps<T>) => (
-    <div className="surface flex flex-col gap-4 p-5 transition-all hover:border-primary/30 hover:shadow-md">
+    <div className="surface flex flex-col gap-4 p-5 transition-all duration-200 hover:border-primary/30 hover:shadow-md">
         <div className="flex items-center gap-3">
-            <div className="flex size-9 items-center justify-center rounded-xl bg-primary/10 text-primary ring-1 ring-inset ring-primary/10">
+            <div className="flex size-9 items-center justify-center rounded-lg bg-primary/10 text-primary">
                 {icon}
             </div>
             <div className="flex flex-col gap-0.5">
-                <Label className="text-sm font-bold uppercase tracking-wider text-foreground">{title}</Label>
-                <p className="text-[10px] text-muted-foreground leading-tight">{description}</p>
+                <Label className="text-sm font-bold tracking-tight text-foreground">{title}</Label>
+                <p className="text-xs leading-snug text-muted-foreground">{description}</p>
             </div>
         </div>
         <ToggleGroup 
             type="single" 
             value={selectedValue} 
             onValueChange={(value) => value && onValueChange(value as T)}
-            className="flex flex-wrap gap-2"
+            className="flex flex-wrap justify-start gap-2"
         >
             {options.map(option => (
                 <ToggleGroupItem 
@@ -336,11 +336,11 @@ const ScalePracticePanel: React.FC<ScalePracticePanelProps> = ({
     <CardContent className="flex flex-col gap-8 p-0">
         <div className="surface flex items-center justify-between gap-4 bg-gradient-to-br from-primary/[0.06] to-transparent p-4">
           <div className="space-y-1">
-            <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-primary/70">
-              <LayoutGrid className="w-3 h-3" />
+            <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-primary">
+              <LayoutGrid className="h-3.5 w-3.5" />
               Quick Actions
             </div>
-            <p className="text-[10px] text-muted-foreground">Instantly modify your current practice session.</p>
+            <p className="text-xs text-muted-foreground">Instantly modify your current practice session.</p>
           </div>
           <Button variant="secondary" size="sm" onClick={handleRandomize} className="h-9 font-bold focus-scale">
             <Shuffle className="w-4 h-4 mr-2" />
@@ -349,23 +349,23 @@ const ScalePracticePanel: React.FC<ScalePracticePanelProps> = ({
         </div>
 
             <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-            <div className="flex flex-col gap-8">
+            <div className="flex flex-col gap-6">
                 <div className="flex flex-col gap-4 surface p-5">
                     <div className="flex items-center gap-3">
-                        <div className="flex size-9 items-center justify-center rounded-xl bg-primary/10 text-primary ring-1 ring-inset ring-primary/10">
+                        <div className="flex size-9 items-center justify-center rounded-lg bg-primary/10 text-primary">
                             <Music className="w-5 h-5" />
                         </div>
-                        <Label className="text-sm font-bold uppercase tracking-wider text-foreground">Key Selection</Label>
+                        <Label className="text-sm font-bold tracking-tight text-foreground">Key Selection</Label>
                     </div>
                     <ToggleGroup 
                         type="single" 
                         value={selectedKey} 
                         onValueChange={(v) => v && setKeyAndAdjust(v as Key)}
-                        className="flex flex-wrap gap-2"
+                        className="grid grid-cols-6 gap-2"
                         disabled={isChromatic}
                     >
                         {availableKeys.map(key => (
-                            <ToggleGroupItem key={key} value={key} className="size-12 rounded-xl border border-transparent bg-muted/40 p-0 text-xs font-bold text-foreground/80 transition-all hover:bg-muted hover:text-foreground data-[state=on]:border-primary data-[state=on]:bg-primary data-[state=on]:text-primary-foreground data-[state=on]:shadow-sm data-[state=on]:shadow-primary/25 focus-scale">
+                            <ToggleGroupItem key={key} value={key} className="h-11 w-full min-w-0 rounded-lg border border-transparent bg-muted/40 p-0 text-sm font-bold text-foreground/80 transition-all hover:bg-muted hover:text-foreground data-[state=on]:border-primary data-[state=on]:bg-primary data-[state=on]:text-primary-foreground data-[state=on]:shadow-sm data-[state=on]:shadow-primary/25 focus-scale">
                                 {key.split('/')[0]}
                             </ToggleGroupItem>
                         ))}
@@ -374,20 +374,20 @@ const ScalePracticePanel: React.FC<ScalePracticePanelProps> = ({
 
                 <div className="flex flex-col gap-4 surface p-5">
                     <div className="flex items-center gap-3">
-                        <div className="flex size-9 items-center justify-center rounded-xl bg-primary/10 text-primary ring-1 ring-inset ring-primary/10">
+                        <div className="flex size-9 items-center justify-center rounded-lg bg-primary/10 text-primary">
                             <Zap className="w-5 h-5" />
                         </div>
-                        <Label className="text-sm font-bold uppercase tracking-wider text-foreground">Type Selection</Label>
+                        <Label className="text-sm font-bold tracking-tight text-foreground">Type Selection</Label>
                     </div>
                     <div className="grid grid-cols-2 gap-6">
                         <div className="flex flex-col gap-3">
-                            <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest border-b border-border/60 pb-1">Scales</p>
+                            <p className="border-b border-border/60 pb-1.5 text-xs font-bold uppercase tracking-wider text-muted-foreground">Scales</p>
                             <ToggleGroup type="single" value={selectedType} onValueChange={(v) => v && setTypeAndAdjust(v)} className="flex flex-col items-stretch gap-2">
                                 {SCALE_TYPES.map(t => <ToggleGroupItem key={t} value={t} className="h-10 justify-start rounded-lg border border-transparent bg-muted/40 px-4 text-xs font-semibold text-foreground/80 transition-all hover:bg-muted hover:text-foreground data-[state=on]:border-primary data-[state=on]:bg-primary data-[state=on]:text-primary-foreground focus-scale">{t}</ToggleGroupItem>)}
                             </ToggleGroup>
                         </div>
                         <div className="flex flex-col gap-3">
-                            <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest border-b border-border/60 pb-1">Arpeggios</p>
+                            <p className="border-b border-border/60 pb-1.5 text-xs font-bold uppercase tracking-wider text-muted-foreground">Arpeggios</p>
                             <ToggleGroup type="single" value={selectedType} onValueChange={(v) => v && setTypeAndAdjust(v)} className="flex flex-col items-stretch gap-2">
                                 {ARPEGGIO_TYPES.map(t => <ToggleGroupItem key={t} value={t} className="justify-start h-10 rounded-lg border border-transparent bg-muted/40 px-4 text-xs font-semibold text-foreground/80 transition-all hover:bg-muted hover:text-foreground data-[state=on]:border-primary data-[state=on]:bg-primary data-[state=on]:text-primary-foreground focus-scale">{t.replace(' Arpeggio', '')}</ToggleGroupItem>)}
                             </ToggleGroup>
@@ -417,12 +417,12 @@ const ScalePracticePanel: React.FC<ScalePracticePanelProps> = ({
         </div>
 
         <div className="flex flex-col gap-6 border-t border-border/60 pt-8">
-            <div className="flex items-center justify-between gap-4">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
                 <div className="space-y-1">
-                    <div className="flex items-center gap-2">
+                    <div className="flex flex-wrap items-center gap-2">
                       <h3 className="text-xl font-bold tracking-tight">Advanced Permutations</h3>
                       {modifiedAdvancedCount > 0 && (
-                        <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-black uppercase tracking-widest text-primary">
+                        <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-primary">
                           {modifiedAdvancedCount} active
                         </span>
                       )}
@@ -431,7 +431,7 @@ const ScalePracticePanel: React.FC<ScalePracticePanelProps> = ({
                 </div>
                 <div className="flex shrink-0 items-center gap-2">
                   <Button variant="outline" size="sm" onClick={handleResetToStandard} className="text-xs font-bold focus-scale">
-                      <RotateCcw className="w-3 h-3 mr-2" />
+                      <RotateCcw className="mr-1.5 h-3.5 w-3.5" />
                       Reset
                   </Button>
                   <Button

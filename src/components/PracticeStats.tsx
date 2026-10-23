@@ -8,6 +8,7 @@ import {
 import { Clock, Target, Activity, Flame, Calendar } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import TechniqueRadar from './TechniqueRadar';
+import StatTile from './StatTile';
 import WeeklyActivityChart from './WeeklyActivityChart';
 import { isSameDay, subDays, startOfDay } from 'date-fns';
 
@@ -66,60 +67,17 @@ const PracticeStats = () => {
 
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card style={{ animationDelay: '0ms' }} className="surface-interactive animate-in fade-in slide-in-from-bottom-2 fill-mode-both duration-300">
-          <CardContent className="flex items-center gap-4 p-5">
-            <div className="p-3 rounded-xl bg-primary/10 text-primary">
-              <Activity className="h-6 w-6" />
-            </div>
-            <div>
-              <p className="text-2xl font-black tracking-tight tabular-nums">{stats.completionPercentage}%</p>
-              <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Overall Mastery</p>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card style={{ animationDelay: '60ms' }} className="surface-interactive animate-in fade-in slide-in-from-bottom-2 fill-mode-both duration-300">
-          <CardContent className="flex items-center gap-4 p-5">
-            <div className="p-3 rounded-xl bg-orange-500/10 text-orange-500">
-              <Flame className="h-6 w-6" />
-            </div>
-            <div>
-              <p className="text-2xl font-black tracking-tight tabular-nums">{stats.streak} Days</p>
-              <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Practice Streak</p>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card style={{ animationDelay: '120ms' }} className="surface-interactive animate-in fade-in slide-in-from-bottom-2 fill-mode-both duration-300">
-          <CardContent className="flex items-center gap-4 p-5">
-            <div className="p-3 rounded-xl bg-blue-500/10 text-blue-500">
-              <Clock className="h-6 w-6" />
-            </div>
-            <div>
-              <p className="text-2xl font-black tracking-tight tabular-nums">{stats.totalDurationMinutes}m</p>
-              <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Total Time</p>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card style={{ animationDelay: '180ms' }} className="surface-interactive animate-in fade-in slide-in-from-bottom-2 fill-mode-both duration-300">
-          <CardContent className="flex items-center gap-4 p-5">
-            <div className="p-3 rounded-xl bg-emerald-500/10 text-emerald-500">
-              <Calendar className="h-6 w-6" />
-            </div>
-            <div>
-              <p className="text-2xl font-black tracking-tight tabular-nums">{stats.totalSessions}</p>
-              <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Total Sessions</p>
-            </div>
-          </CardContent>
-        </Card>
+      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+        <StatTile icon={Activity} label="Overall mastery" value={`${stats.completionPercentage}%`} />
+        <StatTile icon={Flame} label="Practice streak" value={`${stats.streak} ${stats.streak === 1 ? 'day' : 'days'}`} />
+        <StatTile icon={Clock} label="Total time" value={`${stats.totalDurationMinutes}m`} />
+        <StatTile icon={Calendar} label="Total sessions" value={stats.totalSessions} />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card style={{ animationDelay: '120ms' }} className="surface-interactive animate-in fade-in slide-in-from-bottom-2 fill-mode-both duration-500">
+        <Card style={{ animationDelay: '120ms' }} className="surface animate-in fade-in slide-in-from-bottom-2 fill-mode-both duration-500">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
+            <CardTitle className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-muted-foreground">
               <Target className="h-4 w-4" />
               Technique Balance
             </CardTitle>
@@ -129,9 +87,9 @@ const PracticeStats = () => {
           </CardContent>
         </Card>
 
-        <Card style={{ animationDelay: '180ms' }} className="surface-interactive animate-in fade-in slide-in-from-bottom-2 fill-mode-both duration-500">
+        <Card style={{ animationDelay: '180ms' }} className="surface animate-in fade-in slide-in-from-bottom-2 fill-mode-both duration-500">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
+            <CardTitle className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-muted-foreground">
               <Activity className="h-4 w-4" />
               Weekly Volume (Minutes)
             </CardTitle>

@@ -4,7 +4,7 @@ import PageContainer from '@/components/PageContainer';
 import PageHeader from '@/components/PageHeader';
 
 const ReaderPage: React.FC = () => (
-  <PageContainer className="flex flex-col gap-6" aria-label="Practice reader">
+  <PageContainer aria-label="Practice reader">
     <PageHeader
       eyebrow="Library"
       title="Practice reader"

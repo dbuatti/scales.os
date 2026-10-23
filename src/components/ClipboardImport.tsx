@@ -2,7 +2,9 @@ import React, { useCallback, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Textarea } from '@/components/ui/textarea';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Upload, FileText, Music2, Loader2, CheckCircle, AlertCircle, MinusCircle, Plus } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { showSuccess, showError } from '@/utils/toast';
@@ -136,18 +138,23 @@ export const ClipboardImport: React.FC<ClipboardImportProps> = ({ onImport, onCl
   const hasBPMDecisionsPending = pdfFiles.some(f => f.bpmCandidates.length > 1 && !bpmDecisions[f.name]);
 
   return (
-    <Card className="w-full max-w-2xl">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2 text-base">
-          <Upload className="w-4 h-4 text-primary" />
-          Import from Clipboard / Dropbox
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-4">
+    <div className="w-full space-y-5">
+      <DialogHeader className="text-left">
+        <DialogTitle className="flex items-center gap-2 text-base font-bold tracking-tight">
+          <span className="rounded-lg bg-primary/10 p-1.5 text-primary">
+            <Upload className="h-4 w-4" />
+          </span>
+          Import from clipboard or Dropbox
+        </DialogTitle>
+        <DialogDescription className="text-xs">
+          BPMs in filenames are detected automatically and become exercise targets.
+        </DialogDescription>
+      </DialogHeader>
+      <div className="space-y-4">
         {/* Paste area */}
         <div
           className={cn(
-            'relative rounded-xl border-2 border-dashed p-8 text-center transition-all duration-200',
+            'relative rounded-xl border border-dashed p-8 text-center transition-all duration-200 focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2',
             importedFiles.length > 0 ? 'border-border/60 bg-card/50' : 'border-primary/30 bg-primary/5 hover:border-primary/50 hover:bg-primary/10'
           )}
           onPaste={handlePaste}
@@ -156,14 +163,21 @@ export const ClipboardImport: React.FC<ClipboardImportProps> = ({ onImport, onCl
             type="file"
             multiple
             accept=".pdf,audio/*"
-            className="absolute inset-0 opacity-0 cursor-pointer"
+            aria-label="Choose PDF or audio files"
+            className="absolute inset-0 cursor-pointer opacity-0"
             onChange={handleFileInput}
             disabled={isProcessing}
           />
           
-          {importedFiles.length === 0 && !isProcessing ? (
+          {isProcessing ? (
+            <Loader2 className="mx-auto h-8 w-8 animate-spin text-primary" />
+          ) : importedFiles.length > 0 ? (
+            <p className="text-sm font-medium text-muted-foreground">
+              Paste or click to add more files
+            </p>
+          ) : (
             <div className="space-y-3">
-              <Upload className="w-10 h-10 mx-auto text-muted-foreground/40" />
+              <Upload className="mx-auto h-8 w-8 text-muted-foreground/60" />
               <p className="text-sm font-medium text-foreground">
                 Paste clipboard content or click to select files
               </p>
@@ -172,50 +186,47 @@ export const ClipboardImport: React.FC<ClipboardImportProps> = ({ onImport, onCl
                 BPMs in filenames will be auto-detected.
               </p>
             </div>
-          ) : (
-            <Loader2 className="w-8 h-8 mx-auto animate-spin text-primary" />
           )}
-          
-          {/* Or paste text fallback */}
-          <div className="mt-4 pt-4 border-t border-border/60">
-            <p className="text-xs text-muted-foreground mb-2">Or paste Dropbox folder listing as text:</p>
-            <textarea
-              value={pasteText}
-              onChange={(e) => setPasteText(e.target.value)}
-              onPaste={(e) => {
-                // Allow paste to go to parent handler
-                e.stopPropagation();
-              }}
-              className="w-full min-h-[80px] rounded-md border border-border/60 bg-background px-3 py-2 text-xs font-mono resize-none focus:ring-2 focus:ring-ring"
-              placeholder="Paste Dropbox folder listing here..."
-            />
-            <Button
-              variant="outline"
-              size="sm"
-              className="mt-2"
-              onClick={handleTextPaste}
-              disabled={!pasteText.trim() || isProcessing}
-            >
-              Parse Text
-            </Button>
-          </div>
+        </div>
+
+        {/* Or paste text fallback */}
+        <div className="space-y-2">
+          <Label htmlFor="dropbox-listing" className="text-xs font-medium text-muted-foreground">
+            Or paste a Dropbox folder listing as text
+          </Label>
+          <Textarea
+            id="dropbox-listing"
+            value={pasteText}
+            onChange={(e) => setPasteText(e.target.value)}
+            className="min-h-[80px] resize-none text-xs"
+            placeholder="Paste Dropbox folder listing here…"
+          />
+          <Button
+            variant="outline"
+            size="sm"
+            className="font-bold"
+            onClick={handleTextPaste}
+            disabled={!pasteText.trim() || isProcessing}
+          >
+            Parse text
+          </Button>
         </div>
 
         {/* Imported files list */}
         {importedFiles.length > 0 && (
           <div className="space-y-3">
             <div className="flex items-center justify-between">
-              <h4 className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
+              <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
                 Detected Files ({importedFiles.length})
               </h4>
               <Button variant="ghost" size="sm" onClick={() => setImportedFiles([])}>
-                Clear All
+                Clear all
               </Button>
             </div>
 
             {pdfFiles.length > 0 && (
               <div className="space-y-2">
-                <h5 className="text-xs font-bold uppercase tracking-widest text-primary">PDFs ({pdfFiles.length})</h5>
+                <h5 className="text-xs font-bold uppercase tracking-wider text-primary">PDFs ({pdfFiles.length})</h5>
                 {pdfFiles.map((file) => (
                   <div
                     key={file.name}
@@ -230,7 +241,7 @@ export const ClipboardImport: React.FC<ClipboardImportProps> = ({ onImport, onCl
                       <FileText className="w-5 h-5 text-primary shrink-0" />
                       <div className="min-w-0">
                         <p className="truncate text-sm font-medium">{file.name}</p>
-                        <p className="text-[11px] text-muted-foreground">
+                        <p className="text-xs text-muted-foreground">
                           {Math.round(file.size / 1024)} KB
                           {file.bpmCandidates.length > 0 && (
                             <>
@@ -239,7 +250,7 @@ export const ClipboardImport: React.FC<ClipboardImportProps> = ({ onImport, onCl
                                 'font-bold',
                                 file.bpmCandidates.length > 1 && !bpmDecisions[file.name]
                                   ? 'text-warning'
-                                  : 'text-emerald-500'
+                                  : 'text-success'
                               )}>
                                 {file.bpmCandidates.join(', ')} BPM
                               </span>
@@ -275,7 +286,7 @@ export const ClipboardImport: React.FC<ClipboardImportProps> = ({ onImport, onCl
 
             {audioFiles.length > 0 && (
               <div className="space-y-2">
-                <h5 className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
+                <h5 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
                   Audio Files ({audioFiles.length})
                 </h5>
                 {audioFiles.map((file) => (
@@ -284,12 +295,12 @@ export const ClipboardImport: React.FC<ClipboardImportProps> = ({ onImport, onCl
                     className="flex items-center justify-between gap-3 rounded-lg border border-border/60 bg-card p-3"
                   >
                     <div className="flex items-center gap-3 min-w-0 flex-1">
-                      <Music2 className="w-5 h-5 text-emerald-500 shrink-0" />
+                      <Music2 className="w-5 h-5 text-success shrink-0" />
                       <div className="min-w-0">
                         <p className="truncate text-sm font-medium">{file.name}</p>
-                        <p className="text-[11px] text-muted-foreground">
+                        <p className="text-xs text-muted-foreground">
                           {file.bpmCandidates.length > 0 && (
-                            <span className="font-bold text-emerald-500">
+                            <span className="font-bold text-success">
                               {file.bpmCandidates.join(', ')} BPM
                             </span>
                           )}
@@ -310,62 +321,76 @@ export const ClipboardImport: React.FC<ClipboardImportProps> = ({ onImport, onCl
             )}
 
             {/* BPM decision dialog */}
-            {showBPMDialog && (
-              <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-                <div className="w-full max-w-md rounded-xl border bg-card p-5 shadow-2xl animate-in slide-in-from-top-4">
-                  <h4 className="text-sm font-bold mb-3">Set BPMs for "{showBPMDialog.name}"</h4>
-                  <p className="text-xs text-muted-foreground mb-4">
-                    Detected BPMs: <span className="font-bold text-foreground">{showBPMDialog.bpmCandidates.join(', ')}</span>
-                  </p>
-                  <div className="space-y-3">
-                    <div>
-                      <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-                        Goal BPM (highest)
-                      </Label>
-                      <select
-                        defaultValue={showBPMDialog.bpmCandidates[showBPMDialog.bpmCandidates.length - 1]}
-                        className="mt-1 w-full h-8 rounded-lg border border-border/60 bg-background px-2 text-sm focus:ring-2 focus:ring-ring"
-                        onChange={(e) => {
-                          const goal = parseInt(e.target.value, 10);
-                          const milestones = showBPMDialog.bpmCandidates.filter(b => b !== goal);
-                          handleBPMDecision(showBPMDialog.name, goal, milestones);
-                        }}
-                      >
-                        {showBPMDialog.bpmCandidates.map((bpm) => (
-                          <option key={bpm} value={bpm}>
-                            {bpm} BPM {bpm === showBPMDialog.bpmCandidates[showBPMDialog.bpmCandidates.length - 1] ? '(highest)' : ''}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                    <div>
-                      <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-                        Milestone BPMs (optional)
-                      </Label>
-                      <div className="flex flex-wrap gap-1.5 mt-1">
-                        {showBPMDialog.bpmCandidates.filter(b => b !== showBPMDialog.bpmCandidates[showBPMDialog.bpmCandidates.length - 1]).map((bpm) => (
-                          <button
-                            key={bpm}
-                            type="button"
-                            className="rounded-md bg-primary/10 px-2 py-1 text-xs font-bold text-primary hover:bg-primary/20"
-                            onClick={() => {
-                              const goal = showBPMDialog.bpmCandidates[showBPMDialog.bpmCandidates.length - 1];
-                              const milestones = showBPMDialog.bpmCandidates.filter(b => b !== goal && b !== bpm);
+            <Dialog open={!!showBPMDialog} onOpenChange={(open) => !open && setShowBPMDialog(null)}>
+              <DialogContent className="rounded-xl sm:max-w-md">
+                {showBPMDialog && (() => {
+                  const candidates = showBPMDialog.bpmCandidates;
+                  const highest = candidates[candidates.length - 1];
+                  return (
+                    <>
+                      <DialogHeader className="text-left">
+                        <DialogTitle className="text-base font-bold tracking-tight">
+                          Set BPMs for &ldquo;{showBPMDialog.name}&rdquo;
+                        </DialogTitle>
+                        <DialogDescription className="text-xs">
+                          Detected BPMs: <span className="font-bold text-foreground">{candidates.join(', ')}</span>
+                        </DialogDescription>
+                      </DialogHeader>
+                      <div className="space-y-4">
+                        <div className="space-y-1.5">
+                          <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                            Goal BPM (highest)
+                          </Label>
+                          <Select
+                            onValueChange={(value) => {
+                              const goal = parseInt(value, 10);
+                              const milestones = candidates.filter(b => b !== goal);
                               handleBPMDecision(showBPMDialog.name, goal, milestones);
                             }}
                           >
-                            {bpm} BPM
-                          </button>
-                        ))}
+                            <SelectTrigger className="h-9">
+                              <SelectValue placeholder={`${highest} BPM (highest)`} />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {candidates.map((bpm) => (
+                                <SelectItem key={bpm} value={String(bpm)}>
+                                  {bpm} BPM {bpm === highest ? '(highest)' : ''}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div className="space-y-1.5">
+                          <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                            Milestone BPMs (optional)
+                          </Label>
+                          <div className="flex flex-wrap gap-1.5">
+                            {candidates.filter(b => b !== highest).map((bpm) => (
+                              <Button
+                                key={bpm}
+                                type="button"
+                                variant="secondary"
+                                size="sm"
+                                className="h-8 bg-primary/10 text-xs font-bold text-primary hover:bg-primary/20"
+                                onClick={() => {
+                                  const milestones = candidates.filter(b => b !== highest && b !== bpm);
+                                  handleBPMDecision(showBPMDialog.name, highest, milestones);
+                                }}
+                              >
+                                {bpm} BPM
+                              </Button>
+                            ))}
+                          </div>
+                        </div>
                       </div>
-                    </div>
-                  </div>
-                  <Button variant="secondary" className="mt-4 w-full" onClick={() => setShowBPMDialog(null)}>
-                    Cancel
-                  </Button>
-                </div>
-              </div>
-            )}
+                      <Button variant="secondary" className="w-full" onClick={() => setShowBPMDialog(null)}>
+                        Cancel
+                      </Button>
+                    </>
+                  );
+                })()}
+              </DialogContent>
+            </Dialog>
           </div>
         )}
 
@@ -402,8 +427,8 @@ export const ClipboardImport: React.FC<ClipboardImportProps> = ({ onImport, onCl
             Drag them into your practice reader to load the actual files.
           </p>
         )}
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 };
 

@@ -49,7 +49,7 @@ const TempoControl: React.FC<TempoControlProps> = ({
       max={MAX_BPM}
       className={
         compact
-          ? 'h-9 w-12 rounded-lg border-0 bg-transparent px-1 text-center text-base font-black tabular-nums focus-visible:ring-0 focus-visible:ring-offset-0'
+          ? 'h-9 w-14 rounded-lg border-0 bg-transparent px-1 text-center text-base font-black tabular-nums focus-visible:ring-0 focus-visible:ring-offset-0'
           : 'h-14 w-full text-center text-3xl font-black tabular-nums'
       }
       aria-label="Tempo in BPM"
@@ -58,11 +58,11 @@ const TempoControl: React.FC<TempoControlProps> = ({
 
   if (compact) {
     return (
-      <div className="flex shrink-0 items-center gap-0.5 rounded-xl border border-border/60 bg-card/60 p-1 backdrop-blur-xl">
+      <div className="flex shrink-0 items-center gap-0.5 rounded-lg bg-muted/50 p-0.5">
         <Button
           variant="ghost"
           size="icon"
-          className="h-8 w-8 shrink-0 rounded-lg text-xs font-bold tabular-nums text-muted-foreground hover:bg-background/70 hover:text-foreground focus-scale"
+          className="hidden h-8 w-8 shrink-0 rounded-md text-xs font-bold tabular-nums text-muted-foreground transition-all duration-150 hover:bg-background hover:text-foreground active:scale-[0.98] sm:inline-flex"
           onClick={() => onStep(-5)}
           aria-label="Decrease by 5 BPM"
         >
@@ -71,7 +71,7 @@ const TempoControl: React.FC<TempoControlProps> = ({
         <Button
           variant="ghost"
           size="icon"
-          className="h-8 w-8 shrink-0 rounded-lg text-muted-foreground hover:bg-background/70 hover:text-foreground focus-scale"
+          className="h-8 w-8 shrink-0 rounded-md text-muted-foreground transition-all duration-150 hover:bg-background hover:text-foreground active:scale-[0.98]"
           onClick={() => onStep(-1)}
           aria-label="Decrease by 1 BPM"
         >
@@ -81,7 +81,7 @@ const TempoControl: React.FC<TempoControlProps> = ({
         <Button
           variant="ghost"
           size="icon"
-          className="h-8 w-8 shrink-0 rounded-lg text-muted-foreground hover:bg-background/70 hover:text-foreground focus-scale"
+          className="h-8 w-8 shrink-0 rounded-md text-muted-foreground transition-all duration-150 hover:bg-background hover:text-foreground active:scale-[0.98]"
           onClick={() => onStep(1)}
           aria-label="Increase by 1 BPM"
         >
@@ -90,7 +90,7 @@ const TempoControl: React.FC<TempoControlProps> = ({
         <Button
           variant="ghost"
           size="icon"
-          className="h-8 w-8 shrink-0 rounded-lg text-xs font-bold tabular-nums text-muted-foreground hover:bg-background/70 hover:text-foreground focus-scale"
+          className="hidden h-8 w-8 shrink-0 rounded-md text-xs font-bold tabular-nums text-muted-foreground transition-all duration-150 hover:bg-background hover:text-foreground active:scale-[0.98] sm:inline-flex"
           onClick={() => onStep(5)}
           aria-label="Increase by 5 BPM"
         >
@@ -111,7 +111,7 @@ const TempoControl: React.FC<TempoControlProps> = ({
         </div>
         {typeof target === 'number' && target > 0 && (
           <div className="flex shrink-0 flex-col items-end text-right">
-            <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
               Target
             </span>
             <span className="flex items-center gap-1 text-sm font-bold text-primary">
@@ -176,7 +176,7 @@ const TempoControl: React.FC<TempoControlProps> = ({
             key={preset}
             variant={value === preset ? 'default' : 'outline'}
             size="sm"
-            className="h-8 px-0 text-[11px] font-bold tabular-nums"
+            className="h-8 px-0 text-xs font-bold tabular-nums"
             onClick={() => onChange(preset)}
           >
             {preset}

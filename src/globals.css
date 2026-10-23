@@ -150,7 +150,7 @@
     @apply rounded-2xl border border-border/50 bg-card/70 shadow-sm backdrop-blur-xl;
   }
   .surface-interactive {
-    @apply rounded-2xl border border-border/50 bg-card/70 shadow-sm backdrop-blur-xl transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-lg hover:shadow-primary/10;
+    @apply rounded-2xl border border-border/50 bg-card/70 shadow-sm backdrop-blur-xl transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-md hover:shadow-primary/5;
   }
 }
 

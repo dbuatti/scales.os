@@ -36,7 +36,7 @@ const Login: React.FC = () => {
         aria-hidden="true"
         className="pointer-events-none absolute left-1/2 top-24 h-72 w-72 -translate-x-1/2 rounded-full bg-primary/15 blur-3xl"
       />
-      <Card className="surface relative w-full max-w-md shadow-lg shadow-primary/5 animate-in fade-in slide-in-from-bottom-2 duration-300">
+      <Card className="surface relative w-full max-w-md shadow-md animate-in fade-in slide-in-from-bottom-2 duration-300">
         <CardHeader className="space-y-1.5 p-6 text-center">
           <div className="mx-auto mb-1 flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-primary/70 text-primary-foreground shadow-md shadow-primary/25">
             <Music className="h-5 w-5" />
@@ -53,16 +53,16 @@ const Login: React.FC = () => {
                 default: {
                   colors: {
                     brand: 'hsl(var(--primary))',
-                    brandAccent: 'hsl(var(--primary-foreground))',
+                    brandAccent: 'hsl(var(--primary) / 0.9)',
                     defaultButtonBackground: 'hsl(var(--secondary))',
-                    defaultButtonBackgroundHover: 'hsl(var(--secondary)/0.8)',
+                    defaultButtonBackgroundHover: 'hsl(var(--muted))',
                     defaultButtonText: 'hsl(var(--foreground))',
                     inputBackground: 'hsl(var(--card))',
                     inputBorder: 'hsl(var(--border))',
                     inputBorderHover: 'hsl(var(--primary))',
                     inputBorderFocus: 'hsl(var(--primary))',
                     anchorTextColor: 'hsl(var(--primary))',
-                    anchorTextHoverColor: 'hsl(var(--primary)/0.8)',
+                    anchorTextHoverColor: 'hsl(var(--primary) / 0.8)',
                   },
                   radii: {
                     borderRadiusButton: '0.5rem',

@@ -10,6 +10,7 @@ import { useSupabaseSession } from '@/hooks/use-supabase-session';
 import { supabase } from '@/integrations/supabase/client';
 import { showSuccess, showError } from '@/utils/toast';
 import { cn } from '@/lib/utils';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface NavLinkProps {
     to: string;
@@ -22,21 +23,26 @@ const NavLink: React.FC<NavLinkProps> = ({ to, icon, label }) => {
     const isActive = to === '/' ? location.pathname === '/' : location.pathname.startsWith(to);
 
     return (
-        <Button
-            asChild
-            variant="ghost"
-            className={cn(
-                "flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-all",
-                isActive
-                    ? "bg-primary/10 text-primary hover:bg-primary/15 hover:text-primary"
-                    : "text-muted-foreground hover:text-foreground"
-            )}
-        >
-            <Link to={to} aria-current={isActive ? 'page' : undefined}>
-                {icon}
-                <span className="text-sm">{label}</span>
-            </Link>
-        </Button>
+        <Tooltip>
+            <TooltipTrigger asChild>
+                <Button
+                    asChild
+                    variant="ghost"
+                    className={cn(
+                        "flex items-center gap-2 rounded-lg px-2.5 py-2 text-sm font-medium transition-all duration-150 active:scale-[0.98] 2xl:px-3",
+                        isActive
+                            ? "bg-primary/10 text-primary hover:bg-primary/15 hover:text-primary"
+                            : "text-muted-foreground hover:text-foreground"
+                    )}
+                >
+                    <Link to={to} aria-current={isActive ? 'page' : undefined} aria-label={label}>
+                        {icon}
+                        <span className="hidden text-sm 2xl:inline">{label}</span>
+                    </Link>
+                </Button>
+            </TooltipTrigger>
+            <TooltipContent className="2xl:hidden">{label}</TooltipContent>
+        </Tooltip>
     );
 };
 
@@ -55,7 +61,7 @@ const MobileNavItem: React.FC<MobileNavItemProps> = ({ to, icon, label }) => {
             to={to}
             aria-current={isActive ? 'page' : undefined}
             className={cn(
-                "flex min-h-16 flex-1 flex-col items-center justify-center gap-0.5 py-2 text-[10px] font-bold uppercase tracking-widest transition-colors focus-visible:z-10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring",
+                "flex min-h-16 flex-1 flex-col items-center justify-center gap-0.5 py-2 text-[10px] font-bold uppercase tracking-wider transition-colors focus-visible:z-10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring",
                 isActive ? "bg-primary/10 text-primary" : "text-muted-foreground hover:bg-muted/60 hover:text-foreground"
             )}
         >
@@ -83,8 +89,8 @@ const AuthenticatedShell: React.FC = () => {
   const authenticatedHeaderRightContent = (
     <div className="flex items-center gap-3">
       <AuthenticatedHeaderControls showMetronome={!isReader} />
-      <div className="hidden h-6 w-px bg-border md:block" />
-      <nav className="hidden items-center gap-1 md:flex">
+      <div className="hidden h-6 w-px bg-border lg:block" />
+      <nav aria-label="Sections" className="hidden items-center gap-1 lg:flex">
         <NavLink to="/" icon={<Play className="w-4 h-4" />} label="Practice" />
         <NavLink to="/reader" icon={<BookOpen className="w-4 h-4" />} label="Reader" />
         <NavLink to="/progress" icon={<BarChart2 className="w-4 h-4" />} label="Progress" />
@@ -93,7 +99,7 @@ const AuthenticatedShell: React.FC = () => {
           variant="ghost"
           size="icon"
           onClick={handleLogout}
-          className="hidden text-muted-foreground hover:text-destructive md:inline-flex"
+          className="hidden text-muted-foreground hover:text-destructive lg:inline-flex"
       >
           <LogOut className="w-4 h-4" />
           <span className="sr-only">Logout</span>
@@ -109,7 +115,7 @@ const AuthenticatedShell: React.FC = () => {
       <button
         type="button"
         onClick={handleLogout}
-        className="flex min-h-16 flex-1 flex-col items-center justify-center gap-0.5 py-2 text-[10px] font-bold uppercase tracking-widest text-muted-foreground transition-colors hover:bg-muted/60 hover:text-destructive focus-visible:z-10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring"
+        className="flex min-h-16 flex-1 flex-col items-center justify-center gap-0.5 py-2 text-[10px] font-bold uppercase tracking-wider text-muted-foreground transition-colors hover:bg-muted/60 hover:text-destructive focus-visible:z-10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring"
       >
         <LogOut className="w-5 h-5" />
         <span>Logout</span>

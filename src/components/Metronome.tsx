@@ -92,13 +92,13 @@ const Metronome: React.FC<MetronomeProps> = ({ showSettings = true }) => {
     >
       <ToggleGroupItem
         value="quarter"
-        className="h-8 px-3 text-[10px] font-bold focus-scale data-[state=on]:bg-primary data-[state=on]:text-primary-foreground"
+        className="h-8 px-3 text-xs font-bold focus-scale data-[state=on]:bg-primary data-[state=on]:text-primary-foreground"
       >
         <Clock className="mr-1.5 h-3 w-3" /> 1/4
       </ToggleGroupItem>
       <ToggleGroupItem
         value="eighth"
-        className="h-8 px-3 text-[10px] font-bold focus-scale data-[state=on]:bg-primary data-[state=on]:text-primary-foreground"
+        className="h-8 px-3 text-xs font-bold focus-scale data-[state=on]:bg-primary data-[state=on]:text-primary-foreground"
       >
         <Music className="mr-1.5 h-3 w-3" /> 1/8
       </ToggleGroupItem>
@@ -113,8 +113,8 @@ const Metronome: React.FC<MetronomeProps> = ({ showSettings = true }) => {
       )}
     >
       {isRunning && (
-        <div className="absolute top-1 right-1 flex items-center gap-0.5 text-[8px] font-black text-primary/40">
-          <Hash className="w-2 h-2" />
+        <div className="absolute top-1 right-1 flex items-center gap-0.5 text-[10px] font-bold tabular-nums text-primary/50">
+          <Hash className="h-2.5 w-2.5" />
           {currentMeasure}
         </div>
       )}
@@ -162,10 +162,10 @@ const Metronome: React.FC<MetronomeProps> = ({ showSettings = true }) => {
   }
 
   return (
-    <div className="flex items-center gap-1 rounded-xl border border-border/60 bg-card/60 p-1 backdrop-blur-xl">
+    <div className="flex items-center gap-1 rounded-xl border border-border/60 bg-card/60 p-1 shadow-sm backdrop-blur-xl">
       <div className="hidden lg:block">{beatIndicator}</div>
 
-      {runButton('w-20')}
+      {runButton('w-16 sm:w-20')}
 
       <TempoControl
         compact
@@ -175,7 +175,7 @@ const Metronome: React.FC<MetronomeProps> = ({ showSettings = true }) => {
       />
 
       <div className="flex items-center gap-0.5">
-        <div className="hidden sm:block">{tapButton}</div>
+        <div className="hidden md:block">{tapButton}</div>
 
         <Popover>
           <PopoverTrigger asChild>
@@ -200,8 +200,11 @@ const Metronome: React.FC<MetronomeProps> = ({ showSettings = true }) => {
 
             <div className="space-y-4 border-t pt-4">
               <div className="flex items-center justify-between">
-                <Label className="text-xs font-bold uppercase tracking-widest">Volume</Label>
-                <span className="text-[10px] font-bold text-muted-foreground">{Math.round(volume * 100)}%</span>
+                <div className="flex items-center gap-1">
+                  <Label className="text-xs font-bold uppercase tracking-widest">Volume</Label>
+                  <div className="sm:hidden">{muteButton}</div>
+                </div>
+                <span className="text-xs font-bold tabular-nums text-muted-foreground">{Math.round(volume * 100)}%</span>
               </div>
               <div className="flex items-center gap-4">
                 <VolumeX className="w-4 h-4 text-muted-foreground" />
@@ -220,7 +223,7 @@ const Metronome: React.FC<MetronomeProps> = ({ showSettings = true }) => {
               <div className="flex items-center justify-between">
                 <div className="space-y-0.5">
                   <Label className="text-xs font-bold uppercase tracking-widest">Visual Flash</Label>
-                  <p className="text-[10px] text-muted-foreground">Flash screen on beat</p>
+                  <p className="text-xs text-muted-foreground">Flash screen on beat</p>
                 </div>
                 <Button
                   variant={visualFlashEnabled ? 'default' : 'outline'}
@@ -237,13 +240,13 @@ const Metronome: React.FC<MetronomeProps> = ({ showSettings = true }) => {
               <div className="flex items-center justify-between">
                 <div className="space-y-0.5">
                   <Label className="text-xs font-bold uppercase tracking-widest">Auto-Increment</Label>
-                  <p className="text-[10px] text-muted-foreground">Increase BPM over time</p>
+                  <p className="text-xs text-muted-foreground">Increase BPM over time</p>
                 </div>
                 <Button
                   variant={autoIncrementEnabled ? 'default' : 'outline'}
                   size="sm"
                   onClick={() => setAutoIncrementEnabled(!autoIncrementEnabled)}
-                  className="h-9 text-[10px] px-3"
+                  className="h-9 px-3 text-xs font-bold"
                 >
                   {autoIncrementEnabled ? 'ON' : 'OFF'}
                 </Button>
@@ -252,7 +255,7 @@ const Metronome: React.FC<MetronomeProps> = ({ showSettings = true }) => {
               {autoIncrementEnabled && (
                 <div className="space-y-3 animate-in fade-in slide-in-from-top-2 duration-200">
                   <div className="flex items-center justify-between gap-4">
-                    <Label className="text-[10px] text-muted-foreground">Increase by (BPM)</Label>
+                    <Label className="text-xs text-muted-foreground">Increase by (BPM)</Label>
                     <Input
                       type="number"
                       value={incrementAmount}
@@ -261,7 +264,7 @@ const Metronome: React.FC<MetronomeProps> = ({ showSettings = true }) => {
                     />
                   </div>
                   <div className="flex items-center justify-between gap-4">
-                    <Label className="text-[10px] text-muted-foreground">Every (Measures)</Label>
+                    <Label className="text-xs text-muted-foreground">Every (Measures)</Label>
                     <Input
                       type="number"
                       value={incrementEvery}
@@ -276,7 +279,7 @@ const Metronome: React.FC<MetronomeProps> = ({ showSettings = true }) => {
         </Popover>
       </div>
 
-      {muteButton}
+      <div className="hidden sm:block">{muteButton}</div>
     </div>
   );
 };

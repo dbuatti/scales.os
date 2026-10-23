@@ -39,6 +39,9 @@ import ReaderToolbar from './ReaderToolbar';
 import ThumbnailRail from './ThumbnailRail';
 import DocumentCover from './DocumentCover';
 import ClipboardImport from './ClipboardImport';
+import ExerciseIndexDialog from './ExerciseIndexDialog';
+import Kbd from './Kbd';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { useGlobalBPM } from '@/context/GlobalBPMContext';
 import { useScales } from '@/context/ScalesContext';
 import { cn, shallowEqual } from '@/lib/utils';
@@ -111,7 +114,7 @@ const MappingRow: React.FC<{
             Pages {mapping.pageStart}
             {mapping.pageEnd !== mapping.pageStart ? `–${mapping.pageEnd}` : ''}
           </span>
-          {isCurrent && <Badge className="text-[9px]">Current</Badge>}
+          {isCurrent && <Badge className="text-[10px]">Current</Badge>}
         </div>
         <Button
           variant="ghost"
@@ -254,7 +257,7 @@ const MappingRow: React.FC<{
           {overlaps.map((overlap) => (
             <p
               key={overlap.otherId}
-              className="rounded-md bg-muted/60 px-2 py-1 text-[10px] leading-snug text-muted-foreground"
+              className="rounded-md bg-muted/60 px-2 py-1 text-xs leading-snug text-muted-foreground"
             >
               Shares page{overlap.pages.length > 1 ? 's' : ''}{' '}
               <span className="font-semibold text-foreground">{overlap.pages.join(', ')}</span> with{' '}
@@ -859,81 +862,81 @@ const RepertoirePanel: React.FC = () => {
         ref={fileInputRef}
         type="file"
         accept="application/pdf"
+        hidden
         className="hidden"
         onChange={handleFileInput}
       />
 
-      <div className="flex flex-col gap-4 surface p-5 lg:flex-row lg:items-center lg:justify-between">
-        <div className="space-y-0.5">
-          <Label className="flex items-center gap-2 text-sm font-bold uppercase tracking-wider text-foreground">
-            <Music2 className="w-4 h-4 text-primary" />
-            Repertoire &amp; Technical
-          </Label>
-          <p className="text-xs text-muted-foreground">
-            Load a full method book once, then map page ranges to exercises. The floating
-            tempo panel follows the page you are viewing.
-          </p>
-        </div>
+      <section className="space-y-4">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-center gap-2">
+            <div className="rounded-lg bg-primary/10 p-2 text-primary">
+              <Music2 className="h-4 w-4" />
+            </div>
+            <h2 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+              Your PDFs
+            </h2>
+            {documents.length > 0 && (
+              <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-bold tabular-nums text-muted-foreground">
+                {documents.length}
+              </span>
+            )}
+          </div>
 
-        <div className="flex flex-wrap items-center gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            className="h-9 font-bold focus-scale"
-            onClick={() => setClipboardImportOpen(true)}
-            title="Import from clipboard or Dropbox (parses BPMs from filenames)"
-          >
-            <ClipboardList className="w-4 h-4 mr-1.5" />
-            Import
-          </Button>
-          {mappings.length > 0 && (
+          <div className="flex flex-wrap items-center gap-2">
+            {documents.length > 0 && (
+              <Input
+                value={pdfFilter}
+                onChange={(e) => setPdfFilter(e.target.value)}
+                placeholder="Search PDFs…"
+                aria-label="Search PDFs"
+                className="h-9 w-full text-sm sm:w-48"
+              />
+            )}
             <Button
               variant="outline"
               size="sm"
               className="h-9 font-bold focus-scale"
-              onClick={() => setShowIndex(true)}
-              title="Show exercise index"
+              onClick={() => setClipboardImportOpen(true)}
+              title="Import from clipboard or Dropbox (parses BPMs from filenames)"
             >
-              <ListMusic className="w-4 h-4 mr-1.5" />
-              Index
+              <ClipboardList className="mr-1.5 h-4 w-4" />
+              Import
             </Button>
-          )}
-          {activeDocumentId && (
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-9 w-9 text-muted-foreground hover:text-destructive"
-              onClick={() => {
-                if (selectedDoc) handleDeleteDocument();
-                else handleSelectDocument('');
-              }}
-              title={selectedDoc ? 'Delete document' : 'Close'}
-            >
-              {selectedDoc ? <Trash2 className="w-4 h-4" /> : <X className="w-4 h-4" />}
-            </Button>
-          )}
-        </div>
-      </div>
-
-      <section className="space-y-3">
-        <div className="flex items-center justify-between gap-3">
-          <h3 className="text-xs font-black uppercase tracking-[0.2em] text-muted-foreground">
-            Your PDFs
-          </h3>
-          {documents.length > 0 && (
-            <Input
-              value={pdfFilter}
-              onChange={(e) => setPdfFilter(e.target.value)}
-              placeholder="Search PDFs…"
-              className="h-8 w-40 text-xs"
-            />
-          )}
+            {mappings.length > 0 && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-9 font-bold focus-scale"
+                onClick={() => setShowIndex(true)}
+                title="Show exercise index"
+              >
+                <ListMusic className="mr-1.5 h-4 w-4" />
+                Index
+              </Button>
+            )}
+            {activeDocumentId && (
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-9 w-9 text-muted-foreground hover:text-destructive"
+                onClick={() => {
+                  if (selectedDoc) handleDeleteDocument();
+                  else handleSelectDocument('');
+                }}
+                title={selectedDoc ? 'Delete document' : 'Close'}
+                aria-label={selectedDoc ? 'Delete document' : 'Close document'}
+              >
+                {selectedDoc ? <Trash2 className="h-4 w-4" /> : <X className="h-4 w-4" />}
+              </Button>
+            )}
+          </div>
         </div>
 
         {documents.length === 0 ? (
-          <div className="flex flex-col items-center justify-center gap-4 rounded-xl border border-dashed border-border/60 bg-card/30 px-6 py-16 text-center">
-            <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/10 text-primary">
-              <BookOpen className="h-8 w-8" />
+          <div className="flex flex-col items-center justify-center gap-4 rounded-xl border border-dashed border-border/60 bg-card/50 px-6 py-12 text-center shadow-sm sm:py-16">
+            <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-primary/10 text-primary">
+              <BookOpen className="h-7 w-7" />
             </div>
             <div className="space-y-2 max-w-md">
               <p className="text-lg font-bold text-foreground">Add your first method book</p>
@@ -942,7 +945,7 @@ const RepertoirePanel: React.FC = () => {
                 The floating tempo panel follows the page you are viewing.
               </p>
             </div>
-            <div className="flex flex-wrap items-center justify-center gap-3 mt-2">
+            <div className="mt-2 flex w-full flex-col items-stretch justify-center gap-3 sm:w-auto sm:flex-row sm:items-center">
               <Button
                 onClick={() => fileInputRef.current?.click()}
                 disabled={isUploading}
@@ -963,10 +966,10 @@ const RepertoirePanel: React.FC = () => {
                 size="lg"
               >
                 <ClipboardList className="h-4 w-4 mr-2" />
-                Import from Clipboard
+                Import from clipboard
               </Button>
             </div>
-            <p className="text-xs text-muted-foreground/60 mt-2">
+            <p className="mt-1 text-xs text-muted-foreground">
               Tip: Paste a Dropbox folder listing to bulk-import PDFs with auto-detected BPMs
             </p>
           </div>
@@ -985,9 +988,9 @@ const RepertoirePanel: React.FC = () => {
                     if (e.key === 'Enter' || e.key === ' ') handleSelectDocument(doc.id);
                   }}
                   className={cn(
-                    'group relative flex flex-col gap-3 rounded-xl border bg-card/70 p-3 text-left shadow-sm backdrop-blur-xl transition-all duration-200 cursor-pointer hover:shadow-lg hover:-translate-y-0.5 active:scale-[0.98]',
+                    'group relative flex cursor-pointer flex-col gap-3 rounded-xl border bg-card/70 p-3 text-left shadow-sm backdrop-blur-xl transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
                     isOpen
-                      ? 'border-primary/50 ring-2 ring-primary/20 shadow-md shadow-primary/5'
+                      ? 'border-primary/50 shadow-md ring-1 ring-primary/20'
                       : 'border-border/60 hover:border-primary/40',
                   )}
                 >
@@ -997,19 +1000,20 @@ const RepertoirePanel: React.FC = () => {
                       <div className="pointer-events-none absolute inset-0 rounded-lg ring-2 ring-inset ring-primary" />
                     )}
                     {book && (
-                      <Badge className="absolute left-2 top-2 text-[9px]">
+                      <Badge className="absolute left-2 top-2 text-[10px]">
                         {book === 'hanon' ? 'Hanon' : 'Dohnányi'}
                       </Badge>
                     )}
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="absolute right-1.5 top-1.5 h-7 w-7 text-white/90 hover:bg-black/30 hover:text-white"
+                      className="absolute right-1.5 top-1.5 h-7 w-7 bg-background/80 text-muted-foreground opacity-100 shadow-sm backdrop-blur transition-all duration-150 hover:bg-background hover:text-destructive sm:opacity-0 sm:group-hover:opacity-100 sm:focus-visible:opacity-100"
                       onClick={(e) => {
                         e.stopPropagation();
                         void handleDeleteDocument(doc);
                       }}
                       title="Delete"
+                      aria-label={`Delete ${formatDocumentTitle(doc.title)}`}
                     >
                       <Trash2 className="h-3.5 w-3.5" />
                     </Button>
@@ -1018,7 +1022,7 @@ const RepertoirePanel: React.FC = () => {
                     <p className="truncate text-sm font-bold leading-tight">
                       {formatDocumentTitle(doc.title)}
                     </p>
-                    <p className="text-[11px] text-muted-foreground tabular-nums">
+                    <p className="text-xs tabular-nums text-muted-foreground">
                       {doc.page_count}p · p.{doc.last_viewed_page}
                     </p>
                   </div>
@@ -1030,7 +1034,7 @@ const RepertoirePanel: React.FC = () => {
               type="button"
               onClick={() => fileInputRef.current?.click()}
               disabled={isUploading}
-              className="flex flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-border bg-card/30 p-4 text-center text-muted-foreground transition-colors hover:border-primary/40 hover:text-primary"
+              className="flex min-h-40 flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-border bg-card/30 p-4 text-center text-muted-foreground transition-all duration-200 hover:border-primary/40 hover:bg-primary/5 hover:text-primary active:scale-[0.98]"
             >
               {isUploading ? (
                 <Loader2 className="h-5 w-5 animate-spin" />
@@ -1044,7 +1048,7 @@ const RepertoirePanel: React.FC = () => {
       </section>
 
       {!isCloudEnabled && (
-        <div className="flex items-center gap-2 rounded-md border border-warning/30 bg-warning/5 px-3 py-2 text-xs text-warning-foreground">
+        <div className="flex items-center gap-2 rounded-lg border border-warning/30 bg-warning/5 px-3 py-2 text-xs font-medium text-warning">
           <HardDrive className="w-3.5 h-3.5" />
           Not signed in — documents are stored locally in this browser only.
         </div>
@@ -1065,9 +1069,11 @@ const RepertoirePanel: React.FC = () => {
       )}
 
       {!source ? (
-        <Suspense fallback={<ViewerFallback />}>
-          <PdfViewer source={null} mappings={[]} />
-        </Suspense>
+        documents.length > 0 && (
+          <Suspense fallback={<ViewerFallback />}>
+            <PdfViewer source={null} mappings={[]} />
+          </Suspense>
+        )
       ) : (
         <div className="grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,1fr)_360px]">
           <div
@@ -1172,21 +1178,21 @@ const RepertoirePanel: React.FC = () => {
             </Suspense>
 
             {!fullscreen && (
-              <p className="text-[11px] text-muted-foreground/60">
-                <kbd className="px-1 rounded bg-muted border border-border/60 font-mono">←</kbd>
+              <p className="flex flex-wrap items-center gap-1 text-xs text-muted-foreground">
+                <Kbd>←</Kbd>
                 {' '}
-                <kbd className="px-1 rounded bg-muted border border-border/60 font-mono">→</kbd>
+                <Kbd>→</Kbd>
                 {' '}
                 jump pages ·{' '}
-                <kbd className="px-1 rounded bg-muted border border-border/60 font-mono">[</kbd>
-                <kbd className="px-1 rounded bg-muted border border-border/60 font-mono">]</kbd>
+                <Kbd>[</Kbd>
+                <Kbd>]</Kbd>
                 {' '}
                 exercises ·{' '}
-                <kbd className="px-1 rounded bg-muted border border-border/60 font-mono">+</kbd>
-                <kbd className="px-1 rounded bg-muted border border-border/60 font-mono">−</kbd>
+                <Kbd>+</Kbd>
+                <Kbd>−</Kbd>
                 {' '}
                 zoom ·{' '}
-                <kbd className="px-1 rounded bg-muted border border-border/60 font-mono">0</kbd>
+                <Kbd>0</Kbd>
                 {' '}
                 reset · bookmark from the page or the panel · L layout
               </p>
@@ -1275,151 +1281,22 @@ const RepertoirePanel: React.FC = () => {
         </div>
       )}
 
-      {source && showIndex && mappings.length > 0 && pageCount > 0 && (
-        <div className="fixed inset-0 z-[95] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="w-full max-w-lg max-h-[80vh] overflow-y-auto rounded-2xl border border-border/60 bg-card shadow-2xl">
-            <div className="sticky top-0 flex items-center justify-between gap-3 px-5 py-4 border-b border-border/40 bg-card/95 backdrop-blur-sm">
-              <div className="flex items-center gap-2">
-                <ListMusic className="w-5 h-5 text-primary" />
-                <h3 className="text-base font-bold text-foreground">Exercise Index</h3>
-              </div>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-8 w-8 text-muted-foreground"
-                onClick={() => setShowIndex(false)}
-                aria-label="Close index"
-              >
-                <X className="w-4 h-4" />
-              </Button>
-            </div>
-            <div className="p-3 space-y-2">
-              {sortMappings(mappings).map((mapping) => {
-                const isCurrent = currentPage >= mapping.pageStart && currentPage <= mapping.pageEnd;
-                return (
-                  <button
-                    key={mapping.id}
-                    type="button"
-                    onClick={() => {
-                      setPendingInitialPage(mapping.pageStart);
-                      setShowIndex(false);
-                      // Delay navigation to ensure DOM is ready after index closes
-                      setTimeout(() => {
-                        viewerRef.current?.scrollToPage(mapping.pageStart);
-                        setCurrentPage(mapping.pageStart);
-                      }, 100);
-                    }}
-                    className={cn(
-                      'w-full flex items-center justify-between gap-3 rounded-xl border p-3 text-left transition-all duration-150 active:scale-[0.98]',
-                      isCurrent
-                        ? 'border-primary/50 bg-primary/10 shadow-sm'
-                        : 'border-border/60 bg-card/50 hover:border-primary/30 hover:bg-primary/5 hover:shadow-sm',
-                    )}
-                  >
-                    <div className="flex items-center gap-3 min-w-0 flex-1">
-                      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary text-xs font-black tabular-nums">
-                        {mapping.pageStart}
-                      </div>
-                      <div className="min-w-0">
-                        <p className="truncate text-sm font-bold text-foreground">
-                          {mapping.label || mapping.exerciseId || 'Page ' + mapping.pageStart}
-                        </p>
-                        <p className="text-[11px] text-muted-foreground">
-                          {mapping.mode === 'technical' ? 'Technical' : 'Repertoire'}
-                          {mapping.targetBpm > 0 && (
-                            <span className="ml-1.5 font-medium text-primary">· {mapping.targetBpm} BPM goal</span>
-                          )}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-1.5 shrink-0">
-                      {isCurrent && (
-                        <Badge className="text-[9px] bg-primary/20 text-primary border-primary/30">Current</Badge>
-                      )}
-                      <ChevronRight className="w-4 h-4 text-muted-foreground" />
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
-            <div className="px-5 py-3 border-t border-border/40 bg-muted/20">
-              <p className="text-[11px] text-muted-foreground text-center">
-                Click any exercise to jump to its page · Press <kbd className="px-1 rounded bg-muted border border-border/60 font-mono text-[10px]">Esc</kbd> to close
-              </p>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {source && showIndex && mappings.length > 0 && (
-        <div className="fixed inset-0 z-[95] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="w-full max-w-lg max-h-[80vh] overflow-y-auto rounded-2xl border border-border/60 bg-card shadow-2xl">
-            <div className="sticky top-0 flex items-center justify-between gap-3 px-5 py-4 border-b border-border/40 bg-card/95 backdrop-blur-sm">
-              <div className="flex items-center gap-2">
-                <ListMusic className="w-5 h-5 text-primary" />
-                <h3 className="text-base font-bold text-foreground">Exercise Index</h3>
-              </div>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-8 w-8 text-muted-foreground"
-                onClick={() => setShowIndex(false)}
-                aria-label="Close index"
-              >
-                <X className="w-4 h-4" />
-              </Button>
-            </div>
-            <div className="p-3 space-y-2">
-              {sortMappings(mappings).map((mapping) => {
-                const isCurrent = currentPage >= mapping.pageStart && currentPage <= mapping.pageEnd;
-                return (
-                  <button
-                    key={mapping.id}
-                    type="button"
-                    onClick={() => {
-                      navigatePage(mapping.pageStart);
-                      setShowIndex(false);
-                    }}
-                    className={cn(
-                      'w-full flex items-center justify-between gap-3 rounded-xl border p-3 text-left transition-all duration-150 active:scale-[0.98]',
-                      isCurrent
-                        ? 'border-primary/50 bg-primary/10 shadow-sm'
-                        : 'border-border/60 bg-card/50 hover:border-primary/30 hover:bg-primary/5 hover:shadow-sm',
-                    )}
-                  >
-                    <div className="flex items-center gap-3 min-w-0 flex-1">
-                      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary text-xs font-black tabular-nums">
-                        {mapping.pageStart}
-                      </div>
-                      <div className="min-w-0">
-                        <p className="truncate text-sm font-bold text-foreground">
-                          {mapping.label || mapping.exerciseId || 'Page ' + mapping.pageStart}
-                        </p>
-                        <p className="text-[11px] text-muted-foreground">
-                          {mapping.mode === 'technical' ? 'Technical' : 'Repertoire'}
-                          {mapping.targetBpm > 0 && (
-                            <span className="ml-1.5 font-medium text-primary">· {mapping.targetBpm} BPM goal</span>
-                          )}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-1.5 shrink-0">
-                      {isCurrent && (
-                        <Badge className="text-[9px] bg-primary/20 text-primary border-primary/30">Current</Badge>
-                      )}
-                      <ChevronRight className="w-4 h-4 text-muted-foreground" />
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
-            <div className="px-5 py-3 border-t border-border/40 bg-muted/20">
-              <p className="text-[11px] text-muted-foreground text-center">
-                Click any exercise to jump to its page
-              </p>
-            </div>
-          </div>
-        </div>
+      {source && mappings.length > 0 && (
+        <ExerciseIndexDialog
+          open={showIndex}
+          onOpenChange={setShowIndex}
+          mappings={mappings}
+          currentPage={currentPage}
+          onSelect={(mapping) => {
+            setPendingInitialPage(mapping.pageStart);
+            setShowIndex(false);
+            // Delay navigation to ensure DOM is ready after index closes
+            setTimeout(() => {
+              viewerRef.current?.scrollToPage(mapping.pageStart);
+              setCurrentPage(mapping.pageStart);
+            }, 100);
+          }}
+        />
       )}
 
       {source && (
@@ -1441,14 +1318,16 @@ const RepertoirePanel: React.FC = () => {
         />
       )}
 
-      {clipboardImportOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
-          <ClipboardImport
-            onImport={handleClipboardImport}
-            onClose={() => setClipboardImportOpen(false)}
-          />
-        </div>
-      )}
+      <Dialog open={clipboardImportOpen} onOpenChange={setClipboardImportOpen}>
+        <DialogContent className="max-h-[90vh] overflow-y-auto rounded-xl sm:max-w-2xl">
+          {clipboardImportOpen && (
+            <ClipboardImport
+              onImport={handleClipboardImport}
+              onClose={() => setClipboardImportOpen(false)}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </CardContent>
   );
 };

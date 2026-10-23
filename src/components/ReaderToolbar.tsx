@@ -301,7 +301,7 @@ const ReaderToolbar: React.FC<ReaderToolbarProps> = ({
                 Exercise
               </Label>
               {bookmarkSuggested && (
-                <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[9px] font-black uppercase tracking-widest text-primary">
+                <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-black uppercase tracking-widest text-primary">
                   Suggested
                 </span>
               )}
@@ -332,7 +332,7 @@ const ReaderToolbar: React.FC<ReaderToolbarProps> = ({
             />
           </div>
           {overlappingLabels.length > 0 && (
-            <p className="rounded-md bg-muted/60 px-2 py-1.5 text-[10px] leading-snug text-muted-foreground">
+            <p className="rounded-md bg-muted/60 px-2 py-1.5 text-xs leading-snug text-muted-foreground">
               This page also belongs to{' '}
               <span className="font-semibold text-foreground">
                 {overlappingLabels.join(', ')}

@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useMemo, useState } from 'react';
+import EmptyState from './EmptyState';
 import {
   AreaChart,
   Area,
@@ -47,11 +48,11 @@ const TempoProgressionChart = () => {
   const latestBpm = active ? active.points[active.points.length - 1].bpm : null;
 
   return (
-    <Card className="surface-interactive">
+    <Card className="surface">
       <CardHeader className="pb-2">
         <div className="flex items-start justify-between gap-3">
           <div className="space-y-1">
-            <CardTitle className="text-sm font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
+            <CardTitle className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-muted-foreground">
               <TrendingUp className="w-4 h-4" />
               Tempo Progression
             </CardTitle>
@@ -80,9 +81,11 @@ const TempoProgressionChart = () => {
       </CardHeader>
       <CardContent>
         {groups.length === 0 ? (
-          <p className="text-sm text-muted-foreground text-center py-10">
-            No tempo snapshots yet. Log a session to start tracking your BPM over time.
-          </p>
+          <EmptyState
+            icon={TrendingUp}
+            title="No tempo snapshots yet"
+            description="Log a session to start tracking your BPM over time."
+          />
         ) : (
           <div className="h-[260px] w-full">
             <ResponsiveContainer width="100%" height="100%">

@@ -31,14 +31,17 @@ const ScrollToTopButton: React.FC = () => {
   return (
     <Button
       onClick={scrollToTop}
+      variant="outline"
+      size="icon"
+      tabIndex={isVisible ? 0 : -1}
       className={cn(
-        "fixed bottom-8 right-8 p-3 rounded-full shadow-lg transition-opacity duration-300 z-50",
-        "bg-primary hover:bg-primary/90 text-primary-foreground",
-        isVisible ? "opacity-100" : "opacity-0 pointer-events-none"
+        // Bottom-left so it never collides with the floating tempo panel (bottom-right)
+        "fixed bottom-24 left-4 z-40 h-10 w-10 rounded-full border-border/60 bg-card/90 text-muted-foreground shadow-md backdrop-blur transition-all duration-200 hover:text-foreground active:scale-[0.98] lg:bottom-8 lg:left-8",
+        isVisible ? "opacity-100" : "pointer-events-none opacity-0"
       )}
       aria-label="Scroll to top"
     >
-      <ArrowUp className="w-5 h-5" />
+      <ArrowUp className="h-4 w-4" />
     </Button>
   );
 };

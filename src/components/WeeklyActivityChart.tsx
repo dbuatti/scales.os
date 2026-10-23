@@ -1,6 +1,8 @@
 "use client";
 
 import React, { useMemo } from 'react';
+import { CalendarClock } from 'lucide-react';
+import EmptyState from './EmptyState';
 import { 
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell 
 } from 'recharts';
@@ -33,9 +35,11 @@ const WeeklyActivityChart = () => {
 
   if (!data.some((day) => day.minutes > 0)) {
     return (
-      <div className="flex h-[300px] items-center justify-center text-center text-sm text-muted-foreground">
-        No timed practice this week yet.
-      </div>
+      <EmptyState
+        icon={CalendarClock}
+        title="Quiet week so far"
+        description="Start the practice timer to log minutes here."
+      />
     );
   }
 

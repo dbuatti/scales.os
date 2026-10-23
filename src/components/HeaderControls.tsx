@@ -11,12 +11,12 @@ interface HeaderControlsProps {
 
 const HeaderControls: React.FC<HeaderControlsProps> = ({ onLogSession, showMetronome = true }) => {
   return (
-    <div className="flex items-center space-x-2 sm:space-x-4">
+    <div className="flex items-center gap-2 xl:gap-3">
       {/* 1. Metronome (with integrated BPM control) */}
       {showMetronome && <Metronome />}
 
       {/* 2. Timer (Condensed) */}
-      <div className="hidden md:block">
+      <div className="hidden xl:block">
         <PracticeTimer onLogSession={onLogSession} isCondensed={true} />
       </div>
     </div>

@@ -42,7 +42,7 @@ interface HomeModesProps {
 }
 
 const HomeModes: React.FC<HomeModesProps> = ({ active, onSelect }) => (
-  <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+  <div className="grid grid-cols-3 gap-3">
     {MODES.map((mode, index) => {
       const Icon = mode.icon;
       const isActive = active === mode.id;
@@ -54,24 +54,24 @@ const HomeModes: React.FC<HomeModesProps> = ({ active, onSelect }) => (
           aria-pressed={isActive}
           style={{ animationDelay: `${index * 60}ms` }}
           className={cn(
-            'group relative flex items-center gap-4 overflow-hidden surface p-5 text-left animate-in fade-in slide-in-from-bottom-2 fill-mode-both duration-300',
-            'transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-lg hover:shadow-primary/10 active:translate-y-0 active:scale-[0.99]',
-            isActive ? 'border-primary/40 ring-1 ring-primary/20' : 'border-border/50',
+            'group relative flex flex-col items-center gap-2 overflow-hidden surface p-3 text-center animate-in fade-in slide-in-from-bottom-2 fill-mode-both duration-300 sm:flex-row sm:gap-4 sm:p-5 sm:text-left',
+            'transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-md hover:shadow-primary/5 active:translate-y-0 active:scale-[0.99]',
+            isActive ? 'border-primary/40 bg-primary/[0.04] ring-1 ring-primary/20' : 'border-border/50',
           )}
         >
           <span
             className={cn(
-              'flex h-12 w-12 shrink-0 items-center justify-center rounded-xl transition-transform duration-200 group-hover:scale-105',
+              'flex h-10 w-10 shrink-0 items-center justify-center rounded-lg transition-transform duration-200 group-hover:scale-105 sm:h-12 sm:w-12 sm:rounded-xl',
               mode.tone,
             )}
           >
-            <Icon className="h-6 w-6" />
+            <Icon className="h-5 w-5 sm:h-6 sm:w-6" />
           </span>
-          <span className="min-w-0 flex-1">
-            <span className="block text-base font-bold tracking-tight">{mode.label}</span>
-            <span className="block truncate text-xs text-muted-foreground">{mode.hint}</span>
+          <span className="min-w-0 sm:flex-1">
+            <span className="block text-sm font-bold tracking-tight sm:text-base">{mode.label}</span>
+            <span className="hidden truncate text-xs text-muted-foreground sm:block">{mode.hint}</span>
           </span>
-          <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground/40 transition-all duration-200 group-hover:translate-x-0.5 group-hover:text-primary" />
+          <ChevronRight className="hidden h-4 w-4 shrink-0 sm:block text-muted-foreground/40 transition-all duration-200 group-hover:translate-x-0.5 group-hover:text-primary" />
         </button>
       );
     })}

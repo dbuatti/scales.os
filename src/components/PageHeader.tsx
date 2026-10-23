@@ -19,7 +19,7 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
   <div className={cn('flex flex-col gap-4 md:flex-row md:items-end md:justify-between', className)}>
     <div className="space-y-2.5">
       {eyebrow && (
-        <p className="text-xs font-bold uppercase tracking-[0.2em] text-primary/70">
+        <p className="text-xs font-bold uppercase tracking-wider text-primary">
           {eyebrow}
         </p>
       )}

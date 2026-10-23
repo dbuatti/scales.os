@@ -14,13 +14,13 @@ const PracticeSummaryPanel: React.FC = () => {
 
   if (!activePracticeItem) {
     return (
-      <Card className="rounded-2xl border border-dashed border-border/50 bg-card/50 shadow-sm backdrop-blur-xl">
+      <Card className="surface border-dashed">
         <CardContent className="flex flex-col items-center gap-5 p-12 text-center md:p-16">
-          <div className="rounded-2xl bg-primary/10 p-4 text-primary">
-            <Piano className="h-8 w-8" />
+          <div className="rounded-xl bg-primary/10 p-3 text-primary">
+            <Piano className="h-7 w-7" />
           </div>
           <div className="space-y-2">
-            <p className="text-xl font-semibold">Ready when you are</p>
+            <p className="text-xl font-bold tracking-tight">Ready when you are</p>
             <p className="mx-auto max-w-md text-sm text-muted-foreground">
               Pick a scale, arpeggio, or exercise below to start a session. Your tempo and mastery
               progress will be tracked automatically as you play.
@@ -77,110 +77,87 @@ const PracticeSummaryPanel: React.FC = () => {
 
   const displayType = getDisplayType();
 
+  const highestBPM = activePracticeItem.type === 'scale' ? activePracticeItem.highestBPM : activePracticeItem.currentHighestBPM;
+  const goalBPM = activePracticeItem.type === 'scale' ? activePracticeItem.nextGoalBPM : activePracticeItem.nextTargetBPM;
+
   return (
-    <Card className="surface overflow-hidden shadow-md">
+    <Card className="surface overflow-hidden">
       <CardContent className="p-0">
-        <div className="relative isolate space-y-8 p-8">
+        <div className="relative isolate space-y-6 p-5 sm:p-6 md:space-y-8 md:p-8">
           <div
             aria-hidden="true"
             className="pointer-events-none absolute -right-24 -top-24 -z-10 h-56 w-56 rounded-full bg-primary/10 blur-3xl"
           />
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-8">
-            <div className="space-y-2">
-              <h2 className="text-3xl font-black tracking-tight text-primary">
+          <div className="flex flex-col justify-between gap-6 md:flex-row md:items-center md:gap-8">
+            <div className="min-w-0 space-y-2">
+              <h2 className="text-2xl font-black tracking-tight text-primary sm:text-3xl">
                 {activePracticeItem.type === 'scale'
                   ? `${activePracticeItem.key} ${activePracticeItem.scaleType}`
                   : activePracticeItem.name}
               </h2>
-              <div className="flex items-center gap-3 text-base font-medium text-muted-foreground">
+              <div className="flex items-center gap-2.5 text-sm font-medium text-muted-foreground">
                 <span className={cn(
-                  "capitalize px-2 py-0.5 rounded text-xs font-bold tracking-widest border",
+                  "rounded-md border px-2 py-0.5 text-xs font-bold capitalize tracking-wide",
                   getCategoryColorClasses(displayType)
                 )}>
                   {displayType}
                 </span>
-                <span>•</span>
+                <span aria-hidden="true" className="text-muted-foreground/50">•</span>
                 <span>{activePracticeItem.type === 'scale' ? activePracticeItem.articulation : 'Standard'}</span>
               </div>
             </div>
-            
-            <div className="flex items-center gap-8">
-              <div className="text-right">
-                <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest mb-1">Current Tempo</p>
-                <p className="text-5xl font-black tracking-tight tabular-nums text-primary">{currentBPM} <span className="text-lg font-bold text-muted-foreground">BPM</span></p>
+
+            <div className="flex items-end justify-between gap-6 md:items-center md:gap-8">
+              <div className="md:text-right">
+                <p className="mb-1 text-xs font-bold uppercase tracking-wider text-muted-foreground">Current tempo</p>
+                <p className="text-4xl font-black tabular-nums tracking-tight text-primary sm:text-5xl">
+                  {currentBPM} <span className="text-base font-bold text-muted-foreground sm:text-lg">BPM</span>
+                </p>
               </div>
-              <div className="flex flex-col gap-3">
-                <Button 
-                  onClick={() => activeLogSnapshotFunction?.()} 
+              <div className="flex flex-col gap-2">
+                <Button
+                  onClick={() => activeLogSnapshotFunction?.()}
                   disabled={!activeLogSnapshotFunction}
                   size="lg"
-                  className="h-12 px-8 font-bold shadow-md focus-scale"
+                  className="h-11 px-6 font-bold shadow-sm focus-scale sm:h-12 sm:px-8"
                 >
-                  <Save className="h-5 w-5 mr-2" />
-                  Save Progress
+                  <Save className="mr-2 h-4 w-4" />
+                  Save progress
                 </Button>
-                <Button 
+                <Button
                   variant="ghost"
+                  size="sm"
                   onClick={handlePivot}
-                  className="h-10 px-8 text-xs font-bold text-muted-foreground hover:text-destructive hover:bg-destructive/5 transition-colors"
+                  className="h-9 text-xs font-bold text-muted-foreground transition-all duration-150 hover:bg-destructive/5 hover:text-destructive active:scale-[0.98]"
                 >
-                  <AlertCircle className="h-4 w-4 mr-2" />
-                  Too Hard / Pivot
+                  <AlertCircle className="mr-1.5 h-3.5 w-3.5" />
+                  Too hard / pivot
                 </Button>
               </div>
             </div>
           </div>
 
-          <div className="space-y-3">
-            <div className="flex justify-between text-xs font-bold text-muted-foreground uppercase tracking-widest">
+          <div className="space-y-2.5">
+            <div className="flex justify-between text-xs font-bold uppercase tracking-wider text-muted-foreground">
               <span>Progress to next goal</span>
-              <span className="text-primary">{masteryPercentage.toFixed(0)}%</span>
+              <span className="tabular-nums text-primary">{masteryPercentage.toFixed(0)}%</span>
             </div>
-            <Progress value={masteryPercentage} className="h-3 shadow-sm" />
+            <Progress value={masteryPercentage} className="h-2.5" />
           </div>
 
-          <div className="grid grid-cols-2 gap-4 border-t border-border/40 pt-8 md:grid-cols-4">
-            <div className="rounded-xl border border-border/50 bg-muted/30 p-3">
-              <div className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-muted-foreground">
-                <TrendingUp className="h-3.5 w-3.5" />
-                Highest
-              </div>
-              <p className="mt-1 text-lg font-black tabular-nums text-primary">
-                {activePracticeItem.type === 'scale' ? activePracticeItem.highestBPM : activePracticeItem.currentHighestBPM} BPM
-              </p>
-            </div>
-            <div className="rounded-xl border border-border/50 bg-muted/30 p-3">
-              <div className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-muted-foreground">
-                <Target className="h-3.5 w-3.5" />
-                Goal
-              </div>
-              <p className="mt-1 text-lg font-black tabular-nums text-primary">
-                {activePracticeItem.type === 'scale' ? activePracticeItem.nextGoalBPM : activePracticeItem.nextTargetBPM} BPM
-              </p>
-            </div>
+          <div className="grid grid-cols-2 gap-3 border-t border-border/50 pt-6 md:grid-cols-4 md:pt-8">
+            <SummaryStat icon={<TrendingUp className="h-4 w-4" />} label="Highest" value={`${highestBPM} BPM`} />
+            <SummaryStat icon={<Target className="h-4 w-4" />} label="Goal" value={`${goalBPM} BPM`} />
             {activePracticeItem.type === 'scale' && (
               <>
-                <div className="flex items-center gap-3 rounded-xl border border-border/50 bg-muted/30 p-3">
-                  <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
-                    <Music className="h-4 w-4" />
-                  </div>
-                  <div className="min-w-0">
-                    <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Octaves</p>
-                    <p className="truncate text-sm font-bold text-primary">{getOctaveNumber(activePracticeItem.octaves)}</p>
-                  </div>
-                </div>
-                <div className={cn(
-                  "flex items-center gap-3 rounded-xl border p-3",
-                  getHandColorClasses(activePracticeItem.handConfig).split(' ').filter(c => !c.startsWith('data-')).join(' ')
-                )}>
-                  <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-current/10">
-                    <Hand className="h-4 w-4" />
-                  </div>
-                  <div className="min-w-0">
-                    <p className="text-[10px] font-black uppercase tracking-widest opacity-70">Hands</p>
-                    <p className="truncate text-sm font-bold">{getHandLabel(activePracticeItem.handConfig)}</p>
-                  </div>
-                </div>
+                <SummaryStat icon={<Music className="h-4 w-4" />} label="Octaves" value={getOctaveNumber(activePracticeItem.octaves)} />
+                <SummaryStat
+                  icon={<Hand className="h-4 w-4" />}
+                  label="Hands"
+                  value={getHandLabel(activePracticeItem.handConfig)}
+                  className={getHandColorClasses(activePracticeItem.handConfig).split(' ').filter(c => !c.includes('data-')).join(' ')}
+                  toned
+                />
               </>
             )}
           </div>
@@ -189,5 +166,26 @@ const PracticeSummaryPanel: React.FC = () => {
     </Card>
   );
 };
+
+interface SummaryStatProps {
+  icon: React.ReactNode;
+  label: string;
+  value: React.ReactNode;
+  className?: string;
+  /** Inherit text colour from className instead of the primary accent. */
+  toned?: boolean;
+}
+
+const SummaryStat: React.FC<SummaryStatProps> = ({ icon, label, value, className, toned = false }) => (
+  <div className={cn('flex items-center gap-3 rounded-xl border border-border/50 bg-muted/30 p-3', className)}>
+    <div className={cn('flex size-9 shrink-0 items-center justify-center rounded-lg', toned ? 'bg-current/10' : 'bg-primary/10 text-primary')}>
+      {icon}
+    </div>
+    <div className="min-w-0">
+      <p className={cn('text-[10px] font-bold uppercase tracking-wider', toned ? 'opacity-70' : 'text-muted-foreground')}>{label}</p>
+      <p className={cn('truncate text-sm font-black tabular-nums', !toned && 'text-foreground')}>{value}</p>
+    </div>
+  </div>
+);
 
 export default PracticeSummaryPanel;

@@ -26,13 +26,13 @@ export function shallowEqual(objA: unknown, objB: unknown): boolean {
 export const getHandColorClasses = (handConfig: string) => {
   const lower = handConfig.toLowerCase();
   if (lower.includes('left')) {
-    return "border-blue-500/30 text-blue-600 dark:text-blue-400 data-[state=on]:bg-blue-600 data-[state=on]:text-white data-[state=on]:border-blue-600";
+    return "border-sky-500/25 text-sky-700 dark:text-sky-300 data-[state=on]:border-sky-500/50 data-[state=on]:bg-sky-500/15 data-[state=on]:text-sky-800 dark:data-[state=on]:text-sky-200 data-[state=on]:shadow-none";
   }
   if (lower.includes('right')) {
-    return "border-orange-500/30 text-orange-600 dark:text-orange-400 data-[state=on]:bg-orange-600 data-[state=on]:text-white data-[state=on]:border-orange-600";
+    return "border-amber-500/25 text-amber-700 dark:text-amber-300 data-[state=on]:border-amber-500/50 data-[state=on]:bg-amber-500/15 data-[state=on]:text-amber-800 dark:data-[state=on]:text-amber-200 data-[state=on]:shadow-none";
   }
   // "together", "contrary", "staggered" all involve both hands
-  return "border-emerald-500/30 text-emerald-600 dark:text-emerald-400 data-[state=on]:bg-emerald-600 data-[state=on]:text-white data-[state=on]:border-emerald-600";
+  return "border-emerald-500/25 text-emerald-700 dark:text-emerald-300 data-[state=on]:border-emerald-500/50 data-[state=on]:bg-emerald-500/15 data-[state=on]:text-emerald-800 dark:data-[state=on]:text-emerald-200 data-[state=on]:shadow-none";
 };
 
 export const getCategoryColorClasses = (category: string) => {

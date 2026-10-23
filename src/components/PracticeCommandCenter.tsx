@@ -17,6 +17,7 @@ import PageHeader from './PageHeader';
 import HomeModes from './HomeModes';
 import TempoControl from './TempoControl';
 import PageContainer from './PageContainer';
+import Kbd from './Kbd';
 
 const PracticeCommandCenter: React.FC = () => {
   const {
@@ -148,7 +149,7 @@ const PracticeCommandCenter: React.FC = () => {
       <HomeModes active={mode} onSelect={handleSelectMode} />
 
       {nextFocus && (
-        <Card className="surface relative overflow-hidden border-primary/20 bg-gradient-to-br from-primary/[0.10] via-card/60 to-card/60 shadow-md shadow-primary/[0.06] animate-in fade-in slide-in-from-bottom-2 duration-300">
+        <Card className="surface relative overflow-hidden border-primary/20 bg-gradient-to-br from-primary/[0.08] via-card/60 to-card/60 animate-in fade-in slide-in-from-bottom-2 duration-300">
           <div
             aria-hidden="true"
             className="pointer-events-none absolute -right-20 -top-20 h-52 w-52 rounded-full bg-primary/15 blur-3xl"
@@ -160,11 +161,11 @@ const PracticeCommandCenter: React.FC = () => {
               </div>
               <div className="min-w-0 space-y-1">
                 <div className="flex items-center gap-2">
-                  <p className="text-[10px] font-bold uppercase tracking-widest text-primary">
+                  <p className="text-xs font-bold uppercase tracking-wider text-primary">
                     Suggested focus
                   </p>
                   <span className="size-1.5 rounded-full bg-primary" aria-hidden="true" />
-                  <span className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+                  <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                     Ready
                   </span>
                 </div>
@@ -174,7 +175,7 @@ const PracticeCommandCenter: React.FC = () => {
             <div className="flex items-center gap-4">
               {targetBpm ? (
                 <div className="hidden text-right sm:block">
-                  <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                  <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
                     Target
                   </p>
                   <p className="text-xl font-black tabular-nums text-primary">{targetBpm} BPM</p>
@@ -217,7 +218,7 @@ const PracticeCommandCenter: React.FC = () => {
           <div className="flex flex-col gap-6 xl:gap-8 lg:sticky lg:top-24 lg:self-start">
             <Card style={{ animationDelay: '120ms' }} className="surface animate-in fade-in slide-in-from-bottom-2 fill-mode-both duration-300">
               <CardHeader className="pb-2">
-                <CardTitle className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-muted-foreground">
+                <CardTitle className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-muted-foreground">
                   <Settings2 className="h-4 w-4" />
                   Tempo Control
                 </CardTitle>
@@ -229,14 +230,14 @@ const PracticeCommandCenter: React.FC = () => {
                   onStep={handleBpmChange}
                   target={targetBpm}
                 />
-                <div className="flex flex-wrap items-center gap-x-4 gap-y-2 border-t border-border/50 pt-4 text-[11px] text-muted-foreground">
+                <div className="flex flex-wrap items-center gap-x-4 gap-y-2 border-t border-border/50 pt-4 text-xs text-muted-foreground">
                   <span className="flex items-center gap-1.5">
-                    <kbd className="rounded border border-border/60 bg-muted/50 px-1.5 py-0.5 font-mono text-[10px]">↑</kbd>
-                    <kbd className="rounded border border-border/60 bg-muted/50 px-1.5 py-0.5 font-mono text-[10px]">↓</kbd>
+                    <Kbd>↑</Kbd>
+                    <Kbd>↓</Kbd>
                     BPM
                   </span>
                   <span className="flex items-center gap-1.5">
-                    <kbd className="rounded border border-border/60 bg-muted/50 px-1.5 py-0.5 font-mono text-[10px]">Enter</kbd>
+                    <Kbd>Enter</Kbd>
                     Log
                   </span>
                   <Button
@@ -244,7 +245,7 @@ const PracticeCommandCenter: React.FC = () => {
                     size="sm"
                     onClick={refetchData}
                     disabled={isScalesContextLoading}
-                    className="ml-auto h-7 px-2 text-[11px] font-bold text-muted-foreground transition-colors hover:text-primary"
+                    className="ml-auto h-8 px-2.5 text-xs font-bold text-muted-foreground transition-all duration-150 hover:text-primary active:scale-[0.98]"
                   >
                     <RefreshCw className={cn('mr-1.5 size-3', isScalesContextLoading && 'animate-spin')} />
                     Sync
@@ -255,22 +256,22 @@ const PracticeCommandCenter: React.FC = () => {
 
             <Card style={{ animationDelay: '200ms' }} className="surface animate-in fade-in slide-in-from-bottom-2 fill-mode-both duration-300">
               <CardHeader className="pb-3">
-                <CardTitle className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-muted-foreground">
-                  <Activity className="h-3.5 w-3.5" />
+                <CardTitle className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                  <Activity className="h-4 w-4" />
                   Today
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-2 gap-3">
                   <div className="rounded-xl border border-border/50 bg-muted/30 p-3">
-                    <div className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                    <div className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-muted-foreground">
                       <Clock className="size-3.5" />
                       Minutes
                     </div>
                     <p className="mt-1 text-xl font-black tabular-nums">{todayStats.totalMinutes}</p>
                   </div>
                   <div className="rounded-xl border border-border/50 bg-muted/30 p-3">
-                    <div className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                    <div className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-muted-foreground">
                       <Target className="size-3.5" />
                       Items
                     </div>
