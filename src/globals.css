@@ -193,14 +193,40 @@
   .surface {
     @apply rounded-2xl border border-border/60 bg-card/80 backdrop-blur-xl;
     box-shadow:
+      inset 0 1px 0 hsl(0 0% 100% / 0.06),
       0 1px 2px hsl(var(--shadow-color) / 0.04),
       0 14px 34px -20px hsl(var(--shadow-color) / 0.28);
   }
   .surface-interactive {
     @apply rounded-2xl border border-border/60 bg-card/80 backdrop-blur-xl transition-all duration-200;
     box-shadow:
+      inset 0 1px 0 hsl(0 0% 100% / 0.06),
       0 1px 2px hsl(var(--shadow-color) / 0.04),
       0 14px 34px -20px hsl(var(--shadow-color) / 0.28);
+  }
+
+  /* Primary actions: a soft top highlight and lift, not a flat fill. */
+  a.bg-primary,
+  button.bg-primary {
+    background-image: linear-gradient(180deg, hsl(var(--primary) / 0.94), hsl(var(--primary)));
+    box-shadow:
+      inset 0 1px 0 hsl(0 0% 100% / 0.16),
+      0 1px 2px hsl(var(--shadow-color) / 0.16),
+      0 10px 24px -14px hsl(var(--primary) / 0.55);
+    transition: transform 160ms ease, box-shadow 160ms ease, background-color 160ms ease;
+  }
+  a.bg-primary:hover,
+  button.bg-primary:hover {
+    background-image: linear-gradient(180deg, hsl(var(--primary) / 0.99), hsl(var(--primary) / 0.94));
+    transform: translateY(-1px);
+    box-shadow:
+      inset 0 1px 0 hsl(0 0% 100% / 0.18),
+      0 2px 4px hsl(var(--shadow-color) / 0.16),
+      0 14px 28px -14px hsl(var(--primary) / 0.6);
+  }
+  a.bg-primary:active,
+  button.bg-primary:active {
+    transform: translateY(0) scale(0.99);
   }
   .surface-interactive:hover {
     @apply -translate-y-0.5 border-primary/35;
@@ -244,6 +270,11 @@
     font-variant-numeric: tabular-nums;
     font-feature-settings: "tnum" 1;
   }
+}
+
+/* Lucide's default 2px reads heavy at small sizes. Kept outside @layer so it is not purged. */
+svg.lucide {
+  stroke-width: 1.75;
 }
 
 /* Scroll reveal — progressive enhancement, never hides content without JS. */
@@ -365,6 +396,11 @@
   /* Hover scale is meaningless on touch and can cause jitter */
   .focus-scale {
     @apply hover:scale-100 active:scale-[0.98];
+  }
+
+  a.bg-primary:hover,
+  button.bg-primary:hover {
+    transform: none;
   }
 }
 /* Keep Sonner toasts inside the viewport on small screens. */

@@ -153,7 +153,7 @@ const LandingPage: React.FC = () => {
             </p>
 
             <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
-              <Button asChild size="lg" className="h-12 px-6 text-[15px] font-bold shadow-sm">
+              <Button asChild size="lg" className="h-12 px-6 text-[15px] font-bold">
                 <Link to="/login" onClick={() => track('signup_click', { location: 'hero' })}>
                   <Play className="mr-2 size-4 fill-current" aria-hidden="true" />
                   Start free
@@ -406,6 +406,7 @@ const LandingPage: React.FC = () => {
       <section className="border-y border-border/60 bg-card/30">
         <div className="mx-auto w-full max-w-4xl px-4 py-20 text-center sm:px-6 md:py-24">
           <Reveal>
+            <span aria-hidden="true" className="mx-auto mb-6 block h-px w-10 bg-accent/60" />
             <p className="font-display text-3xl italic leading-snug tracking-[-0.01em] sm:text-4xl">
               “Practice is a measurement problem.
               <br className="hidden sm:block" /> Scales.os makes it measurable.”
@@ -617,7 +618,7 @@ const LandingPage: React.FC = () => {
               Create an account, add a book, and log your first session in under two minutes.
             </p>
             <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
-              <Button asChild size="lg" className="h-12 px-7 text-[15px] font-bold shadow-sm">
+              <Button asChild size="lg" className="h-12 px-7 text-[15px] font-bold">
                 <Link to="/login" onClick={() => track('signup_click', { location: 'final_cta' })}>
                   Start free
                   <ArrowRight className="ml-2 size-4" aria-hidden="true" />
