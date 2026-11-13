@@ -297,6 +297,20 @@ svg.lucide {
   animation: rise-in 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
+@keyframes draw-line {
+  from {
+    stroke-dashoffset: 1;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+.chart-line {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  animation: draw-line 1.4s cubic-bezier(0.16, 1, 0.3, 1) 0.25s forwards;
+}
+
 @keyframes drift {
   0%,
   100% {
@@ -370,6 +384,11 @@ svg.lucide {
   .reveal {
     opacity: 1;
     transform: none;
+  }
+
+  .chart-line {
+    animation: none;
+    stroke-dashoffset: 0;
   }
 
   .focus-scale {

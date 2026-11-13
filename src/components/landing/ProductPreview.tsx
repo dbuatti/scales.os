@@ -140,7 +140,11 @@ const ProductPreview: React.FC = () => {
                     strokeDasharray="4 5"
                     vectorEffect="non-scaling-stroke"
                   />
-                  <path d={area} fill={`url(#${gradientId})`} />
+                  <path
+                    d={area}
+                    fill={`url(#${gradientId})`}
+                    className="animate-in fade-in fill-mode-both duration-700"
+                  />
                   <path
                     d={line}
                     fill="none"
@@ -149,6 +153,8 @@ const ProductPreview: React.FC = () => {
                     strokeLinecap="round"
                     strokeLinejoin="round"
                     vectorEffect="non-scaling-stroke"
+                    pathLength={1}
+                    className="chart-line"
                   />
                 </svg>
                 <span
