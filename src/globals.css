@@ -272,6 +272,11 @@
   }
 }
 
+/* Instrument Serif ships a single 400 weight. Keep display headings from faux-bolding. */
+.font-display {
+  font-weight: 400;
+}
+
 /* Lucide's default 2px reads heavy at small sizes. Kept outside @layer so it is not purged. */
 svg.lucide {
   stroke-width: 1.75;

@@ -34,6 +34,7 @@ export default {
           'sans-serif',
         ],
         display: [
+          'Instrument Serif',
           'ui-serif',
           'New York',
           'Iowan Old Style',
