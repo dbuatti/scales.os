@@ -1,10 +1,11 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Auth } from '@supabase/auth-ui-react';
 import { ThemeSupa } from '@supabase/auth-ui-shared';
 import { supabase } from '@/integrations/supabase/client';
 import { useSupabaseSession } from '@/hooks/use-supabase-session';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import { Check, Loader2, Music } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import { track } from '@/lib/analytics';
@@ -21,6 +22,8 @@ const Login: React.FC = () => {
   const { session, isLoading } = useSupabaseSession();
   const { resolvedTheme } = useTheme();
   const navigate = useNavigate();
+  const [googleLoading, setGoogleLoading] = useState(false);
+  const [googleError, setGoogleError] = useState<string | null>(null);
 
   useEffect(() => {
     track('login_view');
@@ -31,6 +34,19 @@ const Login: React.FC = () => {
       navigate('/', { replace: true });
     }
   }, [session, isLoading, navigate]);
+
+  const handleGoogleSignIn = async () => {
+    setGoogleLoading(true);
+    setGoogleError(null);
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: { redirectTo: window.location.origin },
+    });
+    if (error) {
+      setGoogleError(error.message);
+      setGoogleLoading(false);
+    }
+  };
 
   if (isLoading || session) {
     return (
@@ -115,6 +131,31 @@ const Login: React.FC = () => {
               </p>
             </CardHeader>
             <CardContent className="p-6 pt-4">
+              <Button
+                type="button"
+                variant="outline"
+                className="h-11 w-full font-semibold"
+                onClick={handleGoogleSignIn}
+                disabled={googleLoading}
+              >
+                {googleLoading ? <Loader2 className="mr-2 size-4 animate-spin" /> : null}
+                Continue with Google
+              </Button>
+              {googleError && (
+                <p role="alert" className="mt-3 text-sm font-medium text-destructive">
+                  Google sign-in failed: {googleError}
+                </p>
+              )}
+              <div className="relative my-5">
+                <div className="absolute inset-0 flex items-center" aria-hidden="true">
+                  <span className="w-full border-t border-border/60" />
+                </div>
+                <div className="relative flex justify-center">
+                  <span className="bg-card px-3 text-[10px] font-bold uppercase tracking-[0.18em] text-muted-foreground">
+                    Or continue with email
+                  </span>
+                </div>
+              </div>
               <Auth
                 supabaseClient={supabase}
                 appearance={{
@@ -142,8 +183,8 @@ const Login: React.FC = () => {
                   },
                 }}
                 theme={DARK_THEMES.includes(resolvedTheme ?? '') ? 'dark' : 'default'}
-                providers={['google']}
-                redirectTo={window.location.origin + '/reset-password'}
+                providers={[]}
+                redirectTo={window.location.origin}
               />
             </CardContent>
           </Card>

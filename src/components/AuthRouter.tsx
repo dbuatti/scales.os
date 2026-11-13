@@ -1,8 +1,9 @@
 import React, { Suspense, lazy, useEffect, useRef } from 'react';
-import { Routes, Route, Outlet, Navigate, useLocation } from 'react-router-dom';
+import { Routes, Route, Outlet, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { useSupabaseSession } from '@/hooks/use-supabase-session';
 import { Skeleton } from '@/components/ui/skeleton';
 import { track } from '@/lib/analytics';
+import { supabase } from '@/integrations/supabase/client';
 
 import AppLayout from './AppLayout';
 import AuthenticatedShell from './AuthenticatedShell';
@@ -44,6 +45,16 @@ const AUTH_TITLES: Record<string, string> = {
   '/reset-password': 'Reset password · Scales.os',
 };
 
+const PASSWORD_RECOVERY_KEY = 'scales.password_recovery';
+
+const readPasswordRecoveryState = () => {
+  try {
+    return window.sessionStorage.getItem(PASSWORD_RECOVERY_KEY) === '1';
+  } catch {
+    return false;
+  }
+};
+
 const RouteFallback: React.FC = () => (
   <div className="flex min-h-[50vh] items-center justify-center" role="status" aria-live="polite">
     <div className="size-6 animate-spin rounded-full border-2 border-border border-t-primary" aria-hidden="true" />
@@ -66,7 +77,32 @@ const PublicLayoutWrapper: React.FC = () => {
 const AuthRouter: React.FC = () => {
   const { session, isLoading } = useSupabaseSession();
   const location = useLocation();
+  const navigate = useNavigate();
   const trackedSession = useRef(false);
+  const [isPasswordRecovery, setIsPasswordRecovery] = React.useState(readPasswordRecoveryState);
+
+  useEffect(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+      if (event === 'PASSWORD_RECOVERY') {
+        try {
+          window.sessionStorage.setItem(PASSWORD_RECOVERY_KEY, '1');
+        } catch {
+          // Continue in memory if session storage is unavailable.
+        }
+        setIsPasswordRecovery(true);
+        navigate('/reset-password', { replace: true });
+      } else if (event === 'USER_UPDATED' || event === 'SIGNED_OUT') {
+        try {
+          window.sessionStorage.removeItem(PASSWORD_RECOVERY_KEY);
+        } catch {
+          // The in-memory state still protects this tab.
+        }
+        setIsPasswordRecovery(false);
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, [navigate]);
 
   useEffect(() => {
     const titles = session ? AUTH_TITLES : PUBLIC_TITLES;
@@ -105,7 +141,10 @@ const AuthRouter: React.FC = () => {
         <Route path="/reader" element={<ReaderPage />} />
         <Route path="/business-plan" element={<BusinessPlan />} />
         {/* Recovery links sign the user in, so this must stay reachable with a session */}
-        <Route path="/reset-password" element={<ResetPassword />} />
+        <Route
+          path="/reset-password"
+          element={isPasswordRecovery ? <ResetPassword /> : <Navigate to="/" replace />}
+        />
         <Route path="/privacy" element={<Legal kind="privacy" />} />
         <Route path="/terms" element={<Legal kind="terms" />} />
         <Route path="/setup" element={<Setup />} />

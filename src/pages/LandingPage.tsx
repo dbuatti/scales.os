@@ -17,7 +17,6 @@ import {
   ShieldCheck,
   Target,
   Timer,
-  Users,
   WifiOff,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -74,21 +73,21 @@ const PERSONAS = [
     fit: 'Students working to a grade',
   },
   {
-    icon: Users,
-    title: 'The teacher',
-    body: 'You want to know what actually happened between lessons. Studio — shared libraries and student reports — is next on the roadmap.',
-    fit: 'Teachers with multiple students',
+    icon: Target,
+    title: 'The self-directed pianist',
+    body: 'Build a steady routine without guessing what to do next. Use the grade curriculum for direction, then make each session your own.',
+    fit: 'Independent practice, with structure',
   },
 ];
 
 const FAQS = [
   {
     q: 'Is this a piano lesson app?',
-    a: 'No. Scales.os assumes you already know what to practice — from a teacher, a method book or a syllabus. It is built for the practice itself: the repetitions, the tempo and the record of them.',
+    a: 'No. Scales.os helps you plan and record technique practice, with a grade curriculum when you want structure and room to follow your own teacher or method book.',
   },
   {
     q: 'Do I need a teacher to use it?',
-    a: 'No, but it is designed to support one. The curriculum grades take you from single-octave fundamentals to professional-level permutations, and every session is logged so a teacher can see exactly what you did.',
+    a: 'No. Start with the grade curriculum or choose an exercise from your own method book. Your practice history gives you a clear record to review or bring to a lesson.',
   },
   {
     q: 'Which method books work?',
@@ -147,8 +146,8 @@ const LandingPage: React.FC = () => {
             </h1>
 
             <p className="mt-6 max-w-xl text-lg leading-relaxed text-muted-foreground">
-              Scales, arpeggios and your Hanon or Dohnányi books in one focused workspace — with a
-              metronome that follows your tempo and a log that proves you are improving.
+              Scales, arpeggios and your method books in one focused workspace. Keep a metronome
+              beside the music, save each session, and see your tempo progress over time.
             </p>
 
             <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
@@ -206,8 +205,8 @@ const LandingPage: React.FC = () => {
             Practice is the only part of piano you can&apos;t fake.
           </h2>
           <p className="mt-5 max-w-2xl text-lg leading-relaxed text-muted-foreground">
-            Most apps teach you songs. None of them tell you whether your technique is actually
-            getting better — or what to do next when it stops.
+            Song apps focus on repertoire; technique is easy to leave to memory. Scales.os gives
+            the work a record and a clear next step.
           </p>
         </Reveal>
 
