@@ -48,14 +48,20 @@ const PracticeLog = () => {
         <ScrollArea className="h-[400px] w-full">
           <div className="space-y-6 pr-4">
             {log.map(entry => (
-              <div key={entry.id} className="border-b border-border/60 pb-6 last:border-b-0 last:pb-0">
+              <div
+                key={entry.id}
+                className={cn(
+                  'group border-b border-border/60 pb-6 last:border-b-0 last:pb-0 surface-interactive hover:bg-primary/2 hover:border-primary/20',
+                  'border-l-2 border-transparent hover:border-l-primary/40 pl-4 pr-4',
+                )}
+              >
                 <div className="flex justify-between items-start mb-2">
                   <p className="font-bold text-foreground">
-                    {entry.durationMinutes > 0 
-                        ? `${entry.durationMinutes}m Focused Session`
-                        : 'Practice Snapshot'}
+                    {entry.durationMinutes > 0
+                      ? `${entry.durationMinutes}m Focused Session`
+                      : 'Practice Snapshot'}
                   </p>
-                  <span className="text-xs text-muted-foreground tabular-nums">
+                  <span className="font-mono text-xs tabular-nums text-muted-foreground">
                     {format(entry.timestamp, 'MMM dd, HH:mm')}
                   </span>
                 </div>

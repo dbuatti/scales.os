@@ -11,6 +11,7 @@ import { useZenMode } from '@/context/ZenModeContext';
 import SetupPanel from './SetupPanel';
 import InstallAppButton from './InstallAppButton';
 import { trackPageview } from '@/lib/analytics';
+import { useSupabaseSession } from '@/hooks/use-supabase-session';
 
 interface AppLayoutProps {
     children: React.ReactNode;
@@ -22,6 +23,8 @@ interface AppLayoutProps {
 
 const AppLayout: React.FC<AppLayoutProps> = ({ children, headerRightContent, mobileNav, bleed = false }) => {
     const { isZenMode } = useZenMode();
+    const { session, isLoading } = useSupabaseSession();
+    const isSignedIn = Boolean(session?.user);
     const setupMode =
         typeof window !== 'undefined' && new URLSearchParams(window.location.search).has('setup');
     const location = useLocation();
@@ -72,12 +75,16 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children, headerRightContent, mob
                         {headerRightContent ? (
                             <>
                                 {headerRightContent}
-                                <div className="hidden md:inline-flex">
-                                    <KeyboardShortcuts />
-                                </div>
-                                <div className="hidden sm:block">
-                                    <ZenModeToggle />
-                                </div>
+                                {isSignedIn && (
+                                    <>
+                                        <div className="hidden md:inline-flex">
+                                            <KeyboardShortcuts />
+                                        </div>
+                                        <div className="hidden sm:block">
+                                            <ZenModeToggle />
+                                        </div>
+                                    </>
+                                )}
                                 {!isZenMode && (
                                     <div className="hidden sm:block">
                                         <ThemeSwitcher />
@@ -92,12 +99,16 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children, headerRightContent, mob
                                         <span className="hidden sm:inline">Sign in</span>
                                     </Link>
                                 </Button>
-                                <div className="hidden md:inline-flex">
-                                    <KeyboardShortcuts />
-                                </div>
-                                <div className="hidden sm:block">
-                                    <ZenModeToggle />
-                                </div>
+                                {isSignedIn && (
+                                    <>
+                                        <div className="hidden md:inline-flex">
+                                            <KeyboardShortcuts />
+                                        </div>
+                                        <div className="hidden sm:block">
+                                            <ZenModeToggle />
+                                        </div>
+                                    </>
+                                )}
                                 {!isZenMode && (
                                     <div className="hidden sm:block">
                                         <ThemeSwitcher />
