@@ -290,6 +290,7 @@ const RepertoirePanel: React.FC = () => {
     documents,
     isCloudEnabled,
     uploadDocument,
+    replaceDocumentContent,
     deleteDocument,
     getSignedUrl,
     fetchMappings,
@@ -311,6 +312,7 @@ const RepertoirePanel: React.FC = () => {
   const [pageInput, setPageInput] = useState('1');
   const [mappings, setMappings] = useState<PageMapping[]>([]);
   const [isUploading, setIsUploading] = useState(false);
+  const [uploadPendingDoc, setUploadPendingDoc] = useState<SavedDocument | null>(null);
   const [quality, setQuality] = useState<'standard' | 'retina'>('standard');
   const [layout, setLayout] = useState<'vertical' | 'horizontal'>('horizontal');
   const [zoom, setZoom] = useState(1);
@@ -454,7 +456,13 @@ const RepertoirePanel: React.FC = () => {
     async (file: File) => {
       setIsUploading(true);
       try {
-        const doc = await uploadDocument(file, 'technical');
+        let doc: SavedDocument;
+        if (uploadPendingDoc) {
+          doc = await replaceDocumentContent(uploadPendingDoc, file);
+          setUploadPendingDoc(null);
+        } else {
+          doc = await uploadDocument(file, 'technical');
+        }
         await loadDocument(doc);
         showSuccess(`Uploaded ${file.name}.`);
       } catch (err) {
@@ -470,7 +478,7 @@ const RepertoirePanel: React.FC = () => {
         setIsUploading(false);
       }
     },
-    [uploadDocument, loadDocument, loadLocalFile],
+    [uploadDocument, replaceDocumentContent, loadDocument, loadLocalFile, uploadPendingDoc],
   );
 
   const handleClipboardImport = useCallback(
@@ -539,7 +547,13 @@ const RepertoirePanel: React.FC = () => {
       return;
     }
     const doc = documents.find((d) => d.id === value);
-    if (doc) loadDocument(doc);
+    if (!doc) return;
+    // Default books preload with no PDF. Prompt the user to upload one first.
+    if (!doc.page_count || doc.page_count === 0) {
+      setUploadPendingDoc(doc);
+      return;
+    }
+    loadDocument(doc);
   };
 
   const handleDeleteDocument = async (doc?: SavedDocument) => {
@@ -922,6 +936,21 @@ const RepertoirePanel: React.FC = () => {
               <ClipboardList className="mr-1.5 h-4 w-4" />
               Import
             </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-9 font-bold focus-scale"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={isUploading}
+              title="Upload a PDF method book"
+            >
+              {isUploading ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Upload className="h-4 w-4" />
+              )}
+              Upload
+            </Button>
             {mappings.length > 0 && (
               <Button
                 variant="outline"
@@ -1068,19 +1097,6 @@ const RepertoirePanel: React.FC = () => {
               );
             })}
 
-            <button
-              type="button"
-              onClick={() => fileInputRef.current?.click()}
-              disabled={isUploading}
-              className="flex min-h-40 flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-border bg-card/30 p-4 text-center text-muted-foreground transition-all duration-200 hover:border-primary/40 hover:bg-primary/5 hover:text-primary active:scale-[0.98]"
-            >
-              {isUploading ? (
-                <Loader2 className="h-5 w-5 animate-spin" />
-              ) : (
-                <Upload className="h-5 w-5" />
-              )}
-              <span className="text-xs font-bold">Upload PDF</span>
-            </button>
           </div>
         )}
       </section>
@@ -1391,6 +1407,54 @@ const RepertoirePanel: React.FC = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {uploadPendingDoc && (
+        <Dialog open={Boolean(uploadPendingDoc)} onOpenChange={(open) => {
+          if (!open) setUploadPendingDoc(null);
+        }}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle className="font-display text-2xl tracking-tight">
+                Upload a PDF for {formatDocumentTitle(uploadPendingDoc.title)}
+              </DialogTitle>
+              <DialogDescription className="text-sm leading-relaxed">
+                This method book is ready in your library but has no PDF yet. Upload one to start
+                viewing pages and mapping exercises.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="mt-6 flex flex-col items-center gap-4">
+              <Button
+                onClick={() => {
+                  setUploadPendingDoc(null);
+                  fileInputRef.current?.click();
+                }}
+                size="lg"
+                className="font-bold focus-scale"
+                disabled={isUploading}
+              >
+                {isUploading ? (
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                ) : (
+                  <Upload className="h-4 w-4 mr-2" />
+                )}
+                Upload PDF
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => setUploadPendingDoc(null)}
+                className="font-bold focus-scale"
+              >
+                Skip
+              </Button>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setUploadPendingDoc(null)} className="w-full font-bold">
+                Close
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      )}
     </CardContent>
   );
 };

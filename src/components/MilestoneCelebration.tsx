@@ -96,11 +96,7 @@ const MilestoneCelebration: React.FC = () => {
   const { log, streak, scaleMasteryBPMMap, exerciseMasteryBPMMap } = useScales();
   const [open, setOpen] = useState(false);
   const [milestone, setMilestone] = useState<Milestone | null>(null);
-  const [celebrated, setCelebrated] = useState<Set<string>>(new Set());
-
-  useEffect(() => {
-    setCelebrated(loadCelebrated());
-  }, []);
+  const [celebrated, setCelebrated] = useState<Set<string>>(loadCelebrated);
 
   const detectMilestone = useCallback((): Milestone | null => {
     if (celebrated.has('first_session') && celebrated.has('first_mastery') &&

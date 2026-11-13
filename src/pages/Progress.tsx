@@ -16,26 +16,15 @@ import WeeklyActivityChart from '@/components/WeeklyActivityChart';
 import TechniqueRadar from '@/components/TechniqueRadar';
 import ShareProgress from '@/components/ShareProgress';
 import { Button } from '@/components/ui/button';
-import { Trash2, RefreshCw, PlayCircle, AlertCircle, LayoutDashboard, Piano, History, Download } from 'lucide-react';
+import { RefreshCw, PlayCircle, AlertCircle, LayoutDashboard, Piano, History, Download, BookOpen, Target } from 'lucide-react';
 import PageHeader from '@/components/PageHeader';
 import { useSupabaseSession } from '@/hooks/use-supabase-session';
 import { useRepertoire } from '@/context/RepertoireContext';
 import { buildExport, downloadJson, exportFilename } from '@/lib/export-data';
 import { showSuccess } from '@/utils/toast';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
 
 const ProgressPage: React.FC = () => {
-  const { isLoading, clearExerciseMastery, clearScaleMastery, clearAllLogs, refetchData, progressMap, updatePracticeStatus, log, scaleMasteryBPMMap, exerciseMasteryBPMMap } = useScales();
+  const { isLoading, refetchData, progressMap, updatePracticeStatus, log, scaleMasteryBPMMap, exerciseMasteryBPMMap } = useScales();
   const { session } = useSupabaseSession();
   const { documents } = useRepertoire();
   const [isRefreshing, setIsRefreshing] = React.useState(false);
@@ -68,12 +57,6 @@ const ProgressPage: React.FC = () => {
     setIsRefreshing(false);
   };
 
-  const handleClearAllData = async () => {
-    await clearAllLogs();
-    await clearExerciseMastery();
-    await clearScaleMastery();
-  };
-
   const stasisItems = Object.entries(progressMap).filter(([_, status]) => status === 'stasis');
 
   if (isLoading) {
@@ -93,17 +76,19 @@ const ProgressPage: React.FC = () => {
         title="Your Mastery"
         description="Review your mastery across all techniques and manage your practice stasis."
         actions={
-          <div className="flex items-center gap-2">
-            <ShareProgress />
-            <Button variant="outline" onClick={handleExport} className="font-bold focus-scale">
-              <Download className="mr-2 h-4 w-4" />
-              Export
-            </Button>
-            <Button variant="outline" onClick={handleRefresh} disabled={isRefreshing} className="font-bold focus-scale">
-              <RefreshCw className={isRefreshing ? 'mr-2 h-4 w-4 animate-spin' : 'mr-2 h-4 w-4'} />
-              Sync
-            </Button>
-          </div>
+          log.length > 0 ? (
+            <div className="flex items-center gap-2">
+              <ShareProgress />
+              <Button variant="outline" onClick={handleExport} className="font-bold focus-scale">
+                <Download className="mr-2 h-4 w-4" />
+                Export
+              </Button>
+              <Button variant="outline" onClick={handleRefresh} disabled={isRefreshing} className="font-bold focus-scale">
+                <RefreshCw className={isRefreshing ? 'mr-2 h-4 w-4 animate-spin' : 'mr-2 h-4 w-4'} />
+                Sync
+              </Button>
+            </div>
+          ) : null
         }
       />
 
@@ -151,21 +136,53 @@ const ProgressPage: React.FC = () => {
             </Card>
           ) : (
             <>
-              <PracticeStats />
+              <Card className="surface">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
+                    <LayoutDashboard className="h-4 w-4" />
+                    Overview
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="p-0">
+                  <PracticeStats />
+                </CardContent>
+              </Card>
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <div className="lg:col-span-2">
                   <PracticeHeatmap log={log} />
                 </div>
                 <div className="lg:col-span-1">
-                  <WeeklyActivityChart />
+                  <Card className="surface">
+                    <WeeklyActivityChart />
+                  </Card>
                 </div>
               </div>
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <TempoProgressionChart />
-                <TechniqueRadar />
+                <Card className="surface">
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
+                      <Target className="h-4 w-4" />
+                      Technique Mastery
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="p-0">
+                    <TechniqueRadar />
+                  </CardContent>
+                </Card>
               </div>
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <RepertoireStats />
+                <Card className="surface">
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
+                      <BookOpen className="h-4 w-4" />
+                      Repertoire
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="p-0">
+                    <RepertoireStats />
+                  </CardContent>
+                </Card>
                 <GradeTracker />
               </div>
             </>
@@ -210,39 +227,6 @@ const ProgressPage: React.FC = () => {
 
         <TabsContent value="history" className="flex flex-col gap-8">
           <PracticeLog />
-
-          <Card className="surface border-destructive/30">
-            <CardHeader>
-              <CardTitle className="text-destructive">Danger Zone</CardTitle>
-              <CardDescription>
-                Permanently clear all of your practice data. This cannot be undone.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <AlertDialog>
-                <AlertDialogTrigger asChild>
-                  <Button variant="destructive" className="font-bold">
-                    <Trash2 className="w-4 h-4 mr-2" />
-                    Clear all practice data
-                  </Button>
-                </AlertDialogTrigger>
-                <AlertDialogContent>
-                  <AlertDialogHeader>
-                    <AlertDialogTitle>Clear all practice data?</AlertDialogTitle>
-                    <AlertDialogDescription>
-                      This will permanently delete all logs, scale mastery, and exercise progress.
-                    </AlertDialogDescription>
-                  </AlertDialogHeader>
-                  <AlertDialogFooter>
-                    <AlertDialogCancel>Cancel</AlertDialogCancel>
-                    <AlertDialogAction onClick={handleClearAllData} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-                      Delete everything
-                    </AlertDialogAction>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
-            </CardContent>
-          </Card>
         </TabsContent>
       </Tabs>
     </PageContainer>

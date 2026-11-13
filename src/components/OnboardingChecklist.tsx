@@ -41,7 +41,7 @@ const OnboardingChecklist: React.FC = () => {
     () => [
       {
         label: 'Add a method book',
-        hint: 'Upload a Hanon or Dohnányi PDF',
+        hint: 'Open Hanon or Dohnányi from your library',
         done: documents.length > 0,
         href: '/reader',
       },

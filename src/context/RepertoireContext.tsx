@@ -21,7 +21,9 @@ interface RepertoireContextValue {
   isCloudEnabled: boolean;
   refresh: () => Promise<void>;
   uploadDocument: ReturnType<typeof useRepertoireData>['uploadDocument'];
+  replaceDocumentContent: ReturnType<typeof useRepertoireData>['replaceDocumentContent'];
   deleteDocument: (doc: SavedDocument) => Promise<void>;
+  loadDefaultDocuments: ReturnType<typeof useRepertoireData>['loadDefaultDocuments'];
   getSignedUrl: (doc: SavedDocument) => Promise<string>;
   fetchMappings: (documentId: string) => Promise<PageMapping[]>;
   saveMappings: (documentId: string, mappings: PageMapping[]) => Promise<void>;
@@ -136,7 +138,9 @@ export const RepertoireProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       isCloudEnabled: data.isCloudEnabled,
       refresh: data.refresh,
       uploadDocument: data.uploadDocument,
+      replaceDocumentContent: data.replaceDocumentContent,
       deleteDocument: data.deleteDocument,
+      loadDefaultDocuments: data.loadDefaultDocuments,
       getSignedUrl: data.getSignedUrl,
       fetchMappings: data.fetchMappings,
       saveMappings: data.saveMappings,
@@ -159,7 +163,9 @@ export const RepertoireProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       data.isCloudEnabled,
       data.refresh,
       data.uploadDocument,
+      data.replaceDocumentContent,
       data.deleteDocument,
+      data.loadDefaultDocuments,
       data.getSignedUrl,
       data.fetchMappings,
       data.saveMappings,

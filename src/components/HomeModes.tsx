@@ -1,8 +1,8 @@
 import React from 'react';
-import { Music, Activity, BookOpen, ChevronRight, LucideIcon } from 'lucide-react';
+import { Music, Activity, ChevronRight, LucideIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-export type HomeMode = 'scales' | 'arpeggios' | 'technical';
+export type HomeMode = 'scales' | 'arpeggios';
 
 interface ModeCard {
   id: HomeMode;
@@ -27,13 +27,6 @@ const MODES: ModeCard[] = [
     icon: Activity,
     tone: 'bg-accent/10 text-accent ring-1 ring-inset ring-accent/15',
   },
-  {
-    id: 'technical',
-    label: 'Technical',
-    hint: 'Your PDF method books',
-    icon: BookOpen,
-    tone: 'bg-foreground/[0.06] text-foreground/70 ring-1 ring-inset ring-foreground/10',
-  },
 ];
 
 interface HomeModesProps {
@@ -42,7 +35,7 @@ interface HomeModesProps {
 }
 
 const HomeModes: React.FC<HomeModesProps> = ({ active, onSelect }) => (
-  <div className="grid grid-cols-3 gap-3">
+  <div className="grid grid-cols-2 gap-3">
     {MODES.map((mode, index) => {
       const Icon = mode.icon;
       const isActive = active === mode.id;

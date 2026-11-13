@@ -6,6 +6,7 @@ import AppLayout from './AppLayout';
 import { Button } from '@/components/ui/button';
 import { Play, BarChart2, BookOpen, LogOut, Settings2 } from 'lucide-react';
 import MobileSettingsSheet from './MobileSettingsSheet';
+import SettingsDialog from './SettingsDialog';
 import { useSupabaseSession } from '@/hooks/use-supabase-session';
 import { supabase } from '@/integrations/supabase/client';
 import { showSuccess, showError } from '@/utils/toast';
@@ -73,6 +74,7 @@ const MobileNavItem: React.FC<MobileNavItemProps> = ({ to, icon, label }) => {
 
 const AuthenticatedShell: React.FC = () => {
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [desktopSettingsOpen, setDesktopSettingsOpen] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -93,6 +95,15 @@ const AuthenticatedShell: React.FC = () => {
         <NavLink to="/reader" icon={<BookOpen className="w-4 h-4" />} label="Reader" />
         <NavLink to="/progress" icon={<BarChart2 className="w-4 h-4" />} label="Progress" />
       </nav>
+      <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => setDesktopSettingsOpen(true)}
+          className="hidden text-muted-foreground hover:text-primary lg:inline-flex"
+      >
+          <Settings2 className="w-4 h-4" />
+          <span className="sr-only">Settings</span>
+      </Button>
       <Button
           variant="ghost"
           size="icon"
@@ -130,6 +141,7 @@ const AuthenticatedShell: React.FC = () => {
       </button>
 
       <MobileSettingsSheet open={settingsOpen} onOpenChange={setSettingsOpen} />
+      <SettingsDialog open={desktopSettingsOpen} onOpenChange={setDesktopSettingsOpen} />
     </div>
   );
 

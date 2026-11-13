@@ -404,11 +404,8 @@ const ScalePracticePanel: React.FC<ScalePracticePanelProps> = ({
               <Play className="mr-1.5 h-3.5 w-3.5" /> Start
             </Button>
           )}
-          <Button variant="outline" size="sm" onClick={resetTimer} className="text-xs font-bold focus-scale">
-            <RotateCcw className="mr-1 h-3 w-3" /> Reset
-          </Button>
           <Button
-            variant="ghost"
+            variant="outline"
             size="sm"
             disabled={sessionSeconds === 0}
             onClick={() => {
@@ -416,19 +413,8 @@ const ScalePracticePanel: React.FC<ScalePracticePanelProps> = ({
               if (durationMinutes > 0) {
                 addLogEntry({
                   durationMinutes,
-                  itemsPracticed: [{
-                    type: 'scale',
-                    scaleId: result?.scaleItem.id ?? '',
-                    articulation: selectedArticulation,
-                    direction: selectedDirection,
-                    handConfig: selectedHandConfig,
-                    rhythm: selectedRhythm,
-                    accent: selectedAccent,
-                    octaves: selectedOctaves,
-                    practicedBPM: currentBPM,
-                    scalePermutationId: result?.scalePermutationId ?? '',
-                  }],
-                  notes: `Timed session: ${formatTimer(sessionSeconds)}`,
+                  itemsPracticed: [],
+                  notes: `General timed practice session logged. Focused BPM: ${currentBPM}`,
                 });
                 showSuccess(`Logged ${durationMinutes} minutes of practice.`);
                 setLastLoggedMinutes(durationMinutes);
@@ -450,6 +436,9 @@ const ScalePracticePanel: React.FC<ScalePracticePanelProps> = ({
             ) : (
               <><RotateCcw className="mr-1 h-3 w-3" /> Log session</>
             )}
+          </Button>
+          <Button variant="ghost" size="sm" onClick={resetTimer} className="text-xs font-bold focus-scale text-muted-foreground hover:text-destructive">
+            <RotateCcw className="mr-1 h-3 w-3" /> Reset
           </Button>
         </div>
       </div>
@@ -549,19 +538,19 @@ const ScalePracticePanel: React.FC<ScalePracticePanelProps> = ({
                     <p className="text-sm text-muted-foreground">Break muscle memory and build true mastery.</p>
                 </div>
                 <div className="flex shrink-0 items-center gap-2">
-                  <Button variant="outline" size="sm" onClick={handleResetToStandard} className="text-xs font-bold focus-scale">
-                      <RotateCcw className="mr-1.5 h-3.5 w-3.5" />
-                      Reset
-                  </Button>
                   <Button
-                    variant="ghost"
+                    variant="outline"
                     size="sm"
                     onClick={() => setAdvancedOpen((prev) => !prev)}
                     aria-expanded={advancedOpen}
                     className="text-xs font-bold focus-scale"
                   >
-                      <ChevronDown className={cn('w-4 h-4 mr-1 transition-transform', !advancedOpen && '-rotate-90')} />
-                      {advancedOpen ? 'Hide' : 'Show'}
+                    <ChevronDown className={cn('w-4 h-4 mr-1 transition-transform', !advancedOpen && '-rotate-90')} />
+                    {advancedOpen ? 'Hide' : 'Show'}
+                  </Button>
+                  <Button variant="ghost" size="sm" onClick={handleResetToStandard} className="text-xs font-bold focus-scale text-muted-foreground hover:text-destructive">
+                      <RotateCcw className="mr-1.5 h-3.5 w-3.5" />
+                      Reset
                   </Button>
                 </div>
             </div>

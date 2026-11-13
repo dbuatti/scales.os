@@ -23,6 +23,15 @@ import {
 
 export const REPERTOIRE_BUCKET = 'practice-pdfs';
 
+const DEFAULT_DOCUMENTS_KEY = 'scales.default_docs_loaded';
+
+const DEFAULT_DOCUMENTS: Omit<SavedDocument, 'id' | 'user_id' | 'created_at'>[] = [
+  { title: 'Hanon', mode: 'technical', storage_path: 'defaults/hanon.pdf', page_count: 0, last_viewed_page: 1 },
+  { title: 'Hanon Final', mode: 'technical', storage_path: 'defaults/hanon-final.pdf', page_count: 116, last_viewed_page: 8 },
+  { title: 'Dohnányi', mode: 'technical', storage_path: 'defaults/dohnanyi.pdf', page_count: 0, last_viewed_page: 1 },
+  { title: 'Dohnányi SUVINI', mode: 'technical', storage_path: 'defaults/dohnanyi-suvini.pdf', page_count: 51, last_viewed_page: 1 },
+];
+
 export interface SavedDocument {
   id: string;
   user_id: string;
@@ -62,6 +71,39 @@ export const useRepertoireData = () => {
   const [documents, setDocuments] = useState<SavedDocument[]>([]);
   const [isLoadingDocuments, setIsLoadingDocuments] = useState(false);
 
+  const loadDefaultDocuments = useCallback(async () => {
+    if (!userId) return;
+    try {
+      const inserted: SavedDocument[] = [];
+      for (const doc of DEFAULT_DOCUMENTS) {
+        const { data, error } = await supabase
+          .from('pdf_documents')
+          .insert({
+            ...doc,
+            user_id: userId,
+            is_default: true,
+          })
+          .select('*')
+          .single();
+        if (error) {
+          console.error(`Failed to insert default document "${doc.title}":`, error.message);
+          continue;
+        }
+        inserted.push(data as SavedDocument);
+      }
+      if (inserted.length > 0) {
+        setDocuments((prev) => [...inserted, ...prev]);
+        try {
+          localStorage.setItem(DEFAULT_DOCUMENTS_KEY, '1');
+        } catch {
+          // storage unavailable — defaults may reload on next visit, harmless
+        }
+      }
+    } catch (err) {
+      console.error('Failed to load default documents:', err);
+    }
+  }, [userId]);
+
   const refresh = useCallback(async () => {
     if (!userId) {
       setDocuments([]);
@@ -75,9 +117,12 @@ export const useRepertoireData = () => {
       .order('created_at', { ascending: false });
     if (!error && data) {
       setDocuments(data as SavedDocument[]);
+      if (data.length === 0 && !localStorage.getItem(DEFAULT_DOCUMENTS_KEY)) {
+        await loadDefaultDocuments();
+      }
     }
     setIsLoadingDocuments(false);
-  }, [userId]);
+  }, [userId, loadDefaultDocuments]);
 
   useEffect(() => {
     refresh();
@@ -142,6 +187,42 @@ export const useRepertoireData = () => {
       }
     },
     [userId, isPro, documents.length],
+  );
+
+  const replaceDocumentContent = useCallback(
+    async (doc: SavedDocument, file: File): Promise<SavedDocument> => {
+      if (!userId) throw new Error('You must be signed in to upload.');
+
+      const fileCheck = await validatePdfFile(file);
+      if (!fileCheck.ok) throw new Error(fileCheck.reason);
+
+      const path = `${userId}/${doc.id}.pdf`;
+
+      const { error: uploadError } = await supabase.storage
+        .from(REPERTOIRE_BUCKET)
+        .upload(path, file, { contentType: 'application/pdf', upsert: true });
+      if (uploadError) throw uploadError;
+
+      const { data, error } = await supabase
+        .from('pdf_documents')
+        .update({
+          storage_path: path,
+          page_count: 0,
+          last_viewed_page: 1,
+        })
+        .eq('id', doc.id)
+        .eq('user_id', userId)
+        .select('*')
+        .single();
+      if (error) throw error;
+
+      const saved = data as SavedDocument;
+      setDocuments((prev) =>
+        prev.map((d) => (d.id === doc.id ? saved : d)),
+      );
+      return saved;
+    },
+    [userId],
   );
 
   const deleteDocument = useCallback(
@@ -268,7 +349,9 @@ export const useRepertoireData = () => {
     isCloudEnabled,
     refresh,
     uploadDocument,
+    replaceDocumentContent,
     deleteDocument,
+    loadDefaultDocuments,
     getSignedUrl,
     fetchMappings,
     saveMappings,

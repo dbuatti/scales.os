@@ -6,7 +6,6 @@ import { useScales, NextFocus } from '@/context/ScalesContext';
 import ScalePracticePanel from './ScalePracticePanel';
 import { cn } from '@/lib/utils';
 import { useGlobalBPM } from '@/context/GlobalBPMContext';
-import { formatDistanceToNow, startOfDay, subDays } from 'date-fns';
 import { Link, useNavigate } from 'react-router-dom';
 import PracticeSummaryPanel from './PracticeSummaryPanel';
 import { Button } from '@/components/ui/button';
@@ -23,13 +22,14 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { showSuccess } from '@/utils/toast';
-import { Target, Clock, Activity, Play, Sparkles, Crown } from 'lucide-react';
+import { Target, Play, Sparkles, Crown, Music } from 'lucide-react';
 import { useZenMode } from '@/context/ZenModeContext';
 import PageHeader from './PageHeader';
 import HomeModes from './HomeModes';
 import PageContainer from './PageContainer';
 import OnboardingChecklist from './OnboardingChecklist';
 import MilestoneCelebration from './MilestoneCelebration';
+import Metronome from './Metronome';
 import { usePlan } from '@/hooks/use-plan';
 import { useWeeklyGoal } from '@/hooks/use-weekly-goal';
 import { track } from '@/lib/analytics';
@@ -143,11 +143,7 @@ const PracticeCommandCenter: React.FC = () => {
   );
 
   const handleSelectMode = useCallback(
-    (target: 'scales' | 'arpeggios' | 'technical') => {
-      if (target === 'technical') {
-        navigate('/reader');
-        return;
-      }
+    (target: 'scales' | 'arpeggios') => {
       setMode(target);
       setScaleQuickPick({
         kind: target === 'arpeggios' ? 'arpeggio' : 'scale',
@@ -155,24 +151,8 @@ const PracticeCommandCenter: React.FC = () => {
       });
       scrollToPracticePanel();
     },
-    [navigate, scrollToPracticePanel],
+    [scrollToPracticePanel],
   );
-
-  const weekStats = useMemo(() => {
-    const since = startOfDay(subDays(new Date(), 6));
-    const recent = log.filter((entry) => new Date(entry.timestamp) >= since);
-    return {
-      minutes: recent.reduce((sum, entry) => sum + entry.durationMinutes, 0),
-      sessions: recent.filter((entry) => entry.durationMinutes > 0).length,
-      items: recent.reduce((sum, entry) => sum + entry.itemsPracticed.length, 0),
-    };
-  }, [log]);
-
-  const lastLogEntry = useMemo(() => {
-    const entry = log[0];
-    if (!entry) return null;
-    return { timestamp: entry.timestamp, duration: entry.durationMinutes };
-  }, [log]);
 
   const suggestedLabel = nextFocus
     ? 'scaleItem' in nextFocus
@@ -280,66 +260,15 @@ const PracticeCommandCenter: React.FC = () => {
 
         {!isZenMode && (
           <div className="flex flex-col gap-6 xl:gap-8 lg:sticky lg:top-24 lg:self-start">
-            <Card style={{ animationDelay: '120ms' }} className="surface animate-in fade-in slide-in-from-bottom-2 fill-mode-both duration-300">
+            <Card style={{ animationDelay: '60ms' }} className="surface animate-in fade-in slide-in-from-bottom-2 fill-mode-both duration-300">
               <CardHeader className="pb-2">
                 <CardTitle className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-muted-foreground">
-                  <Activity className="h-3.5 w-3.5" />
-                  Last 7 days
+                  <Music className="h-3.5 w-3.5" />
+                  Metronome
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-3 gap-2">
-                  <div className="rounded-xl border border-border/50 bg-muted/30 p-2.5">
-                    <div className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-                      <Clock className="size-3" />
-                      Min
-                    </div>
-                    <p className="mt-1 text-lg font-black tabular-nums">{weekStats.minutes}</p>
-                  </div>
-                  <div className="rounded-xl border border-border/50 bg-muted/30 p-2.5">
-                    <div className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-                      <Activity className="size-3" />
-                      Sessions
-                    </div>
-                    <p className="mt-1 text-lg font-black tabular-nums">{weekStats.sessions}</p>
-                  </div>
-                  <div className="rounded-xl border border-border/50 bg-muted/30 p-2.5">
-                    <div className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-                      <Target className="size-3" />
-                      Items
-                    </div>
-                    <p className="mt-1 text-lg font-black tabular-nums">{weekStats.items}</p>
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between gap-2 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-                    <span>Weekly goal</span>
-                    <span className="tnum text-foreground">
-                      {weekStats.minutes} / {goal} min
-                    </span>
-                  </div>
-                  <Progress
-                    value={Math.min(100, Math.round((weekStats.minutes / goal) * 100))}
-                    className="h-1.5"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setGoalDraft(String(goal));
-                      setGoalOpen(true);
-                    }}
-                    className="text-[10px] font-semibold text-primary transition-colors hover:text-primary/80 hover:underline"
-                  >
-                    Edit goal
-                  </button>
-                </div>
-
-                {lastLogEntry && (
-                  <p className="text-xs text-muted-foreground">
-                    Last session {formatDistanceToNow(lastLogEntry.timestamp, { addSuffix: true })}
-                  </p>
-                )}
+              <CardContent className="p-0">
+                <Metronome showSettings={true} />
               </CardContent>
             </Card>
           </div>

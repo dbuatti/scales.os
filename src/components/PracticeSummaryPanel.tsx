@@ -122,7 +122,7 @@ const PracticeSummaryPanel: React.FC = () => {
                 <Button 
                   variant="ghost"
                   onClick={handlePivot}
-                  className="h-10 px-8 text-xs font-bold text-muted-foreground hover:text-destructive hover:bg-destructive/5 transition-colors"
+                  className="h-12 px-8 text-sm font-bold text-muted-foreground hover:text-destructive hover:bg-destructive/5 transition-colors focus-scale"
                 >
                   <AlertCircle className="h-4 w-4 mr-2" />
                   Too hard / pivot
