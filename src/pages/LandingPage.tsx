@@ -126,6 +126,7 @@ const LandingPage: React.FC = () => {
       {/* ── Hero ─────────────────────────────────────────────── */}
       <section className="relative overflow-hidden">
         <div aria-hidden="true" className="grid-paper pointer-events-none absolute inset-0 -z-10" />
+        <div aria-hidden="true" className="paper-grain pointer-events-none absolute inset-0 -z-10" />
         <div
           aria-hidden="true"
           className="pointer-events-none absolute -top-48 left-1/2 -z-10 h-[34rem] w-[34rem] -translate-x-1/2 rounded-full bg-primary/10 blur-3xl"
@@ -604,6 +605,7 @@ const LandingPage: React.FC = () => {
       {/* ── Final CTA ────────────────────────────────────────── */}
       <section className="relative overflow-hidden border-t border-border/60">
         <div aria-hidden="true" className="grid-paper pointer-events-none absolute inset-0 -z-10 opacity-80" />
+        <div aria-hidden="true" className="paper-grain pointer-events-none absolute inset-0 -z-10" />
         <div
           aria-hidden="true"
           className="pointer-events-none absolute -bottom-40 left-1/2 -z-10 h-80 w-[40rem] -translate-x-1/2 rounded-full bg-primary/10 blur-3xl"
