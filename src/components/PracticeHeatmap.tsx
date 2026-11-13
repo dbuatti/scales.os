@@ -93,7 +93,7 @@ const PracticeHeatmap: React.FC<PracticeHeatmapProps> = ({ log }) => {
         <div className="flex items-center gap-3 text-right">
           <div>
             <p className="tnum text-lg font-black leading-none">{last7}</p>
-            <p className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground">
+            <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
               Last 7 days
             </p>
           </div>
@@ -103,7 +103,7 @@ const PracticeHeatmap: React.FC<PracticeHeatmapProps> = ({ log }) => {
               <Flame className={cn('size-3.5', streak > 0 ? 'text-accent' : 'text-muted-foreground/40')} />
               {streak}
             </p>
-            <p className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground">
+            <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
               Day streak
             </p>
           </div>
@@ -117,7 +117,7 @@ const PracticeHeatmap: React.FC<PracticeHeatmapProps> = ({ log }) => {
               {['M', '', 'W', '', 'F', '', ''].map((label, index) => (
                 <span
                   key={`${label}-${index}`}
-                  className="flex h-[11px] items-center text-[8px] font-bold uppercase text-muted-foreground/60"
+                  className="flex h-[11px] items-center text-[9px] font-bold uppercase text-muted-foreground/70"
                 >
                   {label}
                 </span>
@@ -155,7 +155,7 @@ const PracticeHeatmap: React.FC<PracticeHeatmapProps> = ({ log }) => {
                   <span key={level} className={cn('size-[9px] rounded-[2px]', level)} />
                 ))}
               </div>
-              <span className="text-right text-[8px] font-bold uppercase tracking-wider text-muted-foreground/60">
+              <span className="text-right text-[9px] font-bold uppercase tracking-wider text-muted-foreground/70">
                 Less / More
               </span>
             </div>

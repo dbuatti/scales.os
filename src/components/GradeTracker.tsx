@@ -94,10 +94,10 @@ const GradeTracker: React.FC = () => {
                         <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10 text-primary">
                             <Award className="h-4 w-4" />
                         </div>
-                        <CardTitle className="text-sm font-bold">System rank: {currentGradeName}</CardTitle>
+                        <CardTitle className="text-sm font-bold">Curriculum level: {currentGradeName}</CardTitle>
                     </div>
                     <p className="text-xs text-muted-foreground tabular-nums">
-                        {completedCount} / 10 grades mastered
+                        {completedCount} of 10 grades mastered
                     </p>
                 </div>
                 <div className="shrink-0">{getRankIcon(completedCount)}</div>

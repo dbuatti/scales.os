@@ -317,21 +317,21 @@ const PracticeCommandCenter: React.FC = () => {
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-3 gap-2">
                   <div className="rounded-xl border border-border/50 bg-muted/30 p-2.5">
-                    <div className="flex items-center gap-1 text-[9px] font-bold uppercase tracking-widest text-muted-foreground">
+                    <div className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
                       <Clock className="size-3" />
                       Min
                     </div>
                     <p className="mt-1 text-lg font-black tabular-nums">{weekStats.minutes}</p>
                   </div>
                   <div className="rounded-xl border border-border/50 bg-muted/30 p-2.5">
-                    <div className="flex items-center gap-1 text-[9px] font-bold uppercase tracking-widest text-muted-foreground">
+                    <div className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
                       <Activity className="size-3" />
                       Sessions
                     </div>
                     <p className="mt-1 text-lg font-black tabular-nums">{weekStats.sessions}</p>
                   </div>
                   <div className="rounded-xl border border-border/50 bg-muted/30 p-2.5">
-                    <div className="flex items-center gap-1 text-[9px] font-bold uppercase tracking-widest text-muted-foreground">
+                    <div className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
                       <Target className="size-3" />
                       Items
                     </div>
