@@ -216,7 +216,7 @@ const LandingPage: React.FC = () => {
         <div className="mt-12 grid gap-4 md:grid-cols-3">
           {PAINS.map((pain, index) => (
             <Reveal key={pain.title} delay={index * 80}>
-              <div className="surface h-full p-6">
+              <div className="surface-interactive h-full p-6">
                 <span className="font-display text-3xl italic leading-none text-primary/35">
                   0{index + 1}
                 </span>
@@ -273,7 +273,7 @@ const LandingPage: React.FC = () => {
         <div className="mt-12 grid gap-4 lg:grid-cols-6">
           {/* Tempo progression — wide */}
           <Reveal className="lg:col-span-4">
-            <div className="surface relative h-full overflow-hidden p-6 sm:p-7">
+            <div className="surface-interactive relative h-full overflow-hidden p-6 sm:p-7">
               <div
                 aria-hidden="true"
                 className="pointer-events-none absolute -right-16 -top-16 size-48 rounded-full bg-primary/10 blur-3xl"
@@ -307,7 +307,7 @@ const LandingPage: React.FC = () => {
 
           {/* Permutations */}
           <Reveal delay={70} className="lg:col-span-2">
-            <div className="surface h-full p-6 sm:p-7">
+            <div className="surface-interactive h-full p-6 sm:p-7">
               <div className="mb-4 inline-flex rounded-xl bg-primary/10 p-2.5 text-primary ring-1 ring-inset ring-primary/10">
                 <Layers className="size-5" aria-hidden="true" />
               </div>
@@ -331,7 +331,7 @@ const LandingPage: React.FC = () => {
 
           {/* Metronome */}
           <Reveal delay={40} className="lg:col-span-2">
-            <div className="surface h-full p-6 sm:p-7">
+            <div className="surface-interactive h-full p-6 sm:p-7">
               <div className="mb-4 inline-flex rounded-xl bg-primary/10 p-2.5 text-primary ring-1 ring-inset ring-primary/10">
                 <Timer className="size-5" aria-hidden="true" />
               </div>
@@ -345,7 +345,7 @@ const LandingPage: React.FC = () => {
 
           {/* Method books */}
           <Reveal delay={90} className="lg:col-span-2">
-            <div className="surface h-full p-6 sm:p-7">
+            <div className="surface-interactive h-full p-6 sm:p-7">
               <div className="mb-4 inline-flex rounded-xl bg-primary/10 p-2.5 text-primary ring-1 ring-inset ring-primary/10">
                 <BookOpen className="size-5" aria-hidden="true" />
               </div>
@@ -359,7 +359,7 @@ const LandingPage: React.FC = () => {
 
           {/* Curriculum */}
           <Reveal delay={140} className="lg:col-span-2">
-            <div className="surface h-full p-6 sm:p-7">
+            <div className="surface-interactive h-full p-6 sm:p-7">
               <div className="mb-4 inline-flex rounded-xl bg-primary/10 p-2.5 text-primary ring-1 ring-inset ring-primary/10">
                 <Target className="size-5" aria-hidden="true" />
               </div>
@@ -373,7 +373,7 @@ const LandingPage: React.FC = () => {
 
           {/* Privacy + offline — wide */}
           <Reveal delay={60} className="lg:col-span-6">
-            <div className="surface grid gap-6 p-6 sm:p-7 md:grid-cols-2 md:items-center">
+            <div className="surface-interactive grid gap-6 p-6 sm:p-7 md:grid-cols-2 md:items-center">
               <div className="flex items-start gap-4">
                 <div className="inline-flex shrink-0 rounded-xl bg-primary/10 p-2.5 text-primary ring-1 ring-inset ring-primary/10">
                   <Lock className="size-5" aria-hidden="true" />
@@ -433,7 +433,7 @@ const LandingPage: React.FC = () => {
             const Icon = persona.icon;
             return (
               <Reveal key={persona.title} delay={index * 80}>
-                <div className="surface flex h-full flex-col p-6">
+                <div className="surface-interactive flex h-full flex-col p-6">
                   <div className="mb-4 inline-flex w-fit rounded-xl bg-primary/10 p-2.5 text-primary ring-1 ring-inset ring-primary/10">
                     <Icon className="size-5" aria-hidden="true" />
                   </div>
@@ -498,7 +498,7 @@ const LandingPage: React.FC = () => {
           <div className="mx-auto mt-10 grid max-w-3xl gap-5 md:grid-cols-2">
             {/* Free */}
             <Reveal>
-              <div className="surface flex h-full flex-col p-6 sm:p-7">
+              <div className="surface-interactive flex h-full flex-col p-6 sm:p-7">
                 <h3 className="text-lg font-bold">Free</h3>
                 <p className="mt-1 text-sm text-muted-foreground">Everything you need to start practising deliberately.</p>
                 <div className="mt-5 flex items-baseline gap-1.5">
@@ -528,7 +528,7 @@ const LandingPage: React.FC = () => {
 
             {/* Pro */}
             <Reveal delay={80}>
-              <div className="surface relative flex h-full flex-col border-primary/40 bg-gradient-to-b from-primary/[0.07] via-card/80 to-card/80 p-6 ring-1 ring-primary/25 sm:p-7">
+              <div className="surface-interactive relative flex h-full flex-col border-primary/40 bg-gradient-to-b from-primary/[0.07] via-card/80 to-card/80 p-6 ring-1 ring-primary/25 sm:p-7">
                 <Badge className="absolute -top-3 left-6">Best value</Badge>
                 <div className="flex items-center justify-between gap-3">
                   <h3 className="text-lg font-bold">Pro</h3>
