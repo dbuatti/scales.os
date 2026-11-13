@@ -1,5 +1,5 @@
 import React, { useId } from 'react';
-import { Check, CheckCircle2 } from 'lucide-react';
+import { Check } from 'lucide-react';
 
 const TEMPO_POINTS = [96, 99, 98, 101, 103, 102, 105, 108, 107, 110, 112, 111, 114, 116];
 const CHART = { width: 320, height: 76, min: 90, max: 130, goal: 126 };
@@ -37,13 +37,8 @@ const ProductPreview: React.FC = () => {
 
   return (
     <div className="relative mx-auto w-full max-w-[38rem]">
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute -inset-8 -z-10 rounded-[3rem] bg-gradient-to-tr from-primary/15 via-primary/5 to-accent/10 blur-3xl"
-      />
-
-      <div className="surface relative overflow-hidden rounded-[1.75rem] p-2 shadow-[inset_0_1px_0_hsl(0_0%_100%/0.08),0_30px_80px_-40px_hsl(var(--shadow-color)/0.55)]">
-        <div className="overflow-hidden rounded-[1.35rem] border border-border/50 bg-card/95">
+      <div className="surface relative overflow-hidden rounded-[1.5rem] shadow-xl shadow-foreground/10">
+        <div className="overflow-hidden rounded-[1.4rem] bg-card/95">
           {/* Window chrome */}
           <div className="flex items-center justify-between gap-3 border-b border-border/50 bg-background/40 px-4 py-2.5 sm:px-5">
             <div className="flex items-center gap-1.5" aria-hidden="true">
@@ -185,14 +180,6 @@ const ProductPreview: React.FC = () => {
         </div>
       </div>
 
-      {/* Floating confirmation */}
-      <div className="surface animate-drift absolute -bottom-4 right-2 flex items-center gap-2.5 rounded-xl px-3.5 py-2.5 sm:-right-5">
-        <CheckCircle2 className="size-4 text-success" aria-hidden="true" />
-        <div>
-          <p className="text-[11px] font-bold leading-tight">Progress saved</p>
-          <p className="text-[10px] leading-tight text-muted-foreground">+6 BPM this week</p>
-        </div>
-      </div>
     </div>
   );
 };

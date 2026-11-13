@@ -125,18 +125,15 @@ const LandingPage: React.FC = () => {
     <div className="bg-background">
       {/* ── Hero ─────────────────────────────────────────────── */}
       <section className="relative overflow-hidden">
-        <div aria-hidden="true" className="grid-paper pointer-events-none absolute inset-0 -z-10" />
-        <div aria-hidden="true" className="paper-grain pointer-events-none absolute inset-0 -z-10" />
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute -top-48 left-1/2 -z-10 h-[34rem] w-[34rem] -translate-x-1/2 rounded-full bg-primary/10 blur-3xl"
+          className="pointer-events-none absolute -top-56 left-1/2 -z-10 h-[38rem] w-[38rem] -translate-x-1/2 rounded-full bg-primary/[0.08] blur-3xl"
         />
 
         <div className="mx-auto grid w-full max-w-6xl items-center gap-14 px-4 pb-20 pt-14 sm:px-6 md:pt-20 lg:grid-cols-[1.02fr_0.98fr] lg:gap-10 lg:pb-24">
           <div>
             <span className="inline-flex items-center gap-2 rounded-full border border-border/70 bg-card/60 px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.18em] text-muted-foreground backdrop-blur">
               <span className="relative flex size-1.5">
-                <span className="absolute inline-flex size-full animate-ping rounded-full bg-primary/60" />
                 <span className="relative inline-flex size-1.5 rounded-full bg-primary" />
               </span>
               For pianists who practice with intent
