@@ -144,7 +144,8 @@ const LandingPage: React.FC = () => {
             <h1 className="mt-6 font-display text-[2.9rem] leading-[0.98] tracking-[-0.03em] sm:text-6xl xl:text-7xl">
               Your technique,
               <br />
-              <em className="italic text-primary">measured.</em>
+              <em className="italic text-primary">measured</em>
+              <span className="text-accent">.</span>
             </h1>
 
             <p className="mt-6 max-w-xl text-lg leading-relaxed text-muted-foreground">
