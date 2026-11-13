@@ -21,6 +21,29 @@ const ResetPassword = lazy(() => import('@/pages/ResetPassword'));
 const Legal = lazy(() => import('@/pages/Legal'));
 const Setup = lazy(() => import('@/pages/Setup'));
 
+const PUBLIC_TITLES: Record<string, string> = {
+  '/': 'Scales.os — The practice log for piano technique',
+  '/landing': 'Scales.os — The practice log for piano technique',
+  '/login': 'Sign in · Scales.os',
+  '/pro': 'Pro · Scales.os',
+  '/privacy': 'Privacy · Scales.os',
+  '/terms': 'Terms · Scales.os',
+  '/setup': 'Setup · Scales.os',
+  '/reset-password': 'Reset password · Scales.os',
+};
+
+const AUTH_TITLES: Record<string, string> = {
+  '/': 'Practice · Scales.os',
+  '/progress': 'Progress · Scales.os',
+  '/reader': 'Reader · Scales.os',
+  '/business-plan': 'Business plan · Scales.os',
+  '/pro': 'Pro · Scales.os',
+  '/privacy': 'Privacy · Scales.os',
+  '/terms': 'Terms · Scales.os',
+  '/setup': 'Setup · Scales.os',
+  '/reset-password': 'Reset password · Scales.os',
+};
+
 const RouteFallback: React.FC = () => (
   <div className="flex min-h-[50vh] items-center justify-center" role="status" aria-live="polite">
     <div className="size-6 animate-spin rounded-full border-2 border-border border-t-primary" aria-hidden="true" />
@@ -42,7 +65,13 @@ const PublicLayoutWrapper: React.FC = () => {
 
 const AuthRouter: React.FC = () => {
   const { session, isLoading } = useSupabaseSession();
+  const location = useLocation();
   const trackedSession = useRef(false);
+
+  useEffect(() => {
+    const titles = session ? AUTH_TITLES : PUBLIC_TITLES;
+    document.title = titles[location.pathname] ?? 'Scales.os';
+  }, [location.pathname, session]);
 
   useEffect(() => {
     if (session && !trackedSession.current) {

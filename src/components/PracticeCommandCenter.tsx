@@ -114,6 +114,12 @@ const PracticeCommandCenter: React.FC = () => {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [handleBpmChange, activeLogSnapshotFunction]);
 
+  const scrollToPracticePanel = useCallback(() => {
+    window.setTimeout(() => {
+      document.getElementById('practice-panel')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 90);
+  }, []);
+
   const handleLoadSuggestion = useCallback(
     async (item: NextFocus) => {
       if (!item) return;
@@ -131,8 +137,9 @@ const PracticeCommandCenter: React.FC = () => {
       showSuccess(`Loaded suggestion: ${item.scaleItem.key} ${item.scaleItem.type}`);
       await new Promise((resolve) => setTimeout(resolve, 300));
       setIsEngagingSuggestion(false);
+      scrollToPracticePanel();
     },
-    [setIsPermutationManuallyAdjusted, setActivePermutationHighestBPM, navigate],
+    [setIsPermutationManuallyAdjusted, setActivePermutationHighestBPM, navigate, scrollToPracticePanel],
   );
 
   const handleSelectMode = useCallback(
@@ -146,8 +153,9 @@ const PracticeCommandCenter: React.FC = () => {
         kind: target === 'arpeggios' ? 'arpeggio' : 'scale',
         nonce: Date.now(),
       });
+      scrollToPracticePanel();
     },
-    [navigate],
+    [navigate, scrollToPracticePanel],
   );
 
   const weekStats = useMemo(() => {
@@ -249,7 +257,10 @@ const PracticeCommandCenter: React.FC = () => {
       <OnboardingChecklist />
 
       <div className={cn('grid grid-cols-1 gap-6 xl:gap-8', !isZenMode && 'lg:grid-cols-4')}>
-        <div className={cn('flex min-w-0 flex-col gap-6 xl:gap-8', !isZenMode ? 'lg:col-span-3' : 'col-span-1')}>
+        <div
+          id="practice-panel"
+          className={cn('flex min-w-0 scroll-mt-24 flex-col gap-6 xl:gap-8', !isZenMode ? 'lg:col-span-3' : 'col-span-1')}
+        >
           <PracticeSummaryPanel />
 
           <ScalePracticePanel
