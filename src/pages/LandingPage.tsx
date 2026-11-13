@@ -527,7 +527,7 @@ const LandingPage: React.FC = () => {
 
             {/* Pro */}
             <Reveal delay={80}>
-              <div className="surface relative flex h-full flex-col border-primary/40 p-6 ring-1 ring-primary/25 sm:p-7">
+              <div className="surface relative flex h-full flex-col border-primary/40 bg-gradient-to-b from-primary/[0.07] via-card/80 to-card/80 p-6 ring-1 ring-primary/25 sm:p-7">
                 <Badge className="absolute -top-3 left-6">Best value</Badge>
                 <div className="flex items-center justify-between gap-3">
                   <h3 className="text-lg font-bold">Pro</h3>

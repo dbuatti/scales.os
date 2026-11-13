@@ -123,7 +123,7 @@ const ProPage: React.FC = () => {
       ) : (
         <div className="grid gap-6 lg:grid-cols-[1.05fr_0.95fr] lg:items-start">
           {/* Plan card */}
-          <Card className="surface relative overflow-hidden">
+          <Card className="surface relative overflow-hidden bg-gradient-to-b from-primary/[0.06] via-card/80 to-card/80">
             <div
               aria-hidden="true"
               className="pointer-events-none absolute -right-20 -top-20 size-56 rounded-full bg-primary/10 blur-3xl"
