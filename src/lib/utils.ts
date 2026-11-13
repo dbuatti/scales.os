@@ -32,7 +32,7 @@ export const getHandColorClasses = (handConfig: string) => {
     return "border-amber-500/25 text-amber-700 dark:text-amber-300 data-[state=on]:border-amber-500/50 data-[state=on]:bg-amber-500/15 data-[state=on]:text-amber-800 dark:data-[state=on]:text-amber-200 data-[state=on]:shadow-none";
   }
   // "together", "contrary", "staggered" all involve both hands
-  return "border-emerald-500/25 text-emerald-700 dark:text-emerald-300 data-[state=on]:border-emerald-500/50 data-[state=on]:bg-emerald-500/15 data-[state=on]:text-emerald-800 dark:data-[state=on]:text-emerald-200 data-[state=on]:shadow-none";
+  return "border-success/25 text-success data-[state=on]:border-success/50 data-[state=on]:bg-success/15 data-[state=on]:text-success data-[state=on]:shadow-none";
 };
 
 export const getCategoryColorClasses = (category: string) => {

@@ -42,7 +42,7 @@ export default defineConfig(({ mode }) => {
           scope: "/",
           display: "standalone",
           background_color: "#F7F4EE",
-          theme_color: "#123F38",
+          theme_color: "#4A1620",
           orientation: "any",
           icons: [
             {

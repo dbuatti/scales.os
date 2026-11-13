@@ -67,7 +67,7 @@ supabase/migrations/
 
 ## Design rules
 
-- Warm paper + deep emerald. Serif display type (`font-display`), sans UI.
+- Warm paper + deep bordeaux. Serif display type (`font-display`), sans UI.
 - Use the `.surface` / `.surface-interactive` classes instead of ad-hoc cards.
 - Motion is subtle and always respects `prefers-reduced-motion`.
 - Never commit secrets. All env access goes through `src/lib/env.ts`.

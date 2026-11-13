@@ -4,61 +4,62 @@
 
 @layer base {
   :root {
-    /* Warm paper + deep ink. Premium, calm, instrument-grade. */
-    --background: 38 30% 97%;
-    --foreground: 200 18% 12%;
+    color-scheme: light;
+    /* Warm paper + deep bordeaux. Classical, instrument-grade. */
+    --background: 36 30% 97%;
+    --foreground: 345 18% 13%;
     --card: 0 0% 100%;
-    --card-foreground: 200 18% 12%;
+    --card-foreground: 345 18% 13%;
     --popover: 0 0% 100%;
-    --popover-foreground: 200 18% 12%;
-    --primary: 172 50% 22%;
-    --primary-foreground: 40 33% 98%;
-    --secondary: 38 20% 92%;
-    --secondary-foreground: 200 18% 20%;
-    --muted: 38 20% 93%;
-    --muted-foreground: 200 9% 41%;
-    --accent: 34 52% 44%;
-    --accent-foreground: 40 33% 98%;
+    --popover-foreground: 345 18% 13%;
+    --primary: 348 55% 30%;
+    --primary-foreground: 36 33% 98%;
+    --secondary: 30 18% 92%;
+    --secondary-foreground: 345 18% 20%;
+    --muted: 30 16% 93%;
+    --muted-foreground: 345 8% 42%;
+    --accent: 36 55% 44%;
+    --accent-foreground: 36 33% 98%;
     --destructive: 0 60% 46%;
     --destructive-foreground: 0 0% 100%;
-    --border: 36 15% 86%;
-    --input: 36 15% 86%;
-    --ring: 172 50% 22%;
+    --border: 30 14% 86%;
+    --input: 30 14% 86%;
+    --ring: 348 55% 30%;
     --radius: 0.875rem;
     --warning: 32 88% 40%;
     --warning-foreground: 0 0% 100%;
-    --success: 158 52% 30%;
+    --success: 158 45% 30%;
     --success-foreground: 0 0% 100%;
-    --glow-primary: 172 50% 30%;
-    --glow-secondary: 200 40% 42%;
-    --glow-tertiary: 34 52% 50%;
-    --shadow-color: 200 30% 12%;
+    --glow-primary: 348 55% 35%;
+    --glow-secondary: 330 35% 40%;
+    --glow-tertiary: 36 55% 50%;
+    --shadow-color: 345 30% 12%;
   }
 
   [data-theme='soft-focus'] {
     --background: 36 26% 96%;
-    --foreground: 240 10% 20%;
+    --foreground: 345 12% 20%;
     --card: 36 26% 98%;
-    --card-foreground: 240 10% 20%;
+    --card-foreground: 345 12% 20%;
     --popover: 36 26% 98%;
-    --popover-foreground: 240 10% 20%;
-    --primary: 202 38% 34%;
+    --popover-foreground: 345 12% 20%;
+    --primary: 348 28% 40%;
     --primary-foreground: 36 26% 98%;
     --secondary: 36 14% 90%;
-    --secondary-foreground: 202 38% 28%;
+    --secondary-foreground: 348 25% 30%;
     --muted: 36 10% 86%;
-    --muted-foreground: 240 5% 44%;
-    --accent: 34 45% 46%;
+    --muted-foreground: 345 6% 44%;
+    --accent: 36 35% 48%;
     --accent-foreground: 36 26% 98%;
     --destructive: 0 50% 48%;
     --destructive-foreground: 36 26% 98%;
     --border: 36 14% 85%;
     --input: 36 14% 85%;
-    --ring: 202 38% 34%;
+    --ring: 348 28% 40%;
     --radius: 1rem;
-    --glow-primary: 202 38% 40%;
-    --glow-secondary: 36 30% 55%;
-    --glow-tertiary: 34 40% 55%;
+    --glow-primary: 348 28% 45%;
+    --glow-secondary: 30 25% 55%;
+    --glow-tertiary: 36 35% 55%;
   }
 
   [data-theme='retro-terminal'] {
@@ -91,34 +92,34 @@
   [data-theme='dark'],
   .dark {
     color-scheme: dark;
-    /* Near-black with a cool cast; emerald stays the brand across themes. */
-    --background: 200 14% 6%;
-    --foreground: 40 16% 95%;
-    --card: 200 12% 9.5%;
-    --card-foreground: 40 16% 95%;
-    --popover: 200 12% 10%;
-    --popover-foreground: 40 16% 95%;
-    --primary: 166 50% 48%;
-    --primary-foreground: 200 24% 8%;
-    --secondary: 200 8% 15%;
-    --secondary-foreground: 40 16% 95%;
-    --muted: 200 8% 14%;
-    --muted-foreground: 200 8% 63%;
-    --accent: 34 58% 54%;
-    --accent-foreground: 200 24% 8%;
+    /* Warm near-black with a bordeaux cast; bordeaux stays the brand. */
+    --background: 345 12% 6%;
+    --foreground: 36 20% 95%;
+    --card: 345 10% 9.5%;
+    --card-foreground: 36 20% 95%;
+    --popover: 345 10% 10%;
+    --popover-foreground: 36 20% 95%;
+    --primary: 350 50% 60%;
+    --primary-foreground: 345 20% 8%;
+    --secondary: 345 8% 15%;
+    --secondary-foreground: 36 20% 95%;
+    --muted: 345 8% 14%;
+    --muted-foreground: 345 8% 64%;
+    --accent: 36 58% 55%;
+    --accent-foreground: 345 20% 8%;
     --destructive: 0 62% 52%;
     --destructive-foreground: 0 0% 100%;
-    --border: 200 8% 17%;
-    --input: 200 8% 17%;
-    --ring: 166 50% 48%;
-    --warning: 38 88% 56%;
-    --warning-foreground: 200 24% 8%;
-    --success: 158 50% 46%;
-    --success-foreground: 200 24% 8%;
-    --glow-primary: 166 50% 38%;
-    --glow-secondary: 200 40% 40%;
-    --glow-tertiary: 34 58% 46%;
-    --shadow-color: 200 60% 2%;
+    --border: 345 8% 17%;
+    --input: 345 8% 17%;
+    --ring: 350 50% 60%;
+    --warning: 38 85% 56%;
+    --warning-foreground: 345 20% 8%;
+    --success: 158 45% 48%;
+    --success-foreground: 345 20% 8%;
+    --glow-primary: 350 50% 45%;
+    --glow-secondary: 330 35% 40%;
+    --glow-tertiary: 36 58% 50%;
+    --shadow-color: 345 60% 2%;
   }
 }
 

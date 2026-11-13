@@ -377,7 +377,7 @@ const FloatingTempoIndicator: React.FC<FloatingTempoIndicatorProps> = ({
                   aria-label={autoIncrementEnabled ? 'Disable auto-increment' : 'Enable auto-increment'}
                 >
                   {autoIncrementEnabled ? (
-                    <span className="w-3 h-3 rounded-full bg-emerald-500" />
+                    <span className="w-3 h-3 rounded-full bg-success" />
                   ) : (
                     <span className="w-3 h-3 rounded-full border border-border" />
                   )}
