@@ -18,21 +18,21 @@ const MODES: ModeCard[] = [
     label: 'Scales',
     hint: 'Major, minor & chromatic',
     icon: Music,
-    tone: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400',
+    tone: 'bg-primary/10 text-primary ring-1 ring-inset ring-primary/10',
   },
   {
     id: 'arpeggios',
     label: 'Arpeggios',
     hint: 'Triads, 7ths & more',
     icon: Activity,
-    tone: 'bg-violet-500/10 text-violet-600 dark:text-violet-400',
+    tone: 'bg-accent/10 text-accent ring-1 ring-inset ring-accent/15',
   },
   {
     id: 'technical',
     label: 'Technical',
     hint: 'Your PDF method books',
     icon: BookOpen,
-    tone: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400',
+    tone: 'bg-foreground/[0.06] text-foreground/70 ring-1 ring-inset ring-foreground/10',
   },
 ];
 

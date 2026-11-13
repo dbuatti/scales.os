@@ -3,8 +3,9 @@ import { useSupabaseSession } from '@/hooks/use-supabase-session';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { isAdmin } from '@/lib/admin';
-import { ShieldAlert, Lock, TrendingUp, Users, Rocket, Target, BarChart3, Wallet, Map } from 'lucide-react';
+import { useIsAdmin } from '@/hooks/use-admin';
+import AdminBilling from '@/components/AdminBilling';
+import { ShieldAlert, Lock, Users, Rocket, Target, BarChart3, Wallet, Map, CreditCard } from 'lucide-react';
 
 interface SectionProps {
   icon: React.ReactNode;
@@ -26,9 +27,10 @@ const Section: React.FC<SectionProps> = ({ icon, title, children }) => (
 
 const BusinessPlan: React.FC = () => {
   const { session, isLoading } = useSupabaseSession();
+  const { isAdmin: canAdmin, isLoading: isAdminLoading } = useIsAdmin();
   const email = session?.user?.email;
 
-  if (isLoading) {
+  if (isLoading || isAdminLoading) {
     return (
       <div className="mx-auto max-w-3xl space-y-4 px-4 py-8">
         <Skeleton className="h-10 w-64 bg-card/50" />
@@ -38,7 +40,7 @@ const BusinessPlan: React.FC = () => {
     );
   }
 
-  if (!isAdmin(email)) {
+  if (!canAdmin) {
     return (
       <div className="mx-auto max-w-xl px-4 py-16">
         <Card className="surface">
@@ -53,10 +55,14 @@ const BusinessPlan: React.FC = () => {
             <div className="rounded-md border border-border/60 bg-muted/40 px-3 py-2 text-xs text-muted-foreground">
               Signed in as <span className="font-semibold">{email ?? '—'}</span>
             </div>
-            <p className="text-xs text-muted-foreground/70">
-              To grant access, add this email to <span className="font-mono">VITE_ADMIN_EMAIL</span> in
-              Vercel environment variables.
+            <p className="max-w-sm text-xs leading-relaxed text-muted-foreground/70">
+              To grant access, run this in the Supabase SQL editor:
             </p>
+            <pre className="w-full overflow-x-auto rounded-md border border-border/60 bg-muted/40 px-3 py-2 text-left text-[10px] leading-relaxed text-muted-foreground">
+{`insert into public.admin_emails (email)
+values ('${email ?? 'you@example.com'}')
+on conflict do nothing;`}
+            </pre>
             <Button variant="outline" size="sm" onClick={() => window.history.back()}>
               Go back
             </Button>
@@ -91,6 +97,10 @@ const BusinessPlan: React.FC = () => {
           tier that drives acquisition; Pro unlocks the full method-book workflow and unlimited
           history. Target: solo pianists, students, and teachers.
         </p>
+      </Section>
+
+      <Section icon={<CreditCard className="h-4 w-4" />} title="Billing & access">
+        <AdminBilling />
       </Section>
 
       <Section icon={<Wallet className="h-4 w-4" />} title="Revenue model">

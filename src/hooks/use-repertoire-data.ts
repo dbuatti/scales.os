@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useSupabaseSession } from '@/hooks/use-supabase-session';
+import { usePlan } from '@/hooks/use-plan';
+import { FREE_PDF_LIMIT } from '@/lib/plan';
 import {
   PageMapping,
   RepertoireMode,
@@ -56,6 +58,7 @@ const rowToMapping = (row: PageMappingRow): PageMapping => ({
 
 export const useRepertoireData = () => {
   const { userId } = useSupabaseSession();
+  const { isPro } = usePlan();
   const [documents, setDocuments] = useState<SavedDocument[]>([]);
   const [isLoadingDocuments, setIsLoadingDocuments] = useState(false);
 
@@ -83,6 +86,10 @@ export const useRepertoireData = () => {
   const uploadDocument = useCallback(
     async (file: File, mode: RepertoireMode): Promise<SavedDocument> => {
       if (!userId) throw new Error('You must be signed in to upload.');
+
+      if (!isPro && documents.length >= FREE_PDF_LIMIT) {
+        throw new Error('FREE_PDF_LIMIT');
+      }
 
       const fileCheck = await validatePdfFile(file);
       if (!fileCheck.ok) throw new Error(fileCheck.reason);
@@ -134,7 +141,7 @@ export const useRepertoireData = () => {
         throw err;
       }
     },
-    [userId],
+    [userId, isPro, documents.length],
   );
 
   const deleteDocument = useCallback(

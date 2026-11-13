@@ -1,6 +1,4 @@
 import React, { useMemo } from 'react';
-import EmptyState from './EmptyState';
-import StatTile from './StatTile';
 import { useScales } from '@/context/ScalesContext';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { BookOpen, Clock, Target, Calendar, ListChecks } from 'lucide-react';
@@ -55,20 +53,61 @@ const RepertoireStats = () => {
 
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-        <StatTile icon={BookOpen} label="Repertoire titles" value={stats.distinctTitles} />
-        <StatTile icon={Calendar} label="Repertoire sessions" value={stats.sessions} />
-        <StatTile icon={Clock} label="Repertoire time" value={`${stats.minutes}m`} />
-        <StatTile
-          icon={Target}
-          label="At target BPM"
-          value={stats.totalItems > 0 ? `${stats.atTarget}/${stats.totalItems}` : '—'}
-        />
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <Card className="surface-interactive">
+          <CardContent className="flex items-center gap-4 p-5">
+            <div className="rounded-xl bg-primary/10 p-3 text-primary ring-1 ring-inset ring-primary/10">
+              <BookOpen className="h-6 w-6" />
+            </div>
+            <div className="min-w-0">
+              <p className="text-2xl font-black tracking-tight tabular-nums">{stats.distinctTitles}</p>
+              <p className="text-[10px] font-bold uppercase leading-tight tracking-widest text-muted-foreground">Repertoire Titles</p>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="surface-interactive">
+          <CardContent className="flex items-center gap-4 p-5">
+            <div className="rounded-xl bg-accent/10 p-3 text-accent ring-1 ring-inset ring-accent/15">
+              <Calendar className="h-6 w-6" />
+            </div>
+            <div className="min-w-0">
+              <p className="text-2xl font-black tracking-tight tabular-nums">{stats.sessions}</p>
+              <p className="text-[10px] font-bold uppercase leading-tight tracking-widest text-muted-foreground">Repertoire Sessions</p>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="surface-interactive">
+          <CardContent className="flex items-center gap-4 p-5">
+            <div className="rounded-xl bg-primary/[0.07] p-3 text-primary/80 ring-1 ring-inset ring-primary/10">
+              <Clock className="h-6 w-6" />
+            </div>
+            <div className="min-w-0">
+              <p className="text-2xl font-black tracking-tight tabular-nums">{stats.minutes}m</p>
+              <p className="text-[10px] font-bold uppercase leading-tight tracking-widest text-muted-foreground">Repertoire Time</p>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="surface-interactive">
+          <CardContent className="flex items-center gap-4 p-5">
+            <div className="rounded-xl bg-success/10 p-3 text-success ring-1 ring-inset ring-success/15">
+              <Target className="h-6 w-6" />
+            </div>
+            <div className="min-w-0">
+              <p className="text-2xl font-black tracking-tight tabular-nums">
+                {stats.totalItems > 0 ? `${stats.atTarget}/${stats.totalItems}` : '—'}
+              </p>
+              <p className="text-[10px] font-bold uppercase leading-tight tracking-widest text-muted-foreground">At Target BPM</p>
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
-      <Card className="surface">
+      <Card className="surface-interactive">
         <CardHeader className="pb-2">
-          <CardTitle className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-muted-foreground">
+          <CardTitle className="text-sm font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
             <ListChecks className="h-4 w-4" />
             Most Practiced Repertoire
           </CardTitle>
@@ -83,11 +122,10 @@ const RepertoireStats = () => {
         </CardHeader>
         <CardContent>
           {stats.topTitles.length === 0 ? (
-            <EmptyState
-              icon={BookOpen}
-              title="No repertoire practice yet"
-              description="Open a method book in the Reader and log a session."
-            />
+            <p className="text-sm text-muted-foreground text-center py-6">
+              No repertoire practice yet. Open a method book in the Repertoire panel and log a
+              session.
+            </p>
           ) : (
             <div className="space-y-2">
               {stats.topTitles.map(([title, count]) => (

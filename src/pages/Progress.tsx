@@ -1,5 +1,6 @@
 import React from 'react';
 import PracticeStats from '@/components/PracticeStats';
+import PracticeHeatmap from '@/components/PracticeHeatmap';
 import RepertoireStats from '@/components/RepertoireStats';
 import ScaleGrid from '@/components/ScaleGrid';
 import PracticeLog from '@/components/PracticeLog';
@@ -11,8 +12,12 @@ import { Skeleton } from '@/components/ui/skeleton';
 import GradeTracker from '@/components/GradeTracker';
 import TempoProgressionChart from '@/components/TempoProgressionChart';
 import { Button } from '@/components/ui/button';
-import { Trash2, RefreshCw, PlayCircle, AlertCircle, LayoutDashboard, Piano, History } from 'lucide-react';
+import { Trash2, RefreshCw, PlayCircle, AlertCircle, LayoutDashboard, Piano, History, Download } from 'lucide-react';
 import PageHeader from '@/components/PageHeader';
+import { useSupabaseSession } from '@/hooks/use-supabase-session';
+import { useRepertoire } from '@/context/RepertoireContext';
+import { buildExport, downloadJson, exportFilename } from '@/lib/export-data';
+import { showSuccess } from '@/utils/toast';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -26,8 +31,32 @@ import {
 } from "@/components/ui/alert-dialog";
 
 const ProgressPage: React.FC = () => {
-  const { isLoading, clearExerciseMastery, clearScaleMastery, clearAllLogs, refetchData, progressMap, updatePracticeStatus } = useScales();
+  const { isLoading, clearExerciseMastery, clearScaleMastery, clearAllLogs, refetchData, progressMap, updatePracticeStatus, log, scaleMasteryBPMMap, exerciseMasteryBPMMap } = useScales();
+  const { session } = useSupabaseSession();
+  const { documents } = useRepertoire();
   const [isRefreshing, setIsRefreshing] = React.useState(false);
+
+  const handleExport = () => {
+    downloadJson(
+      buildExport({
+        email: session?.user?.email ?? null,
+        log,
+        scaleMasteryBPMMap,
+        exerciseMasteryBPMMap,
+        documents,
+      }),
+      exportFilename(),
+    );
+    showSuccess('Export downloaded.');
+  };
+
+  React.useEffect(() => {
+    try {
+      localStorage.setItem('scales.progress.visited', '1');
+    } catch {
+      // storage unavailable
+    }
+  }, []);
 
   const handleRefresh = async () => {
     setIsRefreshing(true);
@@ -60,10 +89,16 @@ const ProgressPage: React.FC = () => {
         title="Your Mastery"
         description="Review your mastery across all techniques and manage your practice stasis."
         actions={
-          <Button variant="outline" onClick={handleRefresh} disabled={isRefreshing} className="font-bold focus-scale">
-            <RefreshCw className={isRefreshing ? 'mr-2 h-4 w-4 animate-spin' : 'mr-2 h-4 w-4'} />
-            Sync
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button variant="outline" onClick={handleExport} className="font-bold focus-scale">
+              <Download className="mr-2 h-4 w-4" />
+              Export
+            </Button>
+            <Button variant="outline" onClick={handleRefresh} disabled={isRefreshing} className="font-bold focus-scale">
+              <RefreshCw className={isRefreshing ? 'mr-2 h-4 w-4 animate-spin' : 'mr-2 h-4 w-4'} />
+              Sync
+            </Button>
+          </div>
         }
       />
 
@@ -94,6 +129,7 @@ const ProgressPage: React.FC = () => {
 
         <TabsContent value="overview" className="flex flex-col gap-8">
           <PracticeStats />
+          <PracticeHeatmap log={log} />
           <TempoProgressionChart />
           <RepertoireStats />
           <GradeTracker />

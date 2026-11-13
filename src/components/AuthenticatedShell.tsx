@@ -1,11 +1,12 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import { ScalesProvider } from '@/context/ScalesContext';
 import { RepertoireProvider } from '@/context/RepertoireContext';
 import AppLayout from './AppLayout';
 import AuthenticatedHeaderControls from './AuthenticatedHeaderControls';
 import { Button } from '@/components/ui/button';
-import { Play, BarChart2, BookOpen, LogOut } from 'lucide-react';
+import { Play, BarChart2, BookOpen, LogOut, Settings2 } from 'lucide-react';
+import MobileSettingsSheet from './MobileSettingsSheet';
 import { useSupabaseSession } from '@/hooks/use-supabase-session';
 import { supabase } from '@/integrations/supabase/client';
 import { showSuccess, showError } from '@/utils/toast';
@@ -72,6 +73,7 @@ const MobileNavItem: React.FC<MobileNavItemProps> = ({ to, icon, label }) => {
 };
 
 const AuthenticatedShell: React.FC = () => {
+  const [settingsOpen, setSettingsOpen] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
   const isReader = location.pathname.startsWith('/reader');
@@ -112,6 +114,16 @@ const AuthenticatedShell: React.FC = () => {
       <MobileNavItem to="/" icon={<Play className="w-5 h-5" />} label="Practice" />
       <MobileNavItem to="/reader" icon={<BookOpen className="w-5 h-5" />} label="Reader" />
       <MobileNavItem to="/progress" icon={<BarChart2 className="w-5 h-5" />} label="Progress" />
+
+      <button
+        type="button"
+        onClick={() => setSettingsOpen(true)}
+        className="flex min-h-16 flex-1 flex-col items-center justify-center gap-0.5 py-2 text-[10px] font-bold uppercase tracking-widest text-muted-foreground transition-colors hover:bg-muted/60 hover:text-foreground focus-visible:z-10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring"
+      >
+        <Settings2 className="w-5 h-5" />
+        <span>Settings</span>
+      </button>
+
       <button
         type="button"
         onClick={handleLogout}
@@ -120,6 +132,8 @@ const AuthenticatedShell: React.FC = () => {
         <LogOut className="w-5 h-5" />
         <span>Logout</span>
       </button>
+
+      <MobileSettingsSheet open={settingsOpen} onOpenChange={setSettingsOpen} />
     </div>
   );
 

@@ -30,6 +30,7 @@ import {
   Library,
   ClipboardList,
   ChevronRight,
+  Sparkles,
 } from 'lucide-react';
 import type { PdfViewerHandle } from './PdfViewer';
 const PdfViewer = React.lazy(() => import('./PdfViewer'));
@@ -41,13 +42,24 @@ import DocumentCover from './DocumentCover';
 import ClipboardImport from './ClipboardImport';
 import ExerciseIndexDialog from './ExerciseIndexDialog';
 import Kbd from './Kbd';
-import { Dialog, DialogContent } from '@/components/ui/dialog';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { Link } from 'react-router-dom';
 import { useGlobalBPM } from '@/context/GlobalBPMContext';
 import { useScales } from '@/context/ScalesContext';
 import { cn, shallowEqual } from '@/lib/utils';
 import { showSuccess, showError } from '@/utils/toast';
 import { SavedDocument } from '@/hooks/use-repertoire-data';
 import { useRepertoire } from '@/context/RepertoireContext';
+import { usePlan } from '@/hooks/use-plan';
+import { FREE_PDF_LIMIT } from '@/lib/plan';
+import { track } from '@/lib/analytics';
 import {
   PageMapping,
   RepertoireMode,
@@ -271,6 +283,7 @@ const MappingRow: React.FC<{
 };
 
 const RepertoirePanel: React.FC = () => {
+  const { isPro } = usePlan();
   const { addLogEntry, updateExerciseMasteryBPM, exerciseMasteryBPMMap, log } = useScales();
   const { currentBPM, activePracticeItem: globalActivePracticeItem, setActivePracticeItem, setActiveLogSnapshotFunction, autoNudgeBPMOnSnapshot } = useGlobalBPM();
   const {
@@ -312,6 +325,7 @@ const RepertoirePanel: React.FC = () => {
   const [bookmarkSuggested, setBookmarkSuggested] = useState(false);
   const [bookmarkLabel, setBookmarkLabel] = useState('');
   const [clipboardImportOpen, setClipboardImportOpen] = useState(false);
+  const [limitDialogOpen, setLimitDialogOpen] = useState(false);
 
   useEffect(() => {
     const previous = document.body.style.overflow;
@@ -445,6 +459,11 @@ const RepertoirePanel: React.FC = () => {
         showSuccess(`Uploaded ${file.name}.`);
       } catch (err) {
         const message = err instanceof Error ? err.message : 'Upload failed.';
+        if (message === 'FREE_PDF_LIMIT') {
+          track('pdf_limit_hit');
+          setLimitDialogOpen(true);
+          return;
+        }
         showError(`${message} Continuing in local (unsynced) mode.`);
         loadLocalFile(file);
       } finally {
@@ -877,8 +896,8 @@ const RepertoirePanel: React.FC = () => {
               Your PDFs
             </h2>
             {documents.length > 0 && (
-              <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-bold tabular-nums text-muted-foreground">
-                {documents.length}
+              <span className="tnum rounded-full bg-muted px-2 py-0.5 text-[10px] font-bold text-muted-foreground">
+                {isPro ? documents.length : `${documents.length}/${FREE_PDF_LIMIT} free`}
               </span>
             )}
           </div>
@@ -932,6 +951,25 @@ const RepertoirePanel: React.FC = () => {
             )}
           </div>
         </div>
+
+        {!isPro && documents.length >= FREE_PDF_LIMIT && (
+          <div className="flex flex-col gap-3 rounded-xl border border-primary/25 bg-primary/[0.06] p-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-start gap-3">
+              <div className="rounded-lg bg-primary/10 p-2 text-primary">
+                <Sparkles className="h-4 w-4" />
+              </div>
+              <div>
+                <p className="text-sm font-bold">You&apos;ve used both free method books.</p>
+                <p className="text-xs text-muted-foreground">
+                  Pro unlocks unlimited PDFs, bookmarks and your full tempo history.
+                </p>
+              </div>
+            </div>
+            <Button asChild size="sm" className="shrink-0 font-bold">
+              <Link to="/pro">Upgrade to Pro</Link>
+            </Button>
+          </div>
+        )}
 
         {documents.length === 0 ? (
           <div className="flex flex-col items-center justify-center gap-4 rounded-xl border border-dashed border-border/60 bg-card/50 px-6 py-12 text-center shadow-sm sm:py-16">
@@ -1326,6 +1364,31 @@ const RepertoirePanel: React.FC = () => {
               onClose={() => setClipboardImportOpen(false)}
             />
           )}
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={limitDialogOpen} onOpenChange={setLimitDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="font-display text-2xl tracking-tight">
+              Two books is the free limit
+            </DialogTitle>
+            <DialogDescription className="text-sm leading-relaxed">
+              The free plan keeps {FREE_PDF_LIMIT} method books in your cloud library. Pro adds
+              unlimited PDFs, page-to-exercise mapping, bookmarks and your full tempo history.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="gap-2 sm:gap-2">
+            <Button variant="outline" onClick={() => setLimitDialogOpen(false)}>
+              Keep practising
+            </Button>
+            <Button asChild className="font-bold">
+              <Link to="/pro">
+                <Sparkles className="mr-2 h-4 w-4" />
+                See Pro
+              </Link>
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </CardContent>

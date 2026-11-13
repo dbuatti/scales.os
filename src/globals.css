@@ -4,59 +4,65 @@
 
 @layer base {
   :root {
-    --background: 36 24% 97%;
-    --foreground: 222 22% 16%;
+    /* Warm paper + deep ink. Premium, calm, instrument-grade. */
+    --background: 38 30% 97%;
+    --foreground: 200 18% 12%;
     --card: 0 0% 100%;
-    --card-foreground: 222 22% 16%;
+    --card-foreground: 200 18% 12%;
     --popover: 0 0% 100%;
-    --popover-foreground: 222 22% 16%;
-    --primary: 173 42% 32%;
-    --primary-foreground: 36 30% 98%;
-    --secondary: 34 20% 92%;
-    --secondary-foreground: 222 22% 20%;
-    --muted: 34 18% 93%;
-    --muted-foreground: 220 10% 45%;
-    --accent: 14 62% 62%;
-    --accent-foreground: 222 22% 16%;
-    --destructive: 0 62% 48%;
+    --popover-foreground: 200 18% 12%;
+    --primary: 172 50% 22%;
+    --primary-foreground: 40 33% 98%;
+    --secondary: 38 20% 92%;
+    --secondary-foreground: 200 18% 20%;
+    --muted: 38 20% 93%;
+    --muted-foreground: 200 9% 41%;
+    --accent: 34 52% 44%;
+    --accent-foreground: 40 33% 98%;
+    --destructive: 0 60% 46%;
     --destructive-foreground: 0 0% 100%;
-    --border: 34 16% 87%;
-    --input: 34 16% 87%;
-    --ring: 173 42% 32%;
-    --radius: 0.75rem;
-    --warning: 32 95% 44%;
+    --border: 36 15% 86%;
+    --input: 36 15% 86%;
+    --ring: 172 50% 22%;
+    --radius: 0.875rem;
+    --warning: 32 88% 40%;
     --warning-foreground: 0 0% 100%;
-    --success: 142 66% 38%;
+    --success: 158 52% 30%;
     --success-foreground: 0 0% 100%;
-    --glow-primary: 243 75% 59%;
-    --glow-secondary: 262 70% 58%;
-    --glow-tertiary: 199 82% 50%;
+    --glow-primary: 172 50% 30%;
+    --glow-secondary: 200 40% 42%;
+    --glow-tertiary: 34 52% 50%;
+    --shadow-color: 200 30% 12%;
   }
 
   [data-theme='soft-focus'] {
-    --background: 34 25% 96%;
+    --background: 36 26% 96%;
     --foreground: 240 10% 20%;
-    --card: 34 25% 98%;
+    --card: 36 26% 98%;
     --card-foreground: 240 10% 20%;
-    --popover: 34 25% 98%;
+    --popover: 36 26% 98%;
     --popover-foreground: 240 10% 20%;
-    --primary: 210 40% 40%;
-    --primary-foreground: 34 25% 98%;
-    --secondary: 34 15% 90%;
-    --secondary-foreground: 210 40% 30%;
-    --muted: 34 10% 85%;
-    --muted-foreground: 240 5% 45%;
-    --accent: 150 25% 50%;
-    --accent-foreground: 34 25% 98%;
-    --destructive: 0 50% 50%;
-    --destructive-foreground: 34 25% 98%;
-    --border: 34 15% 85%;
-    --input: 34 15% 85%;
-    --ring: 210 40% 40%;
+    --primary: 202 38% 34%;
+    --primary-foreground: 36 26% 98%;
+    --secondary: 36 14% 90%;
+    --secondary-foreground: 202 38% 28%;
+    --muted: 36 10% 86%;
+    --muted-foreground: 240 5% 44%;
+    --accent: 34 45% 46%;
+    --accent-foreground: 36 26% 98%;
+    --destructive: 0 50% 48%;
+    --destructive-foreground: 36 26% 98%;
+    --border: 36 14% 85%;
+    --input: 36 14% 85%;
+    --ring: 202 38% 34%;
     --radius: 1rem;
+    --glow-primary: 202 38% 40%;
+    --glow-secondary: 36 30% 55%;
+    --glow-tertiary: 34 40% 55%;
   }
 
   [data-theme='retro-terminal'] {
+    color-scheme: dark;
     --background: 240 10% 3.9%;
     --foreground: 142 71% 45%;
     --card: 240 10% 5%;
@@ -77,36 +83,42 @@
     --input: 240 3.7% 15.9%;
     --ring: 142 71% 45%;
     --radius: 0.25rem;
+    --glow-primary: 142 71% 45%;
+    --glow-secondary: 142 60% 35%;
+    --glow-tertiary: 142 60% 30%;
   }
 
   [data-theme='dark'],
   .dark {
-    --background: 240 10% 6%;
-    --foreground: 0 0% 98%;
-    --card: 240 9% 9%;
-    --card-foreground: 0 0% 98%;
-    --popover: 240 9% 9%;
-    --popover-foreground: 0 0% 98%;
-    --primary: 239 84% 67%;
-    --primary-foreground: 0 0% 100%;
-    --secondary: 240 5% 15%;
-    --secondary-foreground: 0 0% 98%;
-    --muted: 240 5% 15%;
-    --muted-foreground: 240 5% 65%;
-    --accent: 240 5% 17%;
-    --accent-foreground: 0 0% 98%;
-    --destructive: 0 63% 50%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 240 5% 17%;
-    --input: 240 5% 17%;
-    --ring: 239 84% 67%;
-    --warning: 38 92% 55%;
-    --warning-foreground: 240 10% 6%;
-    --success: 142 65% 50%;
-    --success-foreground: 240 10% 6%;
-    --glow-primary: 239 84% 67%;
-    --glow-secondary: 262 70% 66%;
-    --glow-tertiary: 199 82% 60%;
+    color-scheme: dark;
+    /* Near-black with a cool cast; emerald stays the brand across themes. */
+    --background: 200 14% 6%;
+    --foreground: 40 16% 95%;
+    --card: 200 12% 9.5%;
+    --card-foreground: 40 16% 95%;
+    --popover: 200 12% 10%;
+    --popover-foreground: 40 16% 95%;
+    --primary: 166 50% 48%;
+    --primary-foreground: 200 24% 8%;
+    --secondary: 200 8% 15%;
+    --secondary-foreground: 40 16% 95%;
+    --muted: 200 8% 14%;
+    --muted-foreground: 200 8% 63%;
+    --accent: 34 58% 54%;
+    --accent-foreground: 200 24% 8%;
+    --destructive: 0 62% 52%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 200 8% 17%;
+    --input: 200 8% 17%;
+    --ring: 166 50% 48%;
+    --warning: 38 88% 56%;
+    --warning-foreground: 200 24% 8%;
+    --success: 158 50% 46%;
+    --success-foreground: 200 24% 8%;
+    --glow-primary: 166 50% 38%;
+    --glow-secondary: 200 40% 40%;
+    --glow-tertiary: 34 58% 46%;
+    --shadow-color: 200 60% 2%;
   }
 }
 
@@ -116,52 +128,170 @@
   }
   html {
     scroll-behavior: smooth;
+    -webkit-text-size-adjust: 100%;
+  }
+  @supports (scrollbar-width: thin) {
+    html {
+      scrollbar-width: thin;
+      scrollbar-color: hsl(var(--border)) transparent;
+    }
+  }
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  ::-webkit-scrollbar-thumb {
+    background-color: hsl(var(--border));
+    border: 3px solid transparent;
+    background-clip: content-box;
+    border-radius: 9999px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background-color: hsl(var(--muted-foreground) / 0.45);
+  }
+  ::placeholder {
+    color: hsl(var(--muted-foreground) / 0.7);
   }
   body {
     @apply bg-background text-foreground antialiased transition-colors duration-300;
     background-image:
-      radial-gradient(60rem 60rem at 4% -18%, hsl(var(--glow-primary) / 0.20), transparent 60%),
-      radial-gradient(50rem 50rem at 110% -4%, hsl(var(--glow-secondary) / 0.16), transparent 55%),
-      radial-gradient(55rem 55rem at 50% 120%, hsl(var(--glow-tertiary) / 0.12), transparent 60%);
+      radial-gradient(60rem 60rem at 4% -18%, hsl(var(--glow-primary) / 0.16), transparent 60%),
+      radial-gradient(50rem 50rem at 110% -4%, hsl(var(--glow-secondary) / 0.12), transparent 55%),
+      radial-gradient(55rem 55rem at 50% 120%, hsl(var(--glow-tertiary) / 0.10), transparent 60%);
     background-attachment: fixed;
     background-repeat: no-repeat;
     font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-    font-feature-settings: "rlig" 1, "calt" 1;
+    font-feature-settings: "rlig" 1, "calt" 1, "cv11" 1;
+    text-rendering: optimizeLegibility;
   }
   [data-theme='dark'] body,
   .dark body {
     background-image:
-      radial-gradient(60rem 60rem at 4% -18%, hsl(var(--glow-primary) / 0.28), transparent 60%),
-      radial-gradient(50rem 50rem at 110% -4%, hsl(var(--glow-secondary) / 0.22), transparent 55%),
-      radial-gradient(55rem 55rem at 50% 120%, hsl(var(--glow-tertiary) / 0.16), transparent 60%);
+      radial-gradient(60rem 60rem at 4% -18%, hsl(var(--glow-primary) / 0.22), transparent 60%),
+      radial-gradient(50rem 50rem at 110% -4%, hsl(var(--glow-secondary) / 0.16), transparent 55%),
+      radial-gradient(55rem 55rem at 50% 120%, hsl(var(--glow-tertiary) / 0.12), transparent 60%);
   }
   ::selection {
-    background-color: hsl(var(--primary) / 0.22);
+    background-color: hsl(var(--primary) / 0.2);
     color: hsl(var(--foreground));
   }
   :focus-visible {
     @apply outline-none ring-2 ring-ring ring-offset-2 ring-offset-background;
   }
+  h1,
+  h2,
+  h3 {
+    text-wrap: balance;
+  }
+  p {
+    text-wrap: pretty;
+  }
 }
 
 @layer components {
-  /* Canonical glass surfaces — use these instead of ad-hoc card classes */
+  /* Canonical surfaces — use these instead of ad-hoc card classes. */
   .surface {
-    @apply rounded-2xl border border-border/50 bg-card/70 shadow-sm backdrop-blur-xl;
+    @apply rounded-2xl border border-border/60 bg-card/80 backdrop-blur-xl;
+    box-shadow:
+      0 1px 2px hsl(var(--shadow-color) / 0.04),
+      0 14px 34px -20px hsl(var(--shadow-color) / 0.28);
   }
   .surface-interactive {
-    @apply rounded-2xl border border-border/50 bg-card/70 shadow-sm backdrop-blur-xl transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-md hover:shadow-primary/5;
+    @apply rounded-2xl border border-border/60 bg-card/80 backdrop-blur-xl transition-all duration-200;
+    box-shadow:
+      0 1px 2px hsl(var(--shadow-color) / 0.04),
+      0 14px 34px -20px hsl(var(--shadow-color) / 0.28);
+  }
+  .surface-interactive:hover {
+    @apply -translate-y-0.5 border-primary/35;
+    box-shadow:
+      0 1px 2px hsl(var(--shadow-color) / 0.05),
+      0 22px 44px -22px hsl(var(--primary) / 0.28);
+  }
+  .surface-flat {
+    @apply rounded-2xl border border-border/60 bg-card/60;
+  }
+  .hairline {
+    @apply border-border/60;
+  }
+  /* Editorial eyebrow: a short rule + spaced caps. */
+  .eyebrow {
+    @apply inline-flex items-center gap-2.5 text-[11px] font-bold uppercase tracking-[0.22em] text-muted-foreground;
+  }
+  .eyebrow::before {
+    content: '';
+    @apply block h-px w-6 bg-primary/50;
+  }
+  /* Fine dotted paper grid for hero backdrops. */
+  .grid-paper {
+    background-image:
+      linear-gradient(to right, hsl(var(--border) / 0.55) 1px, transparent 1px),
+      linear-gradient(to bottom, hsl(var(--border) / 0.55) 1px, transparent 1px);
+    background-size: 56px 56px;
+    -webkit-mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, #000 30%, transparent 78%);
+    mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, #000 30%, transparent 78%);
   }
 }
 
 @layer utilities {
-  /* shadcn <Card> ships bg-card + rounded-lg; upgrade those to the glass surface
-     (compound selector so explicit tints like bg-warning/5 still win). */
+  /* shadcn <Card> ships bg-card + rounded-lg; upgrade those to the glass surface. */
   .surface.bg-card,
   .surface-interactive.bg-card {
     border-radius: 1rem;
-    background-color: hsl(var(--card) / 0.7);
+    background-color: hsl(var(--card) / 0.8);
   }
+  .tnum {
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: "tnum" 1;
+  }
+}
+
+/* Scroll reveal — progressive enhancement, never hides content without JS. */
+@keyframes rise-in {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 18px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+.reveal {
+  opacity: 0;
+  transform: translate3d(0, 18px, 0);
+}
+.reveal.is-visible {
+  animation: rise-in 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes drift {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  50% {
+    transform: translate3d(0, -10px, 0) scale(1.02);
+  }
+}
+.animate-drift {
+  animation: drift 9s ease-in-out infinite;
+}
+
+@keyframes pulse-ring {
+  0% {
+    box-shadow: 0 0 0 0 hsl(var(--primary) / 0.28);
+  }
+  70% {
+    box-shadow: 0 0 0 14px hsl(var(--primary) / 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 hsl(var(--primary) / 0);
+  }
+}
+.animate-pulse-ring {
+  animation: pulse-ring 2.4s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 
 /* ADHD Friendly Utilities */
@@ -185,7 +315,7 @@
   position: absolute;
   inset: 0;
   pointer-events: none;
-  background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.1) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.03));
+  background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.1) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 0, 0, 0.03));
   background-size: 100% 2px, 3px 100%;
   z-index: 50;
   opacity: 0.2;
@@ -204,6 +334,11 @@
     animation-iteration-count: 1 !important;
     transition-duration: 0.001ms !important;
     scroll-behavior: auto !important;
+  }
+
+  .reveal {
+    opacity: 1;
+    transform: none;
   }
 
   .focus-scale {
@@ -230,5 +365,12 @@
   /* Hover scale is meaningless on touch and can cause jitter */
   .focus-scale {
     @apply hover:scale-100 active:scale-[0.98];
+  }
+}
+/* Keep Sonner toasts inside the viewport on small screens. */
+@media (max-width: 639px) {
+  [data-sonner-toaster] {
+    width: calc(100vw - 2rem) !important;
+    max-width: calc(100vw - 2rem) !important;
   }
 }

@@ -3,7 +3,7 @@
 // grant access to specific email addresses. Leave unset and no one is admin.
 const raw = (import.meta.env.VITE_ADMIN_EMAIL as string | undefined) ?? '';
 
-export const ADMIN_EMAILS: string[] = raw
+const ADMIN_EMAILS: string[] = raw
   .split(',')
   .map((email) => email.trim().toLowerCase())
   .filter(Boolean);
