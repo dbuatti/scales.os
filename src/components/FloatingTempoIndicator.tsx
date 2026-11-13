@@ -127,7 +127,7 @@ const FloatingTempoIndicator: React.FC<FloatingTempoIndicatorProps> = ({
         ref={panelRef}
         style={style}
         className={cn(
-          'fixed z-[45] flex cursor-grab items-center gap-2 rounded-full border px-3 py-2 shadow-lg backdrop-blur-xl active:cursor-grabbing',
+          'fixed z-[55] flex cursor-grab items-center gap-2 rounded-full border px-3 py-2 shadow-lg backdrop-blur-xl active:cursor-grabbing',
           bgColor,
           ringColor,
         )}
