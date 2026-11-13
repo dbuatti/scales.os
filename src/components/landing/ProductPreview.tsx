@@ -42,7 +42,7 @@ const ProductPreview: React.FC = () => {
         className="pointer-events-none absolute -inset-8 -z-10 rounded-[3rem] bg-gradient-to-tr from-primary/15 via-primary/5 to-accent/10 blur-3xl"
       />
 
-      <div className="surface relative overflow-hidden rounded-[1.75rem] p-2 shadow-[0_30px_80px_-40px_hsl(var(--shadow-color)/0.55)]">
+      <div className="surface relative overflow-hidden rounded-[1.75rem] p-2 shadow-[inset_0_1px_0_hsl(0_0%_100%/0.08),0_30px_80px_-40px_hsl(var(--shadow-color)/0.55)]">
         <div className="overflow-hidden rounded-[1.35rem] border border-border/50 bg-card/95">
           {/* Window chrome */}
           <div className="flex items-center justify-between gap-3 border-b border-border/50 bg-background/40 px-4 py-2.5 sm:px-5">
