@@ -139,7 +139,7 @@ const PracticeHeatmap: React.FC<PracticeHeatmapProps> = ({ log }) => {
                         key={key}
                         title={`${format(day, 'EEE d MMM')} — ${minutes > 0 ? `${minutes} min` : 'No practice'}`}
                         className={cn(
-                          'size-[11px] rounded-[3px] transition-transform hover:scale-110',
+                          'size-[11px] rounded-[3px] ring-1 ring-inset ring-foreground/[0.04] transition-transform hover:scale-110',
                           LEVELS[levelFor(minutes)],
                         )}
                       />
