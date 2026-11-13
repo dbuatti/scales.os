@@ -195,12 +195,6 @@ const PracticeCommandCenter: React.FC = () => {
         }
       />
 
-      <OnboardingChecklist />
-
-      <div id="practice-modes" className="scroll-mt-24">
-        <HomeModes active={mode} onSelect={handleSelectMode} />
-      </div>
-
       {nextFocus && (
         <Card className="surface relative overflow-hidden border-primary/20 bg-gradient-to-br from-primary/[0.10] via-card/60 to-card/60 shadow-md shadow-primary/[0.06] animate-in fade-in slide-in-from-bottom-2 duration-300">
           <div
@@ -247,6 +241,12 @@ const PracticeCommandCenter: React.FC = () => {
           </CardContent>
         </Card>
       )}
+
+      <div id="practice-modes" className="scroll-mt-24">
+        <HomeModes active={mode} onSelect={handleSelectMode} />
+      </div>
+
+      <OnboardingChecklist />
 
       <div className={cn('grid grid-cols-1 gap-6 xl:gap-8', !isZenMode && 'lg:grid-cols-4')}>
         <div className={cn('flex min-w-0 flex-col gap-6 xl:gap-8', !isZenMode ? 'lg:col-span-3' : 'col-span-1')}>

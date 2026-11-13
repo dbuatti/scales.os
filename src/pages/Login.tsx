@@ -63,7 +63,7 @@ const Login: React.FC = () => {
         </div>
 
         <div className="relative max-w-md">
-          <p className="eyebrow">Welcome back</p>
+          <p className="eyebrow">Welcome</p>
           <h1 className="mt-5 font-display text-5xl leading-[1.02] tracking-[-0.02em]">
             Practice,
             <br />

@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useEffect, useCallback, useRef } from 'react';
 import { CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { RotateCcw, Music, Gauge, Repeat, Hand, Target, Zap, Palette, LayoutGrid, Shuffle, ChevronDown } from 'lucide-react';
+import { RotateCcw, Music, Gauge, Repeat, Hand, Target, Zap, Palette, Shuffle, ChevronDown } from 'lucide-react';
 import { 
   KEYS, SCALE_TYPES, ARPEGGIO_TYPES, ARTICULATIONS, 
   Key, Articulation, 
@@ -334,29 +334,28 @@ const ScalePracticePanel: React.FC<ScalePracticePanelProps> = ({
 
   return (
     <CardContent className="flex flex-col gap-8 p-0">
-        <div className="surface flex items-center justify-between gap-4 bg-gradient-to-br from-primary/[0.06] to-transparent p-4">
-          <div className="space-y-1">
-            <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-primary">
-              <LayoutGrid className="h-3.5 w-3.5" />
-              Quick Actions
-            </div>
-            <p className="text-xs text-muted-foreground">Instantly modify your current practice session.</p>
-          </div>
-          <Button variant="secondary" size="sm" onClick={handleRandomize} className="h-9 font-bold focus-scale">
-            <Shuffle className="w-4 h-4 mr-2" />
-            Randomize
-          </Button>
-        </div>
-
             <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
             <div className="flex flex-col gap-6">
                 <div className="flex flex-col gap-4 surface p-5">
-                    <div className="flex items-center gap-3">
-                        <div className="flex size-9 items-center justify-center rounded-lg bg-primary/10 text-primary">
-                            <Music className="w-5 h-5" />
+                    <div className="flex items-center justify-between gap-3">
+                        <div className="flex items-center gap-3">
+                            <div className="flex size-9 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                                <Music className="w-5 w-5" />
+                            </div>
+                            <Label className="text-sm font-bold tracking-tight text-foreground">Key Selection</Label>
                         </div>
-                        <Label className="text-sm font-bold tracking-tight text-foreground">Key Selection</Label>
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={handleRandomize}
+                            className="h-8 shrink-0 px-2 text-xs font-bold text-muted-foreground transition-colors hover:text-primary focus-scale"
+                            title="Randomize the permutation"
+                          >
+                            <Shuffle className="mr-1.5 h-3.5 w-3.5" />
+                            Randomize
+                        </Button>
                     </div>
+
                     <ToggleGroup 
                         type="single" 
                         value={selectedKey} 

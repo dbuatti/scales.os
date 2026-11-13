@@ -1,5 +1,7 @@
 import React, { useMemo } from 'react';
+import { Link } from 'react-router-dom';
 import { addDays, format, isSameDay, startOfDay, startOfWeek, subDays } from 'date-fns';
+import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { CalendarDays, Flame } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -85,6 +87,9 @@ const PracticeHeatmap: React.FC<PracticeHeatmapProps> = ({ log }) => {
             </p>
           </div>
         </div>
+        <p className="sr-only">
+          {totalSessions} active practice {totalSessions === 1 ? 'day' : 'days'} in the last {WEEKS} weeks.
+        </p>
         <div className="flex items-center gap-3 text-right">
           <div>
             <p className="tnum text-lg font-black leading-none">{last7}</p>
@@ -161,6 +166,9 @@ const PracticeHeatmap: React.FC<PracticeHeatmapProps> = ({ log }) => {
             <p className="text-xs text-muted-foreground">
               Every day you practise fills a square. Miss a day and the chain resets.
             </p>
+            <Button asChild size="sm" variant="outline" className="mt-1 font-bold">
+              <Link to="/">Start a session</Link>
+            </Button>
           </div>
         )}
       </CardContent>

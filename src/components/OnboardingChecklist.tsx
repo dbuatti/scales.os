@@ -120,7 +120,14 @@ const OnboardingChecklist: React.FC = () => {
         </div>
       </div>
 
-      <div className="mt-3 h-1 overflow-hidden rounded-full bg-muted">
+      <div
+        className="mt-3 h-1 overflow-hidden rounded-full bg-muted"
+        role="progressbar"
+        aria-label="Getting started progress"
+        aria-valuemin={0}
+        aria-valuemax={steps.length}
+        aria-valuenow={done}
+      >
         <div
           className="h-full rounded-full bg-primary transition-all duration-500"
           style={{ width: `${(done / steps.length) * 100}%` }}
