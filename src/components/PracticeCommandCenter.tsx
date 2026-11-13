@@ -23,13 +23,13 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { showSuccess } from '@/utils/toast';
-import { RefreshCw, Target, Settings2, Clock, Activity, Play, Sparkles, Crown } from 'lucide-react';
+import { Target, Clock, Activity, Play, Sparkles, Crown } from 'lucide-react';
 import { useZenMode } from '@/context/ZenModeContext';
 import PageHeader from './PageHeader';
 import HomeModes from './HomeModes';
-import TempoControl from './TempoControl';
 import PageContainer from './PageContainer';
 import OnboardingChecklist from './OnboardingChecklist';
+import MilestoneCelebration from './MilestoneCelebration';
 import { usePlan } from '@/hooks/use-plan';
 import { useWeeklyGoal } from '@/hooks/use-weekly-goal';
 import { track } from '@/lib/analytics';
@@ -283,44 +283,6 @@ const PracticeCommandCenter: React.FC = () => {
             <Card style={{ animationDelay: '120ms' }} className="surface animate-in fade-in slide-in-from-bottom-2 fill-mode-both duration-300">
               <CardHeader className="pb-2">
                 <CardTitle className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-muted-foreground">
-                  <Settings2 className="h-4 w-4" />
-                  Tempo Control
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="flex flex-col gap-6">
-                <TempoControl
-                  value={currentBPM}
-                  onChange={setCurrentBPM}
-                  onStep={handleBpmChange}
-                  target={targetBpm}
-                />
-                <div className="flex flex-wrap items-center gap-x-4 gap-y-2 border-t border-border/50 pt-4 text-[11px] text-muted-foreground">
-                  <span className="flex items-center gap-1.5">
-                    <kbd className="rounded border border-border/60 bg-muted/50 px-1.5 py-0.5 font-mono text-[10px]">↑</kbd>
-                    <kbd className="rounded border border-border/60 bg-muted/50 px-1.5 py-0.5 font-mono text-[10px]">↓</kbd>
-                    BPM
-                  </span>
-                  <span className="flex items-center gap-1.5">
-                    <kbd className="rounded border border-border/60 bg-muted/50 px-1.5 py-0.5 font-mono text-[10px]">Enter</kbd>
-                    Log
-                  </span>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={refetchData}
-                    disabled={isScalesContextLoading}
-                    className="ml-auto h-7 px-2 text-[11px] font-bold text-muted-foreground transition-colors hover:text-primary"
-                  >
-                    <RefreshCw className={cn('mr-1.5 size-3', isScalesContextLoading && 'animate-spin')} />
-                    Sync
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card style={{ animationDelay: '200ms' }} className="surface animate-in fade-in slide-in-from-bottom-2 fill-mode-both duration-300">
-              <CardHeader className="pb-3">
-                <CardTitle className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-muted-foreground">
                   <Activity className="h-3.5 w-3.5" />
                   Last 7 days
                 </CardTitle>
@@ -425,6 +387,7 @@ const PracticeCommandCenter: React.FC = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      <MilestoneCelebration />
     </PageContainer>
   );
 };

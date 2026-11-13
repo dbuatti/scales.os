@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import PracticeStats from '@/components/PracticeStats';
 import PracticeHeatmap from '@/components/PracticeHeatmap';
 import RepertoireStats from '@/components/RepertoireStats';
@@ -11,6 +12,9 @@ import { useScales } from '@/context/ScalesContext';
 import { Skeleton } from '@/components/ui/skeleton';
 import GradeTracker from '@/components/GradeTracker';
 import TempoProgressionChart from '@/components/TempoProgressionChart';
+import WeeklyActivityChart from '@/components/WeeklyActivityChart';
+import TechniqueRadar from '@/components/TechniqueRadar';
+import ShareProgress from '@/components/ShareProgress';
 import { Button } from '@/components/ui/button';
 import { Trash2, RefreshCw, PlayCircle, AlertCircle, LayoutDashboard, Piano, History, Download } from 'lucide-react';
 import PageHeader from '@/components/PageHeader';
@@ -90,6 +94,7 @@ const ProgressPage: React.FC = () => {
         description="Review your mastery across all techniques and manage your practice stasis."
         actions={
           <div className="flex items-center gap-2">
+            <ShareProgress />
             <Button variant="outline" onClick={handleExport} className="font-bold focus-scale">
               <Download className="mr-2 h-4 w-4" />
               Export
@@ -128,11 +133,43 @@ const ProgressPage: React.FC = () => {
         </TabsList>
 
         <TabsContent value="overview" className="flex flex-col gap-8">
-          <PracticeStats />
-          <PracticeHeatmap log={log} />
-          <TempoProgressionChart />
-          <RepertoireStats />
-          <GradeTracker />
+          {log.length === 0 ? (
+            <Card className="surface">
+              <CardContent className="flex flex-col items-center justify-center gap-4 p-16 text-center">
+                <div className="rounded-2xl bg-muted p-4 text-muted-foreground">
+                  <LayoutDashboard className="h-10 w-10" />
+                </div>
+                <h3 className="font-semibold text-foreground">No practice data yet</h3>
+                <p className="text-muted-foreground max-w-sm">
+                  Start a practice session to see your mastery, consistency, and tempo progress
+                  here.
+                </p>
+                <Button asChild variant="default" className="mt-4 font-bold">
+                  <Link to="/">Start a session</Link>
+                </Button>
+              </CardContent>
+            </Card>
+          ) : (
+            <>
+              <PracticeStats />
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div className="lg:col-span-2">
+                  <PracticeHeatmap log={log} />
+                </div>
+                <div className="lg:col-span-1">
+                  <WeeklyActivityChart />
+                </div>
+              </div>
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <TempoProgressionChart />
+                <TechniqueRadar />
+              </div>
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <RepertoireStats />
+                <GradeTracker />
+              </div>
+            </>
+          )}
         </TabsContent>
 
         <TabsContent value="technique" className="flex flex-col gap-8">

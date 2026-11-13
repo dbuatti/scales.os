@@ -1,10 +1,8 @@
 "use client";
 
 import React, { useMemo } from 'react';
-import { CalendarClock } from 'lucide-react';
-import EmptyState from './EmptyState';
-import { 
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell 
+import {
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell
 } from 'recharts';
 import { useScales } from '@/context/ScalesContext';
 import { format, subDays, isSameDay, startOfDay } from 'date-fns';
@@ -33,16 +31,6 @@ const WeeklyActivityChart = () => {
     return last7Days;
   }, [log]);
 
-  if (!data.some((day) => day.minutes > 0)) {
-    return (
-      <EmptyState
-        icon={CalendarClock}
-        title="Quiet week so far"
-        description="Start the practice timer to log minutes here."
-      />
-    );
-  }
-
   return (
     <div className="h-[300px] w-full">
       <ResponsiveContainer width="100%" height="100%">
@@ -54,21 +42,21 @@ const WeeklyActivityChart = () => {
             </linearGradient>
           </defs>
           <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--primary) / 0.1)" />
-          <XAxis 
-            dataKey="dayName" 
-            axisLine={false} 
-            tickLine={false} 
+          <XAxis
+            dataKey="dayName"
+            axisLine={false}
+            tickLine={false}
             tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }}
           />
-          <YAxis 
-            axisLine={false} 
-            tickLine={false} 
+          <YAxis
+            axisLine={false}
+            tickLine={false}
             tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }}
           />
-          <Tooltip 
+          <Tooltip
             cursor={{ fill: 'hsl(var(--primary) / 0.05)' }}
-            contentStyle={{ 
-              backgroundColor: 'hsl(var(--card) / 0.9)', 
+            contentStyle={{
+              backgroundColor: 'hsl(var(--card) / 0.9)',
               borderColor: 'hsl(var(--border))',
               borderRadius: 'var(--radius)',
               fontSize: '12px',
@@ -84,9 +72,9 @@ const WeeklyActivityChart = () => {
             animationEasing="ease-out"
           >
             {data.map((entry, index) => (
-              <Cell 
-                key={`cell-${index}`} 
-                fill={entry.minutes > 0 ? 'url(#volumeGradient)' : 'hsl(var(--muted) / 0.5)'} 
+              <Cell
+                key={`cell-${index}`}
+                fill={entry.minutes > 0 ? 'url(#volumeGradient)' : 'hsl(var(--muted) / 0.5)'}
               />
             ))}
           </Bar>

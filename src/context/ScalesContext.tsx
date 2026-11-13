@@ -22,6 +22,12 @@ export interface StoredProgressEntry {
   status: 'practiced' | 'mastered' | 'stasis';
 }
 
+export interface PracticeStreak {
+  current_streak: number;
+  longest_streak: number;
+  last_practice_date: string;
+}
+
 export interface ScaleMasteryEntry {
   scale_permutation_id: string;
   highest_mastered_bpm: number;
@@ -100,6 +106,7 @@ interface ScalesContextType {
   scaleMasteryBPMMap: Record<string, number>;
   exerciseMasteryBPMMap: Record<string, number>;
   log: PracticeLogEntry[];
+  streak: PracticeStreak;
   isLoading: boolean;
   nextFocus: NextFocus;
   updatePracticeStatus: (practiceId: string, status: ScaleStatus) => Promise<boolean>;
@@ -132,6 +139,7 @@ export const ScalesProvider: React.FC<React.PropsWithChildren> = ({ children }) 
   const [scaleMasteryBPMMap, setScaleMasteryBPMMap] = useState<Record<string, number>>({});
   const [exerciseMasteryBPMMap, setExerciseMasteryBPMMap] = useState<Record<string, number>>({});
   const [log, setLog] = useState<PracticeLogEntry[]>([]);
+  const [streak, setStreak] = useState<PracticeStreak>({ current_streak: 0, longest_streak: 0, last_practice_date: '' });
   const [isDataLoading, setIsDataLoading] = useState(true);
 
   const isLoading = isSessionLoading || isDataLoading;
@@ -203,6 +211,19 @@ export const ScalesProvider: React.FC<React.PropsWithChildren> = ({ children }) 
         }));
         setLog(formattedLog);
       }
+
+      const { data: streakData, error: streakError } = await supabase
+        .from('practice_streaks')
+        .select('current_streak, longest_streak, last_practice_date')
+        .eq('user_id', id)
+        .maybeSingle();
+
+      if (streakError) {
+        showError("Failed to load practice streak.");
+        ok = false;
+      } else if (streakData) {
+        setStreak(streakData as PracticeStreak);
+      }
     } catch (error) {
       console.error('Failed to load practice data', error);
       showError("Failed to load practice data.");
@@ -223,6 +244,7 @@ export const ScalesProvider: React.FC<React.PropsWithChildren> = ({ children }) 
       setScaleMasteryBPMMap({});
       setExerciseMasteryBPMMap({});
       setLog([]);
+      setStreak({ current_streak: 0, longest_streak: 0, last_practice_date: '' });
       setIsDataLoading(false);
     }
   }, [userId, isSessionLoading, fetchData]);
@@ -457,6 +479,55 @@ export const ScalesProvider: React.FC<React.PropsWithChildren> = ({ children }) 
     setExerciseMasteryBPMMap(prev => ({ ...prev, [exerciseId]: newBPM }));
   }, [userId]);
 
+  const recalculateAndSaveStreak = useCallback(async () => {
+    if (!userId) return;
+    const sortedLogs = [...log].sort((a, b) => b.timestamp - a.timestamp);
+    if (sortedLogs.length === 0) return;
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
+
+    const practicedToday = sortedLogs.some(l => {
+      const d = new Date(l.timestamp);
+      d.setHours(0, 0, 0, 0);
+      return d.getTime() === today.getTime();
+    });
+    const practicedYesterday = sortedLogs.some(l => {
+      const d = new Date(l.timestamp);
+      d.setHours(0, 0, 0, 0);
+      return d.getTime() === yesterday.getTime();
+    });
+
+    if (!practicedToday && !practicedYesterday) return;
+
+    let checkDate = practicedToday ? today : yesterday;
+    let currentStreak = 0;
+    while (sortedLogs.some(l => {
+      const d = new Date(l.timestamp);
+      d.setHours(0, 0, 0, 0);
+      return d.getTime() === checkDate.getTime();
+    })) {
+      currentStreak++;
+      checkDate = new Date(checkDate);
+      checkDate.setDate(checkDate.getDate() - 1);
+    }
+
+    const longestStreak = Math.max(currentStreak, streak.longest_streak);
+
+    const { error } = await supabase.from('practice_streaks').upsert({
+      user_id: userId,
+      current_streak: currentStreak,
+      longest_streak: longestStreak,
+      last_practice_date: today.toISOString().split('T')[0],
+    }, { onConflict: 'user_id' });
+
+    if (!error) {
+      setStreak({ current_streak: currentStreak, longest_streak: longestStreak, last_practice_date: today.toISOString().split('T')[0] });
+    }
+  }, [userId, log, streak.longest_streak]);
+
   const addLogEntry = useCallback(async (entry: Omit<PracticeLogEntry, 'id' | 'timestamp'>) => {
     if (!userId) return;
     const { data, error } = await supabase.from('practice_logs').insert({ user_id: userId, duration_minutes: entry.durationMinutes, scales_practiced: entry.itemsPracticed, notes: entry.notes }).select('id, created_at').single();
@@ -466,14 +537,15 @@ export const ScalesProvider: React.FC<React.PropsWithChildren> = ({ children }) 
     }
     const finalEntry: PracticeLogEntry = { ...entry, id: data.id, timestamp: new Date(data.created_at).getTime() };
     setLog(prev => [finalEntry, ...prev]);
-  }, [userId]);
+    await recalculateAndSaveStreak();
+  }, [userId, recalculateAndSaveStreak]);
 
   const contextValue = useMemo(() => ({
-    progressMap, scaleMasteryBPMMap, exerciseMasteryBPMMap, log, isLoading, nextFocus, 
-    updatePracticeStatus, updateScaleMasteryBPM, updateExerciseMasteryBPM, addLogEntry, 
+    progressMap, scaleMasteryBPMMap, exerciseMasteryBPMMap, log, streak, isLoading, nextFocus,
+    updatePracticeStatus, updateScaleMasteryBPM, updateExerciseMasteryBPM, addLogEntry,
     allScales: ALL_SCALE_ITEMS, allDohnanyi: ALL_DOHNANYI_ITEMS, allDohnanyiCombinations: ALL_DOHNANYI_COMBINATIONS,
     allHanon: ALL_HANON_ITEMS, allHanonCombinations: ALL_HANON_COMBINATIONS, refetchData, clearExerciseMastery, clearScaleMastery, clearAllLogs
-  }), [progressMap, scaleMasteryBPMMap, exerciseMasteryBPMMap, log, isLoading, nextFocus, updatePracticeStatus, updateScaleMasteryBPM, updateExerciseMasteryBPM, addLogEntry, refetchData, clearExerciseMastery, clearScaleMastery, clearAllLogs]);
+  }), [progressMap, scaleMasteryBPMMap, exerciseMasteryBPMMap, log, streak, isLoading, nextFocus, updatePracticeStatus, updateScaleMasteryBPM, updateExerciseMasteryBPM, addLogEntry, refetchData, clearExerciseMastery, clearScaleMastery, clearAllLogs]);
 
   return <ScalesContext.Provider value={contextValue}>{children}</ScalesContext.Provider>;
 };

@@ -6,9 +6,6 @@ import {
   getGradeRequirements, ARPEGGIO_TYPES
 } from '@/lib/scales';
 import { Clock, Target, Activity, Flame, Calendar } from 'lucide-react';
-import { cn } from '@/lib/utils';
-import TechniqueRadar from './TechniqueRadar';
-import WeeklyActivityChart from './WeeklyActivityChart';
 import { isSameDay, subDays, startOfDay } from 'date-fns';
 
 const PracticeStats = () => {
@@ -73,8 +70,12 @@ const PracticeStats = () => {
               <Activity className="h-6 w-6" />
             </div>
             <div className="min-w-0">
-              <p className="text-2xl font-black tracking-tight tabular-nums">{stats.completionPercentage}%</p>
-              <p className="text-[10px] font-bold uppercase leading-tight tracking-widest text-muted-foreground">Overall Mastery</p>
+              <p className="text-2xl font-black tracking-tight tabular-nums">
+                {stats.completionPercentage === 0 ? '—' : stats.completionPercentage}
+              </p>
+              <p className="text-[10px] font-bold uppercase leading-tight tracking-widest text-muted-foreground">
+                {stats.completionPercentage === 0 ? 'Getting started' : 'Overall Mastery'}
+              </p>
             </div>
           </CardContent>
         </Card>
@@ -85,8 +86,12 @@ const PracticeStats = () => {
               <Flame className="h-6 w-6" />
             </div>
             <div className="min-w-0">
-              <p className="text-2xl font-black tracking-tight tabular-nums">{stats.streak} Days</p>
-              <p className="text-[10px] font-bold uppercase leading-tight tracking-widest text-muted-foreground">Practice Streak</p>
+              <p className="text-2xl font-black tracking-tight tabular-nums">
+                {stats.streak === 0 ? '—' : `${stats.streak} Days`}
+              </p>
+              <p className="text-[10px] font-bold uppercase leading-tight tracking-widest text-muted-foreground">
+                {stats.streak === 0 ? 'Start your streak' : 'Practice Streak'}
+              </p>
             </div>
           </CardContent>
         </Card>
@@ -112,32 +117,6 @@ const PracticeStats = () => {
               <p className="text-2xl font-black tracking-tight tabular-nums">{stats.totalSessions}</p>
               <p className="text-[10px] font-bold uppercase leading-tight tracking-widest text-muted-foreground">Total Sessions</p>
             </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card style={{ animationDelay: '120ms' }} className="surface-interactive animate-in fade-in slide-in-from-bottom-2 fill-mode-both duration-500">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
-              <Target className="h-4 w-4" />
-              Technique Balance
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <TechniqueRadar />
-          </CardContent>
-        </Card>
-
-        <Card style={{ animationDelay: '180ms' }} className="surface-interactive animate-in fade-in slide-in-from-bottom-2 fill-mode-both duration-500">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
-              <Activity className="h-4 w-4" />
-              Weekly Volume (Minutes)
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <WeeklyActivityChart />
           </CardContent>
         </Card>
       </div>

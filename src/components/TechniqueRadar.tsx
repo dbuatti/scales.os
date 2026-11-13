@@ -1,10 +1,8 @@
 "use client";
 
 import React, { useMemo } from 'react';
-import { Radar as RadarIcon } from 'lucide-react';
-import EmptyState from './EmptyState';
-import { 
-  Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ResponsiveContainer 
+import {
+  Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ResponsiveContainer
 } from 'recharts';
 import { useScales } from '@/context/ScalesContext';
 import { ARPEGGIO_TYPES, getGradeRequirements } from '@/lib/scales';
@@ -46,16 +44,6 @@ const TechniqueRadar = () => {
       fullMark: 100,
     }));
   }, [scaleMasteryBPMMap, exerciseMasteryBPMMap]);
-
-  if (!data.some((category) => category.A > 0)) {
-    return (
-      <EmptyState
-        icon={RadarIcon}
-        title="No mastery yet"
-        description="Master a scale, arpeggio or exercise to see your technique balance."
-      />
-    );
-  }
 
   return (
     <div className="h-[300px] w-full">

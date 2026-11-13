@@ -3,7 +3,6 @@ import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import { ScalesProvider } from '@/context/ScalesContext';
 import { RepertoireProvider } from '@/context/RepertoireContext';
 import AppLayout from './AppLayout';
-import AuthenticatedHeaderControls from './AuthenticatedHeaderControls';
 import { Button } from '@/components/ui/button';
 import { Play, BarChart2, BookOpen, LogOut, Settings2 } from 'lucide-react';
 import MobileSettingsSheet from './MobileSettingsSheet';
@@ -76,7 +75,6 @@ const AuthenticatedShell: React.FC = () => {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
-  const isReader = location.pathname.startsWith('/reader');
 
   const handleLogout = async () => {
     const { error } = await supabase.auth.signOut();
@@ -90,8 +88,6 @@ const AuthenticatedShell: React.FC = () => {
 
   const authenticatedHeaderRightContent = (
     <div className="flex items-center gap-3">
-      <AuthenticatedHeaderControls showMetronome={!isReader} />
-      <div className="hidden h-6 w-px bg-border lg:block" />
       <nav aria-label="Sections" className="hidden items-center gap-1 lg:flex">
         <NavLink to="/" icon={<Play className="w-4 h-4" />} label="Practice" />
         <NavLink to="/reader" icon={<BookOpen className="w-4 h-4" />} label="Reader" />
@@ -127,7 +123,7 @@ const AuthenticatedShell: React.FC = () => {
       <button
         type="button"
         onClick={handleLogout}
-        className="flex min-h-16 flex-1 flex-col items-center justify-center gap-0.5 py-2 text-[10px] font-bold uppercase tracking-wider text-muted-foreground transition-colors hover:bg-muted/60 hover:text-destructive focus-visible:z-10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring"
+        className="flex min-h-16 flex-1 flex-col items-center justify-center gap-0.5 py-2 text-[10px] font-bold uppercase tracking-widest text-muted-foreground transition-colors hover:bg-muted/60 hover:text-destructive focus-visible:z-10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring"
       >
         <LogOut className="w-5 h-5" />
         <span>Logout</span>

@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useMemo, useState } from 'react';
-import EmptyState from './EmptyState';
 import {
   AreaChart,
   Area,
@@ -80,16 +79,9 @@ const TempoProgressionChart = () => {
         </div>
       </CardHeader>
       <CardContent>
-        {groups.length === 0 ? (
-          <EmptyState
-            icon={TrendingUp}
-            title="No tempo snapshots yet"
-            description="Log a session to start tracking your BPM over time."
-          />
-        ) : (
-          <div className="h-[260px] w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={data} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+        <div className="h-[260px] w-full">
+          <ResponsiveContainer width="100%" height="100%">
+            <AreaChart data={data} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                 <defs>
                   <linearGradient id="tempoGradient" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="0%" stopColor="hsl(var(--primary))" stopOpacity={0.35} />
@@ -138,7 +130,6 @@ const TempoProgressionChart = () => {
               </AreaChart>
             </ResponsiveContainer>
           </div>
-        )}
       </CardContent>
     </Card>
   );

@@ -1,7 +1,8 @@
 import React, { useState, useMemo, useEffect, useCallback, useRef } from 'react';
 import { CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { RotateCcw, Music, Gauge, Repeat, Hand, Target, Zap, Palette, Shuffle, ChevronDown } from 'lucide-react';
+import { RotateCcw, Music, Gauge, Repeat, Hand, Target, Zap, Palette, Shuffle, ChevronDown, Play, Pause, Timer, Clock, Check } from 'lucide-react';
+import { Progress } from '@/components/ui/progress';
 import { 
   KEYS, SCALE_TYPES, ARPEGGIO_TYPES, ARTICULATIONS, 
   Key, Articulation, 
@@ -104,6 +105,41 @@ const ScalePracticePanel: React.FC<ScalePracticePanelProps> = ({
   const [selectedAccent, setSelectedAccent] = useState<AccentDistribution>(ACCENT_DISTRIBUTIONS[3]);
   const [selectedOctaves, setSelectedOctaves] = useState<OctaveConfiguration>(OCTAVE_CONFIGURATIONS[1]);
   const [advancedOpen, setAdvancedOpen] = useState(true);
+
+  // ── Session timer ──
+  const [sessionSeconds, setSessionSeconds] = useState(0);
+  const [isTimerRunning, setIsTimerRunning] = useState(false);
+  const [lastLoggedMinutes, setLastLoggedMinutes] = useState<number | null>(null);
+  const timerIntervalRef = useRef<NodeJS.Timeout | null>(null);
+
+  const formatTimer = (seconds: number) => {
+    const m = Math.floor(seconds / 60);
+    const s = seconds % 60;
+    return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+  };
+
+  const startTimer = () => { setIsTimerRunning(true); setLastLoggedMinutes(null); };
+  const pauseTimer = () => setIsTimerRunning(false);
+  const resetTimer = () => {
+    setIsTimerRunning(false);
+    setSessionSeconds(0);
+    setLastLoggedMinutes(null);
+  };
+
+  useEffect(() => {
+    if (!isTimerRunning) return;
+    timerIntervalRef.current = setInterval(() => setSessionSeconds((s) => s + 1), 1000);
+    return () => {
+      if (timerIntervalRef.current) clearInterval(timerIntervalRef.current);
+      timerIntervalRef.current = null;
+    };
+  }, [isTimerRunning]);
+
+  useEffect(() => {
+    return () => {
+      if (timerIntervalRef.current) clearInterval(timerIntervalRef.current);
+    };
+  }, []);
 
   const handleResetToStandard = () => {
     setSelectedArticulation(ARTICULATIONS[0]);
@@ -272,7 +308,7 @@ const ScalePracticePanel: React.FC<ScalePracticePanelProps> = ({
     }
 
     addLogEntry({
-      durationMinutes: 0, 
+      durationMinutes: Math.round(sessionSeconds / 60) || 0,
       itemsPracticed: [{
         type: 'scale',
         scaleId: scaleItem.id,
@@ -290,7 +326,7 @@ const ScalePracticePanel: React.FC<ScalePracticePanelProps> = ({
 
     // Auto-nudge BPM after snapshot: use snapshot BPM as base, nudge towards goal
     autoNudgeBPMOnSnapshot({ increment: 3, overshootAllowance: 2, snapshotBpm: currentBPM });
-  }, [currentBPM, result, highestMasteredBPM, updateScaleMasteryBPM, addLogEntry, selectedArticulation, selectedDirection, selectedHandConfig, selectedRhythm, selectedAccent, selectedOctaves, autoNudgeBPMOnSnapshot, nextBPMGoal]);
+  }, [currentBPM, result, highestMasteredBPM, sessionSeconds, updateScaleMasteryBPM, addLogEntry, selectedArticulation, selectedDirection, selectedHandConfig, selectedRhythm, selectedAccent, selectedOctaves, autoNudgeBPMOnSnapshot, nextBPMGoal]);
 
   useEffect(() => {
     const currentHighestBPMForActivePermutation = getHighestBPMForCurrentPermutation();
@@ -334,7 +370,91 @@ const ScalePracticePanel: React.FC<ScalePracticePanelProps> = ({
 
   return (
     <CardContent className="flex flex-col gap-8 p-0">
-            <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+      <div className="surface p-5 flex flex-col gap-4">
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <div className="flex size-9 items-center justify-center rounded-lg bg-primary/10 text-primary">
+              <Timer className="w-5 h-5" />
+            </div>
+            <div className="flex flex-col gap-0.5">
+              <Label className="text-sm font-bold tracking-tight text-foreground">Session Timer</Label>
+              <p className="text-xs leading-snug text-muted-foreground">
+                Time your practice so every session is logged with real duration.
+              </p>
+            </div>
+          </div>
+          <div className="flex items-end gap-2">
+            <span className="text-4xl font-black tabular-nums tracking-tighter text-foreground">
+              {formatTimer(sessionSeconds)}
+            </span>
+            {sessionSeconds > 0 && (
+              <span className="text-xs font-bold text-muted-foreground">
+                {Math.round(sessionSeconds / 60)} min
+              </span>
+            )}
+          </div>
+        </div>
+        <div className="flex items-center justify-between gap-2">
+          {isTimerRunning ? (
+            <Button variant="secondary" size="sm" onClick={pauseTimer} className="flex-1 font-bold focus-scale">
+              <Pause className="mr-1.5 h-3.5 w-3.5" /> Pause
+            </Button>
+          ) : (
+            <Button size="sm" onClick={startTimer} className="flex-1 font-bold focus-scale">
+              <Play className="mr-1.5 h-3.5 w-3.5" /> Start
+            </Button>
+          )}
+          <Button variant="outline" size="sm" onClick={resetTimer} className="text-xs font-bold focus-scale">
+            <RotateCcw className="mr-1 h-3 w-3" /> Reset
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            disabled={sessionSeconds === 0}
+            onClick={() => {
+              const durationMinutes = Math.round(sessionSeconds / 60);
+              if (durationMinutes > 0) {
+                addLogEntry({
+                  durationMinutes,
+                  itemsPracticed: [{
+                    type: 'scale',
+                    scaleId: result?.scaleItem.id ?? '',
+                    articulation: selectedArticulation,
+                    direction: selectedDirection,
+                    handConfig: selectedHandConfig,
+                    rhythm: selectedRhythm,
+                    accent: selectedAccent,
+                    octaves: selectedOctaves,
+                    practicedBPM: currentBPM,
+                    scalePermutationId: result?.scalePermutationId ?? '',
+                  }],
+                  notes: `Timed session: ${formatTimer(sessionSeconds)}`,
+                });
+                showSuccess(`Logged ${durationMinutes} minutes of practice.`);
+                setLastLoggedMinutes(durationMinutes);
+              }
+              pauseTimer();
+            }}
+            className={cn(
+              'text-xs font-bold focus-scale',
+              lastLoggedMinutes !== null
+                ? 'text-success bg-success/10 border-success/20'
+                : 'text-muted-foreground opacity-70 hover:opacity-100'
+            )}
+          >
+            {lastLoggedMinutes !== null ? (
+              <>
+                <Check className="mr-1 h-3.5 w-3.5" />
+                Logged {lastLoggedMinutes}m
+              </>
+            ) : (
+              <><RotateCcw className="mr-1 h-3 w-3" /> Log session</>
+            )}
+          </Button>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
             <div className="flex flex-col gap-6">
                 <div className="flex flex-col gap-4 surface p-5">
                     <div className="flex items-center justify-between gap-3">
