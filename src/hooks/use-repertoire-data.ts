@@ -25,6 +25,34 @@ export const REPERTOIRE_BUCKET = 'practice-pdfs';
 
 const DEFAULT_DOCUMENTS_KEY = 'scales.default_docs_loaded';
 
+// Shared default mappings for the bundled method books. These are seeded into
+// every user's pdf_page_mappings when the default document is first inserted,
+// so new customers inherit a fully indexed Hanon/Dohnányi immediately.
+const DEFAULT_PAGE_MAPPINGS: Record<string, Omit<PageMapping, 'id'>[]> = {
+  'defaults/hanon-final.pdf': [
+    {
+      pageStart: 1,
+      pageEnd: 20,
+      exerciseId: 'Hanon-01-20',
+      label: 'Exercise 1–20',
+      targetBpm: 0,
+      timeSignature: '4/4',
+      mode: 'technical',
+    },
+  ],
+  'defaults/dohnanyi-suvini.pdf': [
+    {
+      pageStart: 1,
+      pageEnd: 51,
+      exerciseId: 'Dohnanyi-SUVINI',
+      label: 'Dohnányi SUVINI',
+      targetBpm: 0,
+      timeSignature: '4/4',
+      mode: 'technical',
+    },
+  ],
+};
+
 const DEFAULT_DOCUMENTS: Omit<SavedDocument, 'id' | 'user_id' | 'created_at'>[] = [
   { title: 'Hanon', mode: 'technical', storage_path: 'defaults/hanon.pdf', page_count: 0, last_viewed_page: 1 },
   { title: 'Hanon Final', mode: 'technical', storage_path: 'defaults/hanon-final.pdf', page_count: 116, last_viewed_page: 8 },
@@ -90,6 +118,24 @@ export const useRepertoireData = () => {
           continue;
         }
         inserted.push(data as SavedDocument);
+        const mappings = DEFAULT_PAGE_MAPPINGS[(data as SavedDocument).storage_path];
+        if (mappings && mappings.length > 0) {
+          const rows = mappings.map((m) => ({
+            user_id: userId,
+            document_id: (data as SavedDocument).id,
+            page_start: m.pageStart,
+            page_end: m.pageEnd,
+            exercise_id: m.exerciseId,
+            label: m.label,
+            target_bpm: m.targetBpm,
+            time_signature: m.timeSignature,
+            mode: m.mode,
+          }));
+          const { error: mapError } = await supabase.from('pdf_page_mappings').insert(rows);
+          if (mapError) {
+            console.error('Failed to seed default mappings for document', data, mapError.message);
+          }
+        }
       }
       if (inserted.length > 0) {
         setDocuments((prev) => [...inserted, ...prev]);
