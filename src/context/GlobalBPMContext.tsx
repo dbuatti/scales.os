@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useMemo, useCallback, useEffect } from 'react';
 import { MIN_BPM, MAX_BPM } from '@/lib/scales';
-import { clampBpm, nextGoalBPM } from '@/lib/tempo';
+import { clampBpm } from '@/lib/tempo';
 
 export const SNAPSHOT_DEBOUNCE_MS = 1000; // 1 second debounce
 

@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import { useMemo } from 'react';
 import { useScales } from '@/context/ScalesContext';
 // cardless
 import { BookOpen, Clock, Target, Calendar, ListChecks } from 'lucide-react';

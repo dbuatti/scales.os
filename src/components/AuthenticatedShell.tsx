@@ -8,7 +8,6 @@ import { Play, BarChart2, BookOpen, LogOut, Settings2 } from 'lucide-react';
 import MobileSettingsSheet from './MobileSettingsSheet';
 import TransportBar from './TransportBar';
 import SettingsSheet from './SettingsSheet';
-import { useSupabaseSession } from '@/hooks/use-supabase-session';
 import { supabase } from '@/integrations/supabase/client';
 import { showSuccess, showError } from '@/utils/toast';
 import { cn } from '@/lib/utils';
@@ -77,7 +76,6 @@ const AuthenticatedShell: React.FC = () => {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [desktopSettingsOpen, setDesktopSettingsOpen] = useState(false);
   const navigate = useNavigate();
-  const location = useLocation();
 
   const handleLogout = async () => {
     const { error } = await supabase.auth.signOut();

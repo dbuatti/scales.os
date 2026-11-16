@@ -1,7 +1,7 @@
 import React, { useCallback, useMemo, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { useScales } from '@/context/ScalesContext';
-import { Share2, CheckCircle, Flame } from 'lucide-react';
+import { Share2, CheckCircle } from 'lucide-react';
 import { showSuccess } from '@/utils/toast';
 import { cn } from '@/lib/utils';
 import { getGradeRequirements } from '@/lib/scales';

@@ -45,8 +45,10 @@ const MappingRow: React.FC<MappingRowProps> = ({ mapping, allMappings, pageCount
           size="icon"
           className="h-7 w-7 text-muted-foreground hover:text-destructive"
           onClick={() => onDelete(mapping.id)}
+          title="Delete bookmark"
+          aria-label={`Delete bookmark for pages ${mapping.pageStart}${mapping.pageEnd !== mapping.pageStart ? `–${mapping.pageEnd}` : ''}`}
         >
-          <Trash2 className="w-3.5 h-3.5" />
+          <Trash2 className="h-3.5 w-3.5" />
         </Button>
       </div>
 

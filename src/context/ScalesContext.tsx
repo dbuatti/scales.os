@@ -1,12 +1,11 @@
 import React, { createContext, useContext, useState, useMemo, useEffect, useCallback } from 'react';
 import { 
-  ALL_SCALE_ITEMS, ScaleItem, ARTICULATIONS, TEMPO_LEVELS, Articulation, TempoLevel, 
-  DIRECTION_TYPES, HAND_CONFIGURATIONS, RHYTHMIC_PERMUTATIONS, ACCENT_DISTRIBUTIONS, OCTAVE_CONFIGURATIONS,
+  ALL_SCALE_ITEMS, ScaleItem, Articulation, TempoLevel, 
   DirectionType, HandConfiguration, RhythmicPermutation, AccentDistribution, OctaveConfiguration,
-  DohnanyiExercise, DohnanyiItem, ALL_DOHNANYI_ITEMS, DOHNANYI_BPM_TARGETS, getDohnanyiPracticeId, ALL_DOHNANYI_COMBINATIONS,
-  HanonExercise, HanonItem, ALL_HANON_ITEMS, ALL_HANON_COMBINATIONS, getHanonPracticeId, getScalePermutationId,
-  PRACTICE_GRADES, getGradeRequirements, GradeRequirement, parseScalePermutationId, getDohnanyiExerciseBaseId, getHanonExerciseBaseId,
-  KEYS, SCALE_TYPES, ARPEGGIO_TYPES
+  DohnanyiExercise, DohnanyiItem, ALL_DOHNANYI_ITEMS, ALL_DOHNANYI_COMBINATIONS,
+  HanonExercise, HanonItem, ALL_HANON_ITEMS, ALL_HANON_COMBINATIONS,
+  PRACTICE_GRADES, getGradeRequirements, parseScalePermutationId,
+  ARPEGGIO_TYPES
 } from '@/lib/scales';
 import { useSupabaseSession } from '@/hooks/use-supabase-session';
 import { supabase } from '@/integrations/supabase/client';

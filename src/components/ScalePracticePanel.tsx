@@ -1,8 +1,7 @@
 import React, { useState, useMemo, useEffect, useCallback, useRef } from 'react';
 import { CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { RotateCcw, Music, Gauge, Repeat, Hand, Target, Zap, Palette, Shuffle, ChevronDown, Play, Pause, Timer, Clock, Check } from 'lucide-react';
-import { Progress } from '@/components/ui/progress';
+import { RotateCcw, Music, Gauge, Repeat, Hand, Target, Zap, Palette, Shuffle, ChevronDown, Play, Pause, Timer, Check } from 'lucide-react';
 import { 
   KEYS, SCALE_TYPES, ARPEGGIO_TYPES, ARTICULATIONS, 
   Key, Articulation, 
@@ -15,7 +14,6 @@ import { showSuccess, showError } from '@/utils/toast';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { cn, shallowEqual, getHandColorClasses } from '@/lib/utils';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useGlobalBPM, SNAPSHOT_DEBOUNCE_MS, ActivePracticeItem } from '@/context/GlobalBPMContext';
 import { nextGoalBPM } from '@/lib/tempo';
 
@@ -66,7 +64,6 @@ const PermutationSection = <T extends string>({ title, description, options, sel
 interface ScalePracticePanelProps {
     currentBPM: number;
     addLogEntry: ReturnType<typeof useScales>['addLogEntry'];
-    updatePracticeStatus: ReturnType<typeof useScales>['updatePracticeStatus']; 
     updateScaleMasteryBPM: ReturnType<typeof useScales>['updateScaleMasteryBPM']; 
     scaleMasteryBPMMap: ReturnType<typeof useScales>['scaleMasteryBPMMap']; 
     allScales: ReturnType<typeof useScales>['allScales'];
@@ -76,7 +73,7 @@ interface ScalePracticePanelProps {
 }
 
 const ScalePracticePanel: React.FC<ScalePracticePanelProps> = ({ 
-  currentBPM, addLogEntry, updatePracticeStatus, updateScaleMasteryBPM, scaleMasteryBPMMap, allScales, 
+  currentBPM, addLogEntry, updateScaleMasteryBPM, scaleMasteryBPMMap, allScales, 
   activeTab, suggestedScalePermutation, quickPick
 }) => {
   
@@ -86,7 +83,6 @@ const ScalePracticePanel: React.FC<ScalePracticePanelProps> = ({
     setActiveLogSnapshotFunction,
     activePermutationHighestBPM: globalActivePermutationHighestBPM,
     activePracticeItem: globalActivePracticeItem,
-    setCurrentBPM,
     isPermutationManuallyAdjusted,
     setIsPermutationManuallyAdjusted,
     autoNudgeBPMOnSnapshot

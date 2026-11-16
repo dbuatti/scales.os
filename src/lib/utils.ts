@@ -26,10 +26,10 @@ export function shallowEqual(objA: unknown, objB: unknown): boolean {
 export const getHandColorClasses = (handConfig: string) => {
   const lower = handConfig.toLowerCase();
   if (lower.includes('left')) {
-    return "border-sky-500/25 text-sky-700 dark:text-sky-300 data-[state=on]:border-sky-500/50 data-[state=on]:bg-sky-500/15 data-[state=on]:text-sky-800 dark:data-[state=on]:text-sky-200 data-[state=on]:shadow-none";
+    return "border-sky-500/25 text-sky-700 data-[state=on]:border-sky-500/50 data-[state=on]:bg-sky-500/15 data-[state=on]:text-sky-800 data-[state=on]:shadow-none";
   }
   if (lower.includes('right')) {
-    return "border-amber-500/25 text-amber-700 dark:text-amber-300 data-[state=on]:border-amber-500/50 data-[state=on]:bg-amber-500/15 data-[state=on]:text-amber-800 dark:data-[state=on]:text-amber-200 data-[state=on]:shadow-none";
+    return "border-amber-500/25 text-amber-700 data-[state=on]:border-amber-500/50 data-[state=on]:bg-amber-500/15 data-[state=on]:text-amber-800 data-[state=on]:shadow-none";
   }
   // "together", "contrary", "staggered" all involve both hands
   return "border-success/25 text-success data-[state=on]:border-success/50 data-[state=on]:bg-success/15 data-[state=on]:text-success data-[state=on]:shadow-none";
@@ -38,16 +38,16 @@ export const getHandColorClasses = (handConfig: string) => {
 export const getCategoryColorClasses = (category: string) => {
   const lower = category.toLowerCase();
   if (lower.includes('arpeggio') || lower.includes('7th')) {
-    return "bg-rose-500/10 text-rose-600 border-rose-500/20 dark:text-rose-400";
+    return "bg-rose-500/10 text-rose-600 border-rose-500/20";
   }
   if (lower.includes('scale') || lower.includes('chromatic')) {
-    return "bg-indigo-500/10 text-indigo-600 border-indigo-500/20 dark:text-indigo-400";
+    return "bg-indigo-500/10 text-indigo-600 border-indigo-500/20";
   }
   if (lower.includes('dohnanyi')) {
-    return "bg-cyan-500/10 text-cyan-600 border-cyan-500/20 dark:text-cyan-400";
+    return "bg-cyan-500/10 text-cyan-600 border-cyan-500/20";
   }
   if (lower.includes('hanon')) {
-    return "bg-amber-500/10 text-amber-600 border-amber-500/20 dark:text-amber-400";
+    return "bg-amber-500/10 text-amber-600 border-amber-500/20";
   }
   return "bg-primary/10 text-primary border-primary/20";
 };

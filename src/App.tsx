@@ -9,7 +9,6 @@ import { MetronomeProvider } from "./context/MetronomeContext";
 import { ZenModeProvider } from "./context/ZenModeContext";
 import AuthRouter from "./components/AuthRouter";
 import ErrorBoundary from "./components/ErrorBoundary";
-import { ThemeProvider } from "@/components/theme-provider";
 
 const queryClient = new QueryClient();
 
@@ -30,15 +29,13 @@ const App = () => {
         <GlobalBPMProvider>
           <MetronomeProvider>
             <ZenModeProvider>
-              <ThemeProvider>
-                <TooltipProvider>
-                  <Sonner />
-                  <BrowserRouter>
-                    <ScrollToTop />
-                    <AuthRouter />
-                  </BrowserRouter>
-                </TooltipProvider>
-              </ThemeProvider>
+              <TooltipProvider>
+                <Sonner theme="light" />
+                <BrowserRouter>
+                  <ScrollToTop />
+                  <AuthRouter />
+                </BrowserRouter>
+              </TooltipProvider>
             </ZenModeProvider>
           </MetronomeProvider>
         </GlobalBPMProvider>

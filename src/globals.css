@@ -5,121 +5,35 @@
 @layer base {
   :root {
     color-scheme: light;
-    /* Warm paper + deep bordeaux. Classical, instrument-grade. */
-    --background: 36 30% 97%;
-    --foreground: 345 18% 13%;
+    /* Paper & Ink — warm off-white canvas, near-black ink, one deep-indigo accent. */
+    --background: 40 33% 98%;
+    --foreground: 240 10% 11%;
     --card: 0 0% 100%;
-    --card-foreground: 345 18% 13%;
+    --card-foreground: 240 10% 11%;
     --popover: 0 0% 100%;
-    --popover-foreground: 345 18% 13%;
-    --primary: 348 55% 30%;
-    --primary-foreground: 36 33% 98%;
-    --secondary: 30 18% 92%;
-    --secondary-foreground: 345 18% 20%;
-    --muted: 30 16% 93%;
-    --muted-foreground: 345 8% 42%;
-    --accent: 36 55% 44%;
-    --accent-foreground: 36 33% 98%;
-    --destructive: 0 60% 46%;
+    --popover-foreground: 240 10% 11%;
+    --primary: 244 55% 40%;
+    --primary-foreground: 40 33% 98%;
+    --secondary: 40 16% 94%;
+    --secondary-foreground: 240 10% 16%;
+    --muted: 40 14% 95%;
+    --muted-foreground: 240 5% 38%;
+    --accent: 250 60% 48%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 65% 48%;
     --destructive-foreground: 0 0% 100%;
-    --border: 30 14% 86%;
-    --input: 30 14% 86%;
-    --ring: 348 55% 30%;
+    --border: 40 12% 88%;
+    --input: 40 12% 88%;
+    --ring: 244 55% 40%;
     --radius: 0.875rem;
-    --warning: 32 88% 40%;
+    --warning: 32 85% 40%;
     --warning-foreground: 0 0% 100%;
     --success: 158 45% 30%;
     --success-foreground: 0 0% 100%;
-    --glow-primary: 348 55% 35%;
-    --glow-secondary: 330 35% 40%;
-    --glow-tertiary: 36 55% 50%;
-    --shadow-color: 345 30% 12%;
-  }
-
-  [data-theme='soft-focus'] {
-    --background: 36 26% 96%;
-    --foreground: 345 12% 20%;
-    --card: 36 26% 98%;
-    --card-foreground: 345 12% 20%;
-    --popover: 36 26% 98%;
-    --popover-foreground: 345 12% 20%;
-    --primary: 348 28% 40%;
-    --primary-foreground: 36 26% 98%;
-    --secondary: 36 14% 90%;
-    --secondary-foreground: 348 25% 30%;
-    --muted: 36 10% 86%;
-    --muted-foreground: 345 6% 44%;
-    --accent: 36 35% 48%;
-    --accent-foreground: 36 26% 98%;
-    --destructive: 0 50% 48%;
-    --destructive-foreground: 36 26% 98%;
-    --border: 36 14% 85%;
-    --input: 36 14% 85%;
-    --ring: 348 28% 40%;
-    --radius: 1rem;
-    --glow-primary: 348 28% 45%;
-    --glow-secondary: 30 25% 55%;
-    --glow-tertiary: 36 35% 55%;
-  }
-
-  [data-theme='retro-terminal'] {
-    color-scheme: dark;
-    --background: 240 10% 3.9%;
-    --foreground: 142 71% 45%;
-    --card: 240 10% 5%;
-    --card-foreground: 142 71% 45%;
-    --popover: 240 10% 5%;
-    --popover-foreground: 142 71% 45%;
-    --primary: 142 71% 45%;
-    --primary-foreground: 240 10% 3.9%;
-    --secondary: 240 3.7% 15.9%;
-    --secondary-foreground: 142 71% 45%;
-    --muted: 240 3.7% 15.9%;
-    --muted-foreground: 142 71% 30%;
-    --accent: 142 71% 45%;
-    --accent-foreground: 240 10% 3.9%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 142 71% 20%;
-    --input: 240 3.7% 15.9%;
-    --ring: 142 71% 45%;
-    --radius: 0.25rem;
-    --glow-primary: 142 71% 45%;
-    --glow-secondary: 142 60% 35%;
-    --glow-tertiary: 142 60% 30%;
-  }
-
-  [data-theme='dark'],
-  .dark {
-    color-scheme: dark;
-    /* Warm near-black with a bordeaux cast; bordeaux stays the brand. */
-    --background: 345 12% 6%;
-    --foreground: 36 20% 95%;
-    --card: 345 10% 9.5%;
-    --card-foreground: 36 20% 95%;
-    --popover: 345 10% 10%;
-    --popover-foreground: 36 20% 95%;
-    --primary: 350 50% 60%;
-    --primary-foreground: 345 20% 8%;
-    --secondary: 345 8% 15%;
-    --secondary-foreground: 36 20% 95%;
-    --muted: 345 8% 14%;
-    --muted-foreground: 345 8% 64%;
-    --accent: 36 58% 55%;
-    --accent-foreground: 345 20% 8%;
-    --destructive: 0 62% 52%;
-    --destructive-foreground: 0 0% 100%;
-    --border: 345 8% 17%;
-    --input: 345 8% 17%;
-    --ring: 350 50% 60%;
-    --warning: 38 85% 56%;
-    --warning-foreground: 345 20% 8%;
-    --success: 158 45% 48%;
-    --success-foreground: 345 20% 8%;
-    --glow-primary: 350 50% 45%;
-    --glow-secondary: 330 35% 40%;
-    --glow-tertiary: 36 58% 50%;
-    --shadow-color: 345 60% 2%;
+    --glow-primary: 244 58% 56%;
+    --glow-secondary: 262 48% 62%;
+    --glow-tertiary: 40 45% 68%;
+    --shadow-color: 240 20% 12%;
   }
 }
 
@@ -164,13 +78,6 @@
     font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     font-feature-settings: "rlig" 1, "calt" 1, "cv11" 1;
     text-rendering: optimizeLegibility;
-  }
-  [data-theme='dark'] body,
-  .dark body {
-    background-image:
-      radial-gradient(60rem 60rem at 4% -18%, hsl(var(--glow-primary) / 0.22), transparent 60%),
-      radial-gradient(50rem 50rem at 110% -4%, hsl(var(--glow-secondary) / 0.16), transparent 55%),
-      radial-gradient(55rem 55rem at 50% 120%, hsl(var(--glow-tertiary) / 0.12), transparent 60%);
   }
   ::selection {
     background-color: hsl(var(--primary) / 0.2);
@@ -350,33 +257,6 @@ svg.lucide {
 }
 .animate-pulse-ring {
   animation: pulse-ring 2.4s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-}
-
-/* ADHD Friendly Utilities */
-.text-glow {
-  text-shadow: none;
-}
-
-.text-glow-intense {
-  text-shadow: none;
-}
-
-[data-theme='retro-terminal'] .text-glow {
-  text-shadow: 0 0 8px hsl(var(--primary) / 0.5);
-}
-
-[data-theme='retro-terminal'] .text-glow-intense {
-  text-shadow: 0 0 12px hsl(var(--primary) / 0.8);
-}
-
-[data-theme='retro-terminal'] .crt-overlay {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.1) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 0, 0, 0.03));
-  background-size: 100% 2px, 3px 100%;
-  z-index: 50;
-  opacity: 0.2;
 }
 
 /* Focus enhancement: subtle scale on interactive elements */

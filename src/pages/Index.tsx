@@ -1,4 +1,3 @@
-import React from 'react';
 import PracticeCommandCenter from '@/components/PracticeCommandCenter';
 import { useScales } from '@/context/ScalesContext';
 import { Skeleton } from '@/components/ui/skeleton';

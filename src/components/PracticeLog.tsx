@@ -1,4 +1,3 @@
-import React from 'react';
 import { useScales } from '@/context/ScalesContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -8,7 +7,7 @@ import { Clock, History } from 'lucide-react';
 import { cn, getCategoryColorClasses } from '@/lib/utils';
 
 const PracticeLog = () => {
-  const { log, allScales, allDohnanyi, allHanon } = useScales();
+  const { log, allScales } = useScales();
 
   if (log.length === 0) {
     return (

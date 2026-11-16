@@ -3,7 +3,7 @@ import { useGlobalBPM } from '@/context/GlobalBPMContext';
 import { useMetronome } from '@/context/MetronomeContext';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
-import { GripVertical, Minimize2, Maximize2, Target, Save, FileText, ChevronDown, ChevronUp, X } from "lucide-react";
+import { GripVertical, Minimize2, Maximize2, Target, Save, FileText, ChevronDown, ChevronUp } from "lucide-react";
 import Metronome from './Metronome';
 import { Input } from '@/components/ui/input';
 

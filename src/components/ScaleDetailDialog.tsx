@@ -4,13 +4,13 @@ import { Button } from '@/components/ui/button';
 import { 
   ScaleItem, ARTICULATIONS, TEMPO_LEVELS, Articulation, TempoLevel,
   DIRECTION_TYPES, HAND_CONFIGURATIONS, RHYTHMIC_PERMUTATIONS, ACCENT_DISTRIBUTIONS, OCTAVE_CONFIGURATIONS,
-  getScalePermutationId, getTempoLevelBPMThreshold, parseScalePermutationId, cleanString,
+  getScalePermutationId, getTempoLevelBPMThreshold, cleanString,
   DirectionType, HandConfiguration, RhythmicPermutation, AccentDistribution, OctaveConfiguration
 } from '@/lib/scales';
 import { useScales, ScaleStatus } from '@/context/ScalesContext';
 import { cn, getHandColorClasses } from '@/lib/utils';
 import { Check, Clock, X, Music, Gauge, Repeat, Hand, Target, Palette } from 'lucide-react';
-import { showError, showSuccess } from '@/utils/toast';
+import { showSuccess } from '@/utils/toast';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { Label } from '@/components/ui/label';
 

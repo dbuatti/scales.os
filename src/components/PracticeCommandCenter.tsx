@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useMemo, useEffect, useCallback, useRef } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { CardContent } from '@/components/ui/card';
 import { useScales, NextFocus } from '@/context/ScalesContext';
 import ScalePracticePanel from './ScalePracticePanel';
 import { cn } from '@/lib/utils';
@@ -12,7 +12,6 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Progress } from '@/components/ui/progress';
 import {
   Dialog,
   DialogContent,
@@ -39,18 +38,14 @@ const PracticeCommandCenter: React.FC = () => {
     addLogEntry,
     allScales,
     log,
-    updatePracticeStatus,
     updateScaleMasteryBPM,
     scaleMasteryBPMMap,
     nextFocus,
-    refetchData,
-    isLoading: isScalesContextLoading,
   } = useScales();
 
   const {
     currentBPM,
     activePracticeItem,
-    setCurrentBPM,
     setActivePermutationHighestBPM,
     setIsPermutationManuallyAdjusted,
     handleBpmChange,
@@ -59,7 +54,7 @@ const PracticeCommandCenter: React.FC = () => {
 
   const { isZenMode } = useZenMode();
   const { isPro } = usePlan();
-  const { goal, setGoal } = useWeeklyGoal();
+  const { setGoal } = useWeeklyGoal();
   const [goalOpen, setGoalOpen] = useState(false);
   const [goalDraft, setGoalDraft] = useState('120');
   const navigate = useNavigate();
@@ -249,7 +244,6 @@ const PracticeCommandCenter: React.FC = () => {
             }
             currentBPM={currentBPM}
             addLogEntry={addLogEntry}
-            updatePracticeStatus={updatePracticeStatus}
             updateScaleMasteryBPM={updateScaleMasteryBPM}
             scaleMasteryBPMMap={scaleMasteryBPMMap}
             allScales={allScales}

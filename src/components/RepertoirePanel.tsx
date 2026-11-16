@@ -1,17 +1,9 @@
 import React, { Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import {
   Upload,
@@ -25,11 +17,9 @@ import {
   Cloud,
   HardDrive,
   Loader2,
-  Bookmark,
   Images,
   Library,
   ClipboardList,
-  ChevronRight,
   Sparkles,
 } from 'lucide-react';
 import type { PdfViewerHandle } from './PdfViewer';
@@ -64,9 +54,7 @@ import { FREE_PDF_LIMIT } from '@/lib/plan';
 import { track } from '@/lib/analytics';
 import {
   PageMapping,
-  RepertoireMode,
   EXERCISE_OPTIONS,
-  TIME_SIGNATURES,
   MODE_LABELS,
   getMappingForPage,
   getBeatsPerMeasure,
@@ -83,9 +71,8 @@ import {
   setStoredBookSource,
   suggestNextExercise,
   friendlyExerciseLabel,
-  getMappingOverlaps,
 } from '@/lib/repertoire';
-import { generateCacheId, loadPDFCached, updateCachedPageCount, cachePDF, getCachedPDF } from '@/lib/pdf-cache';
+import { generateCacheId, updateCachedPageCount, cachePDF, getCachedPDF } from '@/lib/pdf-cache';
 import { ImportedFile } from '@/lib/clipboard-import';
 
 
@@ -321,7 +308,7 @@ const RepertoirePanel: React.FC = () => {
           } else {
             // Add mappings to current document
             const nextPageStart = pageCount > 0 ? pageCount + 1 : 1;
-            const adjustedMappings = mappings.map((m, i) => ({
+            const adjustedMappings = mappings.map((m) => ({
               ...m,
               pageStart: m.pageStart + nextPageStart - 1,
               pageEnd: m.pageEnd + nextPageStart - 1,
@@ -500,7 +487,6 @@ const RepertoirePanel: React.FC = () => {
   // A page can carry more than one exercise (the tail of one and the start of
   // the next), so every page stays bookmarkable; duplicates are prevented by
   // the "next exercise" suggestion rather than by blocking the page.
-  const isBookmarkable = true;
   const overlappingLabels = mappings
     .filter((m) => currentPage >= m.pageStart && currentPage <= m.pageEnd)
     .map((m) => m.label)
@@ -707,7 +693,6 @@ const RepertoirePanel: React.FC = () => {
         type="file"
         accept="application/pdf"
         hidden
-        className="hidden"
         onChange={handleFileInput}
       />
 
@@ -992,7 +977,7 @@ const RepertoirePanel: React.FC = () => {
                 onJumpPage={navigatePage}
                 onPreviousExercise={() => jumpToAdjacentMapping(-1)}
                 onNextExercise={() => jumpToAdjacentMapping(1)}
-                canBookmark={isBookmarkable}
+                canBookmark
                 bookmarkOpen={bookmarkOpen}
                 onBookmarkOpenChange={setBookmarkOpen}
                 onOpenBookmark={addBookmark}
@@ -1097,41 +1082,40 @@ const RepertoirePanel: React.FC = () => {
                     <ListMusic className="w-4 h-4" />
                     Exercises &amp; Bookmarks
                   </p>
-                    <Button
-                      size="sm"
-                      variant="secondary"
-                      onClick={addBookmark}
-                      disabled={!isBookmarkable}
-                      className="font-bold focus-scale"
-                    >
-                      <Plus className="w-4 h-4 mr-1.5" />
-                      Bookmark page {currentPage}
-                    </Button>
-                  </div>
-                  {mappings.length === 0 ? (
-                    <p className="text-sm text-muted-foreground text-center py-6">
-                      No bookmarks yet. Flip through the book and hit{' '}
-                      <span className="font-bold text-primary">Bookmark page {currentPage}</span>.
-                    </p>
-                  ) : (
-                    <ScrollArea
-                      className={sidebarOpen ? 'max-h-[calc(100vh-22rem)] pr-3' : 'max-h-[420px] pr-3'}
-                    >
-                      <div className="space-y-3">
-                        {mappings.map((mapping) => (
-                          <MappingRow
-                            key={mapping.id}
-                            mapping={mapping}
-                            allMappings={mappings}
-                            pageCount={pageCount}
-                            onChange={updateMapping}
-                            onDelete={deleteMapping}
-                            isCurrent={currentMapping?.id === mapping.id}
-                          />
-                        ))}
-                      </div>
-                    </ScrollArea>
-                  )}
+                  <Button
+                    size="sm"
+                    variant="secondary"
+                    onClick={addBookmark}
+                    className="font-bold focus-scale"
+                  >
+                    <Plus className="w-4 h-4 mr-1.5" />
+                    Bookmark page {currentPage}
+                  </Button>
+                </div>
+                {mappings.length === 0 ? (
+                  <p className="text-sm text-muted-foreground text-center py-6">
+                    No bookmarks yet. Flip through the book and hit{' '}
+                    <span className="font-bold text-primary">Bookmark page {currentPage}</span>.
+                  </p>
+                ) : (
+                  <ScrollArea
+                    className={sidebarOpen ? 'max-h-[calc(100vh-22rem)] pr-3' : 'max-h-[420px] pr-3'}
+                  >
+                    <div className="space-y-3">
+                      {mappings.map((mapping) => (
+                        <MappingRow
+                          key={mapping.id}
+                          mapping={mapping}
+                          allMappings={mappings}
+                          pageCount={pageCount}
+                          onChange={updateMapping}
+                          onDelete={deleteMapping}
+                          isCurrent={currentMapping?.id === mapping.id}
+                        />
+                      ))}
+                    </div>
+                  </ScrollArea>
+                )}
               </div>
             </aside>
           )}

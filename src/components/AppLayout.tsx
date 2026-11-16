@@ -4,7 +4,6 @@ import { Play, User, WifiOff } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import ScrollToTopButton from './ScrollToTopButton';
-import ThemeSwitcher from './ThemeSwitcher';
 import ZenModeToggle from './ZenModeToggle';
 import KeyboardShortcuts from './KeyboardShortcuts';
 import { useZenMode } from '@/context/ZenModeContext';
@@ -23,7 +22,7 @@ interface AppLayoutProps {
 
 const AppLayout: React.FC<AppLayoutProps> = ({ children, headerRightContent, mobileNav, bleed = false }) => {
     const { isZenMode } = useZenMode();
-    const { session, isLoading } = useSupabaseSession();
+    const { session } = useSupabaseSession();
     const isSignedIn = Boolean(session?.user);
     const setupMode =
         typeof window !== 'undefined' && new URLSearchParams(window.location.search).has('setup');
@@ -85,11 +84,6 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children, headerRightContent, mob
                                         </div>
                                     </>
                                 )}
-                                {!isZenMode && (
-                                    <div className="hidden sm:block">
-                                        <ThemeSwitcher />
-                                    </div>
-                                )}
                             </>
                         ) : (
                             <>
@@ -108,11 +102,6 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children, headerRightContent, mob
                                             <ZenModeToggle />
                                         </div>
                                     </>
-                                )}
-                                {!isZenMode && (
-                                    <div className="hidden sm:block">
-                                        <ThemeSwitcher />
-                                    </div>
                                 )}
                             </>
                         )}

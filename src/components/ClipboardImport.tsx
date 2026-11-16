@@ -1,13 +1,12 @@
 import React, { useCallback, useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Upload, FileText, Music2, Loader2, CheckCircle, AlertCircle, MinusCircle, Plus } from 'lucide-react';
+import { Upload, FileText, Music2, Loader2, CheckCircle, AlertCircle, MinusCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { showSuccess, showError } from '@/utils/toast';
+import { showError } from '@/utils/toast';
 import { PageMapping, createMappingId, createEmptyMapping, sortMappings } from '@/lib/repertoire';
 import { ImportedFile, parseBPMsFromFilename, parseFilesFromClipboard, parseFilesFromDropboxText } from '@/lib/clipboard-import';
 
@@ -275,6 +274,8 @@ export const ClipboardImport: React.FC<ClipboardImportProps> = ({ onImport, onCl
                         size="icon"
                         className="h-7 w-7 text-muted-foreground hover:text-destructive"
                         onClick={() => setImportedFiles(prev => prev.filter(f => f.name !== file.name))}
+                        title="Remove PDF"
+                        aria-label={`Remove ${file.name}`}
                       >
                         <MinusCircle className="w-3.5 h-3.5" />
                       </Button>
@@ -312,6 +313,8 @@ export const ClipboardImport: React.FC<ClipboardImportProps> = ({ onImport, onCl
                       size="icon"
                       className="h-7 w-7 text-muted-foreground hover:text-destructive"
                       onClick={() => setImportedFiles(prev => prev.filter(f => f.name !== file.name))}
+                      title="Remove audio file"
+                      aria-label={`Remove ${file.name}`}
                     >
                       <MinusCircle className="w-3.5 h-3.5" />
                     </Button>

@@ -1,8 +1,8 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { useScales } from '@/context/ScalesContext';
-import { CheckCircle, Flame, Trophy, Star, Piano, Music } from 'lucide-react';
+import { Flame, Trophy, Star, Piano } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { getGradeRequirements } from '@/lib/scales';
 import ShareProgress from './ShareProgress';

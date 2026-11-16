@@ -1,5 +1,3 @@
-import { PageMapping } from './repertoire';
-
 export interface ImportedFile {
   name: string;
   type: 'pdf' | 'audio' | 'other';

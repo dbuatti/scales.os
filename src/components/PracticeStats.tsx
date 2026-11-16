@@ -1,11 +1,10 @@
-import React, { useMemo } from 'react';
+import { useMemo } from 'react';
 import { useScales } from '@/context/ScalesContext';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Progress } from '@/components/ui/progress';
+import { Card, CardContent } from '@/components/ui/card';
 import { 
-  getGradeRequirements, ARPEGGIO_TYPES
+  getGradeRequirements
 } from '@/lib/scales';
-import { Clock, Target, Activity, Flame, Calendar } from 'lucide-react';
+import { Clock, Activity, Flame, Calendar } from 'lucide-react';
 import { isSameDay, subDays, startOfDay } from 'date-fns';
 
 const PracticeStats = () => {

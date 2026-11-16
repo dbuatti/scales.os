@@ -6,7 +6,6 @@ import RepertoireStats from '@/components/RepertoireStats';
 import ScaleGrid from '@/components/ScaleGrid';
 import PracticeLog from '@/components/PracticeLog';
 import PageContainer from '@/components/PageContainer';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useScales } from '@/context/ScalesContext';
 import { Skeleton } from '@/components/ui/skeleton';

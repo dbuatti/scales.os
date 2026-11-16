@@ -7,10 +7,7 @@ import { useNavigate } from 'react-router-dom';
 // cardless
 import { Button } from '@/components/ui/button';
 import { Check, Loader2, Music } from 'lucide-react';
-import { useTheme } from 'next-themes';
 import { track } from '@/lib/analytics';
-
-const DARK_THEMES = ['dark', 'retro-terminal'];
 
 const HIGHLIGHTS = [
   'Every permutation, one tap away',
@@ -20,7 +17,6 @@ const HIGHLIGHTS = [
 
 const Login: React.FC = () => {
   const { session, isLoading } = useSupabaseSession();
-  const { resolvedTheme } = useTheme();
   const navigate = useNavigate();
   const [googleLoading, setGoogleLoading] = useState(false);
   const [googleError, setGoogleError] = useState<string | null>(null);
@@ -182,7 +178,7 @@ const Login: React.FC = () => {
                     },
                   },
                 }}
-                theme={DARK_THEMES.includes(resolvedTheme ?? '') ? 'dark' : 'default'}
+                theme="default"
                 providers={[]}
                 redirectTo={window.location.origin}
               />
