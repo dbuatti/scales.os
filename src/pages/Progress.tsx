@@ -119,21 +119,19 @@ const ProgressPage: React.FC = () => {
 
         <TabsContent value="overview" className="flex flex-col gap-8">
           {log.length === 0 ? (
-            <Card className="surface">
-              <CardContent className="flex flex-col items-center justify-center gap-4 p-16 text-center">
-                <div className="rounded-2xl bg-muted p-4 text-muted-foreground">
-                  <LayoutDashboard className="h-10 w-10" />
-                </div>
-                <h3 className="font-semibold text-foreground">No practice data yet</h3>
-                <p className="text-muted-foreground max-w-sm">
-                  Start a practice session to see your mastery, consistency, and tempo progress
-                  here.
-                </p>
-                <Button asChild variant="default" className="mt-4 font-bold">
-                  <Link to="/">Start a session</Link>
-                </Button>
-              </CardContent>
-            </Card>
+            <div className="flex flex-col items-center justify-center gap-4 py-16 text-center">
+              <div className="p-4 text-muted-foreground">
+                <LayoutDashboard className="h-10 w-10" />
+              </div>
+              <h3 className="font-semibold text-foreground">No practice data yet</h3>
+              <p className="text-muted-foreground max-w-sm">
+                Start a practice session to see your mastery, consistency, and tempo progress
+                here.
+              </p>
+              <Button asChild variant="default" className="mt-4 font-bold">
+                <Link to="/">Start a session</Link>
+              </Button>
+            </div>
           ) : (
             <>
               <Card className="surface">
