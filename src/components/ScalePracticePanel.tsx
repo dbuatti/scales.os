@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useEffect, useCallback, useRef } from 'react';
 import { CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { RotateCcw, Music, Gauge, Repeat, Hand, Target, Zap, Palette, Shuffle, ChevronDown, Play, Pause, Timer, Check } from 'lucide-react';
+import { RotateCcw, Music, Gauge, Repeat, Hand, Target, Zap, Palette, Shuffle, ChevronDown } from 'lucide-react';
 import { 
   KEYS, SCALE_TYPES, ARPEGGIO_TYPES, ARTICULATIONS, 
   Key, Articulation, 
@@ -70,11 +70,13 @@ interface ScalePracticePanelProps {
     activeTab: 'scales' | 'dohnanyi' | 'hanon' | 'repertoire';
     suggestedScalePermutation: (NextFocus & { type: 'scale' | 'arpeggio' }) | undefined;
     quickPick?: { kind: 'scale' | 'arpeggio'; nonce: number } | null;
+    /** Elapsed session seconds, lifted to the page so the timer can live in the tools rail. */
+    sessionSeconds: number;
 }
 
 const ScalePracticePanel: React.FC<ScalePracticePanelProps> = ({ 
   currentBPM, addLogEntry, updateScaleMasteryBPM, scaleMasteryBPMMap, allScales, 
-  activeTab, suggestedScalePermutation, quickPick
+  activeTab, suggestedScalePermutation, quickPick, sessionSeconds
 }) => {
   
   const { 
@@ -102,41 +104,6 @@ const ScalePracticePanel: React.FC<ScalePracticePanelProps> = ({
   const [selectedAccent, setSelectedAccent] = useState<AccentDistribution>(ACCENT_DISTRIBUTIONS[3]);
   const [selectedOctaves, setSelectedOctaves] = useState<OctaveConfiguration>(OCTAVE_CONFIGURATIONS[1]);
   const [advancedOpen, setAdvancedOpen] = useState(false);
-
-  // ── Session timer ──
-  const [sessionSeconds, setSessionSeconds] = useState(0);
-  const [isTimerRunning, setIsTimerRunning] = useState(false);
-  const [lastLoggedMinutes, setLastLoggedMinutes] = useState<number | null>(null);
-  const timerIntervalRef = useRef<NodeJS.Timeout | null>(null);
-
-  const formatTimer = (seconds: number) => {
-    const m = Math.floor(seconds / 60);
-    const s = seconds % 60;
-    return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
-  };
-
-  const startTimer = () => { setIsTimerRunning(true); setLastLoggedMinutes(null); };
-  const pauseTimer = () => setIsTimerRunning(false);
-  const resetTimer = () => {
-    setIsTimerRunning(false);
-    setSessionSeconds(0);
-    setLastLoggedMinutes(null);
-  };
-
-  useEffect(() => {
-    if (!isTimerRunning) return;
-    timerIntervalRef.current = setInterval(() => setSessionSeconds((s) => s + 1), 1000);
-    return () => {
-      if (timerIntervalRef.current) clearInterval(timerIntervalRef.current);
-      timerIntervalRef.current = null;
-    };
-  }, [isTimerRunning]);
-
-  useEffect(() => {
-    return () => {
-      if (timerIntervalRef.current) clearInterval(timerIntervalRef.current);
-    };
-  }, []);
 
   const handleResetToStandard = () => {
     setSelectedArticulation(ARTICULATIONS[0]);
@@ -367,78 +334,6 @@ const ScalePracticePanel: React.FC<ScalePracticePanelProps> = ({
 
   return (
     <CardContent className="flex flex-col gap-8 p-0">
-      <div className="flex flex-col gap-4 py-2">
-        <div className="flex items-center justify-between gap-3">
-          <div className="flex items-center gap-3">
-            <div className="flex size-9 items-center justify-center rounded-lg bg-primary/10 text-primary">
-              <Timer className="size-5" />
-            </div>
-            <div className="flex flex-col gap-0.5">
-              <Label className="text-sm font-bold tracking-tight text-foreground">Session Timer</Label>
-              <p className="text-xs leading-snug text-muted-foreground">
-                Time your practice so every session is logged with real duration.
-              </p>
-            </div>
-          </div>
-          <div className="flex items-end gap-2">
-            <span className="text-4xl font-black tabular-nums tracking-tighter text-foreground">
-              {formatTimer(sessionSeconds)}
-            </span>
-            {sessionSeconds > 0 && (
-              <span className="text-xs font-bold text-muted-foreground">
-                {Math.round(sessionSeconds / 60)} min
-              </span>
-            )}
-          </div>
-        </div>
-        <div className="flex items-center justify-between gap-2">
-          {isTimerRunning ? (
-            <Button variant="secondary" size="sm" onClick={pauseTimer} className="flex-1 font-bold focus-scale">
-              <Pause className="mr-1.5 h-3.5 w-3.5" /> Pause
-            </Button>
-          ) : (
-            <Button size="sm" onClick={startTimer} className="flex-1 font-bold focus-scale">
-              <Play className="mr-1.5 h-3.5 w-3.5" /> Start
-            </Button>
-          )}
-          <Button
-            variant="outline"
-            size="sm"
-            disabled={sessionSeconds === 0}
-            onClick={() => {
-              const durationMinutes = Math.round(sessionSeconds / 60);
-              if (durationMinutes > 0) {
-                addLogEntry({
-                  durationMinutes,
-                  itemsPracticed: [],
-                  notes: `General timed practice session logged. Focused BPM: ${currentBPM}`,
-                });
-                showSuccess(`Logged ${durationMinutes} minutes of practice.`);
-                setLastLoggedMinutes(durationMinutes);
-              }
-              pauseTimer();
-            }}
-            className={cn(
-              'text-xs font-bold focus-scale',
-              lastLoggedMinutes !== null
-                ? 'text-success bg-success/10 border-success/20'
-                : 'text-muted-foreground opacity-70 hover:opacity-100'
-            )}
-          >
-            {lastLoggedMinutes !== null ? (
-              <>
-                <Check className="mr-1 h-3.5 w-3.5" />
-                Logged {lastLoggedMinutes}m
-              </>
-            ) : (
-              <><RotateCcw className="mr-1 h-3 w-3" /> Log session</>
-            )}
-          </Button>
-          <Button variant="ghost" size="sm" onClick={resetTimer} className="text-xs font-bold focus-scale text-muted-foreground hover:text-destructive">
-            <RotateCcw className="mr-1 h-3 w-3" /> Reset
-          </Button>
-        </div>
-      </div>
 
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
             <div className="flex flex-col gap-6">

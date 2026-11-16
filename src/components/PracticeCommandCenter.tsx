@@ -29,6 +29,7 @@ import PageContainer from './PageContainer';
 import OnboardingChecklist from './OnboardingChecklist';
 import MilestoneCelebration from './MilestoneCelebration';
 import Metronome from './Metronome';
+import SessionTimer from './SessionTimer';
 import { usePlan } from '@/hooks/use-plan';
 import { useWeeklyGoal } from '@/hooks/use-weekly-goal';
 import { track } from '@/lib/analytics';
@@ -77,6 +78,23 @@ const PracticeCommandCenter: React.FC = () => {
   const [isEngagingSuggestion, setIsEngagingSuggestion] = useState(false);
   const [scaleQuickPick, setScaleQuickPick] = useState<{ kind: 'scale' | 'arpeggio'; nonce: number } | null>(null);
   const firstLogTracked = useRef(false);
+
+  // Session timer state is lifted here so the compact timer can live in the tools
+  // rail next to the metronome while snapshots (in ScalePracticePanel) read the same seconds.
+  const [sessionSeconds, setSessionSeconds] = useState(0);
+  const [isTimerRunning, setIsTimerRunning] = useState(false);
+  const startTimer = useCallback(() => setIsTimerRunning(true), []);
+  const pauseTimer = useCallback(() => setIsTimerRunning(false), []);
+  const resetTimer = useCallback(() => {
+    setIsTimerRunning(false);
+    setSessionSeconds(0);
+  }, []);
+
+  useEffect(() => {
+    if (!isTimerRunning) return;
+    const id = window.setInterval(() => setSessionSeconds((s) => s + 1), 1000);
+    return () => window.clearInterval(id);
+  }, [isTimerRunning]);
 
   useEffect(() => {
     if (firstLogTracked.current || log.length === 0) return;
@@ -144,9 +162,8 @@ const PracticeCommandCenter: React.FC = () => {
         kind: target === 'arpeggios' ? 'arpeggio' : 'scale',
         nonce: Date.now(),
       });
-      scrollToPracticePanel();
     },
-    [scrollToPracticePanel],
+    [],
   );
 
   const suggestedLabel = nextFocus
@@ -249,11 +266,19 @@ const PracticeCommandCenter: React.FC = () => {
             allScales={allScales}
             activeTab="scales"
             quickPick={scaleQuickPick}
+            sessionSeconds={sessionSeconds}
           />
         </div>
 
         {!isZenMode && (
           <div className="flex flex-col gap-6 xl:gap-8 lg:sticky lg:top-24 lg:self-start">
+            <SessionTimer
+              seconds={sessionSeconds}
+              isRunning={isTimerRunning}
+              onStart={startTimer}
+              onPause={pauseTimer}
+              onReset={resetTimer}
+            />
             <div style={{ animationDelay: '60ms' }} className="animate-in fade-in slide-in-from-bottom-2 fill-mode-both duration-300">
               <p className="mb-2 flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-muted-foreground">
                 <Music className="h-3.5 w-3.5" />

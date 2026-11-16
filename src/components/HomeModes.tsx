@@ -1,5 +1,5 @@
 import React from 'react';
-import { Music, Activity, ChevronRight, LucideIcon } from 'lucide-react';
+import { Music, Activity, LucideIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export type HomeMode = 'scales' | 'arpeggios';
@@ -64,7 +64,6 @@ const HomeModes: React.FC<HomeModesProps> = ({ active, onSelect }) => (
             <span className="block text-sm font-bold tracking-tight sm:text-base">{mode.label}</span>
             <span className="hidden truncate text-xs text-muted-foreground sm:block">{mode.hint}</span>
           </span>
-          <ChevronRight className="hidden h-4 w-4 shrink-0 sm:block text-muted-foreground/40 transition-all duration-200 group-hover:translate-x-0.5 group-hover:text-primary" />
         </button>
       );
     })}
