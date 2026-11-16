@@ -6,6 +6,7 @@ import AppLayout from './AppLayout';
 import { Button } from '@/components/ui/button';
 import { Play, BarChart2, BookOpen, LogOut, Settings2 } from 'lucide-react';
 import MobileSettingsSheet from './MobileSettingsSheet';
+import TransportBar from './TransportBar';
 import SettingsSheet from './SettingsSheet';
 import { useSupabaseSession } from '@/hooks/use-supabase-session';
 import { supabase } from '@/integrations/supabase/client';
@@ -32,7 +33,7 @@ const NavLink: React.FC<NavLinkProps> = ({ to, icon, label }) => {
                     className={cn(
                         "flex items-center gap-2 rounded-lg px-2.5 py-2 text-sm font-medium transition-all duration-150 active:scale-[0.98] 2xl:px-3",
                         isActive
-                            ? "bg-primary/10 text-primary hover:bg-primary/15 hover:text-primary"
+                            ? "bg-background text-primary shadow-sm"
                             : "text-muted-foreground hover:text-foreground"
                     )}
                 >
@@ -90,7 +91,7 @@ const AuthenticatedShell: React.FC = () => {
 
   const authenticatedHeaderRightContent = (
     <div className="flex items-center gap-3">
-      <nav aria-label="Sections" className="hidden items-center gap-1 lg:flex">
+      <nav aria-label="Sections" className="hidden items-center gap-1 rounded-lg border border-border/60 bg-muted/30 p-1 lg:flex">
         <NavLink to="/" icon={<Play className="w-4 h-4" />} label="Practice" />
         <NavLink to="/reader" icon={<BookOpen className="w-4 h-4" />} label="Reader" />
         <NavLink to="/progress" icon={<BarChart2 className="w-4 h-4" />} label="Progress" />
@@ -149,6 +150,9 @@ const AuthenticatedShell: React.FC = () => {
     <ScalesProvider>
       <RepertoireProvider>
         <AppLayout headerRightContent={authenticatedHeaderRightContent} mobileNav={mobileNav}>
+          <div className="mb-4">
+            <TransportBar />
+          </div>
           <Outlet />
         </AppLayout>
       </RepertoireProvider>
