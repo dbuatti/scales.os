@@ -15,9 +15,10 @@ import TempoControl from './TempoControl';
 
 interface MetronomeProps {
   showSettings?: boolean;
+  layout?: 'horizontal' | 'vertical';
 }
 
-const Metronome: React.FC<MetronomeProps> = ({ showSettings = true }) => {
+const Metronome: React.FC<MetronomeProps> = ({ showSettings = true, layout = 'horizontal' }) => {
   const {
     isRunning,
     isMuted,
@@ -138,14 +139,117 @@ const Metronome: React.FC<MetronomeProps> = ({ showSettings = true }) => {
     </div>
   );
 
-  // Compact stacked layout for narrow containers (e.g. the floating tempo panel).
-  if (!showSettings) {
+  const settingsControl = showSettings ? (
+    <Popover>
+      <PopoverTrigger asChild>
+        <Button
+          variant="ghost"
+          size="icon"
+          aria-label="Metronome settings"
+          className={cn(
+            'h-9 w-9 shrink-0 rounded-lg text-muted-foreground hover:bg-background/70 hover:text-foreground focus-scale',
+            (autoIncrementEnabled || visualFlashEnabled) &&
+              'bg-primary/10 text-primary hover:bg-primary/15 hover:text-primary',
+          )}
+        >
+          <Settings2 className="h-4 w-4" />
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent align="end" className="w-72 space-y-6 p-4 text-sm">
+        <div className="space-y-3">
+          <Label className="text-xs font-bold uppercase tracking-widest">Subdivision</Label>
+          {divisionToggle}
+        </div>
+
+        <div className="space-y-4 border-t pt-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-1">
+              <Label className="text-xs font-bold uppercase tracking-widest">Volume</Label>
+              <div className="sm:hidden">{muteButton}</div>
+            </div>
+            <span className="text-xs font-bold tabular-nums text-muted-foreground">{Math.round(volume * 100)}%</span>
+          </div>
+          <div className="flex items-center gap-4">
+            <VolumeX className="w-4 h-4 text-muted-foreground" />
+            <Slider
+              value={[volume * 100]}
+              onValueChange={([v]) => setVolume(v / 100)}
+              max={100}
+              step={1}
+              className="flex-1"
+            />
+            <Volume2 className="w-4 h-4 text-muted-foreground" />
+          </div>
+        </div>
+
+        <div className="space-y-4 pt-4 border-t">
+          <div className="flex items-center justify-between">
+            <div className="space-y-0.5">
+              <Label className="text-xs font-bold uppercase tracking-widest">Visual Flash</Label>
+              <p className="text-xs text-muted-foreground">Flash screen on beat</p>
+            </div>
+            <Button
+              variant={visualFlashEnabled ? 'default' : 'outline'}
+              size="sm"
+              onClick={toggleVisualFlash}
+              className="h-9 w-14 p-0"
+            >
+              {visualFlashEnabled ? <Zap className="w-3 h-3" /> : <ZapOff className="w-3 h-3" />}
+            </Button>
+          </div>
+        </div>
+
+        <div className="space-y-4 pt-4 border-t">
+          <div className="flex items-center justify-between">
+            <div className="space-y-0.5">
+              <Label className="text-xs font-bold uppercase tracking-widest">Auto-Increment</Label>
+              <p className="text-xs text-muted-foreground">Increase BPM over time</p>
+            </div>
+            <Button
+              variant={autoIncrementEnabled ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setAutoIncrementEnabled(!autoIncrementEnabled)}
+              className="h-9 px-3 text-xs font-bold"
+            >
+              {autoIncrementEnabled ? 'ON' : 'OFF'}
+            </Button>
+          </div>
+
+          {autoIncrementEnabled && (
+            <div className="space-y-3 animate-in fade-in slide-in-from-top-2 duration-200">
+              <div className="flex items-center justify-between gap-4">
+                <Label className="text-xs text-muted-foreground">Increase by (BPM)</Label>
+                <Input
+                  type="number"
+                  value={incrementAmount}
+                  onChange={(e) => setIncrementAmount(Number(e.target.value))}
+                  className="w-16 h-9 text-xs"
+                />
+              </div>
+              <div className="flex items-center justify-between gap-4">
+                <Label className="text-xs text-muted-foreground">Every (Measures)</Label>
+                <Input
+                  type="number"
+                  value={incrementEvery}
+                  onChange={(e) => setIncrementEvery(Number(e.target.value))}
+                  className="w-16 h-9 text-xs"
+                />
+              </div>
+            </div>
+          )}
+        </div>
+      </PopoverContent>
+    </Popover>
+  ) : null;
+
+  if (layout === 'vertical') {
     return (
-      <div className="space-y-3">
-        <div className="flex items-center gap-2">
+      <div className="space-y-3 p-1">
+        <div className="flex flex-wrap items-center gap-2">
           {runButton('flex-1')}
           {tapButton}
           {muteButton}
+          {settingsControl}
         </div>
         <TempoControl
           compact
@@ -162,7 +266,7 @@ const Metronome: React.FC<MetronomeProps> = ({ showSettings = true }) => {
   }
 
   return (
-    <div className="flex items-center gap-1 rounded-xl border border-border/60 bg-card/60 p-1 shadow-sm backdrop-blur-xl">
+    <div className="flex flex-wrap items-center gap-1 rounded-xl border border-border/60 bg-card/60 p-1 shadow-sm backdrop-blur-xl">
       <div className="hidden lg:block">{beatIndicator}</div>
 
       {runButton('w-16 sm:w-20')}
@@ -176,107 +280,7 @@ const Metronome: React.FC<MetronomeProps> = ({ showSettings = true }) => {
 
       <div className="flex items-center gap-0.5">
         <div className="hidden md:block">{tapButton}</div>
-
-        <Popover>
-          <PopoverTrigger asChild>
-            <Button
-              variant="ghost"
-              size="icon"
-              aria-label="Metronome settings"
-              className={cn(
-                'h-9 w-9 shrink-0 rounded-lg text-muted-foreground hover:bg-background/70 hover:text-foreground focus-scale',
-                (autoIncrementEnabled || visualFlashEnabled) &&
-                  'bg-primary/10 text-primary hover:bg-primary/15 hover:text-primary',
-              )}
-            >
-              <Settings2 className="h-4 w-4" />
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent align="end" className="w-72 space-y-6 p-4 text-sm">
-            <div className="space-y-3">
-              <Label className="text-xs font-bold uppercase tracking-widest">Subdivision</Label>
-              {divisionToggle}
-            </div>
-
-            <div className="space-y-4 border-t pt-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-1">
-                  <Label className="text-xs font-bold uppercase tracking-widest">Volume</Label>
-                  <div className="sm:hidden">{muteButton}</div>
-                </div>
-                <span className="text-xs font-bold tabular-nums text-muted-foreground">{Math.round(volume * 100)}%</span>
-              </div>
-              <div className="flex items-center gap-4">
-                <VolumeX className="w-4 h-4 text-muted-foreground" />
-                <Slider
-                  value={[volume * 100]}
-                  onValueChange={([v]) => setVolume(v / 100)}
-                  max={100}
-                  step={1}
-                  className="flex-1"
-                />
-                <Volume2 className="w-4 h-4 text-muted-foreground" />
-              </div>
-            </div>
-
-            <div className="space-y-4 pt-4 border-t">
-              <div className="flex items-center justify-between">
-                <div className="space-y-0.5">
-                  <Label className="text-xs font-bold uppercase tracking-widest">Visual Flash</Label>
-                  <p className="text-xs text-muted-foreground">Flash screen on beat</p>
-                </div>
-                <Button
-                  variant={visualFlashEnabled ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={toggleVisualFlash}
-                  className="h-9 w-14 p-0"
-                >
-                  {visualFlashEnabled ? <Zap className="w-3 h-3" /> : <ZapOff className="w-3 h-3" />}
-                </Button>
-              </div>
-            </div>
-
-            <div className="space-y-4 pt-4 border-t">
-              <div className="flex items-center justify-between">
-                <div className="space-y-0.5">
-                  <Label className="text-xs font-bold uppercase tracking-widest">Auto-Increment</Label>
-                  <p className="text-xs text-muted-foreground">Increase BPM over time</p>
-                </div>
-                <Button
-                  variant={autoIncrementEnabled ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => setAutoIncrementEnabled(!autoIncrementEnabled)}
-                  className="h-9 px-3 text-xs font-bold"
-                >
-                  {autoIncrementEnabled ? 'ON' : 'OFF'}
-                </Button>
-              </div>
-
-              {autoIncrementEnabled && (
-                <div className="space-y-3 animate-in fade-in slide-in-from-top-2 duration-200">
-                  <div className="flex items-center justify-between gap-4">
-                    <Label className="text-xs text-muted-foreground">Increase by (BPM)</Label>
-                    <Input
-                      type="number"
-                      value={incrementAmount}
-                      onChange={(e) => setIncrementAmount(Number(e.target.value))}
-                      className="w-16 h-9 text-xs"
-                    />
-                  </div>
-                  <div className="flex items-center justify-between gap-4">
-                    <Label className="text-xs text-muted-foreground">Every (Measures)</Label>
-                    <Input
-                      type="number"
-                      value={incrementEvery}
-                      onChange={(e) => setIncrementEvery(Number(e.target.value))}
-                      className="w-16 h-9 text-xs"
-                    />
-                  </div>
-                </div>
-              )}
-            </div>
-          </PopoverContent>
-        </Popover>
+        {settingsControl}
       </div>
 
       <div className="hidden sm:block">{muteButton}</div>

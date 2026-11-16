@@ -268,7 +268,7 @@ const PracticeCommandCenter: React.FC = () => {
                 </CardTitle>
               </CardHeader>
               <CardContent className="p-0">
-                <Metronome showSettings={true} />
+                <Metronome showSettings={true} layout="vertical" />
               </CardContent>
             </Card>
           </div>

@@ -354,7 +354,7 @@ const FloatingTempoIndicator: React.FC<FloatingTempoIndicatorProps> = ({
         {expanded && (
           <>
             <div className="h-px bg-border/60" />
-            <Metronome showSettings={true} />
+            <Metronome showSettings={true} layout="vertical" />
             <div className="h-px bg-border/60" />
             <Button
               variant="secondary"

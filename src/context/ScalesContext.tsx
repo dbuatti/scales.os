@@ -219,8 +219,17 @@ export const ScalesProvider: React.FC<React.PropsWithChildren> = ({ children }) 
         .maybeSingle();
 
       if (streakError) {
-        showError("Failed to load practice streak.");
-        ok = false;
+        // The practice_streaks table may not be migrated yet; degrade silently
+        // instead of surfacing a 404 to the user.
+        const missingTable =
+          streakError.code === 'PGRST205' ||
+          streakError.code === '42P01' ||
+          (streakError as { status?: number }).status === 404 ||
+          /does not exist/i.test(streakError.message || '');
+        if (!missingTable) {
+          showError("Failed to load practice streak.");
+          ok = false;
+        }
       } else if (streakData) {
         setStreak(streakData as PracticeStreak);
       }

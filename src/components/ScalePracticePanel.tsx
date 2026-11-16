@@ -374,7 +374,7 @@ const ScalePracticePanel: React.FC<ScalePracticePanelProps> = ({
         <div className="flex items-center justify-between gap-3">
           <div className="flex items-center gap-3">
             <div className="flex size-9 items-center justify-center rounded-lg bg-primary/10 text-primary">
-              <Timer className="w-5 h-5" />
+              <Timer className="size-5" />
             </div>
             <div className="flex flex-col gap-0.5">
               <Label className="text-sm font-bold tracking-tight text-foreground">Session Timer</Label>
@@ -449,7 +449,7 @@ const ScalePracticePanel: React.FC<ScalePracticePanelProps> = ({
                     <div className="flex items-center justify-between gap-3">
                         <div className="flex items-center gap-3">
                             <div className="flex size-9 items-center justify-center rounded-lg bg-primary/10 text-primary">
-                                <Music className="w-5 w-5" />
+                                <Music className="size-5" />
                             </div>
                             <Label className="text-sm font-bold tracking-tight text-foreground">Key Selection</Label>
                         </div>
@@ -483,7 +483,7 @@ const ScalePracticePanel: React.FC<ScalePracticePanelProps> = ({
                 <div className="flex flex-col gap-4 surface p-5">
                     <div className="flex items-center gap-3">
                         <div className="flex size-9 items-center justify-center rounded-lg bg-primary/10 text-primary">
-                            <Zap className="w-5 h-5" />
+                            <Zap className="size-5" />
                         </div>
                         <Label className="text-sm font-bold tracking-tight text-foreground">Type Selection</Label>
                     </div>
@@ -511,7 +511,7 @@ const ScalePracticePanel: React.FC<ScalePracticePanelProps> = ({
                     options={ARTICULATIONS} 
                     selectedValue={selectedArticulation} 
                     onValueChange={setArticulationAndAdjust}
-                    icon={<Palette className="w-5 h-5" />}
+                    icon={<Palette className="size-5" />}
                 />
                 <PermutationSection 
                     title="Octaves" 
@@ -519,7 +519,7 @@ const ScalePracticePanel: React.FC<ScalePracticePanelProps> = ({
                     options={OCTAVE_CONFIGURATIONS} 
                     selectedValue={selectedOctaves} 
                     onValueChange={setOctavesAndAdjust}
-                    icon={<Music className="w-5 h-5" />}
+                    icon={<Music className="size-5" />}
                 />
             </div>
         </div>
@@ -563,7 +563,7 @@ const ScalePracticePanel: React.FC<ScalePracticePanelProps> = ({
                     options={DIRECTION_TYPES} 
                     selectedValue={selectedDirection} 
                     onValueChange={setDirectionAndAdjust}
-                    icon={<Repeat className="w-5 h-5" />}
+                    icon={<Repeat className="size-5" />}
                 />
                 <PermutationSection 
                     title="Hands" 
@@ -571,7 +571,7 @@ const ScalePracticePanel: React.FC<ScalePracticePanelProps> = ({
                     options={HAND_CONFIGURATIONS} 
                     selectedValue={selectedHandConfig} 
                     onValueChange={setHandConfigAndAdjust}
-                    icon={<Hand className="w-5 h-5" />}
+                    icon={<Hand className="size-5" />}
                     getItemClasses={getHandColorClasses}
                 />
                 <PermutationSection 
@@ -580,7 +580,7 @@ const ScalePracticePanel: React.FC<ScalePracticePanelProps> = ({
                     options={RHYTHMIC_PERMUTATIONS} 
                     selectedValue={selectedRhythm} 
                     onValueChange={setRhythmAndAdjust}
-                    icon={<Gauge className="w-5 h-5" />}
+                    icon={<Gauge className="size-5" />}
                 />
                 <PermutationSection 
                     title="Accent" 
@@ -588,7 +588,7 @@ const ScalePracticePanel: React.FC<ScalePracticePanelProps> = ({
                     options={ACCENT_DISTRIBUTIONS} 
                     selectedValue={selectedAccent} 
                     onValueChange={setAccentAndAdjust}
-                    icon={<Target className="w-5 h-5" />}
+                    icon={<Target className="size-5" />}
                 />
             </div>
             )}
