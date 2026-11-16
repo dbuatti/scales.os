@@ -4,7 +4,7 @@ import { ThemeSupa } from '@supabase/auth-ui-shared';
 import { supabase } from '@/integrations/supabase/client';
 import { useSupabaseSession } from '@/hooks/use-supabase-session';
 import { useNavigate } from 'react-router-dom';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+// cardless
 import { Button } from '@/components/ui/button';
 import { Check, Loader2, Music } from 'lucide-react';
 import { useTheme } from 'next-themes';
@@ -121,16 +121,16 @@ const Login: React.FC = () => {
             </span>
           </div>
 
-          <Card className="surface w-full shadow-lg shadow-primary/5">
-            <CardHeader className="space-y-1.5 p-6 pb-2">
-              <CardTitle className="font-display text-3xl font-normal tracking-tight">
+          <div className="w-full border border-border/40">
+            <div className="space-y-1.5 p-6 pb-2">
+              <h1 className="font-display text-3xl font-normal tracking-tight">
                 Sign in
-              </CardTitle>
+              </h1>
               <p className="text-sm text-muted-foreground">
                 New here? Create an account — the free tier is free forever.
               </p>
-            </CardHeader>
-            <CardContent className="p-6 pt-4">
+            </div>
+            <div className="p-6 pt-4">
               <Button
                 type="button"
                 variant="outline"
@@ -186,8 +186,8 @@ const Login: React.FC = () => {
                 providers={[]}
                 redirectTo={window.location.origin}
               />
-            </CardContent>
-          </Card>
+            </div>
+          </div>
 
           <p className="mt-6 text-center text-xs leading-relaxed text-muted-foreground">
             By continuing you agree to keep your practice honest.
