@@ -47,9 +47,9 @@ const HomeModes: React.FC<HomeModesProps> = ({ active, onSelect }) => (
           aria-pressed={isActive}
           style={{ animationDelay: `${index * 60}ms` }}
           className={cn(
-            'group relative flex flex-col items-center gap-2 overflow-hidden surface p-3 text-center animate-in fade-in slide-in-from-bottom-2 fill-mode-both duration-300 sm:flex-row sm:gap-4 sm:p-5 sm:text-left',
-            'transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/30 hover: hover:shadow-primary/5 active:translate-y-0 active:scale-[0.99]',
-            isActive ? 'border-primary/40 bg-primary/[0.04] ring-1 ring-primary/20' : 'border-border/50',
+            'group relative flex flex-col items-center gap-2 p-3 text-center animate-in fade-in slide-in-from-bottom-2 fill-mode-both duration-300 sm:flex-row sm:gap-4 sm:p-4 sm:text-left border border-border/40',
+            'transition-colors duration-150 active:scale-[0.99]',
+            isActive ? 'border-primary/40 bg-primary/[0.04]' : 'hover:bg-muted/40',
           )}
         >
           <span
