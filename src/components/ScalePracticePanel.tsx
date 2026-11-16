@@ -104,7 +104,7 @@ const ScalePracticePanel: React.FC<ScalePracticePanelProps> = ({
   const [selectedRhythm, setSelectedRhythm] = useState<RhythmicPermutation>(RHYTHMIC_PERMUTATIONS[0]);
   const [selectedAccent, setSelectedAccent] = useState<AccentDistribution>(ACCENT_DISTRIBUTIONS[3]);
   const [selectedOctaves, setSelectedOctaves] = useState<OctaveConfiguration>(OCTAVE_CONFIGURATIONS[1]);
-  const [advancedOpen, setAdvancedOpen] = useState(true);
+  const [advancedOpen, setAdvancedOpen] = useState(false);
 
   // ── Session timer ──
   const [sessionSeconds, setSessionSeconds] = useState(0);
@@ -556,6 +556,13 @@ const ScalePracticePanel: React.FC<ScalePracticePanelProps> = ({
             </div>
             
             {advancedOpen && (
+        <>
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Presets:</span>
+          <Button size="sm" variant="outline" className="h-8 text-xs font-bold focus-scale" onClick={() => { setArticulationAndAdjust('Legato'); setSelectedDirection(DIRECTION_TYPES[2]); setSelectedHandConfig(HAND_CONFIGURATIONS[0]); setSelectedRhythm(RHYTHMIC_PERMUTATIONS[0]); setSelectedAccent(ACCENT_DISTRIBUTIONS[3]); setIsPermutationManuallyAdjusted(true); }}>Standard</Button>
+          <Button size="sm" variant="outline" className="h-8 text-xs font-bold focus-scale" onClick={() => { setArticulationAndAdjust('Legato'); setIsPermutationManuallyAdjusted(true); }}>Legato</Button>
+          <Button size="sm" variant="outline" className="h-8 text-xs font-bold focus-scale" onClick={() => { setArticulationAndAdjust('Staccato'); setIsPermutationManuallyAdjusted(true); }}>Staccato</Button>
+        </div>
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                 <PermutationSection 
                     title="Direction" 
@@ -591,6 +598,7 @@ const ScalePracticePanel: React.FC<ScalePracticePanelProps> = ({
                     icon={<Target className="size-5" />}
                 />
             </div>
+        </>
             )}
         </div>
     </CardContent>

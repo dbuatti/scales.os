@@ -56,8 +56,8 @@ const RepertoireStats = () => {
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <Card className="surface-interactive">
           <CardContent className="flex items-center gap-4 p-5">
-            <div className="rounded-xl bg-primary/10 p-3 text-primary ring-1 ring-inset ring-primary/10">
-              <BookOpen className="h-6 w-6" />
+            <div className="rounded-xl bg-primary/10 p-2 text-primary ring-1 ring-inset ring-primary/10">
+              <BookOpen className="size-5" />
             </div>
             <div className="min-w-0">
               <p className="text-2xl font-black tracking-tight tabular-nums">{stats.distinctTitles}</p>
@@ -68,8 +68,8 @@ const RepertoireStats = () => {
 
         <Card className="surface-interactive">
           <CardContent className="flex items-center gap-4 p-5">
-            <div className="rounded-xl bg-accent/10 p-3 text-accent ring-1 ring-inset ring-accent/15">
-              <Calendar className="h-6 w-6" />
+            <div className="rounded-xl bg-accent/10 p-2 text-accent ring-1 ring-inset ring-accent/15">
+              <Calendar className="size-5" />
             </div>
             <div className="min-w-0">
               <p className="text-2xl font-black tracking-tight tabular-nums">{stats.sessions}</p>
@@ -80,8 +80,8 @@ const RepertoireStats = () => {
 
         <Card className="surface-interactive">
           <CardContent className="flex items-center gap-4 p-5">
-            <div className="rounded-xl bg-primary/[0.07] p-3 text-primary/80 ring-1 ring-inset ring-primary/10">
-              <Clock className="h-6 w-6" />
+            <div className="rounded-xl bg-primary/[0.07] p-2 text-primary/80 ring-1 ring-inset ring-primary/10">
+              <Clock className="size-5" />
             </div>
             <div className="min-w-0">
               <p className="text-2xl font-black tracking-tight tabular-nums">{stats.minutes}m</p>
@@ -92,8 +92,8 @@ const RepertoireStats = () => {
 
         <Card className="surface-interactive">
           <CardContent className="flex items-center gap-4 p-5">
-            <div className="rounded-xl bg-success/10 p-3 text-success ring-1 ring-inset ring-success/15">
-              <Target className="h-6 w-6" />
+            <div className="rounded-xl bg-success/10 p-2 text-success ring-1 ring-inset ring-success/15">
+              <Target className="size-5" />
             </div>
             <div className="min-w-0">
               <p className="text-2xl font-black tracking-tight tabular-nums">
@@ -131,7 +131,7 @@ const RepertoireStats = () => {
               {stats.topTitles.map(([title, count]) => (
                 <div
                   key={title}
-                  className="flex items-center justify-between rounded-xl border border-border/50 bg-muted/20 p-3"
+                  className="flex items-center justify-between rounded-xl border border-border/50 bg-muted/20 p-2"
                 >
                   <span className="truncate text-sm font-medium">{title}</span>
                   <span className="ml-3 shrink-0 text-xs tabular-nums text-muted-foreground">

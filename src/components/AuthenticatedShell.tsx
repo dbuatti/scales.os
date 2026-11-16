@@ -6,7 +6,7 @@ import AppLayout from './AppLayout';
 import { Button } from '@/components/ui/button';
 import { Play, BarChart2, BookOpen, LogOut, Settings2 } from 'lucide-react';
 import MobileSettingsSheet from './MobileSettingsSheet';
-import SettingsDialog from './SettingsDialog';
+import SettingsSheet from './SettingsSheet';
 import { useSupabaseSession } from '@/hooks/use-supabase-session';
 import { supabase } from '@/integrations/supabase/client';
 import { showSuccess, showError } from '@/utils/toast';
@@ -141,7 +141,7 @@ const AuthenticatedShell: React.FC = () => {
       </button>
 
       <MobileSettingsSheet open={settingsOpen} onOpenChange={setSettingsOpen} />
-      <SettingsDialog open={desktopSettingsOpen} onOpenChange={setDesktopSettingsOpen} />
+      <SettingsSheet open={desktopSettingsOpen} onOpenChange={setDesktopSettingsOpen} />
     </div>
   );
 
