@@ -36,6 +36,7 @@ import type { PdfViewerHandle } from './PdfViewer';
 const PdfViewer = React.lazy(() => import('./PdfViewer'));
 import type { PDFDocumentProxy } from 'pdfjs-dist';
 import FloatingTempoIndicator from './FloatingTempoIndicator';
+import ViewerFallback from './reader/ViewerFallback';
 import MappingRow from './reader/MappingRow';
 import ReaderToolbar from './ReaderToolbar';
 import ThumbnailRail from './ThumbnailRail';
@@ -87,12 +88,6 @@ import {
 import { generateCacheId, loadPDFCached, updateCachedPageCount, cachePDF, getCachedPDF } from '@/lib/pdf-cache';
 import { ImportedFile } from '@/lib/clipboard-import';
 
-const ViewerFallback: React.FC = () => (
-  <div className="flex min-h-[420px] flex-col items-center justify-center rounded-xl border border-dashed border-border/60 p-8 text-center">
-    <Loader2 className="mb-3 h-7 w-7 animate-spin text-muted-foreground/40" />
-    <p className="text-sm font-medium text-muted-foreground">Loading PDF viewer…</p>
-  </div>
-);
 
 const ZOOM_MIN = 0.5;
 const ZOOM_MAX = 3;
