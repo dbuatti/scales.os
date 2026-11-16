@@ -812,7 +812,7 @@ const RepertoirePanel: React.FC = () => {
         )}
 
         {documents.length === 0 ? (
-          <div className="flex flex-col items-center justify-center gap-4 rounded-xl border border-dashed border-border/60 bg-card/50 px-6 py-12 text-center shadow-sm sm:py-16">
+          <div className="flex flex-col items-center justify-center gap-4 rounded-xl border border-dashed border-border/40 px-6 py-12 text-center sm:py-16">
             <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-primary/10 text-primary">
               <BookOpen className="h-7 w-7" />
             </div>
@@ -866,10 +866,10 @@ const RepertoirePanel: React.FC = () => {
                     if (e.key === 'Enter' || e.key === ' ') handleSelectDocument(doc.id);
                   }}
                   className={cn(
-                    'group relative flex cursor-pointer flex-col gap-3 rounded-xl border bg-card/70 p-3 text-left shadow-sm backdrop-blur-xl transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
+                    'group relative flex cursor-pointer flex-col gap-3 rounded-xl border border-border/40 bg-transparent p-3 text-left transition-all duration-200 hover:bg-muted/40 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
                     isOpen
-                      ? 'border-primary/50 shadow-md ring-1 ring-primary/20'
-                      : 'border-border/60 hover:border-primary/40',
+                      ? 'border-primary/50 bg-primary/[0.04]'
+                      : 'border-border/40 hover:border-primary/40',
                   )}
                 >
                   <div className="relative aspect-[3/4] w-full overflow-hidden rounded-lg border bg-muted/40">
@@ -950,7 +950,7 @@ const RepertoirePanel: React.FC = () => {
             )}
           >
             {fullscreen && (
-              <div className="surface flex shrink-0 items-center justify-between gap-3 px-3 py-2">
+              <div className="flex shrink-0 items-center justify-between gap-3 border-t border-border/40 px-3 py-2">
                 <div className="flex min-w-0 items-center gap-2">
                   <FileText className="h-4 w-4 shrink-0 text-primary" />
                   <span className="truncate text-sm font-bold">
@@ -1066,42 +1066,37 @@ const RepertoirePanel: React.FC = () => {
 
           {!fullscreen && (
             <aside className="space-y-3 min-w-0">
-              <Card className="surface">
-                <CardHeader className="pb-3">
-                  <div className="flex items-center justify-between gap-3">
-                    <CardTitle className="text-sm font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
-                      <Images className="w-4 h-4" />
-                      Pages
-                    </CardTitle>
-                    <Button
-                      size="sm"
-                      variant="secondary"
-                      onClick={() => setThumbnailsOpen((prev) => !prev)}
-                      className="font-bold focus-scale"
-                    >
-                      {thumbnailsOpen ? 'Hide' : 'Show'}
-                    </Button>
-                  </div>
-                </CardHeader>
+              <div className="space-y-3">
+                <div className="flex items-center justify-between gap-3">
+                  <p className="text-sm font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
+                    <Images className="w-4 h-4" />
+                    Pages
+                  </p>
+                  <Button
+                    size="sm"
+                    variant="secondary"
+                    onClick={() => setThumbnailsOpen((prev) => !prev)}
+                    className="font-bold focus-scale"
+                  >
+                    {thumbnailsOpen ? 'Hide' : 'Show'}
+                  </Button>
+                </div>
                 {thumbnailsOpen && (
-                  <CardContent className="pt-0">
-                    <ThumbnailRail
-                      pdf={pdfProxy}
-                      pageCount={pageCount}
-                      currentPage={currentPage}
-                      onSelect={navigatePage}
-                    />
-                  </CardContent>
+                  <ThumbnailRail
+                    pdf={pdfProxy}
+                    pageCount={pageCount}
+                    currentPage={currentPage}
+                    onSelect={navigatePage}
+                  />
                 )}
-              </Card>
+              </div>
 
-              <Card className="surface border-primary/20">
-                <CardHeader className="pb-3">
-                  <div className="flex items-center justify-between gap-3">
-                    <CardTitle className="text-sm font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
-                      <ListMusic className="w-4 h-4" />
-                      Exercises &amp; Bookmarks
-                    </CardTitle>
+              <div className="space-y-3">
+                <div className="flex items-center justify-between gap-3">
+                  <p className="text-sm font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
+                    <ListMusic className="w-4 h-4" />
+                    Exercises &amp; Bookmarks
+                  </p>
                     <Button
                       size="sm"
                       variant="secondary"
@@ -1113,8 +1108,6 @@ const RepertoirePanel: React.FC = () => {
                       Bookmark page {currentPage}
                     </Button>
                   </div>
-                </CardHeader>
-                <CardContent>
                   {mappings.length === 0 ? (
                     <p className="text-sm text-muted-foreground text-center py-6">
                       No bookmarks yet. Flip through the book and hit{' '}
@@ -1139,8 +1132,7 @@ const RepertoirePanel: React.FC = () => {
                       </div>
                     </ScrollArea>
                   )}
-                </CardContent>
-              </Card>
+              </div>
             </aside>
           )}
         </div>

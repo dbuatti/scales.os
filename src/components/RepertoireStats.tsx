@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 import { useScales } from '@/context/ScalesContext';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+// cardless
 import { BookOpen, Clock, Target, Calendar, ListChecks } from 'lucide-react';
 import { format } from 'date-fns';
 
@@ -54,8 +54,7 @@ const RepertoireStats = () => {
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card className="surface-interactive">
-          <CardContent className="flex items-center gap-4 p-5">
+        <div className="flex items-center gap-4 py-3 border-b border-border/40 last:border-0">
             <div className="rounded-xl bg-primary/10 p-2 text-primary ring-1 ring-inset ring-primary/10">
               <BookOpen className="size-5" />
             </div>
@@ -63,11 +62,9 @@ const RepertoireStats = () => {
               <p className="text-2xl font-black tracking-tight tabular-nums">{stats.distinctTitles}</p>
               <p className="text-[10px] font-bold uppercase leading-tight tracking-widest text-muted-foreground">Repertoire Titles</p>
             </div>
-          </CardContent>
-        </Card>
+        </div>
 
-        <Card className="surface-interactive">
-          <CardContent className="flex items-center gap-4 p-5">
+        <div className="flex items-center gap-4 py-3 border-b border-border/40 last:border-0">
             <div className="rounded-xl bg-accent/10 p-2 text-accent ring-1 ring-inset ring-accent/15">
               <Calendar className="size-5" />
             </div>
@@ -75,11 +72,9 @@ const RepertoireStats = () => {
               <p className="text-2xl font-black tracking-tight tabular-nums">{stats.sessions}</p>
               <p className="text-[10px] font-bold uppercase leading-tight tracking-widest text-muted-foreground">Repertoire Sessions</p>
             </div>
-          </CardContent>
-        </Card>
+        </div>
 
-        <Card className="surface-interactive">
-          <CardContent className="flex items-center gap-4 p-5">
+        <div className="flex items-center gap-4 py-3 border-b border-border/40 last:border-0">
             <div className="rounded-xl bg-primary/[0.07] p-2 text-primary/80 ring-1 ring-inset ring-primary/10">
               <Clock className="size-5" />
             </div>
@@ -87,11 +82,9 @@ const RepertoireStats = () => {
               <p className="text-2xl font-black tracking-tight tabular-nums">{stats.minutes}m</p>
               <p className="text-[10px] font-bold uppercase leading-tight tracking-widest text-muted-foreground">Repertoire Time</p>
             </div>
-          </CardContent>
-        </Card>
+        </div>
 
-        <Card className="surface-interactive">
-          <CardContent className="flex items-center gap-4 p-5">
+        <div className="flex items-center gap-4 py-3 border-b border-border/40 last:border-0">
             <div className="rounded-xl bg-success/10 p-2 text-success ring-1 ring-inset ring-success/15">
               <Target className="size-5" />
             </div>
@@ -101,26 +94,22 @@ const RepertoireStats = () => {
               </p>
               <p className="text-[10px] font-bold uppercase leading-tight tracking-widest text-muted-foreground">At Target BPM</p>
             </div>
-          </CardContent>
-        </Card>
+        </div>
       </div>
 
-      <Card className="surface-interactive">
-        <CardHeader className="pb-2">
-          <CardTitle className="text-sm font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
-            <ListChecks className="h-4 w-4" />
-            Most Practiced Repertoire
-          </CardTitle>
+      <div className="py-3">
+        <p className="text-sm font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-2 mb-3">
+          <ListChecks className="h-4 w-4" />
+          Most Practiced Repertoire
+        </p>
           {stats.lastSession && (
-            <CardDescription>
+            <p className="text-xs text-muted-foreground mb-3">
               Last practiced{' '}
               <span className="font-semibold text-foreground">
                 {format(new Date(stats.lastSession), 'MMM d, yyyy')}
               </span>
-            </CardDescription>
+            </p>
           )}
-        </CardHeader>
-        <CardContent>
           {stats.topTitles.length === 0 ? (
             <p className="text-sm text-muted-foreground text-center py-6">
               No repertoire practice yet. Open a method book in the Repertoire panel and log a
@@ -141,8 +130,7 @@ const RepertoireStats = () => {
               ))}
             </div>
           )}
-        </CardContent>
-      </Card>
+      </div>
     </div>
   );
 };

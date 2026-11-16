@@ -74,7 +74,7 @@ const Thumbnail: React.FC<ThumbnailProps> = ({ pdf, page, active, onSelect }) =>
       type="button"
       onClick={onSelect}
       className={cn(
-        'relative w-full shrink-0 rounded-md border bg-white p-1 shadow-sm transition-colors',
+        'relative w-full shrink-0 rounded-md border bg-white p-1  transition-colors',
         active
           ? 'border-primary ring-2 ring-primary'
           : 'border-border/60 hover:border-primary/40',

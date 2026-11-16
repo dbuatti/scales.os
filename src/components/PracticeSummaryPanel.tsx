@@ -14,7 +14,7 @@ const PracticeSummaryPanel: React.FC = () => {
 
   if (!activePracticeItem) {
     return (
-      <Card className="rounded-2xl border border-dashed border-border/50 bg-card/50 shadow-sm backdrop-blur-xl">
+      <Card className="rounded-2xl border border-dashed border-border/50 bg-card/50  ">
         <CardContent className="flex flex-col items-center gap-5 p-12 text-center md:p-16">
           <div className="rounded-2xl bg-primary/10 p-4 text-primary">
             <Piano className="h-8 w-8" />
@@ -78,7 +78,7 @@ const PracticeSummaryPanel: React.FC = () => {
   const displayType = getDisplayType();
 
   return (
-    <Card className="surface overflow-hidden shadow-md">
+    <Card className="surface overflow-hidden ">
       <CardContent className="p-0">
         <div className="relative isolate space-y-8 p-8">
           <div
@@ -114,7 +114,7 @@ const PracticeSummaryPanel: React.FC = () => {
                   onClick={() => activeLogSnapshotFunction?.()}
                   disabled={!activeLogSnapshotFunction}
                   size="lg"
-                  className="h-12 px-8 font-bold shadow-md shadow-primary/20 focus-scale"
+                  className="h-12 px-8 font-bold  shadow-primary/20 focus-scale"
                 >
                   <Save className="mr-2 h-5 w-5" />
                   Save progress
@@ -136,7 +136,7 @@ const PracticeSummaryPanel: React.FC = () => {
               <span>To next goal</span>
               <span className="text-primary">{masteryPercentage.toFixed(0)}%</span>
             </div>
-            <Progress value={masteryPercentage} className="h-3 shadow-sm" />
+            <Progress value={masteryPercentage} className="h-3 " />
           </div>
 
           <div className="grid grid-cols-2 gap-4 border-t border-border/40 pt-8 md:grid-cols-4">

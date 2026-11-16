@@ -54,7 +54,7 @@ const PracticeTimer: React.FC<PracticeTimerProps> = ({ onLogSession, isCondensed
 
   if (isCondensed) {
     return (
-        <div className="flex items-center gap-1 rounded-xl border border-border/60 bg-card/60 p-1 backdrop-blur-xl">
+        <div className="flex items-center gap-1 rounded-xl border border-border/60 bg-card/60 p-1 ">
             <div className="flex flex-col items-center px-1.5">
                 <div className="min-w-[56px] text-center text-base font-black tabular-nums tracking-tight">
                     {formatTime(time)}

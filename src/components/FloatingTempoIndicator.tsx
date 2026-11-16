@@ -127,7 +127,7 @@ const FloatingTempoIndicator: React.FC<FloatingTempoIndicatorProps> = ({
         ref={panelRef}
         style={style}
         className={cn(
-          'fixed z-[55] flex cursor-grab items-center gap-2 rounded-full border px-3 py-2 shadow-lg backdrop-blur-xl active:cursor-grabbing',
+          'fixed z-[55] flex cursor-grab items-center gap-2 rounded-full border px-3 py-2 shadow-lg  active:cursor-grabbing',
           bgColor,
           ringColor,
         )}
@@ -138,7 +138,7 @@ const FloatingTempoIndicator: React.FC<FloatingTempoIndicatorProps> = ({
           className={cn(
             'relative flex items-center justify-center rounded-full border transition-all duration-200 w-14 h-14 font-black tabular-nums text-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
             isRunning
-              ? 'scale-105 border-success bg-success text-success-foreground shadow-md shadow-success/20'
+              ? 'scale-105 border-success bg-success text-success-foreground  shadow-success/20'
               : 'border-border/60 bg-card/80 text-foreground hover:scale-105 hover:border-primary/40 hover:bg-primary/5 active:scale-[0.98]',
           )}
           onClick={toggleRun}
@@ -179,7 +179,7 @@ const FloatingTempoIndicator: React.FC<FloatingTempoIndicatorProps> = ({
       ref={panelRef}
       style={style}
       className={cn(
-        'fixed z-[45] overflow-hidden rounded-2xl border border-border/60 shadow-lg backdrop-blur-xl transition-all duration-200',
+        'fixed z-[45] overflow-hidden rounded-2xl border border-border/60 shadow-lg  transition-all duration-200',
         expanded ? 'w-[min(480px,calc(100vw-48px))]' : 'w-[min(340px,calc(100vw-48px))]',
         bgColor,
       )}
@@ -231,7 +231,7 @@ const FloatingTempoIndicator: React.FC<FloatingTempoIndicatorProps> = ({
             className={cn(
               'relative flex items-center justify-center rounded-full border transition-all duration-200 shrink-0 w-16 h-16 text-xl font-black tabular-nums focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
               isRunning
-                ? 'scale-105 border-success bg-success text-success-foreground shadow-md shadow-success/20'
+                ? 'scale-105 border-success bg-success text-success-foreground  shadow-success/20'
                 : 'border-border/60 bg-card/80 text-foreground hover:scale-105 hover:border-primary/40 hover:bg-primary/5 active:scale-[0.98]',
             )}
             onClick={toggleRun}

@@ -184,7 +184,7 @@ const PracticeCommandCenter: React.FC = () => {
       />
 
       {nextFocus && (
-        <Card className="surface relative overflow-hidden border-primary/20 bg-gradient-to-br from-primary/[0.10] via-card/60 to-card/60 shadow-md shadow-primary/[0.06] animate-in fade-in slide-in-from-bottom-2 duration-300">
+        <div className="relative overflow-hidden rounded-2xl border border-primary/20 bg-gradient-to-br from-primary/[0.08] via-background to-background animate-in fade-in slide-in-from-bottom-2 duration-300">
           <div
             aria-hidden="true"
             className="pointer-events-none absolute -right-20 -top-20 h-52 w-52 rounded-full bg-primary/15 blur-3xl"
@@ -227,7 +227,7 @@ const PracticeCommandCenter: React.FC = () => {
               </Button>
             </div>
           </CardContent>
-        </Card>
+        </div>
       )}
 
       <div id="practice-modes" className="scroll-mt-24">
@@ -260,17 +260,13 @@ const PracticeCommandCenter: React.FC = () => {
 
         {!isZenMode && (
           <div className="flex flex-col gap-6 xl:gap-8 lg:sticky lg:top-24 lg:self-start">
-            <Card style={{ animationDelay: '60ms' }} className="surface animate-in fade-in slide-in-from-bottom-2 fill-mode-both duration-300">
-              <CardHeader className="pb-2">
-                <CardTitle className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-muted-foreground">
-                  <Music className="h-3.5 w-3.5" />
-                  Metronome
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="p-0">
-                <Metronome showSettings={true} layout="vertical" />
-              </CardContent>
-            </Card>
+            <div style={{ animationDelay: '60ms' }} className="animate-in fade-in slide-in-from-bottom-2 fill-mode-both duration-300">
+              <p className="mb-2 flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-muted-foreground">
+                <Music className="h-3.5 w-3.5" />
+                Metronome
+              </p>
+              <Metronome showSettings={true} layout="vertical" />
+            </div>
           </div>
         )}
       </div>

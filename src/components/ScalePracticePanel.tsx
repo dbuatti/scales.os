@@ -29,7 +29,7 @@ interface PermutationSectionProps<T extends string> {
 }
 
 const PermutationSection = <T extends string>({ title, description, options, selectedValue, onValueChange, icon, getItemClasses }: PermutationSectionProps<T>) => (
-    <div className="surface flex flex-col gap-4 p-5 transition-all duration-200 hover:border-primary/30 hover:shadow-md">
+    <div className="flex flex-col gap-4 py-2 transition-all duration-200">
         <div className="flex items-center gap-3">
             <div className="flex size-9 items-center justify-center rounded-lg bg-primary/10 text-primary">
                 {icon}
@@ -370,7 +370,7 @@ const ScalePracticePanel: React.FC<ScalePracticePanelProps> = ({
 
   return (
     <CardContent className="flex flex-col gap-8 p-0">
-      <div className="surface p-5 flex flex-col gap-4">
+      <div className="flex flex-col gap-4 py-2">
         <div className="flex items-center justify-between gap-3">
           <div className="flex items-center gap-3">
             <div className="flex size-9 items-center justify-center rounded-lg bg-primary/10 text-primary">

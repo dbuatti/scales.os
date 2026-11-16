@@ -50,7 +50,7 @@ const Metronome: React.FC<MetronomeProps> = ({ showSettings = true, layout = 'ho
       onClick={toggleRun}
       size="lg"
       className={cn(
-        'h-9 shrink-0 rounded-lg font-bold tracking-wide shadow-sm focus-scale',
+        'h-9 shrink-0 rounded-lg font-bold tracking-wide  focus-scale',
         isRunning
           ? 'bg-destructive text-destructive-foreground hover:bg-destructive/90'
           : 'bg-primary text-primary-foreground shadow-primary/25 hover:bg-primary/90',
@@ -266,7 +266,7 @@ const Metronome: React.FC<MetronomeProps> = ({ showSettings = true, layout = 'ho
   }
 
   return (
-    <div className="flex flex-wrap items-center gap-1 rounded-xl border border-border/60 bg-card/60 p-1 shadow-sm backdrop-blur-xl">
+    <div className="flex flex-wrap items-center gap-1 rounded-xl border border-border/60 bg-card/60 p-1  ">
       <div className="hidden lg:block">{beatIndicator}</div>
 
       {runButton('w-16 sm:w-20')}

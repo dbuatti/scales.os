@@ -48,7 +48,7 @@ const HomeModes: React.FC<HomeModesProps> = ({ active, onSelect }) => (
           style={{ animationDelay: `${index * 60}ms` }}
           className={cn(
             'group relative flex flex-col items-center gap-2 overflow-hidden surface p-3 text-center animate-in fade-in slide-in-from-bottom-2 fill-mode-both duration-300 sm:flex-row sm:gap-4 sm:p-5 sm:text-left',
-            'transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-md hover:shadow-primary/5 active:translate-y-0 active:scale-[0.99]',
+            'transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/30 hover: hover:shadow-primary/5 active:translate-y-0 active:scale-[0.99]',
             isActive ? 'border-primary/40 bg-primary/[0.04] ring-1 ring-primary/20' : 'border-border/50',
           )}
         >
