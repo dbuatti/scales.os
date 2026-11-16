@@ -134,53 +134,39 @@ const ProgressPage: React.FC = () => {
             </div>
           ) : (
             <>
-              <Card className="surface">
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-sm font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
-                    <LayoutDashboard className="h-4 w-4" />
-                    Overview
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="p-0">
-                  <PracticeStats />
-                </CardContent>
-              </Card>
+              <div>
+                <p className="mb-2 text-sm font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
+                  <LayoutDashboard className="h-4 w-4" />
+                  Overview
+                </p>
+                <PracticeStats />
+              </div>
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <div className="lg:col-span-2">
                   <PracticeHeatmap log={log} />
                 </div>
                 <div className="lg:col-span-1">
-                  <Card className="surface">
-                    <WeeklyActivityChart />
-                  </Card>
+                  <WeeklyActivityChart />
                 </div>
               </div>
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <TempoProgressionChart />
-                <Card className="surface">
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-sm font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
-                      <Target className="h-4 w-4" />
-                      Technique Mastery
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="p-0">
-                    <TechniqueRadar />
-                  </CardContent>
-                </Card>
+                <div>
+                  <p className="mb-2 text-sm font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
+                    <Target className="h-4 w-4" />
+                    Technique Mastery
+                  </p>
+                  <TechniqueRadar />
+                </div>
               </div>
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <Card className="surface">
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-sm font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
-                      <BookOpen className="h-4 w-4" />
-                      Repertoire
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="p-0">
-                    <RepertoireStats />
-                  </CardContent>
-                </Card>
+                <div>
+                  <p className="mb-2 text-sm font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
+                    <BookOpen className="h-4 w-4" />
+                    Repertoire
+                  </p>
+                  <RepertoireStats />
+                </div>
                 <GradeTracker />
               </div>
             </>
@@ -189,17 +175,14 @@ const ProgressPage: React.FC = () => {
 
         <TabsContent value="technique" className="flex flex-col gap-8">
           {stasisItems.length > 0 && (
-            <Card className="surface border-warning/40 bg-warning/5">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-warning">
-                  <AlertCircle className="w-5 h-5" />
-                  Technique Stasis
-                </CardTitle>
-                <CardDescription>
-                  These items were marked as "Too Hard" and are currently hidden from suggestions.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
+            <div className="border border-warning/40 bg-warning/5 p-4">
+              <p className="flex items-center gap-2 text-warning font-bold">
+                <AlertCircle className="w-5 h-5" />
+                Technique Stasis
+              </p>
+              <p className="text-sm text-muted-foreground mt-1">
+                These items were marked as "Too Hard" and are currently hidden from suggestions.
+              </p>
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
                   {stasisItems.map(([id]) => (
                     <div key={id} className="flex items-center justify-between rounded-xl border border-border/50 bg-card/60 p-3 shadow-sm backdrop-blur-xl">
@@ -216,8 +199,7 @@ const ProgressPage: React.FC = () => {
                     </div>
                   ))}
                 </div>
-              </CardContent>
-            </Card>
+            </div>
           )}
 
           <ScaleGrid />
