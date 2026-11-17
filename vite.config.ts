@@ -41,8 +41,8 @@ export default defineConfig(({ mode }) => {
           start_url: "/",
           scope: "/",
           display: "standalone",
-          background_color: "#F7F4EE",
-          theme_color: "#4A1620",
+          background_color: "#FAF8F4",
+          theme_color: "#352E9E",
           orientation: "any",
           icons: [
             {
@@ -67,7 +67,7 @@ export default defineConfig(({ mode }) => {
           categories: ["education", "music", "productivity"],
           shortcuts: [
             {
-              name: "Practice Reader",
+              name: "Reader",
               short_name: "Reader",
               description: "Open the PDF practice reader",
               url: "/reader",
