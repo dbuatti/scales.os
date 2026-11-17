@@ -4,7 +4,6 @@ import { Play, User, WifiOff } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import ScrollToTopButton from './ScrollToTopButton';
-import ZenModeToggle from './ZenModeToggle';
 import KeyboardShortcuts from './KeyboardShortcuts';
 import { useZenMode } from '@/context/ZenModeContext';
 import SetupPanel from './SetupPanel';
@@ -79,9 +78,6 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children, headerRightContent, mob
                                         <div className="hidden md:inline-flex">
                                             <KeyboardShortcuts />
                                         </div>
-                                        <div className="hidden sm:block">
-                                            <ZenModeToggle />
-                                        </div>
                                     </>
                                 )}
                             </>
@@ -97,9 +93,6 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children, headerRightContent, mob
                                     <>
                                         <div className="hidden md:inline-flex">
                                             <KeyboardShortcuts />
-                                        </div>
-                                        <div className="hidden sm:block">
-                                            <ZenModeToggle />
                                         </div>
                                     </>
                                 )}

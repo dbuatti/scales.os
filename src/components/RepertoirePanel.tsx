@@ -732,26 +732,11 @@ const RepertoirePanel: React.FC = () => {
               <ClipboardList className="mr-1.5 h-4 w-4" />
               Import
             </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              className="h-9 font-bold focus-scale"
-              onClick={() => fileInputRef.current?.click()}
-              disabled={isUploading}
-              title="Upload a PDF method book"
-            >
-              {isUploading ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <Upload className="h-4 w-4" />
-              )}
-              Upload
-            </Button>
             {mappings.length > 0 && (
               <Button
-                variant="outline"
+                variant="ghost"
                 size="sm"
-                className="h-9 font-bold focus-scale"
+                className="h-9 font-bold focus-scale text-muted-foreground hover:text-foreground"
                 onClick={() => setShowIndex(true)}
                 title="Show exercise index"
               >
@@ -759,6 +744,20 @@ const RepertoirePanel: React.FC = () => {
                 Index
               </Button>
             )}
+            <Button
+              size="sm"
+              className="h-9 font-bold focus-scale"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={isUploading}
+              title="Upload a PDF method book"
+            >
+              {isUploading ? (
+                <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />
+              ) : (
+                <Upload className="mr-1.5 h-4 w-4" />
+              )}
+              Upload PDF
+            </Button>
             {activeDocumentId && (
               <Button
                 variant="ghost"

@@ -11,6 +11,7 @@ import SettingsSheet from './SettingsSheet';
 import { supabase } from '@/integrations/supabase/client';
 import { showSuccess, showError } from '@/utils/toast';
 import { cn } from '@/lib/utils';
+import { useZenMode } from '@/context/ZenModeContext';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface NavLinkProps {
@@ -38,11 +39,11 @@ const NavLink: React.FC<NavLinkProps> = ({ to, icon, label }) => {
                 >
                     <Link to={to} aria-current={isActive ? 'page' : undefined} aria-label={label}>
                         {icon}
-                        <span className="hidden text-sm 2xl:inline">{label}</span>
+                        <span className="hidden text-sm lg:inline">{label}</span>
                     </Link>
                 </Button>
             </TooltipTrigger>
-            <TooltipContent className="2xl:hidden">{label}</TooltipContent>
+            <TooltipContent className="lg:hidden">{label}</TooltipContent>
         </Tooltip>
     );
 };
@@ -76,6 +77,8 @@ const AuthenticatedShell: React.FC = () => {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [desktopSettingsOpen, setDesktopSettingsOpen] = useState(false);
   const navigate = useNavigate();
+  const { pathname } = useLocation();
+  const { isZenMode } = useZenMode();
 
   const handleLogout = async () => {
     const { error } = await supabase.auth.signOut();
@@ -89,7 +92,7 @@ const AuthenticatedShell: React.FC = () => {
 
   const authenticatedHeaderRightContent = (
     <div className="flex items-center gap-3">
-      <nav aria-label="Sections" className="hidden items-center gap-1 rounded-lg border border-border/60 bg-muted/30 p-1 lg:flex">
+      <nav aria-label="Sections" className="hidden items-center gap-1 rounded-lg border border-border/60 bg-muted/30 p-1 md:flex">
         <NavLink to="/" icon={<Play className="w-4 h-4" />} label="Practice" />
         <NavLink to="/reader" icon={<BookOpen className="w-4 h-4" />} label="Reader" />
         <NavLink to="/progress" icon={<BarChart2 className="w-4 h-4" />} label="Progress" />
@@ -98,7 +101,7 @@ const AuthenticatedShell: React.FC = () => {
           variant="ghost"
           size="icon"
           onClick={() => setDesktopSettingsOpen(true)}
-          className="hidden text-muted-foreground hover:text-primary lg:inline-flex"
+          className="hidden text-muted-foreground hover:text-primary md:inline-flex"
       >
           <Settings2 className="w-4 h-4" />
           <span className="sr-only">Settings</span>
@@ -107,7 +110,7 @@ const AuthenticatedShell: React.FC = () => {
           variant="ghost"
           size="icon"
           onClick={handleLogout}
-          className="hidden text-muted-foreground hover:text-destructive lg:inline-flex"
+          className="hidden text-muted-foreground hover:text-destructive md:inline-flex"
       >
           <LogOut className="w-4 h-4" />
           <span className="sr-only">Logout</span>
@@ -148,7 +151,17 @@ const AuthenticatedShell: React.FC = () => {
     <ScalesProvider>
       <RepertoireProvider>
         <AppLayout headerRightContent={authenticatedHeaderRightContent} mobileNav={mobileNav}>
-          <div className="mb-4">
+          {/* The global transport is the one tempo control on most pages. Hide it
+              where a better dedicated control already exists: the Reader's floating
+              panel (always) and the Practice side rail (desktop only, so mobile keeps
+              the top transport). */}
+          <div
+            className={cn(
+              'mb-4',
+              pathname === '/reader' && 'hidden',
+              pathname === '/' && !isZenMode && 'lg:hidden',
+            )}
+          >
             <TransportBar />
           </div>
           <Outlet />

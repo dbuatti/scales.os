@@ -218,7 +218,7 @@ const ProPage: React.FC = () => {
                         className="h-11 shrink-0 font-bold"
                         disabled={waitlistState === 'saving' || waitlistState === 'done'}
                       >
-                        {waitlistState === 'done' ? 'On the list' : 'Join'}
+                        {waitlistState === 'done' ? 'On the list' : 'Join waitlist'}
                         {waitlistState !== 'done' && <ArrowRight className="ml-2 size-4" />}
                       </Button>
                     </div>

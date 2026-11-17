@@ -15,8 +15,15 @@ import WeeklyActivityChart from '@/components/WeeklyActivityChart';
 import TechniqueRadar from '@/components/TechniqueRadar';
 import ShareProgress from '@/components/ShareProgress';
 import { Button } from '@/components/ui/button';
-import { RefreshCw, PlayCircle, AlertCircle, LayoutDashboard, Piano, History, Download, BookOpen, Target } from 'lucide-react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { RefreshCw, PlayCircle, AlertCircle, LayoutDashboard, Piano, History, Download, BookOpen, Target, MoreHorizontal } from 'lucide-react';
 import PageHeader from '@/components/PageHeader';
+import { cn } from '@/lib/utils';
 import { useSupabaseSession } from '@/hooks/use-supabase-session';
 import { useRepertoire } from '@/context/RepertoireContext';
 import { buildExport, downloadJson, exportFilename } from '@/lib/export-data';
@@ -78,14 +85,32 @@ const ProgressPage: React.FC = () => {
           log.length > 0 ? (
             <div className="flex items-center gap-2">
               <ShareProgress />
-              <Button variant="outline" onClick={handleExport} className="font-bold focus-scale">
-                <Download className="mr-2 h-4 w-4" />
-                Export
-              </Button>
-              <Button variant="outline" onClick={handleRefresh} disabled={isRefreshing} className="font-bold focus-scale">
-                <RefreshCw className={isRefreshing ? 'mr-2 h-4 w-4 animate-spin' : 'mr-2 h-4 w-4'} />
-                Sync
-              </Button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="text-muted-foreground hover:text-primary focus-scale"
+                    aria-label="More progress actions"
+                  >
+                    <MoreHorizontal className="h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onSelect={handleExport} className="font-medium">
+                    <Download className="mr-2 h-4 w-4" />
+                    Export data
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onSelect={() => void handleRefresh()}
+                    disabled={isRefreshing}
+                    className="font-medium"
+                  >
+                    <RefreshCw className={cn('mr-2 h-4 w-4', isRefreshing && 'animate-spin')} />
+                    Sync now
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
           ) : null
         }

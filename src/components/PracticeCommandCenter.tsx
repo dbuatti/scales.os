@@ -279,7 +279,7 @@ const PracticeCommandCenter: React.FC = () => {
               onPause={pauseTimer}
               onReset={resetTimer}
             />
-            <div style={{ animationDelay: '60ms' }} className="animate-in fade-in slide-in-from-bottom-2 fill-mode-both duration-300">
+            <div style={{ animationDelay: '60ms' }} className="hidden animate-in fade-in slide-in-from-bottom-2 fill-mode-both duration-300 lg:block">
               <p className="mb-2 flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-muted-foreground">
                 <Music className="h-3.5 w-3.5" />
                 Metronome

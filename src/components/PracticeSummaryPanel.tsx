@@ -26,6 +26,16 @@ const PracticeSummaryPanel: React.FC = () => {
               progress will be tracked automatically as you play.
             </p>
           </div>
+          <Button
+            onClick={() =>
+              document
+                .getElementById('practice-modes')
+                ?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+            }
+            className="font-bold focus-scale"
+          >
+            Choose a scale
+          </Button>
         </CardContent>
       </Card>
     );
