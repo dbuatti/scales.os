@@ -4,10 +4,20 @@ import { ScalesProvider } from '@/context/ScalesContext';
 import { RepertoireProvider } from '@/context/RepertoireContext';
 import AppLayout from './AppLayout';
 import { Button } from '@/components/ui/button';
-import { Play, BarChart2, BookOpen, LogOut, Settings2 } from 'lucide-react';
+import { Play, BarChart2, BookOpen, LogOut, Settings2, Keyboard } from 'lucide-react';
 import MobileSettingsSheet from './MobileSettingsSheet';
 import TransportBar from './TransportBar';
 import SettingsSheet from './SettingsSheet';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import KeyboardShortcuts from './KeyboardShortcuts';
+import { useSupabaseSession } from '@/hooks/use-supabase-session';
 import { supabase } from '@/integrations/supabase/client';
 import { showSuccess, showError } from '@/utils/toast';
 import { cn } from '@/lib/utils';
@@ -79,6 +89,10 @@ const AuthenticatedShell: React.FC = () => {
   const navigate = useNavigate();
   const { pathname } = useLocation();
   const { isZenMode } = useZenMode();
+  const { session } = useSupabaseSession();
+  const [shortcutsOpen, setShortcutsOpen] = useState(false);
+  const userEmail = session?.user?.email ?? '';
+  const userInitial = userEmail ? userEmail.charAt(0).toUpperCase() : 'S';
 
   const handleLogout = async () => {
     const { error } = await supabase.auth.signOut();
@@ -91,30 +105,49 @@ const AuthenticatedShell: React.FC = () => {
   };
 
   const authenticatedHeaderRightContent = (
-    <div className="flex items-center gap-3">
+    <div className="flex items-center gap-2">
       <nav aria-label="Sections" className="hidden items-center gap-1 rounded-lg border border-border/60 bg-muted/30 p-1 md:flex">
         <NavLink to="/" icon={<Play className="w-4 h-4" />} label="Practice" />
         <NavLink to="/reader" icon={<BookOpen className="w-4 h-4" />} label="Reader" />
         <NavLink to="/progress" icon={<BarChart2 className="w-4 h-4" />} label="Progress" />
       </nav>
-      <Button
-          variant="ghost"
-          size="icon"
-          onClick={() => setDesktopSettingsOpen(true)}
-          className="hidden text-muted-foreground hover:text-primary md:inline-flex"
-      >
-          <Settings2 className="w-4 h-4" />
-          <span className="sr-only">Settings</span>
-      </Button>
-      <Button
-          variant="ghost"
-          size="icon"
-          onClick={handleLogout}
-          className="hidden text-muted-foreground hover:text-destructive md:inline-flex"
-      >
-          <LogOut className="w-4 h-4" />
-          <span className="sr-only">Logout</span>
-      </Button>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="hidden rounded-full text-muted-foreground hover:text-primary md:inline-flex"
+            aria-label="Account menu"
+          >
+            <span className="flex size-7 items-center justify-center rounded-full bg-primary/10 text-xs font-bold uppercase text-primary">
+              {userInitial}
+            </span>
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end" className="w-56">
+          <DropdownMenuLabel className="truncate font-normal text-muted-foreground">
+            {userEmail || 'Your account'}
+          </DropdownMenuLabel>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem onSelect={() => setDesktopSettingsOpen(true)} className="font-medium">
+            <Settings2 className="mr-2 h-4 w-4" />
+            Settings
+          </DropdownMenuItem>
+          <DropdownMenuItem onSelect={() => setShortcutsOpen(true)} className="font-medium">
+            <Keyboard className="mr-2 h-4 w-4" />
+            Keyboard shortcuts
+          </DropdownMenuItem>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem
+            onSelect={handleLogout}
+            className="font-medium text-destructive focus:text-destructive"
+          >
+            <LogOut className="mr-2 h-4 w-4" />
+            Log out
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+      <KeyboardShortcuts open={shortcutsOpen} onOpenChange={setShortcutsOpen} />
     </div>
   );
 

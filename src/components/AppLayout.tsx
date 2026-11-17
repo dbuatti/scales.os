@@ -4,12 +4,10 @@ import { Play, User, WifiOff } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import ScrollToTopButton from './ScrollToTopButton';
-import KeyboardShortcuts from './KeyboardShortcuts';
 import { useZenMode } from '@/context/ZenModeContext';
 import SetupPanel from './SetupPanel';
 import InstallAppButton from './InstallAppButton';
 import { trackPageview } from '@/lib/analytics';
-import { useSupabaseSession } from '@/hooks/use-supabase-session';
 
 interface AppLayoutProps {
     children: React.ReactNode;
@@ -21,8 +19,6 @@ interface AppLayoutProps {
 
 const AppLayout: React.FC<AppLayoutProps> = ({ children, headerRightContent, mobileNav, bleed = false }) => {
     const { isZenMode } = useZenMode();
-    const { session } = useSupabaseSession();
-    const isSignedIn = Boolean(session?.user);
     const setupMode =
         typeof window !== 'undefined' && new URLSearchParams(window.location.search).has('setup');
     const location = useLocation();
@@ -71,32 +67,14 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children, headerRightContent, mob
                     </Link>
                     <nav aria-label="Primary navigation" className="flex items-center gap-1 sm:gap-2">
                         {headerRightContent ? (
-                            <>
-                                {headerRightContent}
-                                {isSignedIn && (
-                                    <>
-                                        <div className="hidden md:inline-flex">
-                                            <KeyboardShortcuts />
-                                        </div>
-                                    </>
-                                )}
-                            </>
+                            headerRightContent
                         ) : (
-                            <>
-                                <Button asChild variant="default" size="sm" className="font-semibold">
-                                    <Link to="/login">
-                                        <User className="size-4 sm:mr-2" aria-hidden="true" />
-                                        <span className="hidden sm:inline">Sign in</span>
-                                    </Link>
-                                </Button>
-                                {isSignedIn && (
-                                    <>
-                                        <div className="hidden md:inline-flex">
-                                            <KeyboardShortcuts />
-                                        </div>
-                                    </>
-                                )}
-                            </>
+                            <Button asChild variant="default" size="sm" className="font-semibold">
+                                <Link to="/login">
+                                    <User className="size-4 sm:mr-2" aria-hidden="true" />
+                                    <span className="hidden sm:inline">Sign in</span>
+                                </Link>
+                            </Button>
                         )}
                     </nav>
                 </div>
