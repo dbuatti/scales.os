@@ -28,9 +28,16 @@ printf 'SUPABASE_ACCESS_TOKEN=%s\n' \
 Stripe keys go in `~/.config/scales/stripe.env` (mode 600), never in this repo:
 
 ```
-STRIPE_SECRET_KEY=sk_...
 STRIPE_WEBHOOK_SECRET=whsec_...
+# Optional: only needed to resolve customers who paid before the
+# stripe_customer_id column existed.
+STRIPE_SECRET_KEY=sk_...
 ```
+
+The webhook verifies Stripe signatures with `STRIPE_WEBHOOK_SECRET` and gets the
+user id from `client_reference_id` on checkout or from the saved Stripe customer
+id on later subscription events, so a secret API key is not required for new
+subscribers.
 
 ## 1. Apply the entitlements migration
 
@@ -113,7 +120,9 @@ The repo includes a Stripe webhook that flips `scales_profiles.plan` in both dir
 # 1. Run supabase/migrations/0008_stripe_customer.sql in the SQL editor first.
 # --no-verify-jwt is required: Stripe sends a Stripe signature, not a Supabase JWT.
 supabase functions deploy stripe-webhook --no-verify-jwt
-supabase secrets set STRIPE_SECRET_KEY=sk_... STRIPE_WEBHOOK_SECRET=whsec_...
+supabase secrets set STRIPE_WEBHOOK_SECRET=whsec_...
+# Optional, for pre-0008 subscribers only:
+supabase secrets set STRIPE_SECRET_KEY=sk_...
 ```
 
 Then in Stripe → Developers → Webhooks → Add endpoint:
