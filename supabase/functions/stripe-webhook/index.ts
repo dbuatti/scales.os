@@ -1,8 +1,10 @@
 // Supabase Edge Function: Stripe webhook
 //
 // Deploy:
-//   supabase functions deploy stripe-webhook
+//   supabase functions deploy stripe-webhook --no-verify-jwt
 //   supabase secrets set STRIPE_SECRET_KEY=sk_... STRIPE_WEBHOOK_SECRET=whsec_...
+//
+// Stripe signs requests with its own signature, so JWT verification must be off.
 //
 // Apply first: supabase/migrations/0008_stripe_customer.sql
 //

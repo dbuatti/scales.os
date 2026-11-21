@@ -3,6 +3,35 @@
 Pro is already wired in the product. The only missing piece is a checkout URL and an
 admin account. Both are configuration, not engineering.
 
+## Deploying Edge Functions
+
+Use `scripts/deploy-supabase.sh`. It pins the project ref, deploys both functions with
+the correct JWT settings, applies Stripe secrets if present, and verifies the result.
+It does not depend on whichever Supabase account the CLI is currently logged into.
+
+```bash
+./scripts/deploy-supabase.sh
+```
+
+One-time token setup, if `~/.config/scales/supabase.env` is missing or your Supabase
+access token was rotated:
+
+```bash
+supabase login                         # in your own terminal, then:
+mkdir -p ~/.config/scales
+umask 077
+printf 'SUPABASE_ACCESS_TOKEN=%s\n' \
+  "$(security find-generic-password -s 'Supabase CLI' -a supabase -w)" \
+  > ~/.config/scales/supabase.env
+```
+
+Stripe keys go in `~/.config/scales/stripe.env` (mode 600), never in this repo:
+
+```
+STRIPE_SECRET_KEY=sk_...
+STRIPE_WEBHOOK_SECRET=whsec_...
+```
+
 ## 1. Apply the entitlements migration
 
 Supabase → SQL Editor → New query → paste `supabase/migrations/0003_entitlements.sql` → Run.
@@ -82,7 +111,8 @@ The repo includes a Stripe webhook that flips `scales_profiles.plan` in both dir
 
 ```bash
 # 1. Run supabase/migrations/0008_stripe_customer.sql in the SQL editor first.
-supabase functions deploy stripe-webhook
+# --no-verify-jwt is required: Stripe sends a Stripe signature, not a Supabase JWT.
+supabase functions deploy stripe-webhook --no-verify-jwt
 supabase secrets set STRIPE_SECRET_KEY=sk_... STRIPE_WEBHOOK_SECRET=whsec_...
 ```
 
@@ -113,6 +143,9 @@ Deploy the companion function:
 ```bash
 supabase functions deploy delete-account
 ```
+
+Keep JWT verification **on** for this one (the default). The function reads the caller's
+user id from the verified access token, never from the request body.
 
 Users then find **Settings → Danger zone → Delete my Scales account** on desktop and
 mobile. The function verifies the caller's Supabase access token and deletes:
