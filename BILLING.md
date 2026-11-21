@@ -10,6 +10,11 @@ Supabase → SQL Editor → New query → paste `supabase/migrations/0003_entitl
 This creates `scales_profiles`, `admin_emails` and `pro_waitlist`, adds RLS, creates a profile
 automatically on signup, and enforces the 2-book free limit at the database level.
 
+Then run `supabase/migrations/0008_stripe_customer.sql`. It adds one nullable column to
+`scales_profiles` so the webhook can match cancellation events to the right account. Both
+migrations only touch Scales-owned tables — the shared Supabase project's other app is
+unaffected.
+
 ## 2. Make yourself an admin
 
 In the same SQL editor:
@@ -46,12 +51,12 @@ Redeploy. `/pro` now sends people straight to checkout.
 
 ## 4. Grant Pro when someone pays
 
-Until a webhook is wired, do it manually in `/business-plan` → Billing & access →
-set the account to Pro. The app re-reads the plan on next load (and within 60s via
-React Query).
+The included webhook does this automatically once deployed (see "Automate Pro grants"
+below). Until then, grant plans manually in `/business-plan` → Billing & access → set the
+account to Pro. The app re-reads the plan on next load (and within 60s via React Query).
 
-To automate later: add a Stripe webhook that updates `public.scales_profiles.plan` with the
-service role. The client never needs payment secrets.
+The client never needs payment secrets: it only passes the signed-in user's id to checkout
+as `client_reference_id`.
 
 ## 5. Waitlist (only if checkout is not configured)
 
@@ -70,11 +75,13 @@ View them in `/business-plan` → Billing & access.
 | Waitlist is public-write, admin-read | RLS policies on `pro_waitlist` |
 
 The client checks are for UX only. The database is the source of truth.
-## Automate Pro grants (optional, after the first manual grants)
 
-The repo includes a Stripe webhook that flips `scales_profiles.plan` automatically.
+## Automate Pro grants (required before taking payments)
+
+The repo includes a Stripe webhook that flips `scales_profiles.plan` in both directions.
 
 ```bash
+# 1. Run supabase/migrations/0008_stripe_customer.sql in the SQL editor first.
 supabase functions deploy stripe-webhook
 supabase secrets set STRIPE_SECRET_KEY=sk_... STRIPE_WEBHOOK_SECRET=whsec_...
 ```
@@ -84,12 +91,36 @@ Then in Stripe → Developers → Webhooks → Add endpoint:
 - URL: `https://<project-ref>.supabase.co/functions/v1/stripe-webhook`
 - Events:
   - `checkout.session.completed`
+  - `customer.subscription.created`
   - `customer.subscription.updated`
   - `customer.subscription.deleted`
 
-The checkout link the app sends includes `client_reference_id=<supabase user id>`, so the
-webhook can find the account without matching email addresses. `SUPABASE_URL` and
-`SUPABASE_SERVICE_ROLE_KEY` are injected automatically inside Edge Functions — never put
-the service-role key in the browser or in `VITE_*` variables.
+The checkout link the app sends includes `client_reference_id=<supabase user id>`. The
+webhook saves the Stripe customer id on the profile, so later subscription events — which
+carry only a customer id — can grant Pro **or take it away when someone cancels** without
+matching email addresses. Subscribers who paid before migration 0008 are matched once by
+fetching their email from Stripe. `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` are
+injected automatically inside Edge Functions — never put the service-role key in the
+browser or in `VITE_*` variables.
 
-Until this is deployed, granting Pro in `/business-plan` remains the manual path.
+Until this is deployed, granting Pro in `/business-plan` remains the manual path and
+cancellations will not downgrade accounts.
+
+## Self-serve account deletion (required for app stores)
+
+Deploy the companion function:
+
+```bash
+supabase functions deploy delete-account
+```
+
+Users then find **Settings → Danger zone → Delete my Scales account** on desktop and
+mobile. The function verifies the caller's Supabase access token and deletes:
+
+- rows in Scales' six practice tables and the `scales_profiles` entitlement row;
+- files under `<user-id>/` in the private `practice-pdfs` storage bucket;
+- cached PDFs in the browser's IndexedDB (cleared by the client).
+
+It deliberately does **not** delete `auth.users` or the other app's tables in this shared
+Supabase project, so the same login keeps working elsewhere. The Privacy page says so
+explicitly. No extra secrets are needed — the function uses the injected service-role key.

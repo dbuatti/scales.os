@@ -41,8 +41,9 @@ const CONTENT: Record<LegalKind, { title: string; description: string; sections:
       {
         heading: 'Your controls',
         paragraphs: [
-          'You can clear all practice data at any time from Progress → History → Clear all practice data.',
-          'To delete your account and everything associated with it, email us from the address you signed up with (see Contact below). We will delete it within 30 days.',
+          'You can clear your practice history at any time from Settings → Danger zone → Clear all practice data.',
+          'You can delete all of your Scales data yourself from Settings → Danger zone → Delete my Scales account. This removes your history, uploaded method books, page mappings and Pro access.',
+          'Your sign-in is shared with another app, so deleting your Scales data does not delete the login itself. If you also need the login removed, email us from the address you signed up with.',
         ],
       },
       {
