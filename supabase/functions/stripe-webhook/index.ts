@@ -56,11 +56,14 @@ Deno.serve(async (req) => {
   const supabaseUrl = Deno.env.get('SUPABASE_URL');
   const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
 
-  if (!secret || !webhookSecret || !supabaseUrl || !serviceKey) {
+  if (!webhookSecret || !supabaseUrl || !serviceKey) {
     return json({ error: 'Missing Stripe or Supabase configuration' }, 500);
   }
 
-  const stripe = new Stripe(secret, {
+  // Webhook signature verification does not call the Stripe API. A dedicated
+  // secret key is only needed for the legacy-customer email fallback below;
+  // when it is not configured, use the signing secret as an inert placeholder.
+  const stripe = new Stripe(secret || webhookSecret, {
     apiVersion: '2024-06-20',
     httpClient: Stripe.createFetchHttpClient(),
   });
@@ -130,8 +133,10 @@ Deno.serve(async (req) => {
   if (!userId && email) userId = await findByEmail(email);
 
   // Subscribers who paid before 0008 have no customer id saved yet. Retrieve
-  // the customer from Stripe once and fall back to their email address.
-  if (!userId && customerId) {
+  // the customer from Stripe once and fall back to their email address. This
+  // needs a real secret key; new accounts (where every checkout saves the
+  // customer id) can skip it safely.
+  if (!userId && customerId && secret) {
     try {
       const customer = await stripe.customers.retrieve(customerId);
       const legacyEmail = 'deleted' in customer ? null : customer.email;
