@@ -1,6 +1,8 @@
 import React from 'react';
 import PageContainer from '@/components/PageContainer';
 import PageHeader from '@/components/PageHeader';
+import { Mail } from 'lucide-react';
+import { SUPPORT_EMAIL, supportMailto } from '@/lib/support';
 
 type LegalKind = 'privacy' | 'terms';
 
@@ -40,7 +42,7 @@ const CONTENT: Record<LegalKind, { title: string; description: string; sections:
         heading: 'Your controls',
         paragraphs: [
           'You can clear all practice data at any time from Progress → History → Clear all practice data.',
-          'To delete your account and everything associated with it, email the address on your account receipt or contact us from the email you signed up with. We will delete it within 30 days.',
+          'To delete your account and everything associated with it, email us from the address you signed up with (see Contact below). We will delete it within 30 days.',
         ],
       },
       {
@@ -52,7 +54,7 @@ const CONTENT: Record<LegalKind, { title: string; description: string; sections:
       {
         heading: 'Contact',
         paragraphs: [
-          'Questions about this policy? Reach us through the support address on your account or the contact link in the app footer.',
+          'Questions about this policy, or a data request? Email us using the address below.',
         ],
       },
     ],
@@ -100,7 +102,7 @@ const CONTENT: Record<LegalKind, { title: string; description: string; sections:
       {
         heading: 'Contact',
         paragraphs: [
-          'Questions about these terms? Reach us through the support address on your account or the contact link in the app footer.',
+          'Questions about these terms? Email us using the address below.',
         ],
       },
     ],
@@ -125,6 +127,23 @@ const Legal: React.FC<{ kind: LegalKind }> = ({ kind }) => {
             ))}
           </section>
         ))}
+
+        {SUPPORT_EMAIL && (
+          <a
+            href={supportMailto(kind === 'privacy' ? 'Privacy request' : 'Terms question') ?? undefined}
+            className="group flex items-center gap-3 rounded-xl border border-border/60 bg-card/50 p-4 shadow-sm transition-all duration-200 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+          >
+            <span className="rounded-lg bg-primary/10 p-2 text-primary">
+              <Mail className="size-4" aria-hidden="true" />
+            </span>
+            <span className="flex flex-col">
+              <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Contact</span>
+              <span className="text-sm font-semibold text-foreground transition-colors group-hover:text-primary">
+                {SUPPORT_EMAIL}
+              </span>
+            </span>
+          </a>
+        )}
 
         <p className="border-t border-border/60 pt-6 text-xs text-muted-foreground/70">
           Last updated November 2026.

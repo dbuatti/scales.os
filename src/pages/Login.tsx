@@ -3,10 +3,9 @@ import { Auth } from '@supabase/auth-ui-react';
 import { ThemeSupa } from '@supabase/auth-ui-shared';
 import { supabase } from '@/integrations/supabase/client';
 import { useSupabaseSession } from '@/hooks/use-supabase-session';
-import { useNavigate } from 'react-router-dom';
-// cardless
+import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Check, Loader2, Music } from 'lucide-react';
+import { Check, Loader2 } from 'lucide-react';
 import { track } from '@/lib/analytics';
 
 const HIGHLIGHTS = [
@@ -62,17 +61,8 @@ const Login: React.FC = () => {
           className="pointer-events-none absolute -left-24 top-1/3 size-72 rounded-full bg-primary/10 blur-3xl"
         />
 
-        <div className="relative flex items-center gap-2.5">
-          <div className="flex size-9 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-primary/70 text-primary-foreground shadow-md shadow-primary/25">
-            <Music className="size-4" aria-hidden="true" />
-          </div>
-          <span className="text-lg font-bold tracking-tight">
-            Scales
-            <span className="ml-0.5 align-super text-[9px] font-bold uppercase tracking-[0.18em] text-primary/70">
-              os
-            </span>
-          </span>
-        </div>
+        {/* Spacer keeps the headline centred; the site header carries the brand. */}
+        <div aria-hidden="true" />
 
         <div className="relative max-w-md">
           <p className="eyebrow">Welcome</p>
@@ -105,19 +95,7 @@ const Login: React.FC = () => {
       {/* Form */}
       <div className="flex flex-1 items-center justify-center px-4 py-12 sm:px-8">
         <div className="w-full max-w-sm">
-          <div className="mb-8 flex items-center gap-2.5 lg:hidden">
-            <div className="flex size-9 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-primary/70 text-primary-foreground shadow-md shadow-primary/25">
-              <Music className="size-4" aria-hidden="true" />
-            </div>
-            <span className="text-lg font-bold tracking-tight">
-              Scales
-              <span className="ml-0.5 align-super text-[9px] font-bold uppercase tracking-[0.18em] text-primary/70">
-                os
-              </span>
-            </span>
-          </div>
-
-          <div className="w-full border border-border/40">
+          <div className="w-full rounded-xl border border-border/60 bg-card shadow-sm">
             <div className="space-y-1.5 p-6 pb-2">
               <h1 className="font-display text-3xl font-normal tracking-tight">
                 Sign in
@@ -181,13 +159,44 @@ const Login: React.FC = () => {
                 theme="default"
                 providers={[]}
                 redirectTo={window.location.origin}
+                localization={{
+                  variables: {
+                    sign_in: {
+                      email_label: 'Email',
+                      password_label: 'Password',
+                      email_input_placeholder: 'you@example.com',
+                      password_input_placeholder: 'Your password',
+                      link_text: 'Already have an account? Sign in',
+                    },
+                    sign_up: {
+                      email_label: 'Email',
+                      password_label: 'Create a password',
+                      email_input_placeholder: 'you@example.com',
+                      password_input_placeholder: 'Choose a strong password',
+                      button_label: 'Create free account',
+                      link_text: "New here? Create a free account",
+                    },
+                    forgotten_password: {
+                      email_label: 'Email',
+                      email_input_placeholder: 'you@example.com',
+                      link_text: 'Forgot your password?',
+                    },
+                  },
+                }}
               />
             </div>
           </div>
 
           <p className="mt-6 text-center text-xs leading-relaxed text-muted-foreground">
-            By continuing you agree to keep your practice honest.
-            <br className="sm:hidden" /> Your data stays yours.
+            By continuing you agree to our{' '}
+            <Link to="/terms" className="font-medium text-foreground underline-offset-4 transition-colors hover:text-primary hover:underline">
+              Terms
+            </Link>{' '}
+            and{' '}
+            <Link to="/privacy" className="font-medium text-foreground underline-offset-4 transition-colors hover:text-primary hover:underline">
+              Privacy policy
+            </Link>
+            . Your practice data stays yours.
           </p>
         </div>
       </div>

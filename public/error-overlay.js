@@ -17,55 +17,83 @@
 
     root.innerHTML = '';
     var wrap = document.createElement('div');
+    wrap.setAttribute('role', 'alert');
     wrap.setAttribute(
       'style',
       [
-        'max-width:680px',
-        'margin:12vh auto',
-        'padding:24px',
+        'max-width:440px',
+        'margin:14vh 16px 0',
+        'margin-left:max(16px, calc(50% - 220px))',
+        'margin-right:max(16px, calc(50% - 220px))',
+        'padding:28px',
         'font-family:Inter,ui-sans-serif,system-ui,-apple-system,sans-serif',
-        'color:#e5e7eb',
-        'background:#111827',
-        'border:1px solid #1f2937',
+        'color:#1c1a2e',
+        'background:#ffffff',
+        'border:1px solid rgba(28,26,46,0.10)',
         'border-radius:16px',
         'line-height:1.55',
-        'box-shadow:0 10px 30px rgba(0,0,0,0.35)',
+        'box-shadow:0 1px 2px rgba(28,26,46,0.06)',
+        'text-align:center',
       ].join(';'),
     );
+    document.body.style.background = '#faf8f4';
 
     var title = document.createElement('h1');
-    title.textContent = 'The app failed to load';
+    title.textContent = 'Scales.os couldn\u2019t start';
     title.setAttribute(
       'style',
-      'font-size:18px;font-weight:700;margin:0 0 8px;letter-spacing:-0.01em',
+      'font-size:20px;font-weight:700;margin:0 0 8px;letter-spacing:-0.02em',
     );
 
     var hint = document.createElement('p');
     hint.textContent =
-      'This is usually a missing or malformed Supabase environment variable ' +
-      '(VITE_SUPABASE_URL / VITE_SUPABASE_ANON_KEY). Details:';
-    hint.setAttribute('style', 'font-size:13px;color:#9ca3af;margin:0 0 12px');
+      'Something went wrong while loading. Check your connection and try again \u2014 your practice data is safe.';
+    hint.setAttribute('style', 'font-size:14px;color:#6b6880;margin:0 0 20px');
 
+    var button = document.createElement('button');
+    button.type = 'button';
+    button.textContent = 'Reload';
+    button.setAttribute(
+      'style',
+      'font:inherit;font-size:14px;font-weight:600;color:#fff;background:#352e9e;border:0;border-radius:10px;padding:10px 20px;cursor:pointer',
+    );
+    button.addEventListener('click', function () {
+      window.location.reload();
+    });
+
+    // Technical details stay available for whoever is debugging, without
+    // greeting every visitor with environment-variable jargon.
+    var details = document.createElement('details');
+    details.setAttribute('style', 'margin-top:20px;text-align:left;font-size:12px;color:#6b6880');
+    var summary = document.createElement('summary');
+    summary.textContent = 'Technical details';
+    summary.setAttribute('style', 'cursor:pointer');
     var pre = document.createElement('pre');
-    pre.textContent = message || 'Unknown error';
+    pre.textContent =
+      (message || 'Unknown error') +
+      '\n\nIf you run this site: this is usually a missing or malformed ' +
+      'VITE_SUPABASE_URL / VITE_SUPABASE_ANON_KEY.';
     pre.setAttribute(
       'style',
       [
         'white-space:pre-wrap',
         'word-break:break-word',
-        'font-size:12.5px',
-        'background:#0b1220',
-        'color:#fca5a5',
+        'font-size:12px',
+        'background:#f4f2ee',
+        'color:#7a2e2e',
         'padding:12px',
         'border-radius:10px',
-        'margin:0',
+        'margin:8px 0 0',
         'overflow:auto',
       ].join(';'),
     );
+    details.appendChild(summary);
+    details.appendChild(pre);
 
     wrap.appendChild(title);
     wrap.appendChild(hint);
-    wrap.appendChild(pre);
+    wrap.appendChild(button);
+    wrap.appendChild(details);
     root.appendChild(wrap);
   }
 

@@ -8,6 +8,7 @@ import { useZenMode } from '@/context/ZenModeContext';
 import SetupPanel from './SetupPanel';
 import InstallAppButton from './InstallAppButton';
 import { trackPageview } from '@/lib/analytics';
+import { supportMailto } from '@/lib/support';
 
 interface AppLayoutProps {
     children: React.ReactNode;
@@ -22,6 +23,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children, headerRightContent, mob
     const setupMode =
         typeof window !== 'undefined' && new URLSearchParams(window.location.search).has('setup');
     const location = useLocation();
+    const contactHref = supportMailto('Scales.os support');
     const [isOnline, setIsOnline] = React.useState(
         typeof navigator === 'undefined' ? true : navigator.onLine,
     );
@@ -60,7 +62,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children, headerRightContent, mob
                         <div aria-hidden="true" className={cn("bg-gradient-to-br from-primary to-primary/70 rounded-xl flex items-center justify-center text-primary-foreground  shadow-primary/25 transition-all duration-200 group-hover:rotate-[-4deg] group-hover:scale-105", isZenMode ? "w-7 h-7" : "w-9 h-9")}>
                             <Play className={cn("fill-current", isZenMode ? "w-3.5 h-3.5" : "w-4 h-4")} />
                         </div>
-                        <span className="hidden font-bold tracking-tight sm:inline">
+                        <span className="font-bold tracking-tight">
                             Scales
                             <span className="ml-0.5 align-super text-[9px] font-bold uppercase tracking-[0.18em] text-primary/70">os</span>
                         </span>
@@ -68,11 +70,11 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children, headerRightContent, mob
                     <nav aria-label="Primary navigation" className="flex items-center gap-1 sm:gap-2">
                         {headerRightContent ? (
                             headerRightContent
-                        ) : (
+                        ) : location.pathname === '/login' ? null : (
                             <Button asChild variant="default" size="sm" className="font-semibold">
                                 <Link to="/login">
-                                    <User className="size-4 sm:mr-2" aria-hidden="true" />
-                                    <span className="hidden sm:inline">Sign in</span>
+                                    <User className="mr-2 size-4" aria-hidden="true" />
+                                    Sign in
                                 </Link>
                             </Button>
                         )}
@@ -107,11 +109,17 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children, headerRightContent, mob
                                 Built for pianists. Focused on technique.
                             </p>
                             <p className="text-xs text-muted-foreground">Scales · Arpeggios · Method books</p>
-                            <div className="flex items-center gap-3 text-xs text-muted-foreground/70">
+                            <div className="flex flex-wrap items-center justify-center gap-3 pt-1 text-xs text-muted-foreground/70 md:justify-start">
                                 <InstallAppButton />
                                 <Link to="/privacy" className="transition-colors hover:text-foreground">Privacy</Link>
                                 <span aria-hidden="true">·</span>
                                 <Link to="/terms" className="transition-colors hover:text-foreground">Terms</Link>
+                                {contactHref && (
+                                    <>
+                                        <span aria-hidden="true">·</span>
+                                        <a href={contactHref} className="transition-colors hover:text-foreground">Contact</a>
+                                    </>
+                                )}
                             </div>
                         </div>
                         <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-2 text-xs text-muted-foreground/70 md:justify-end">
