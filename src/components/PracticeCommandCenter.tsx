@@ -1,10 +1,9 @@
 "use client";
 
 import React, { useState, useMemo, useEffect, useCallback, useRef } from 'react';
-import { CardContent } from '@/components/ui/card';
 import { useScales, NextFocus } from '@/context/ScalesContext';
 import ScalePracticePanel from './ScalePracticePanel';
-import { cn, getFolderTone } from '@/lib/utils';
+import { cn } from '@/lib/utils';
 import { useGlobalBPM } from '@/context/GlobalBPMContext';
 import { Link, useNavigate } from 'react-router-dom';
 import PracticeSummaryPanel from './PracticeSummaryPanel';
@@ -21,18 +20,21 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { showSuccess } from '@/utils/toast';
-import { Target, Play, Sparkles, Crown, Music } from 'lucide-react';
+import { Sparkles, Crown } from 'lucide-react';
 import { useZenMode } from '@/context/ZenModeContext';
 import PageHeader from './PageHeader';
 import HomeModes from './HomeModes';
 import PageContainer from './PageContainer';
 import OnboardingChecklist from './OnboardingChecklist';
 import MilestoneCelebration from './MilestoneCelebration';
-import Metronome from './Metronome';
-import SessionTimer from './SessionTimer';
+import PracticeFocusCard from './PracticeFocusCard';
+import PracticeModePanel from './PracticeModePanel';
+import PracticeProgressCard from './PracticeProgressCard';
+import { usePracticeTransport } from '@/context/PracticeTransportContext';
 import { usePlan } from '@/hooks/use-plan';
 import { useWeeklyGoal } from '@/hooks/use-weekly-goal';
 import { track } from '@/lib/analytics';
+import { exerciseProgress } from '@/lib/tempo';
 
 const PracticeCommandCenter: React.FC = () => {
   const {
@@ -41,6 +43,8 @@ const PracticeCommandCenter: React.FC = () => {
     log,
     updateScaleMasteryBPM,
     scaleMasteryBPMMap,
+    exerciseMasteryBPMMap,
+    streak,
     nextFocus,
   } = useScales();
 
@@ -55,7 +59,7 @@ const PracticeCommandCenter: React.FC = () => {
 
   const { isZenMode } = useZenMode();
   const { isPro } = usePlan();
-  const { setGoal } = useWeeklyGoal();
+  const { goal: weeklyGoal, setGoal } = useWeeklyGoal();
   const [goalOpen, setGoalOpen] = useState(false);
   const [goalDraft, setGoalDraft] = useState('120');
   const navigate = useNavigate();
@@ -72,29 +76,14 @@ const PracticeCommandCenter: React.FC = () => {
     ? activePracticeItem.type === 'scale'
       ? activePracticeItem.nextGoalBPM
       : activePracticeItem.nextTargetBPM
-    : null;
+    : nextFocus?.nextBPMGoal ?? null;
 
   const [mode, setMode] = useState<'scales' | 'arpeggios'>('scales');
   const [isEngagingSuggestion, setIsEngagingSuggestion] = useState(false);
   const [scaleQuickPick, setScaleQuickPick] = useState<{ kind: 'scale' | 'arpeggio'; nonce: number } | null>(null);
   const firstLogTracked = useRef(false);
 
-  // Session timer state is lifted here so the compact timer can live in the tools
-  // rail next to the metronome while snapshots (in ScalePracticePanel) read the same seconds.
-  const [sessionSeconds, setSessionSeconds] = useState(0);
-  const [isTimerRunning, setIsTimerRunning] = useState(false);
-  const startTimer = useCallback(() => setIsTimerRunning(true), []);
-  const pauseTimer = useCallback(() => setIsTimerRunning(false), []);
-  const resetTimer = useCallback(() => {
-    setIsTimerRunning(false);
-    setSessionSeconds(0);
-  }, []);
-
-  useEffect(() => {
-    if (!isTimerRunning) return;
-    const id = window.setInterval(() => setSessionSeconds((s) => s + 1), 1000);
-    return () => window.clearInterval(id);
-  }, [isTimerRunning]);
+  const { sessionSeconds, isPracticeMode, startPractice } = usePracticeTransport();
 
   useEffect(() => {
     if (firstLogTracked.current || log.length === 0) return;
@@ -166,22 +155,55 @@ const PracticeCommandCenter: React.FC = () => {
     [],
   );
 
-  // The clicked tab is the source of truth for the folder colour; suggestions
-  // already set `mode` when they load an arpeggio or scale.
   const activeFolder = mode;
 
   const suggestedLabel = nextFocus
     ? 'scaleItem' in nextFocus
       ? `${nextFocus.scaleItem.key} ${nextFocus.scaleItem.type}`
       : nextFocus.name
-    : 'None';
+    : null;
+
+  const focusTitle = activePracticeItem
+    ? activePracticeItem.type === 'scale'
+      ? `${activePracticeItem.key} ${activePracticeItem.scaleType}`
+      : activePracticeItem.name
+    : suggestedLabel ?? 'Choose an exercise';
+
+  const focusMeta = activePracticeItem
+    ? activePracticeItem.type === 'scale'
+      ? `${activePracticeItem.articulation} · ${activePracticeItem.octaves} · ${activePracticeItem.handConfig}`
+      : 'Method book exercise'
+    : 'Pick a key and scale below to begin';
+
+  const overallBestBpm = Math.max(
+    0,
+    ...Object.values(scaleMasteryBPMMap),
+    ...Object.values(exerciseMasteryBPMMap),
+  );
+
+  const exerciseBestBpm = activePracticeItem
+    ? activePracticeItem.type === 'scale'
+      ? activePracticeItem.highestBPM
+      : activePracticeItem.currentHighestBPM
+    : nextFocus?.currentHighestBPM ?? 0;
+
+  const { percentage: masteryPercentage, remaining: remainingBpm } = exerciseProgress(
+    currentBPM,
+    exerciseBestBpm,
+    targetBpm ?? currentBPM,
+  );
 
   return (
-    <PageContainer className={cn('transition-all duration-500', isZenMode && 'max-w-4xl')}>
+    <PageContainer
+      className={cn(
+        'max-w-6xl space-y-5 transition-all duration-500 md:space-y-6',
+        isZenMode && 'max-w-4xl',
+      )}
+    >
       <PageHeader
         eyebrow={greeting}
-        title="Practice"
-        description="Pick a folder, set your tempo, and track every session."
+        title="Your practice space."
+        description="Choose an exercise, settle into a tempo, and let the session take over."
         actions={
           isPro ? (
             <Badge variant="secondary" className="gap-1.5 px-2.5 py-1 font-bold">
@@ -199,98 +221,68 @@ const PracticeCommandCenter: React.FC = () => {
         }
       />
 
-      {nextFocus && (
-        <div className="relative overflow-hidden rounded-2xl border border-primary/20 bg-gradient-to-br from-primary/[0.08] via-background to-background animate-in fade-in slide-in-from-bottom-2 duration-300">
-          <div
-            aria-hidden="true"
-            className="pointer-events-none absolute -right-20 -top-20 h-52 w-52 rounded-full bg-primary/15 blur-3xl"
-          />
-          <CardContent className="relative flex flex-col gap-5 p-6 sm:flex-row sm:items-center sm:justify-between">
-            <div className="flex min-w-0 items-center gap-4">
-              <div className="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-primary/10 text-primary ring-1 ring-inset ring-primary/15">
-                <Target className="size-5" />
-              </div>
-              <div className="min-w-0 space-y-1">
-                <div className="flex items-center gap-2">
-                  <p className="text-[10px] font-bold uppercase tracking-widest text-primary">
-                    Suggested focus
-                  </p>
-                  <span className="size-1.5 rounded-full bg-primary" aria-hidden="true" />
-                  <span className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
-                    Ready
-                  </span>
-                </div>
-                <p className="truncate font-display text-2xl leading-tight tracking-tight sm:text-3xl">{suggestedLabel}</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-4">
-              {targetBpm ? (
-                <div className="hidden text-right sm:block">
-                  <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-                    Target
-                  </p>
-                  <p className="text-xl font-black tabular-nums text-primary">{targetBpm} BPM</p>
-                </div>
-              ) : null}
-              <Button
-                size="lg"
-                onClick={() => handleLoadSuggestion(nextFocus)}
-                disabled={isEngagingSuggestion}
-                className="w-full font-bold shadow-sm shadow-primary/20 focus-scale sm:w-auto"
-              >
-                <Play data-icon="inline-start" />
-                Start session
-              </Button>
-            </div>
-          </CardContent>
-        </div>
+      {isPracticeMode && (
+        <PracticeModePanel
+          title={focusTitle}
+          meta={focusMeta}
+          currentBpm={currentBPM}
+          targetBpm={targetBpm}
+          exerciseBestBpm={exerciseBestBpm}
+          overallBestBpm={overallBestBpm || currentBPM}
+          masteryPercentage={masteryPercentage}
+          remainingBpm={remainingBpm}
+          onSave={() => activeLogSnapshotFunction?.()}
+          canSave={Boolean(activeLogSnapshotFunction)}
+        />
       )}
 
-      <div
-        id="practice-modes"
-        className={cn(
-          'folder-sheet relative left-1/2 w-screen -translate-x-1/2 pt-2 text-folder-foreground shadow-[inset_0_1px_0_hsl(0_0%_100%_/_0.12)] scroll-mt-24',
-          getFolderTone(activeFolder === 'arpeggios' ? 'arpeggio' : 'scale').solid,
-        )}
-        style={{
-          '--sheet-accent': activeFolder === 'arpeggios'
-            ? 'var(--folder-arpeggio)'
-            : 'var(--folder-scale)',
-        } as React.CSSProperties}
-      >
-        <div className="mx-auto w-full max-w-5xl">
-          <HomeModes active={activeFolder} onSelect={handleSelectMode} />
+      {/* Keep the setup panel mounted in practice mode so its snapshot handler
+          stays registered — hidden, not unmounted. */}
+      <div className={cn('space-y-5 md:space-y-6', isPracticeMode && 'hidden')}>
+        <PracticeFocusCard
+          title={focusTitle}
+          meta={focusMeta}
+          bpm={currentBPM}
+          targetBpm={targetBpm}
+          onStart={startPractice}
+          suggestionLabel={suggestedLabel}
+          onLoadSuggestion={nextFocus ? () => handleLoadSuggestion(nextFocus) : undefined}
+          isEngagingSuggestion={isEngagingSuggestion}
+        />
 
-          <div className="border-t border-white/15 px-4 pb-8 sm:px-6">
-          {!isZenMode && (
-            <section
-              aria-label="Practice tools"
-              className="grid divide-y divide-white/15 sm:grid-cols-2 sm:divide-x sm:divide-y-0"
-            >
-              <div className="p-3">
-                <SessionTimer
-                  seconds={sessionSeconds}
-                  isRunning={isTimerRunning}
-                  onStart={startTimer}
-                  onPause={pauseTimer}
-                  onReset={resetTimer}
-                />
-              </div>
-              <div className="flex flex-col justify-center gap-2 p-3">
-                <p className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-folder-foreground/75">
-                  <Music className="h-3.5 w-3.5" />
-                  Metronome
-                </p>
-                <Metronome showSettings={true} />
-              </div>
-            </section>
-          )}
+        <PracticeSummaryPanel
+          overallBestBpm={overallBestBpm || currentBPM}
+          exerciseBestBpm={exerciseBestBpm}
+          targetBpm={targetBpm}
+          masteryPercentage={masteryPercentage}
+          remainingBpm={remainingBpm}
+          onAdjust={scrollToPracticePanel}
+        />
 
-          <OnboardingChecklist />
+        <section
+          id="practice-modes"
+          className="rounded-2xl border border-border/60 bg-card/40 p-5 shadow-sm sm:p-6"
+        >
+          <div className="flex flex-wrap items-end justify-between gap-3">
+            <div className="space-y-1">
+              <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-muted-foreground">
+                Practice setup
+              </p>
+              <h2 className="font-display text-2xl tracking-tight">Configure your exercise</h2>
+              <p className="text-sm text-muted-foreground">
+                Direction, hands and rhythm stay tucked away until you need them.
+              </p>
+            </div>
+            <Badge variant="outline" className="font-bold">
+              {activeFolder === 'arpeggios' ? 'Arpeggios' : 'Scales'}
+            </Badge>
+          </div>
 
-          <div id="practice-panel" className="flex min-w-0 flex-col scroll-mt-24">
-            <PracticeSummaryPanel />
+          <div className="mt-5">
+            <HomeModes active={activeFolder} onSelect={handleSelectMode} />
+          </div>
 
+          <div id="practice-panel" className="mt-6 scroll-mt-24">
             <ScalePracticePanel
               suggestedScalePermutation={
                 nextFocus?.type === 'scale' || nextFocus?.type === 'arpeggio' ? nextFocus : undefined
@@ -305,9 +297,17 @@ const PracticeCommandCenter: React.FC = () => {
               quickPick={scaleQuickPick}
               sessionSeconds={sessionSeconds}
             />
-            </div>
           </div>
-        </div>
+        </section>
+
+        <PracticeProgressCard
+          log={log}
+          streak={streak.current_streak}
+          overallBestBpm={overallBestBpm || currentBPM}
+          weeklyGoal={weeklyGoal}
+        />
+
+        <OnboardingChecklist />
       </div>
 
       <Dialog open={goalOpen} onOpenChange={setGoalOpen}>

@@ -12,6 +12,8 @@ interface SessionTimerProps {
   onStart: () => void;
   onPause: () => void;
   onReset: () => void;
+  compact?: boolean;
+  startLabel?: string;
 }
 
 const formatTimer = (total: number) => {
@@ -20,7 +22,7 @@ const formatTimer = (total: number) => {
   return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
 };
 
-const SessionTimer: React.FC<SessionTimerProps> = ({ seconds, isRunning, onStart, onPause, onReset }) => {
+const SessionTimer: React.FC<SessionTimerProps> = ({ seconds, isRunning, onStart, onPause, onReset, compact = false, startLabel = 'Start timer' }) => {
   const { currentBPM } = useGlobalBPM();
   const { addLogEntry } = useScales();
   const [lastLogged, setLastLogged] = useState<number | null>(null);
@@ -48,6 +50,58 @@ const SessionTimer: React.FC<SessionTimerProps> = ({ seconds, isRunning, onStart
     setLastLogged(null);
     onReset();
   };
+
+  if (compact) {
+    return (
+      <div className="flex min-w-0 items-center gap-2">
+        <span className="hidden text-[10px] font-bold uppercase tracking-widest text-muted-foreground xl:inline">
+          Session
+        </span>
+        <Timer className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
+        <span className="tnum text-base font-black tabular-nums leading-none text-foreground">
+          {formatTimer(seconds)}
+        </span>
+        <div className="ml-auto flex items-center gap-1">
+          {isRunning ? (
+            <Button variant="outline" size="sm" onClick={onPause} className="h-8 px-2.5 font-bold focus-scale">
+              <Pause className="mr-1 h-3.5 w-3.5" /> Pause
+            </Button>
+          ) : (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleStart}
+              className="h-8 px-2.5 font-bold focus-scale"
+            >
+              <Play className="mr-1 h-3.5 w-3.5" /> {startLabel}
+            </Button>
+          )}
+          <Button
+            variant="outline"
+            size="icon"
+            disabled={seconds === 0}
+            onClick={handleLog}
+            title="Log this timed session"
+            aria-label="Log this timed session"
+            className="hidden h-8 w-8 focus-scale sm:inline-flex"
+          >
+            <Check className="h-3.5 w-3.5" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={handleReset}
+            disabled={seconds === 0 && !isRunning}
+            title="Reset timer"
+            aria-label="Reset session timer"
+            className="hidden h-8 w-8 focus-scale sm:inline-flex"
+          >
+            <RotateCcw className="h-3.5 w-3.5" />
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="rounded-xl border border-border/60 bg-card/60 p-4">

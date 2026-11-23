@@ -2,7 +2,9 @@ import React, { useState } from 'react';
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import { ScalesProvider } from '@/context/ScalesContext';
 import { RepertoireProvider } from '@/context/RepertoireContext';
+import { PracticeTransportProvider } from '@/context/PracticeTransportContext';
 import AppLayout from './AppLayout';
+import HeaderTransport from './HeaderTransport';
 import { Button } from '@/components/ui/button';
 import { Play, BarChart2, BookOpen, LogOut, Settings2, Keyboard } from 'lucide-react';
 import MobileSettingsSheet from './MobileSettingsSheet';
@@ -183,22 +185,25 @@ const AuthenticatedShell: React.FC = () => {
   return (
     <ScalesProvider>
       <RepertoireProvider>
-        <AppLayout headerRightContent={authenticatedHeaderRightContent} mobileNav={mobileNav}>
-          {/* The global transport is the one tempo control on most pages. Hide it
-              where a better dedicated control already exists: the Reader's floating
-              panel (always) and the Practice side rail (desktop only, so mobile keeps
-              the top transport). */}
-          <div
-            className={cn(
-              'mb-4',
-              pathname === '/reader' && 'hidden',
-              pathname === '/' && !isZenMode && 'lg:hidden',
-            )}
+        <PracticeTransportProvider>
+          <AppLayout
+            headerRightContent={authenticatedHeaderRightContent}
+            headerTools={pathname === '/' && !isZenMode ? <HeaderTransport /> : undefined}
+            mobileNav={mobileNav}
           >
-            <TransportBar />
-          </div>
-          <Outlet />
-        </AppLayout>
+            {/* Practice owns a dedicated transport in the sticky header; the Reader
+                owns its floating tempo panel. Other pages keep this inline bar. */}
+            <div
+              className={cn(
+                'mb-4',
+                (pathname === '/reader' || pathname === '/') && 'hidden',
+              )}
+            >
+              <TransportBar />
+            </div>
+            <Outlet />
+          </AppLayout>
+        </PracticeTransportProvider>
       </RepertoireProvider>
     </ScalesProvider>
   );

@@ -16,9 +16,10 @@ import TempoControl from './TempoControl';
 interface MetronomeProps {
   showSettings?: boolean;
   layout?: 'horizontal' | 'vertical';
+  compact?: boolean;
 }
 
-const Metronome: React.FC<MetronomeProps> = ({ showSettings = true, layout = 'horizontal' }) => {
+const Metronome: React.FC<MetronomeProps> = ({ showSettings = true, layout = 'horizontal', compact = false }) => {
   const {
     isRunning,
     isMuted,
@@ -61,24 +62,30 @@ const Metronome: React.FC<MetronomeProps> = ({ showSettings = true, layout = 'ho
     </Button>
   );
 
-  const tapButton = (
+  const tapButton = (className?: string) => (
     <Button
       onClick={tapTempo}
       variant="ghost"
       size="sm"
-      className="h-9 shrink-0 rounded-lg font-bold text-muted-foreground hover:bg-background/70 hover:text-foreground focus-scale"
+      className={cn(
+        'h-9 shrink-0 rounded-lg font-bold text-muted-foreground hover:bg-background/70 hover:text-foreground focus-scale',
+        className,
+      )}
     >
       <Fingerprint className="mr-1.5 h-3.5 w-3.5" /> TAP
     </Button>
   );
 
-  const muteButton = (
+  const muteButton = (className?: string) => (
     <Button
       onClick={toggleMuted}
       variant="ghost"
       size="icon"
       aria-label={isMuted ? 'Unmute metronome' : 'Mute metronome'}
-      className="h-9 w-9 shrink-0 rounded-lg text-muted-foreground hover:bg-background/70 hover:text-foreground focus-scale"
+      className={cn(
+        'h-9 w-9 shrink-0 rounded-lg text-muted-foreground hover:bg-background/70 hover:text-foreground focus-scale',
+        className,
+      )}
     >
       {isMuted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
     </Button>
@@ -106,11 +113,12 @@ const Metronome: React.FC<MetronomeProps> = ({ showSettings = true, layout = 'ho
     </ToggleGroup>
   );
 
-  const beatIndicator = (
+  const beatIndicator = (className?: string) => (
     <div
       className={cn(
         'relative flex h-11 w-11 flex-shrink-0 items-center justify-center overflow-hidden rounded-xl border border-border/60 bg-card/50 transition-all duration-150',
         isRunning && 'border-primary/30',
+        className,
       )}
     >
       {isRunning && (
@@ -139,7 +147,7 @@ const Metronome: React.FC<MetronomeProps> = ({ showSettings = true, layout = 'ho
     </div>
   );
 
-  const settingsControl = showSettings ? (
+  const settingsControl = (className?: string) => showSettings ? (
     <Popover>
       <PopoverTrigger asChild>
         <Button
@@ -150,6 +158,7 @@ const Metronome: React.FC<MetronomeProps> = ({ showSettings = true, layout = 'ho
             'h-9 w-9 shrink-0 rounded-lg text-muted-foreground hover:bg-background/70 hover:text-foreground focus-scale',
             (autoIncrementEnabled || visualFlashEnabled) &&
               'bg-primary/10 text-primary hover:bg-primary/15 hover:text-primary',
+            className,
           )}
         >
           <Settings2 className="h-4 w-4" />
@@ -165,7 +174,7 @@ const Metronome: React.FC<MetronomeProps> = ({ showSettings = true, layout = 'ho
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-1">
               <Label className="text-xs font-bold uppercase tracking-widest">Volume</Label>
-              <div className="sm:hidden">{muteButton}</div>
+              <div className="sm:hidden">{muteButton()}</div>
             </div>
             <span className="text-xs font-bold tabular-nums text-muted-foreground">{Math.round(volume * 100)}%</span>
           </div>
@@ -242,14 +251,40 @@ const Metronome: React.FC<MetronomeProps> = ({ showSettings = true, layout = 'ho
     </Popover>
   ) : null;
 
+  // Slim toolbar used in the folder header: keeps every essential control one
+  // tap away without turning the header into another card.
+  if (compact) {
+    return (
+      <div className="flex min-w-0 items-center gap-1.5">
+        <span className="hidden items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-muted-foreground xl:flex">
+          <Music className="size-3.5" />
+          Metronome
+        </span>
+        {runButton('h-8 w-14 rounded-lg px-0 text-xs')}
+        <TempoControl
+          compact
+          value={currentBPM}
+          onChange={setCurrentBPM}
+          onStep={handleBpmChange}
+        />
+        <div className="hidden items-center gap-0.5 md:flex">
+          {tapButton('h-8 px-2 text-xs')}
+          {muteButton('h-8 w-8')}
+        </div>
+        {settingsControl('hidden h-8 w-8 sm:inline-flex')}
+        <div className="hidden lg:block">{beatIndicator('h-8 w-8 rounded-lg')}</div>
+      </div>
+    );
+  }
+
   if (layout === 'vertical') {
     return (
       <div className="space-y-3 p-1">
         <div className="flex flex-wrap items-center gap-2">
           {runButton('flex-1')}
-          {tapButton}
-          {muteButton}
-          {settingsControl}
+          {tapButton()}
+          {muteButton()}
+          {settingsControl()}
         </div>
         <TempoControl
           compact
@@ -259,7 +294,7 @@ const Metronome: React.FC<MetronomeProps> = ({ showSettings = true, layout = 'ho
         />
         <div className="flex items-center justify-between gap-2">
           {divisionToggle}
-          {beatIndicator}
+          {beatIndicator()}
         </div>
       </div>
     );
@@ -267,7 +302,7 @@ const Metronome: React.FC<MetronomeProps> = ({ showSettings = true, layout = 'ho
 
   return (
     <div className="flex flex-wrap items-center gap-1 rounded-xl border border-border/60 bg-card/60 p-1  ">
-      <div className="hidden lg:block">{beatIndicator}</div>
+      <div className="hidden lg:block">{beatIndicator()}</div>
 
       {runButton('w-16 sm:w-20')}
 
@@ -279,11 +314,11 @@ const Metronome: React.FC<MetronomeProps> = ({ showSettings = true, layout = 'ho
       />
 
       <div className="flex items-center gap-0.5">
-        <div className="hidden md:block">{tapButton}</div>
-        {settingsControl}
+        <div className="hidden md:block">{tapButton()}</div>
+        {settingsControl()}
       </div>
 
-      <div className="hidden sm:block">{muteButton}</div>
+      <div className="hidden sm:block">{muteButton()}</div>
     </div>
   );
 };

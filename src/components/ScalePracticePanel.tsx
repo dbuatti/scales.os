@@ -42,14 +42,14 @@ const PermutationSection = <T extends string>({ title, description, options, sel
             type="single" 
             value={selectedValue} 
             onValueChange={(value) => value && onValueChange(value as T)}
-            className="flex flex-wrap justify-start gap-2"
+            className="grid grid-cols-2 gap-2 sm:grid-cols-3"
         >
             {options.map(option => (
                 <ToggleGroupItem 
                     key={option}
                     value={option} 
                     className={cn(
-                        "h-9 rounded-full border border-transparent bg-muted/40 px-4 text-xs font-semibold text-foreground/80 transition-all hover:bg-muted hover:text-foreground data-[state=on]:border-primary data-[state=on]:bg-primary data-[state=on]:text-primary-foreground data-[state=on]:shadow-sm data-[state=on]:shadow-primary/25 focus-scale",
+                        "h-10 w-full justify-center rounded-lg border border-transparent bg-muted/40 px-3 text-center text-xs font-bold text-foreground/80 transition-all hover:bg-muted hover:text-foreground data-[state=on]:border-primary data-[state=on]:bg-primary data-[state=on]:text-primary-foreground data-[state=on]:shadow-sm data-[state=on]:shadow-primary/25 focus-scale",
                         getItemClasses?.(option)
                     )}
                 >
@@ -230,12 +230,28 @@ const ScalePracticePanel: React.FC<ScalePracticePanelProps> = ({
   const highestMasteredBPM = getHighestBPMForCurrentPermutation();
   const nextBPMGoal = nextGoalBPM(highestMasteredBPM);
 
-  const modifiedAdvancedCount = [
-    selectedDirection !== DIRECTION_TYPES[2],
-    selectedHandConfig !== HAND_CONFIGURATIONS[0],
-    selectedRhythm !== RHYTHMIC_PERMUTATIONS[0],
-    selectedAccent !== ACCENT_DISTRIBUTIONS[3],
-  ].filter(Boolean).length;
+  const shortHandLabel = selectedHandConfig
+    .replace('Hands together', 'Together')
+    .replace(' hand only', '')
+    .replace('Hands in contrary motion', 'Contrary')
+    .replace('Hands in similar motion, staggered entry', 'Staggered');
+
+  const activeAdvancedSettings = [
+    {
+      active: selectedDirection !== DIRECTION_TYPES[2],
+      label: selectedDirection.replace(' (standard)', ''),
+    },
+    { active: selectedHandConfig !== HAND_CONFIGURATIONS[0], label: shortHandLabel },
+    { active: selectedRhythm !== RHYTHMIC_PERMUTATIONS[0], label: selectedRhythm },
+    {
+      active: selectedAccent !== ACCENT_DISTRIBUTIONS[3],
+      label: selectedAccent.replace(' (neutral evenness)', ''),
+    },
+  ];
+  const modifiedAdvancedCount = activeAdvancedSettings.filter((setting) => setting.active).length;
+  const advancedSummary = modifiedAdvancedCount
+    ? activeAdvancedSettings.filter((setting) => setting.active).map((setting) => setting.label).join(' · ')
+    : 'Standard direction, hands, rhythm and accent';
 
   const handleSaveSnapshot = useCallback(() => {
     if (!result) {
@@ -413,16 +429,21 @@ const ScalePracticePanel: React.FC<ScalePracticePanelProps> = ({
 
         <div className="flex flex-col gap-6 border-t border-border/60 pt-8">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
-                <div className="space-y-1">
+                <div className="min-w-0 space-y-1">
                     <div className="flex flex-wrap items-center gap-2">
-                      <h3 className="text-xl font-bold tracking-tight">Advanced Permutations</h3>
-                      {modifiedAdvancedCount > 0 && (
-                        <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-primary">
-                          {modifiedAdvancedCount} active
-                        </span>
-                      )}
+                      <h3 className="text-xl font-bold tracking-tight">Advanced practice settings</h3>
+                      <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-primary">
+                        {modifiedAdvancedCount > 0 ? `${modifiedAdvancedCount} custom` : 'Standard'}
+                      </span>
                     </div>
-                    <p className="text-sm text-muted-foreground">Break muscle memory and build true mastery.</p>
+                    {!advancedOpen && (
+                      <p className="truncate text-xs font-medium text-muted-foreground">
+                        {advancedSummary}
+                      </p>
+                    )}
+                    <p className="text-sm text-muted-foreground">
+                      Direction, hands, rhythm and accents — the details that break muscle memory.
+                    </p>
                 </div>
                 <div className="flex shrink-0 items-center gap-2">
                   <Button

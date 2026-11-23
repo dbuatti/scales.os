@@ -13,12 +13,14 @@ import { supportMailto } from '@/lib/support';
 interface AppLayoutProps {
     children: React.ReactNode;
     headerRightContent?: React.ReactNode;
+    /** Optional slim second row inside the sticky header (e.g. practice transport). */
+    headerTools?: React.ReactNode;
     mobileNav?: React.ReactNode;
     /** Public pages that own their own gutters (e.g. the landing page). */
     bleed?: boolean;
 }
 
-const AppLayout: React.FC<AppLayoutProps> = ({ children, headerRightContent, mobileNav, bleed = false }) => {
+const AppLayout: React.FC<AppLayoutProps> = ({ children, headerRightContent, headerTools, mobileNav, bleed = false }) => {
     const { isZenMode } = useZenMode();
     const setupMode =
         typeof window !== 'undefined' && new URLSearchParams(window.location.search).has('setup');
@@ -55,9 +57,12 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children, headerRightContent, mob
             </a>
             <header className={cn(
                 "sticky top-0 z-50 w-full border-b border-border/40 bg-background transition-all duration-300",
-                isZenMode ? "h-12 opacity-60 hover:opacity-100" : "h-16"
+                isZenMode && "bg-background/95"
             )}>
-                <div className="mx-auto flex h-full w-full max-w-5xl items-center justify-between gap-4 px-4 sm:px-6">
+                <div className={cn(
+                    "mx-auto flex w-full max-w-6xl items-center justify-between gap-4 px-4 sm:px-6",
+                    isZenMode ? "h-12 opacity-60 hover:opacity-100" : "h-16"
+                )}>
                     <Link to="/" aria-label="Scales OS home" className={cn("group flex items-center gap-2.5 tracking-tight transition-all shrink-0", isZenMode ? "text-base" : "text-lg")}>
                         <div aria-hidden="true" className={cn("bg-gradient-to-br from-primary to-primary/70 rounded-xl flex items-center justify-center text-primary-foreground  shadow-primary/25 transition-all duration-200 group-hover:rotate-[-4deg] group-hover:scale-105", isZenMode ? "w-7 h-7" : "w-9 h-9")}>
                             <Play className={cn("fill-current", isZenMode ? "w-3.5 h-3.5" : "w-4 h-4")} />
@@ -80,6 +85,13 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children, headerRightContent, mob
                         )}
                     </nav>
                 </div>
+                {headerTools && !isZenMode && (
+                    <div className="border-t border-border/40 bg-background/95">
+                        <div className="mx-auto flex h-11 w-full max-w-6xl items-center gap-4 px-4 sm:px-6">
+                            {headerTools}
+                        </div>
+                    </div>
+                )}
             </header>
 
             <main
@@ -88,7 +100,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children, headerRightContent, mob
                 className={cn(
                     "flex-grow outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-4",
                     bleed ? "" : "container py-8",
-                    isZenMode && !bleed && "py-4 max-w-5xl",
+                    isZenMode && !bleed && "py-4 max-w-6xl",
                     mobileNav && "pb-20 md:pb-8",
                 )}
             >
@@ -103,7 +115,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children, headerRightContent, mob
 
             {!isZenMode && (
                 <footer className="border-t border-border/60 py-8">
-                    <div className="mx-auto flex w-full max-w-5xl flex-col items-center justify-between gap-4 px-4 text-center sm:px-6 md:flex-row md:text-left">
+                    <div className="mx-auto flex w-full max-w-6xl flex-col items-center justify-between gap-4 px-4 text-center sm:px-6 md:flex-row md:text-left">
                         <div className="space-y-1">
                             <p className="font-display text-lg italic tracking-tight text-foreground/80">
                                 Built for pianists. Focused on technique.

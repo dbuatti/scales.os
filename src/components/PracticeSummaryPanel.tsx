@@ -1,191 +1,174 @@
 import React from 'react';
 import { useGlobalBPM } from '@/context/GlobalBPMContext';
-import { useScales } from '@/context/ScalesContext';
-import { Card, CardContent } from '@/components/ui/card';
-import { Save, AlertCircle, Music, Hand, Piano, TrendingUp, Target } from 'lucide-react';
+import { Save, SlidersHorizontal, Music, Hand, TrendingUp, Trophy, Piano } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
-import { showSuccess } from '@/utils/toast';
-import { cn, getHandColorClasses, getFolderTone, isArpeggioType } from '@/lib/utils';
+import { cn, isArpeggioType } from '@/lib/utils';
 
-const PracticeSummaryPanel: React.FC = () => {
-  const { activePracticeItem, currentBPM, activeLogSnapshotFunction, setIsPermutationManuallyAdjusted } = useGlobalBPM();
-  const { updatePracticeStatus } = useScales();
+interface PracticeSummaryPanelProps {
+  overallBestBpm: number;
+  exerciseBestBpm: number;
+  targetBpm: number | null;
+  masteryPercentage: number;
+  remainingBpm: number;
+  onAdjust: () => void;
+}
+
+const getOctaveNumber = (octaves: string) => octaves.match(/\d+/)?.[0] ?? octaves;
+
+const getHandLabel = (handConfig: string) => {
+  const lower = handConfig.toLowerCase();
+  if (lower.includes('together')) return 'Both';
+  if (lower.includes('left')) return 'Left';
+  if (lower.includes('right')) return 'Right';
+  if (lower.includes('contrary')) return 'Contrary';
+  if (lower.includes('staggered')) return 'Staggered';
+  return handConfig;
+};
+
+/** Exercise-specific progress, kept separate from lifetime practice history. */
+const PracticeSummaryPanel: React.FC<PracticeSummaryPanelProps> = ({
+  overallBestBpm,
+  exerciseBestBpm,
+  targetBpm,
+  masteryPercentage,
+  remainingBpm,
+  onAdjust,
+}) => {
+  const { activePracticeItem, currentBPM, activeLogSnapshotFunction } = useGlobalBPM();
 
   if (!activePracticeItem) {
     return (
-      <Card className="rounded-2xl border border-dashed border-border/50 bg-card/50">
-        <CardContent className="flex flex-col items-center gap-5 p-12 text-center md:p-16">
-          <div className="rounded-2xl bg-primary/10 p-4 text-primary">
-            <Piano className="h-8 w-8" />
-          </div>
-          <div className="space-y-2">
-            <p className="font-display text-2xl tracking-tight">Ready when you are</p>
-            <p className="mx-auto max-w-md text-sm text-muted-foreground">
-              Pick a folder, adjust tempo, and track every session as you play.
-            </p>
-          </div>
-          <Button
-            onClick={() =>
-              document
-                .getElementById('practice-modes')
-                ?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-            }
-            className="font-bold focus-scale"
-          >
-            Choose a scale
-          </Button>
-        </CardContent>
-      </Card>
+      <section className="rounded-2xl border border-dashed border-border/60 bg-muted/20 p-8 text-center">
+        <div className="mx-auto flex size-11 items-center justify-center rounded-xl bg-primary/10 text-primary">
+          <Piano className="size-5" />
+        </div>
+        <p className="mt-4 font-display text-xl tracking-tight">Ready when you are</p>
+        <p className="mx-auto mt-1 max-w-sm text-sm text-muted-foreground">
+          Pick a key and exercise below, then start a session.
+        </p>
+      </section>
     );
   }
 
-  const handlePivot = async () => {
-    const id = activePracticeItem.type === 'scale' ? activePracticeItem.scalePermutationId : activePracticeItem.exerciseId;
-    const saved = await updatePracticeStatus(id, 'stasis');
-    if (!saved) return;
-    setIsPermutationManuallyAdjusted(false);
-    showSuccess("Moved to stasis. Pivoting to your next focus.");
-  };
-
-  const masteryPercentage = (() => {
-    if (activePracticeItem.type === 'scale') {
-      const { highestBPM, nextGoalBPM } = activePracticeItem;
-      if (nextGoalBPM === highestBPM) return currentBPM >= nextGoalBPM ? 100 : 0;
-      return Math.min(100, Math.max(0, ((currentBPM - highestBPM) / (nextGoalBPM - highestBPM)) * 100));
-    }
-    const { currentHighestBPM, nextTargetBPM } = activePracticeItem;
-    if (nextTargetBPM === currentHighestBPM) return currentBPM >= nextTargetBPM ? 100 : 0;
-    return Math.min(100, Math.max(0, ((currentBPM - currentHighestBPM) / (nextTargetBPM - currentHighestBPM)) * 100));
-  })();
-
-  const getOctaveNumber = (octaves: string) => {
-    const match = octaves.match(/\d+/);
-    return match ? match[0] : octaves;
-  };
-
-  const getHandLabel = (handConfig: string) => {
-    const lower = handConfig.toLowerCase();
-    if (lower.includes('together')) return 'BOTH';
-    if (lower.includes('left')) return 'LEFT';
-    if (lower.includes('right')) return 'RIGHT';
-    if (lower.includes('contrary')) return 'CONTRARY';
-    if (lower.includes('staggered')) return 'STAGGERED';
-    return handConfig.toUpperCase();
-  };
-
-  const isArpeggio = activePracticeItem.type === 'scale' && isArpeggioType(activePracticeItem.scaleType);
-  const tone = getFolderTone(isArpeggio ? 'arpeggio' : 'scale');
-
-  const title = activePracticeItem.type === 'scale'
+  const isScale = activePracticeItem.type === 'scale';
+  const isArpeggio = isScale && isArpeggioType(activePracticeItem.scaleType);
+  const title = isScale
     ? `${activePracticeItem.key} ${activePracticeItem.scaleType}`
     : activePracticeItem.name;
-  const detail = activePracticeItem.type === 'scale'
+  const detail = isScale
     ? `${activePracticeItem.articulation} · ${getHandLabel(activePracticeItem.handConfig)}`
-    : 'Standard';
+    : 'Method book exercise';
+  const range = isScale ? `${getOctaveNumber(activePracticeItem.octaves)} octaves` : 'Standard';
+  const hands = isScale ? getHandLabel(activePracticeItem.handConfig) : 'Both';
+  const goalReached = masteryPercentage >= 100;
+
+  const stats = [
+    {
+      label: 'Exercise best',
+      value: exerciseBestBpm,
+      suffix: 'BPM',
+      icon: TrendingUp,
+      tint: isArpeggio ? 'text-folder-arpeggio' : 'text-primary',
+    },
+    {
+      label: 'All-time best',
+      value: overallBestBpm,
+      suffix: 'BPM',
+      icon: Trophy,
+      tint: 'text-primary',
+    },
+    { label: 'Current range', value: range, suffix: '', icon: Music, tint: 'text-primary' },
+    { label: 'Hands', value: hands, suffix: '', icon: Hand, tint: 'text-primary' },
+  ];
 
   return (
-    <Card className={cn('overflow-hidden rounded-2xl border border-border/60', tone.wash)}>
-      <div className={cn('px-6 py-6 text-folder-foreground sm:px-8', tone.solid)}>
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-          <div className="min-w-0">
-            <p className="text-[10px] font-black uppercase tracking-[0.22em] text-folder-foreground/75">
-              Now practicing
+    <section className="rounded-2xl border border-primary/15 bg-card/70 p-6 shadow-sm sm:p-7">
+      <div className="flex flex-wrap items-start justify-between gap-5">
+        <div className="min-w-0">
+          <div className="flex flex-wrap items-center gap-2.5">
+            <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-primary">
+              Exercise progress
             </p>
-            <h2 className="mt-1 truncate font-display text-3xl leading-tight tracking-tight sm:text-4xl">
-              {title}
-            </h2>
-            <p className="mt-2 text-[11px] font-bold uppercase tracking-widest text-folder-foreground/75">
-              {detail}
-            </p>
+            <span
+              className={cn(
+                'rounded-full border px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider',
+                goalReached
+                  ? 'border-success/25 bg-success/10 text-success'
+                  : 'border-border/60 bg-muted/50 text-muted-foreground',
+              )}
+            >
+              {goalReached ? 'Goal reached' : 'In progress'}
+            </span>
           </div>
-          <div className="shrink-0 sm:text-right">
-            <p className="text-[10px] font-black uppercase tracking-[0.22em] text-folder-foreground/75">
-              Current tempo
-            </p>
-            <p className="tnum mt-1 text-4xl font-black leading-none tracking-tight">
-              {currentBPM} <span className="text-sm font-bold text-folder-foreground/75">BPM</span>
-            </p>
-          </div>
+          <h2 className="mt-3 font-display text-3xl leading-tight tracking-tight sm:text-4xl">
+            {title}
+          </h2>
+          <p className="mt-1 text-sm font-medium text-muted-foreground">{detail}</p>
+        </div>
+
+        <div className="text-left sm:text-right">
+          <p className="tnum text-5xl font-black leading-none tracking-tight sm:text-6xl">
+            {currentBPM}
+          </p>
+          <p className="mt-1.5 text-[11px] font-bold uppercase tracking-[0.18em] text-muted-foreground">
+            Current tempo · BPM
+          </p>
+          {targetBpm && (
+            <p className="mt-1 text-xs font-bold text-primary">Target {targetBpm} BPM</p>
+          )}
         </div>
       </div>
 
-      <CardContent className="space-y-6 p-6 sm:p-8">
-        <div className="flex flex-wrap items-center gap-3">
-          <Button
-            onClick={() => activeLogSnapshotFunction?.()}
-            disabled={!activeLogSnapshotFunction}
-            size="lg"
-            className="h-11 px-6 font-bold shadow-primary/20 focus-scale"
-          >
-            <Save className="mr-2 h-4 w-4" />
-            Save progress
-          </Button>
-          <Button
-            variant="ghost"
-            onClick={handlePivot}
-            className="h-11 px-4 text-sm font-bold text-muted-foreground transition-colors hover:text-destructive hover:bg-destructive/5 focus-scale"
-          >
-            <AlertCircle className="h-4 w-4 mr-2" />
-            Too hard / pivot
-          </Button>
+      <div className="mt-7 space-y-2.5">
+        <div className="flex items-center justify-between text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+          <span>To next milestone</span>
+          <span className="tnum">{masteryPercentage}%</span>
         </div>
+        <Progress value={masteryPercentage} className="h-2" />
+        <p className="text-xs font-medium text-muted-foreground">
+          {remainingBpm > 0
+            ? `${remainingBpm} BPM remaining to your next milestone.`
+            : 'Milestone reached — raise the target when you are ready.'}
+        </p>
+      </div>
 
-        <div className="space-y-3">
-          <div className="flex justify-between text-xs font-bold text-muted-foreground uppercase tracking-widest">
-            <span>To next goal</span>
-            <span className={tone.text}>{masteryPercentage.toFixed(0)}%</span>
-          </div>
-          <Progress value={masteryPercentage} className="h-3" />
-        </div>
-
-        <div className="grid grid-cols-2 gap-4 border-t border-border/40 pt-6 md:grid-cols-4">
-          <div className="rounded-xl border border-border/50 bg-card/70 p-3">
-            <div className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-muted-foreground">
-              <TrendingUp className="h-3.5 w-3.5" />
-              Highest
-            </div>
-            <p className="mt-1 text-lg font-black tabular-nums text-primary">
-              {activePracticeItem.type === 'scale' ? activePracticeItem.highestBPM : activePracticeItem.currentHighestBPM} BPM
+      <div className="mt-7 grid gap-px overflow-hidden rounded-xl border border-border/60 bg-border/60 sm:grid-cols-4">
+        {stats.map(({ label, value, suffix, icon: Icon, tint }) => (
+          <div key={label} className="bg-card px-4 py-4">
+            <p className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+              <Icon className={cn('size-3.5', tint)} />
+              {label}
+            </p>
+            <p className="tnum mt-2 text-2xl font-black leading-none tracking-tight">
+              {value}
+              {suffix && <span className="ml-1 text-xs font-bold text-muted-foreground">{suffix}</span>}
             </p>
           </div>
-          <div className="rounded-xl border border-border/50 bg-card/70 p-3">
-            <div className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-muted-foreground">
-              <Target className="h-3.5 w-3.5" />
-              Goal
-            </div>
-            <p className="mt-1 text-lg font-black tabular-nums text-primary">
-              {activePracticeItem.type === 'scale' ? activePracticeItem.nextGoalBPM : activePracticeItem.nextTargetBPM} BPM
-            </p>
-          </div>
-          {activePracticeItem.type === 'scale' && (
-            <>
-              <div className="flex items-center gap-3 rounded-xl border border-border/50 bg-card/70 p-3">
-                <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
-                  <Music className="h-4 w-4" />
-                </div>
-                <div className="min-w-0">
-                  <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Octaves</p>
-                  <p className="truncate text-sm font-bold text-primary">{getOctaveNumber(activePracticeItem.octaves)}</p>
-                </div>
-              </div>
-              <div className={cn(
-                'flex items-center gap-3 rounded-xl border p-3',
-                getHandColorClasses(activePracticeItem.handConfig).split(' ').filter(c => !c.startsWith('data-')).join(' '),
-              )}>
-                <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-current/10">
-                  <Hand className="h-4 w-4" />
-                </div>
-                <div className="min-w-0">
-                  <p className="text-[10px] font-black uppercase tracking-widest opacity-70">Hands</p>
-                  <p className="truncate text-sm font-bold">{getHandLabel(activePracticeItem.handConfig)}</p>
-                </div>
-              </div>
-            </>
-          )}
-        </div>
-      </CardContent>
-    </Card>
+        ))}
+      </div>
+
+      <div className="mt-6 flex flex-wrap items-center gap-2">
+        <Button
+          onClick={() => activeLogSnapshotFunction?.()}
+          disabled={!activeLogSnapshotFunction}
+          size="sm"
+          className="h-10 px-5 font-bold focus-scale"
+        >
+          <Save className="mr-1.5 size-4" />
+          Save progress
+        </Button>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={onAdjust}
+          className="h-10 px-3 text-xs font-bold text-muted-foreground hover:text-foreground focus-scale"
+        >
+          <SlidersHorizontal className="mr-1.5 size-4" />
+          Adjust exercise
+        </Button>
+      </div>
+    </section>
   );
 };
 

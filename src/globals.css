@@ -117,29 +117,6 @@
       0 14px 34px -20px hsl(var(--shadow-color) / 0.28);
   }
 
-  /* Primary actions: a soft top highlight and lift, not a flat fill. */
-  a.bg-primary,
-  button.bg-primary {
-    background-image: linear-gradient(180deg, hsl(var(--primary) / 0.94), hsl(var(--primary)));
-    box-shadow:
-      inset 0 1px 0 hsl(0 0% 100% / 0.16),
-      0 1px 2px hsl(var(--shadow-color) / 0.16),
-      0 10px 24px -14px hsl(var(--primary) / 0.55);
-    transition: transform 160ms ease, box-shadow 160ms ease, background-color 160ms ease;
-  }
-  a.bg-primary:hover,
-  button.bg-primary:hover {
-    background-image: linear-gradient(180deg, hsl(var(--primary) / 0.99), hsl(var(--primary) / 0.94));
-    transform: translateY(-1px);
-    box-shadow:
-      inset 0 1px 0 hsl(0 0% 100% / 0.18),
-      0 2px 4px hsl(var(--shadow-color) / 0.16),
-      0 14px 28px -14px hsl(var(--primary) / 0.6);
-  }
-  a.bg-primary:active,
-  button.bg-primary:active {
-    transform: translateY(0) scale(0.99);
-  }
   .surface-interactive:hover {
     @apply -translate-y-0.5 border-primary/35;
     box-shadow:
@@ -191,88 +168,26 @@
   }
 }
 
-/* One continuous manila folder: the active tab and everything below it share
-   the same solid colour, with translucent panels instead of separate cards. */
-.folder-sheet [class*="bg-card"],
-.folder-sheet .surface,
-.folder-sheet .surface-flat {
-  background: transparent !important;
-  border-color: transparent !important;
-  box-shadow: none !important;
-  backdrop-filter: none;
+/* Primary actions: a soft top highlight and lift, not a flat fill. Kept outside
+   @layer so Tailwind does not reprocess element-qualified utilities. */
+:is(a, button).bg-primary {
+  background-image: linear-gradient(180deg, hsl(var(--primary) / 0.94), hsl(var(--primary)));
+  box-shadow:
+    inset 0 1px 0 hsl(0 0% 100% / 0.16),
+    0 1px 2px hsl(var(--shadow-color) / 0.16),
+    0 10px 24px -14px hsl(var(--primary) / 0.55);
+  transition: transform 160ms ease, box-shadow 160ms ease, background-color 160ms ease;
 }
-.folder-sheet [class*="bg-muted"] {
-  background-color: hsl(0 0% 100% / 0.08) !important;
-  border-color: hsl(0 0% 100% / 0.14) !important;
-  box-shadow: none !important;
-  backdrop-filter: none;
+:is(a, button).bg-primary:hover {
+  background-image: linear-gradient(180deg, hsl(var(--primary) / 0.99), hsl(var(--primary) / 0.94));
+  transform: translateY(-1px);
+  box-shadow:
+    inset 0 1px 0 hsl(0 0% 100% / 0.18),
+    0 2px 4px hsl(var(--shadow-color) / 0.16),
+    0 14px 28px -14px hsl(var(--primary) / 0.6);
 }
-.folder-sheet [class*="border-border"] {
-  border-color: transparent !important;
-}
-.folder-sheet [class*="text-foreground"] {
-  color: hsl(var(--folder-foreground)) !important;
-}
-.folder-sheet [class*="text-muted-foreground"] {
-  color: hsl(var(--folder-foreground) / 0.72) !important;
-}
-.folder-sheet .text-primary,
-.folder-sheet .text-success,
-.folder-sheet .text-warning {
-  color: hsl(0 0% 100%) !important;
-}
-.folder-sheet .bg-primary,
-.folder-sheet .hover\:bg-primary\/90:hover,
-.folder-sheet [data-state="on"].bg-primary {
-  background-color: hsl(0 0% 100%) !important;
-  background-image: none !important;
-  color: hsl(var(--sheet-accent)) !important;
-  box-shadow: none !important;
-}
-.folder-sheet .bg-primary\/10,
-.folder-sheet .bg-accent\/10,
-.folder-sheet .bg-success\/10 {
-  background-color: hsl(0 0% 100% / 0.12) !important;
-}
-
-/* Practice button system — one visual language for every control on the page. */
-.folder-sheet button,
-.folder-sheet [role='tab'],
-.folder-sheet [role='button'] {
-  font-weight: 700;
-  letter-spacing: -0.01em;
-  transition: background-color 160ms ease, color 160ms ease, border-color 160ms ease, transform 160ms ease;
-}
-.folder-sheet button:active,
-.folder-sheet [role='tab']:active {
-  transform: scale(0.98);
-}
-/* Outline, secondary and ghost buttons become translucent paper on the folder. */
-.folder-sheet button[class*='border-input'],
-.folder-sheet button[class*='bg-background'],
-.folder-sheet button[class*='bg-secondary'],
-.folder-sheet button[class*='hover:bg-accent'] {
-  background-color: hsl(0 0% 100% / 0.12) !important;
-  border-color: hsl(0 0% 100% / 0.22) !important;
-  color: hsl(var(--folder-foreground)) !important;
-  box-shadow: none !important;
-}
-.folder-sheet button[class*='border-input']:hover,
-.folder-sheet button[class*='bg-background']:hover,
-.folder-sheet button[class*='bg-secondary']:hover,
-.folder-sheet button[class*='hover:bg-accent']:hover {
-  background-color: hsl(0 0% 100% / 0.22) !important;
-  color: hsl(var(--folder-foreground)) !important;
-}
-/* Selected toggles read as a solid white chip with the folder's accent text. */
-.folder-sheet [data-state='on'][class*='bg-primary'] {
-  background-color: hsl(0 0% 100%) !important;
-  border-color: hsl(0 0% 100%) !important;
-  color: hsl(var(--sheet-accent)) !important;
-  box-shadow: 0 1px 2px hsl(0 0% 0% / 0.12) !important;
-}
-.folder-sheet button[class*='hover:text-destructive']:hover {
-  color: hsl(4 90% 78%) !important;
+:is(a, button).bg-primary:active {
+  transform: translateY(0) scale(0.99);
 }
 
 /* Instrument Serif ships a single 400 weight. Keep display headings from faux-bolding. */

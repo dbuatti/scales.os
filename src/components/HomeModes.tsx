@@ -34,10 +34,10 @@ interface HomeModesProps {
   onSelect: (mode: HomeMode) => void;
 }
 
-/** Two manila-folder tabs. The active folder is a solid colour; the other stays as a pale tab. */
+/** Exercise family selector: one compact segmented control, no folder chrome. */
 const HomeModes: React.FC<HomeModesProps> = ({ active, onSelect }) => (
-  <div role="tablist" aria-label="Practice family" className="flex w-full">
-    {MODES.map((mode, index) => {
+  <div role="tablist" aria-label="Exercise family" className="flex w-full gap-2">
+    {MODES.map((mode) => {
       const isActive = active === mode.id;
       const tone = getFolderTone(mode.family);
       const Icon = mode.icon;
@@ -49,25 +49,17 @@ const HomeModes: React.FC<HomeModesProps> = ({ active, onSelect }) => (
           role="tab"
           aria-selected={isActive}
           onClick={() => onSelect(mode.id)}
-          style={{ animationDelay: `${index * 60}ms` }}
           className={cn(
-            'group relative flex min-w-0 flex-1 items-center gap-2 rounded-t-xl border border-b-0 border-white/15 px-4 pb-4 pt-3 text-left shadow-[0_-2px_0_hsl(0_0%_100%_/_0.06)] transition-all duration-200 active:scale-[0.99] focus-scale',
+            'group flex min-w-0 flex-1 items-center gap-3 rounded-xl border px-4 py-3 text-left shadow-sm transition-all duration-200 active:scale-[0.99] focus-scale',
             isActive
-              ? cn(tone.solid, 'text-folder-foreground')
-              : 'bg-white/10 text-folder-foreground/90 hover:bg-white/20',
+              ? cn(tone.solid, 'border-transparent text-white shadow-md')
+              : 'border-border/60 bg-background text-muted-foreground hover:border-primary/30 hover:bg-muted/50 hover:text-foreground',
           )}
         >
           <span
-            aria-hidden="true"
-            className={cn(
-              'absolute -top-2 left-4 h-2 w-16 rounded-t-md sm:w-20',
-              isActive ? tone.solid : 'bg-white/25',
-            )}
-          />
-          <span
             className={cn(
               'flex size-9 shrink-0 items-center justify-center rounded-lg transition-transform duration-200 group-hover:scale-105',
-              isActive ? 'bg-white/15' : tone.tint,
+              isActive ? 'bg-white/15' : 'bg-muted',
             )}
           >
             <Icon className="size-4 sm:size-5" />
@@ -79,7 +71,7 @@ const HomeModes: React.FC<HomeModesProps> = ({ active, onSelect }) => (
             <span
               className={cn(
                 'hidden truncate text-[10px] font-bold uppercase tracking-widest sm:block',
-                isActive ? 'text-folder-foreground/75' : 'text-muted-foreground',
+                isActive ? 'text-white/75' : 'text-muted-foreground',
               )}
             >
               {mode.hint}
