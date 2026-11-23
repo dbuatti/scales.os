@@ -3,7 +3,7 @@ import { useGlobalBPM } from '@/context/GlobalBPMContext';
 import { useMetronome } from '@/context/MetronomeContext';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
-import { GripVertical, Minimize2, Maximize2, Target, Save, FileText, ChevronDown, ChevronUp } from "lucide-react";
+import { GripVertical, Minimize2, Maximize2, Target, Save, FileText, ChevronDown, ChevronUp, Play } from "lucide-react";
 import Metronome from './Metronome';
 import { Input } from '@/components/ui/input';
 
@@ -144,6 +144,9 @@ const FloatingTempoIndicator: React.FC<FloatingTempoIndicatorProps> = ({
           onClick={toggleRun}
           aria-label={isRunning ? 'Stop metronome' : 'Start metronome'}
         >
+          {!isRunning && (
+            <Play className="pointer-events-none absolute left-[3px] h-4 w-4 fill-current" />
+          )}
           {currentBPM}
           {isRunning && (
             <div className="pointer-events-none absolute inset-[-4px] rounded-full border border-success/40 animate-ping" />

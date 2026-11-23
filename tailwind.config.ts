@@ -53,6 +53,11 @@ export default {
           DEFAULT: "hsl(var(--primary))",
           foreground: "hsl(var(--primary-foreground))",
         },
+        folder: {
+          scale: "hsl(var(--folder-scale) / <alpha-value>)",
+          arpeggio: "hsl(var(--folder-arpeggio) / <alpha-value>)",
+          foreground: "hsl(var(--folder-foreground) / <alpha-value>)",
+        },
         secondary: {
           DEFAULT: "hsl(var(--secondary))",
           foreground: "hsl(var(--secondary-foreground))",

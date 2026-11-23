@@ -29,6 +29,7 @@ interface RepertoireContextValue {
   saveMappings: (documentId: string, mappings: PageMapping[]) => Promise<void>;
   updateLastViewedPage: (documentId: string, page: number) => Promise<void>;
   updatePageCount: (documentId: string, pageCount: number) => Promise<void>;
+  renameDocument: ReturnType<typeof useRepertoireData>['renameDocument'];
 
   mappingsByDocument: Record<string, PageMapping[]>;
   registerMappings: (documentId: string, mappings: PageMapping[]) => void;
@@ -146,6 +147,7 @@ export const RepertoireProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       saveMappings: data.saveMappings,
       updateLastViewedPage: data.updateLastViewedPage,
       updatePageCount: data.updatePageCount,
+      renameDocument: data.renameDocument,
       mappingsByDocument,
       registerMappings,
       findExerciseLocation,
@@ -171,6 +173,7 @@ export const RepertoireProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       data.saveMappings,
       data.updateLastViewedPage,
       data.updatePageCount,
+      data.renameDocument,
       mappingsByDocument,
       registerMappings,
       findExerciseLocation,

@@ -537,7 +537,10 @@ export const ScalesProvider: React.FC<React.PropsWithChildren> = ({ children }) 
   }, [userId, log, streak.longest_streak]);
 
   const addLogEntry = useCallback(async (entry: Omit<PracticeLogEntry, 'id' | 'timestamp'>) => {
-    if (!userId) return;
+    if (!userId) {
+      showError("Please log in to save progress.");
+      return;
+    }
     const { data, error } = await supabase.from('practice_logs').insert({ user_id: userId, duration_minutes: entry.durationMinutes, scales_practiced: entry.itemsPracticed, notes: entry.notes }).select('id, created_at').single();
     if (error || !data) {
       showError("Failed to save practice session.");

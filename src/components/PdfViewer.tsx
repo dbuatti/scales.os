@@ -535,8 +535,8 @@ const PdfViewer = React.forwardRef<PdfViewerHandle, PdfViewerProps>(({
           className={cn(
             'relative mx-auto',
             layout === 'horizontal'
-              ? 'flex w-max min-h-full flex-row items-center gap-6 px-6'
-              : 'flex flex-col items-center gap-4',
+              ? 'flex w-max min-h-full flex-row items-start gap-6 px-6'
+              : 'flex flex-col items-start gap-4',
           )}
         >
           {loading && (

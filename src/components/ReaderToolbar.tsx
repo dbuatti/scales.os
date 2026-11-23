@@ -2,6 +2,7 @@ import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Badge } from '@/components/ui/badge';
 import {
   Popover,
   PopoverContent,
@@ -45,7 +46,7 @@ import {
   ZoomOut,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { EXERCISE_OPTIONS, PageMapping } from '@/lib/repertoire';
+import { EXERCISE_OPTIONS, ExerciseOption, PageMapping } from '@/lib/repertoire';
 
 interface ReaderToolbarProps {
   pageNumber: number;
@@ -67,6 +68,8 @@ interface ReaderToolbarProps {
   onFitPage: () => void;
   mappings: PageMapping[];
   currentMapping?: PageMapping;
+  exerciseOptions?: ExerciseOption[];
+  onSelectMapping?: (id: string) => void;
   onJumpPage: (page: number) => void;
   onPreviousExercise: () => void;
   onNextExercise: () => void;
@@ -108,6 +111,8 @@ const ReaderToolbar: React.FC<ReaderToolbarProps> = ({
   onFitPage,
   mappings,
   currentMapping,
+  exerciseOptions,
+  onSelectMapping,
   onJumpPage,
   onPreviousExercise,
   onNextExercise,
@@ -127,7 +132,13 @@ const ReaderToolbar: React.FC<ReaderToolbarProps> = ({
   showPanelToggle,
   panelOpen,
   onPanelToggle,
-}) => (
+}) => {
+  const pageMappings = mappings.filter(
+    (mapping) => pageNumber >= mapping.pageStart && pageNumber <= mapping.pageEnd,
+  );
+  const options = exerciseOptions ?? EXERCISE_OPTIONS;
+
+  return (
   <div className="flex flex-wrap items-center gap-1.5 surface p-1.5">
     <div className="flex items-center gap-0.5">
       <Button
@@ -231,6 +242,11 @@ const ReaderToolbar: React.FC<ReaderToolbarProps> = ({
                   : 'Jump to exercise'}
               </span>
               <ChevronDown className="w-3.5 h-3.5 shrink-0 text-muted-foreground" />
+              {pageMappings.length > 1 && (
+                <Badge className="h-5 shrink-0 px-1.5 text-[9px] font-black uppercase tracking-wider">
+                  {pageMappings.length} here
+                </Badge>
+              )}
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="start" className="max-h-72 w-64 overflow-y-auto">
@@ -242,7 +258,10 @@ const ReaderToolbar: React.FC<ReaderToolbarProps> = ({
               return (
                 <DropdownMenuItem
                   key={mapping.id}
-                  onSelect={() => onJumpPage(mapping.pageStart)}
+                  onSelect={() => {
+                    onSelectMapping?.(mapping.id);
+                    onJumpPage(mapping.pageStart);
+                  }}
                   className={cn(
                     'gap-2 text-xs font-medium',
                     isCurrent && 'bg-primary/10 text-primary focus:bg-primary/10 focus:text-primary',
@@ -250,6 +269,11 @@ const ReaderToolbar: React.FC<ReaderToolbarProps> = ({
                 >
                   <span className="shrink-0 tabular-nums text-muted-foreground">p.{mapping.pageStart}</span>
                   <span className="truncate">{mapping.label || mapping.exerciseId || 'Unlabelled'}</span>
+                  {pageMappings.some((m) => m.id === mapping.id) && (
+                    <span className="ml-auto shrink-0 text-[9px] font-black uppercase tracking-wider text-primary">
+                      Here
+                    </span>
+                  )}
                 </DropdownMenuItem>
               );
             })}
@@ -311,7 +335,7 @@ const ReaderToolbar: React.FC<ReaderToolbarProps> = ({
                 <SelectValue placeholder="Choose exercise (optional)" />
               </SelectTrigger>
               <SelectContent className="max-h-[280px]">
-                {EXERCISE_OPTIONS.map((option) => (
+                {options.map((option) => (
                   <SelectItem key={option.id} value={option.id} className="text-xs">
                     {option.label}
                     <span className="ml-2 text-muted-foreground capitalize">{option.source}</span>
@@ -337,7 +361,8 @@ const ReaderToolbar: React.FC<ReaderToolbarProps> = ({
               <span className="font-semibold text-foreground">
                 {overlappingLabels.join(', ')}
               </span>
-              . A page can carry more than one exercise.
+              . Add a bookmark for each exercise, then use “Use here” in the bookmark list to choose
+              which one you are playing.
             </p>
           )}
           <Button size="sm" onClick={onConfirmBookmark} className="w-full font-bold focus-scale">
@@ -430,6 +455,7 @@ const ReaderToolbar: React.FC<ReaderToolbarProps> = ({
       )}
     </div>
   </div>
-);
+  );
+};
 
 export default ReaderToolbar;

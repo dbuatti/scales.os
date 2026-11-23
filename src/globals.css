@@ -14,6 +14,10 @@
     --popover-foreground: 240 10% 11%;
     --primary: 244 55% 40%;
     --primary-foreground: 40 33% 98%;
+    /* Solid folder colours — indigo for scales, terracotta for arpeggios. */
+    --folder-scale: 244 55% 40%;
+    --folder-arpeggio: 15 62% 38%;
+    --folder-foreground: 40 33% 98%;
     --secondary: 40 16% 94%;
     --secondary-foreground: 240 10% 16%;
     --muted: 40 14% 95%;

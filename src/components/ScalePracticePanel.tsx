@@ -68,6 +68,7 @@ interface ScalePracticePanelProps {
     scaleMasteryBPMMap: ReturnType<typeof useScales>['scaleMasteryBPMMap']; 
     allScales: ReturnType<typeof useScales>['allScales'];
     activeTab: 'scales' | 'dohnanyi' | 'hanon' | 'repertoire';
+    family: 'scale' | 'arpeggio';
     suggestedScalePermutation: (NextFocus & { type: 'scale' | 'arpeggio' }) | undefined;
     quickPick?: { kind: 'scale' | 'arpeggio'; nonce: number } | null;
     /** Elapsed session seconds, lifted to the page so the timer can live in the tools rail. */
@@ -76,7 +77,7 @@ interface ScalePracticePanelProps {
 
 const ScalePracticePanel: React.FC<ScalePracticePanelProps> = ({ 
   currentBPM, addLogEntry, updateScaleMasteryBPM, scaleMasteryBPMMap, allScales, 
-  activeTab, suggestedScalePermutation, quickPick, sessionSeconds
+  activeTab, family, suggestedScalePermutation, quickPick, sessionSeconds
 }) => {
   
   const { 
@@ -90,8 +91,7 @@ const ScalePracticePanel: React.FC<ScalePracticePanelProps> = ({
     autoNudgeBPMOnSnapshot
   } = useGlobalBPM();
   
-  const lastSnapshotTimestampRef = useRef<number>(0); 
-  const lastSuccessfulCallKeyRef = useRef<string>(''); 
+  const lastSnapshotAtRef = useRef<number>(0);
   
   const ALL_COMBINED_TYPES = useMemo(() => [...SCALE_TYPES, ...ARPEGGIO_TYPES], []);
   
@@ -143,7 +143,6 @@ const ScalePracticePanel: React.FC<ScalePracticePanelProps> = ({
     const options = quickPick.kind === 'arpeggio' ? ARPEGGIO_TYPES : SCALE_TYPES;
     if (selectedType !== options[0]) {
       setSelectedType(options[0]);
-      lastSuccessfulCallKeyRef.current = '';
     }
     setIsPermutationManuallyAdjusted(true);
   }, [quickPick, activeTab, selectedType, setIsPermutationManuallyAdjusted]);
@@ -177,7 +176,6 @@ const ScalePracticePanel: React.FC<ScalePracticePanelProps> = ({
                 setSelectedRhythm(parsed.rhythm);
                 setSelectedAccent(parsed.accent);
                 setSelectedOctaves(parsed.octaves);
-                lastSuccessfulCallKeyRef.current = '';
             }
         }
     }
@@ -240,18 +238,20 @@ const ScalePracticePanel: React.FC<ScalePracticePanelProps> = ({
   ].filter(Boolean).length;
 
   const handleSaveSnapshot = useCallback(() => {
-    const now = Date.now();
-    if (now - lastSnapshotTimestampRef.current < SNAPSHOT_DEBOUNCE_MS) return;
     if (!result) {
         showError("Please select a valid scale/arpeggio combination.");
         return;
     }
     const { scaleItem, scalePermutationId } = result;
-    const currentCallKey = `${scalePermutationId}-${currentBPM}`;
-    if (lastSuccessfulCallKeyRef.current === currentCallKey) return;
+    const now = Date.now();
 
-    lastSnapshotTimestampRef.current = now;
-    lastSuccessfulCallKeyRef.current = currentCallKey;
+    // Guard accidental double-taps (the BPM auto-nudges right after a save),
+    // but always tell the user instead of silently dropping the tap.
+    if (now - lastSnapshotAtRef.current < SNAPSHOT_DEBOUNCE_MS) {
+        showSuccess("Snapshot already saved just now.");
+        return;
+    }
+    lastSnapshotAtRef.current = now;
 
     const goalBpm = nextBPMGoal;
     const reachedGoal = currentBPM >= goalBpm;
@@ -374,25 +374,20 @@ const ScalePracticePanel: React.FC<ScalePracticePanelProps> = ({
 
                 <div className="flex flex-col gap-4 surface p-5">
                     <div className="flex items-center gap-3">
-                        <div className="flex size-9 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                        <div className={cn('flex size-9 items-center justify-center rounded-lg', family === 'arpeggio' ? 'bg-folder-arpeggio/10 text-folder-arpeggio' : 'bg-folder-scale/10 text-folder-scale')}>
                             <Zap className="size-5" />
                         </div>
-                        <Label className="text-sm font-bold tracking-tight text-foreground">Type Selection</Label>
+                        <Label className="text-sm font-bold tracking-tight text-foreground">
+                            {family === 'arpeggio' ? 'Arpeggio type' : 'Scale type'}
+                        </Label>
                     </div>
-                    <div className="grid grid-cols-2 gap-6">
-                        <div className="flex flex-col gap-3">
-                            <p className="border-b border-border/60 pb-1.5 text-xs font-bold uppercase tracking-wider text-muted-foreground">Scales</p>
-                            <ToggleGroup type="single" value={selectedType} onValueChange={(v) => v && setTypeAndAdjust(v)} className="flex flex-col items-stretch gap-2">
-                                {SCALE_TYPES.map(t => <ToggleGroupItem key={t} value={t} className="h-10 justify-start rounded-lg border border-transparent bg-muted/40 px-4 text-xs font-semibold text-foreground/80 transition-all hover:bg-muted hover:text-foreground data-[state=on]:border-primary data-[state=on]:bg-primary data-[state=on]:text-primary-foreground focus-scale">{t}</ToggleGroupItem>)}
-                            </ToggleGroup>
-                        </div>
-                        <div className="flex flex-col gap-3">
-                            <p className="border-b border-border/60 pb-1.5 text-xs font-bold uppercase tracking-wider text-muted-foreground">Arpeggios</p>
-                            <ToggleGroup type="single" value={selectedType} onValueChange={(v) => v && setTypeAndAdjust(v)} className="flex flex-col items-stretch gap-2">
-                                {ARPEGGIO_TYPES.map(t => <ToggleGroupItem key={t} value={t} className="justify-start h-10 rounded-lg border border-transparent bg-muted/40 px-4 text-xs font-semibold text-foreground/80 transition-all hover:bg-muted hover:text-foreground data-[state=on]:border-primary data-[state=on]:bg-primary data-[state=on]:text-primary-foreground focus-scale">{t.replace(' Arpeggio', '')}</ToggleGroupItem>)}
-                            </ToggleGroup>
-                        </div>
-                    </div>
+                    <ToggleGroup type="single" value={selectedType} onValueChange={(v) => v && setTypeAndAdjust(v)} className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                        {(family === 'arpeggio' ? ARPEGGIO_TYPES : SCALE_TYPES).map(t => (
+                            <ToggleGroupItem key={t} value={t} className="h-10 justify-start rounded-lg border border-transparent bg-muted/40 px-4 text-xs font-semibold text-foreground/80 transition-all hover:bg-muted hover:text-foreground data-[state=on]:border-primary data-[state=on]:bg-primary data-[state=on]:text-primary-foreground focus-scale">
+                                {family === 'arpeggio' ? t.replace(' Arpeggio', '') : t}
+                            </ToggleGroupItem>
+                        ))}
+                    </ToggleGroup>
                 </div>
             </div>
 

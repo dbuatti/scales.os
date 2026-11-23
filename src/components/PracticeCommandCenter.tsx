@@ -4,7 +4,7 @@ import React, { useState, useMemo, useEffect, useCallback, useRef } from 'react'
 import { CardContent } from '@/components/ui/card';
 import { useScales, NextFocus } from '@/context/ScalesContext';
 import ScalePracticePanel from './ScalePracticePanel';
-import { cn } from '@/lib/utils';
+import { cn, isArpeggioType } from '@/lib/utils';
 import { useGlobalBPM } from '@/context/GlobalBPMContext';
 import { Link, useNavigate } from 'react-router-dom';
 import PracticeSummaryPanel from './PracticeSummaryPanel';
@@ -166,6 +166,11 @@ const PracticeCommandCenter: React.FC = () => {
     [],
   );
 
+  // A suggested focus can load an arpeggio even when the user last picked Scales.
+  const activeFolder: 'scales' | 'arpeggios' = activePracticeItem?.type === 'scale'
+    ? (isArpeggioType(activePracticeItem.scaleType) ? 'arpeggios' : 'scales')
+    : mode;
+
   const suggestedLabel = nextFocus
     ? 'scaleItem' in nextFocus
       ? `${nextFocus.scaleItem.key} ${nextFocus.scaleItem.type}`
@@ -177,7 +182,7 @@ const PracticeCommandCenter: React.FC = () => {
       <PageHeader
         eyebrow={greeting}
         title="Practice"
-        description="Pick a mode, adjust tempo, and track every session."
+        description="Pick a folder, set your tempo, and track every session."
         actions={
           isPro ? (
             <Badge variant="secondary" className="gap-1.5 px-2.5 py-1 font-bold">
@@ -243,51 +248,47 @@ const PracticeCommandCenter: React.FC = () => {
       )}
 
       <div id="practice-modes" className="scroll-mt-24">
-        <HomeModes active={mode} onSelect={handleSelectMode} />
+        <HomeModes active={activeFolder} onSelect={handleSelectMode} />
       </div>
+
+      {!isZenMode && (
+        <section aria-label="Practice tools" className="grid gap-4 sm:grid-cols-2">
+          <SessionTimer
+            seconds={sessionSeconds}
+            isRunning={isTimerRunning}
+            onStart={startTimer}
+            onPause={pauseTimer}
+            onReset={resetTimer}
+          />
+          <div className="flex flex-col justify-center gap-2">
+            <p className="px-1 flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+              <Music className="h-3.5 w-3.5" />
+              Metronome
+            </p>
+            <Metronome showSettings={true} />
+          </div>
+        </section>
+      )}
 
       <OnboardingChecklist />
 
-      <div className={cn('grid grid-cols-1 gap-6 xl:gap-8', !isZenMode && 'lg:grid-cols-4')}>
-        <div
-          id="practice-panel"
-          className={cn('flex min-w-0 scroll-mt-24 flex-col gap-6 xl:gap-8', !isZenMode ? 'lg:col-span-3' : 'col-span-1')}
-        >
-          <PracticeSummaryPanel />
+      <div id="practice-panel" className="flex min-w-0 scroll-mt-24 flex-col gap-6 xl:gap-8">
+        <PracticeSummaryPanel />
 
-          <ScalePracticePanel
-            suggestedScalePermutation={
-              nextFocus?.type === 'scale' || nextFocus?.type === 'arpeggio' ? nextFocus : undefined
-            }
-            currentBPM={currentBPM}
-            addLogEntry={addLogEntry}
-            updateScaleMasteryBPM={updateScaleMasteryBPM}
-            scaleMasteryBPMMap={scaleMasteryBPMMap}
-            allScales={allScales}
-            activeTab="scales"
-            quickPick={scaleQuickPick}
-            sessionSeconds={sessionSeconds}
-          />
-        </div>
-
-        {!isZenMode && (
-          <div className="flex flex-col gap-6 xl:gap-8 lg:sticky lg:top-24 lg:self-start">
-            <SessionTimer
-              seconds={sessionSeconds}
-              isRunning={isTimerRunning}
-              onStart={startTimer}
-              onPause={pauseTimer}
-              onReset={resetTimer}
-            />
-            <div style={{ animationDelay: '60ms' }} className="hidden animate-in fade-in slide-in-from-bottom-2 fill-mode-both duration-300 lg:block">
-              <p className="mb-2 flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-muted-foreground">
-                <Music className="h-3.5 w-3.5" />
-                Metronome
-              </p>
-              <Metronome showSettings={true} layout="vertical" />
-            </div>
-          </div>
-        )}
+        <ScalePracticePanel
+          suggestedScalePermutation={
+            nextFocus?.type === 'scale' || nextFocus?.type === 'arpeggio' ? nextFocus : undefined
+          }
+          currentBPM={currentBPM}
+          addLogEntry={addLogEntry}
+          updateScaleMasteryBPM={updateScaleMasteryBPM}
+          scaleMasteryBPMMap={scaleMasteryBPMMap}
+          allScales={allScales}
+          activeTab="scales"
+          family={activeFolder === 'arpeggios' ? 'arpeggio' : 'scale'}
+          quickPick={scaleQuickPick}
+          sessionSeconds={sessionSeconds}
+        />
       </div>
 
       <Dialog open={goalOpen} onOpenChange={setGoalOpen}>

@@ -45,7 +45,7 @@ const DEFAULT_PAGE_MAPPINGS: Record<string, Omit<PageMapping, 'id'>[]> = {
       pageStart: 1,
       pageEnd: 51,
       exerciseId: 'Dohnanyi-SUVINI',
-      label: 'Dohnányi SUVINI',
+      label: 'Dohnányi — Essential Finger Exercises',
       targetBpm: 0,
       timeSignature: '4/4',
       mode: 'technical',
@@ -54,10 +54,10 @@ const DEFAULT_PAGE_MAPPINGS: Record<string, Omit<PageMapping, 'id'>[]> = {
 };
 
 const DEFAULT_DOCUMENTS: Omit<SavedDocument, 'id' | 'user_id' | 'created_at'>[] = [
-  { title: 'Hanon', mode: 'technical', storage_path: 'defaults/hanon.pdf', page_count: 0, last_viewed_page: 1 },
-  { title: 'Hanon Final', mode: 'technical', storage_path: 'defaults/hanon-final.pdf', page_count: 116, last_viewed_page: 8 },
-  { title: 'Dohnányi', mode: 'technical', storage_path: 'defaults/dohnanyi.pdf', page_count: 0, last_viewed_page: 1 },
-  { title: 'Dohnányi SUVINI', mode: 'technical', storage_path: 'defaults/dohnanyi-suvini.pdf', page_count: 51, last_viewed_page: 1 },
+  { title: 'Hanon — The Virtuoso Pianist', mode: 'technical', storage_path: 'defaults/hanon.pdf', page_count: 0, last_viewed_page: 1 },
+  { title: 'Hanon — The Virtuoso Pianist (Complete)', mode: 'technical', storage_path: 'defaults/hanon-final.pdf', page_count: 116, last_viewed_page: 8 },
+  { title: 'Dohnányi — Essential Finger Exercises', mode: 'technical', storage_path: 'defaults/dohnanyi.pdf', page_count: 0, last_viewed_page: 1 },
+  { title: 'Dohnányi — Essential Finger Exercises', mode: 'technical', storage_path: 'defaults/dohnanyi-suvini.pdf', page_count: 51, last_viewed_page: 1 },
 ];
 
 export interface SavedDocument {
@@ -386,6 +386,27 @@ export const useRepertoireData = () => {
     [userId],
   );
 
+  const renameDocument = useCallback(
+    async (documentId: string, rawTitle: string): Promise<void> => {
+      if (!userId) throw new Error('You must be signed in to rename a book.');
+      const parsed = safeParse(documentTitleSchema, rawTitle);
+      if (!parsed.success) {
+        throw new Error(parsed.error.issues[0]?.message ?? 'Invalid title');
+      }
+      const title = parsed.data;
+      const { error } = await supabase
+        .from('pdf_documents')
+        .update({ title })
+        .eq('id', documentId)
+        .eq('user_id', userId);
+      if (error) throw error;
+      setDocuments((prev) =>
+        prev.map((d) => (d.id === documentId ? { ...d, title } : d)),
+      );
+    },
+    [userId],
+  );
+
   const isCloudEnabled = useMemo(() => Boolean(userId), [userId]);
 
   return {
@@ -403,5 +424,6 @@ export const useRepertoireData = () => {
     saveMappings,
     updateLastViewedPage,
     updatePageCount,
+    renameDocument,
   };
 };

@@ -35,6 +35,29 @@ export const getHandColorClasses = (handConfig: string) => {
   return "border-success/25 text-success data-[state=on]:border-success/50 data-[state=on]:bg-success/15 data-[state=on]:text-success data-[state=on]:shadow-none";
 };
 
+export const isArpeggioType = (scaleType: string): boolean => {
+  const type = scaleType.toLowerCase();
+  return type.includes('arpeggio') || type.includes('7th');
+};
+
+/** Shared tone for the scales/arpeggios manila-folder tabs and their connected header. */
+export const getFolderTone = (family: 'scale' | 'arpeggio') =>
+  family === 'scale'
+    ? {
+        solid: 'bg-folder-scale',
+        tint: 'bg-folder-scale/10',
+        wash: 'bg-folder-scale/[0.04]',
+        text: 'text-folder-scale',
+        border: 'border-folder-scale/25',
+      }
+    : {
+        solid: 'bg-folder-arpeggio',
+        tint: 'bg-folder-arpeggio/10',
+        wash: 'bg-folder-arpeggio/[0.04]',
+        text: 'text-folder-arpeggio',
+        border: 'border-folder-arpeggio/25',
+      };
+
 export const getCategoryColorClasses = (category: string) => {
   const lower = category.toLowerCase();
   if (lower.includes('arpeggio') || lower.includes('7th')) {

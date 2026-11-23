@@ -2,12 +2,17 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { useScales } from '@/context/ScalesContext';
+import { useSupabaseSession } from '@/hooks/use-supabase-session';
 import { Flame, Trophy, Star, Piano } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { getGradeRequirements } from '@/lib/scales';
 import ShareProgress from './ShareProgress';
 
 const CELEBRATED_KEY = 'scales.milestones.celebrated';
+
+/** Keep each account's celebrations separate, and stay compatible with the old shared key. */
+const celebratedKey = (userId: string | null): string =>
+  userId ? `${CELEBRATED_KEY}.${userId}` : CELEBRATED_KEY;
 
 const STREAK_MILESTONES = [1, 3, 7, 14, 30];
 
@@ -74,31 +79,49 @@ const getMilestone = (id: string): Milestone | null => {
   return milestones[id] ?? null;
 };
 
-const loadCelebrated = (): Set<string> => {
+const loadCelebrated = (userId: string | null): Set<string> => {
   try {
-    const raw = localStorage.getItem(CELEBRATED_KEY);
-    if (raw) return new Set(JSON.parse(raw));
+    // Fall back to the legacy shared key so existing users keep their history.
+    const raw = localStorage.getItem(celebratedKey(userId)) ??
+      (userId ? localStorage.getItem(CELEBRATED_KEY) : null);
+    if (raw) {
+      const parsed: unknown = JSON.parse(raw);
+      if (Array.isArray(parsed)) {
+        return new Set(parsed.filter((id): id is string => typeof id === 'string'));
+      }
+    }
   } catch {
     // ignore
   }
   return new Set();
 };
 
-const saveCelebrated = (celebrated: Set<string>) => {
+const saveCelebrated = (userId: string | null, celebrated: Set<string>) => {
   try {
-    localStorage.setItem(CELEBRATED_KEY, JSON.stringify([...celebrated]));
+    localStorage.setItem(celebratedKey(userId), JSON.stringify([...celebrated]));
   } catch {
     // ignore
   }
 };
 
 const MilestoneCelebration: React.FC = () => {
-  const { log, streak, scaleMasteryBPMMap, exerciseMasteryBPMMap } = useScales();
+  const { log, streak, scaleMasteryBPMMap, exerciseMasteryBPMMap, isLoading } = useScales();
+  const { userId } = useSupabaseSession();
   const [open, setOpen] = useState(false);
   const [milestone, setMilestone] = useState<Milestone | null>(null);
-  const [celebrated, setCelebrated] = useState<Set<string>>(loadCelebrated);
+  const [celebrated, setCelebrated] = useState<Set<string>>(() => loadCelebrated(userId));
+  const [celebratedFor, setCelebratedFor] = useState<string | null>(userId);
+
+  useEffect(() => {
+    setCelebrated(loadCelebrated(userId));
+    setCelebratedFor(userId);
+  }, [userId]);
 
   const detectMilestone = useCallback((): Milestone | null => {
+    // Wait for the right account and its data, otherwise a stale log can
+    // trigger a celebration that was already seen for this user.
+    if (isLoading || userId !== celebratedFor) return null;
+
     if (celebrated.has('first_session') && celebrated.has('first_mastery') &&
         STREAK_MILESTONES.every(m => celebrated.has(`streak_${m}`))) {
       return null;
@@ -136,7 +159,7 @@ const MilestoneCelebration: React.FC = () => {
     }
 
     return null;
-  }, [log, streak, scaleMasteryBPMMap, exerciseMasteryBPMMap, celebrated]);
+  }, [log, streak, scaleMasteryBPMMap, exerciseMasteryBPMMap, celebrated, isLoading, userId, celebratedFor]);
 
   useEffect(() => {
     const m = detectMilestone();
@@ -146,12 +169,16 @@ const MilestoneCelebration: React.FC = () => {
     }
   }, [detectMilestone]);
 
-  const handleCelebrate = () => {
-    if (!milestone) return;
-    const next = new Set(celebrated);
-    next.add(milestone.id);
-    setCelebrated(next);
-    saveCelebrated(next);
+  // Any dismissal (Continue, X, Escape or outside click) counts as seen,
+  // so the same milestone never reappears on the next login.
+  const handleClose = (nextOpen: boolean) => {
+    if (nextOpen) return;
+    if (milestone) {
+      const next = new Set(celebrated);
+      next.add(milestone.id);
+      setCelebrated(next);
+      saveCelebrated(userId, next);
+    }
     setOpen(false);
     setMilestone(null);
   };
@@ -159,7 +186,7 @@ const MilestoneCelebration: React.FC = () => {
   if (!milestone) return null;
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent className="sm:max-w-md text-center">
         <div className="flex items-center justify-center gap-2 mb-4">
           <div className={cn('flex size-12 shrink-0 items-center justify-center rounded-2xl', milestone.tone)}>
@@ -172,7 +199,7 @@ const MilestoneCelebration: React.FC = () => {
         </DialogHeader>
         <ShareProgress className="mx-auto mt-6" />
         <DialogFooter>
-          <Button variant="outline" onClick={handleCelebrate} className="w-full font-bold">
+          <Button variant="outline" onClick={() => handleClose(false)} className="w-full font-bold">
             Continue
           </Button>
         </DialogFooter>

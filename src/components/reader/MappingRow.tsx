@@ -5,7 +5,7 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ListMusic, Trash2 } from 'lucide-react';
-import { PageMapping, EXERCISE_OPTIONS, TIME_SIGNATURES, MODE_LABELS, RepertoireMode, getMappingOverlaps } from '@/lib/repertoire';
+import { PageMapping, EXERCISE_OPTIONS, TIME_SIGNATURES, MODE_LABELS, RepertoireMode, BookSource, getMappingOverlaps } from '@/lib/repertoire';
 
 interface MappingRowProps {
   mapping: PageMapping;
@@ -14,10 +14,28 @@ interface MappingRowProps {
   onChange: (id: string, patch: Partial<PageMapping>) => void;
   onDelete: (id: string) => void;
   isCurrent: boolean;
+  currentPage: number;
+  bookSource?: BookSource | null;
+  onActivate: (id: string) => void;
 }
 
-const MappingRow: React.FC<MappingRowProps> = ({ mapping, allMappings, pageCount, onChange, onDelete, isCurrent }) => {
+const MappingRow: React.FC<MappingRowProps> = ({
+  mapping,
+  allMappings,
+  pageCount,
+  onChange,
+  onDelete,
+  isCurrent,
+  currentPage,
+  bookSource,
+  onActivate,
+}) => {
   const overlaps = getMappingOverlaps(mapping, allMappings);
+  const coversCurrentPage = currentPage >= mapping.pageStart && currentPage <= mapping.pageEnd;
+  // Keep the currently selected exercise visible even if the book detector is wrong.
+  const exerciseOptions = bookSource
+    ? EXERCISE_OPTIONS.filter((option) => option.source === bookSource || option.id === mapping.exerciseId)
+    : EXERCISE_OPTIONS;
   const handleExercise = (value: string) => {
     const option = EXERCISE_OPTIONS.find((opt) => opt.id === value);
     if (option) {
@@ -40,16 +58,29 @@ const MappingRow: React.FC<MappingRowProps> = ({ mapping, allMappings, pageCount
           </span>
           {isCurrent && <Badge className="text-[10px]">Current</Badge>}
         </div>
-        <Button
-          variant="ghost"
-          size="icon"
-          className="h-7 w-7 text-muted-foreground hover:text-destructive"
-          onClick={() => onDelete(mapping.id)}
-          title="Delete bookmark"
-          aria-label={`Delete bookmark for pages ${mapping.pageStart}${mapping.pageEnd !== mapping.pageStart ? `–${mapping.pageEnd}` : ''}`}
-        >
-          <Trash2 className="h-3.5 w-3.5" />
-        </Button>
+        <div className="flex items-center gap-1">
+          {coversCurrentPage && !isCurrent && (
+            <Button
+              size="sm"
+              variant="secondary"
+              className="h-7 px-2 text-[10px] font-bold focus-scale"
+              onClick={() => onActivate(mapping.id)}
+              title="Use this exercise for the current page"
+            >
+              Use here
+            </Button>
+          )}
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-7 w-7 text-muted-foreground hover:text-destructive"
+            onClick={() => onDelete(mapping.id)}
+            title="Delete bookmark"
+            aria-label={`Delete bookmark for pages ${mapping.pageStart}${mapping.pageEnd !== mapping.pageStart ? `–${mapping.pageEnd}` : ''}`}
+          >
+            <Trash2 className="h-3.5 w-3.5" />
+          </Button>
+        </div>
       </div>
 
       <div className="grid grid-cols-2 gap-3">
@@ -62,7 +93,7 @@ const MappingRow: React.FC<MappingRowProps> = ({ mapping, allMappings, pageCount
               <SelectValue placeholder="Choose exercise" />
             </SelectTrigger>
             <SelectContent className="max-h-[280px]">
-              {EXERCISE_OPTIONS.map((option) => (
+              {exerciseOptions.map((option) => (
                 <SelectItem key={option.id} value={option.id} className="text-xs">
                   {option.label}
                   <span className="ml-2 text-muted-foreground capitalize">{option.source}</span>
@@ -70,6 +101,11 @@ const MappingRow: React.FC<MappingRowProps> = ({ mapping, allMappings, pageCount
               ))}
             </SelectContent>
           </Select>
+          {bookSource && (
+            <p className="text-[10px] leading-snug text-muted-foreground">
+              Showing {bookSource === 'hanon' ? 'Hanon' : 'Dohnányi'} exercises for this book.
+            </p>
+          )}
         </div>
 
         <div className="space-y-1.5">

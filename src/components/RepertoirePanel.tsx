@@ -21,6 +21,7 @@ import {
   Library,
   ClipboardList,
   Sparkles,
+  Pencil,
 } from 'lucide-react';
 import type { PdfViewerHandle } from './PdfViewer';
 const PdfViewer = React.lazy(() => import('./PdfViewer'));
@@ -56,7 +57,8 @@ import {
   PageMapping,
   EXERCISE_OPTIONS,
   MODE_LABELS,
-  getMappingForPage,
+  BookSource,
+  getActiveMappingForPage,
   getBeatsPerMeasure,
   loadMappings as loadLocalMappings,
   saveMappings as saveLocalMappings,
@@ -95,6 +97,7 @@ const RepertoirePanel: React.FC = () => {
     saveMappings,
     updateLastViewedPage,
     updatePageCount,
+    renameDocument,
     registerMappings,
     pendingNavigation,
     consumeNavigation,
@@ -124,6 +127,9 @@ const RepertoirePanel: React.FC = () => {
   const [bookmarkExercise, setBookmarkExercise] = useState('');
   const [bookmarkSuggested, setBookmarkSuggested] = useState(false);
   const [bookmarkLabel, setBookmarkLabel] = useState('');
+  const [activeMappingId, setActiveMappingId] = useState<string | null>(null);
+  const [renamingDoc, setRenamingDoc] = useState<SavedDocument | null>(null);
+  const [renameValue, setRenameValue] = useState('');
   const [clipboardImportOpen, setClipboardImportOpen] = useState(false);
   const [limitDialogOpen, setLimitDialogOpen] = useState(false);
 
@@ -147,6 +153,17 @@ const RepertoirePanel: React.FC = () => {
   const selectedDoc = useMemo(
     () => documents.find((d) => d.id === selectedDocId) ?? null,
     [documents, selectedDocId],
+  );
+
+  const selectedBookSource: BookSource | null = selectedDoc
+    ? getStoredBookSource(selectedDoc.id) ?? detectBookSource(selectedDoc.title)
+    : null;
+  const exerciseOptions = useMemo(
+    () =>
+      selectedBookSource
+        ? EXERCISE_OPTIONS.filter((option) => option.source === selectedBookSource)
+        : EXERCISE_OPTIONS,
+    [selectedBookSource],
   );
 
   const clearTimers = useCallback(() => {
@@ -176,6 +193,7 @@ const RepertoirePanel: React.FC = () => {
         setSelectedDocId(doc.id);
         setLocalDocumentId(null);
         setLocalTitle(null);
+        setActiveMappingId(null);
         setPendingInitialPage(initialPage ?? null);
         setLastOpenedDocumentId(doc.id);
         
@@ -238,6 +256,7 @@ const RepertoirePanel: React.FC = () => {
       setSelectedDocId(null);
       setLocalDocumentId(localId);
       setLocalTitle(file.name);
+      setActiveMappingId(null);
       setPendingInitialPage(null);
       setSource(url);
       setPageCount(0);
@@ -337,6 +356,7 @@ const RepertoirePanel: React.FC = () => {
       setSelectedDocId(null);
       setLocalDocumentId(null);
       setLocalTitle(null);
+      setActiveMappingId(null);
       setPendingInitialPage(null);
       setSource(null);
       setPageCount(0);
@@ -395,12 +415,15 @@ const RepertoirePanel: React.FC = () => {
   );
 
   const addBookmark = useCallback(() => {
-    const suggestion = suggestNextExercise(mappings, EXERCISE_OPTIONS);
+    const bookSource = selectedDoc
+      ? getStoredBookSource(selectedDoc.id) ?? detectBookSource(selectedDoc.title) ?? undefined
+      : undefined;
+    const suggestion = suggestNextExercise(mappings, EXERCISE_OPTIONS, bookSource);
     setBookmarkExercise(suggestion?.id ?? '');
     setBookmarkSuggested(Boolean(suggestion));
     setBookmarkLabel(suggestion ? friendlyExerciseLabel(suggestion) : '');
     setBookmarkOpen(true);
-  }, [mappings]);
+  }, [mappings, selectedDoc]);
 
   const handleBookmarkExerciseChange = useCallback((value: string) => {
     setBookmarkExercise(value);
@@ -417,6 +440,7 @@ const RepertoirePanel: React.FC = () => {
     if (bookmarkLabel.trim()) mapping.label = bookmarkLabel.trim();
     if (!mapping.label) mapping.label = `Page ${currentPage}`;
     persist([...mappings, mapping]);
+    setActiveMappingId(mapping.id);
     setBookmarkOpen(false);
     setBookmarkSuggested(false);
     showSuccess(`Bookmarked "${mapping.label}" on page ${currentPage}.`);
@@ -424,6 +448,27 @@ const RepertoirePanel: React.FC = () => {
       viewerRef.current?.scrollToPage(currentPage + 1);
     }
   }, [mappings, currentPage, bookmarkExercise, bookmarkLabel, persist, pageCount]);
+
+  const openRenameDialog = useCallback((doc: SavedDocument) => {
+    setRenamingDoc(doc);
+    setRenameValue(doc.title);
+  }, []);
+
+  const confirmRename = useCallback(async () => {
+    if (!renamingDoc) return;
+    const nextTitle = renameValue.trim();
+    if (!nextTitle) {
+      showError('Enter a name for this book.');
+      return;
+    }
+    try {
+      await renameDocument(renamingDoc.id, nextTitle);
+      showSuccess(`Renamed to "${nextTitle}".`);
+      setRenamingDoc(null);
+    } catch (err) {
+      showError(err instanceof Error ? err.message : 'Could not rename this book.');
+    }
+  }, [renamingDoc, renameValue, renameDocument]);
 
   const handlePageChange = useCallback(
     (page: number) => {
@@ -483,7 +528,10 @@ const RepertoirePanel: React.FC = () => {
     };
   }, [pdfProxy, selectedDoc]);
 
-  const currentMapping = getMappingForPage(mappings, currentPage);
+  const currentMapping = useMemo(
+    () => getActiveMappingForPage(mappings, currentPage, activeMappingId),
+    [mappings, currentPage, activeMappingId],
+  );
   // A page can carry more than one exercise (the tail of one and the start of
   // the next), so every page stays bookmarkable; duplicates are prevented by
   // the "next exercise" suggestion rather than by blocking the page.
@@ -869,6 +917,19 @@ const RepertoirePanel: React.FC = () => {
                     <Button
                       variant="ghost"
                       size="icon"
+                      className="absolute right-10 top-1.5 h-7 w-7 bg-background/80 text-muted-foreground opacity-100 shadow-sm backdrop-blur transition-all duration-150 hover:bg-background hover:text-primary sm:opacity-0 sm:group-hover:opacity-100 sm:focus-visible:opacity-100"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        openRenameDialog(doc);
+                      }}
+                      title="Rename"
+                      aria-label={`Rename ${formatDocumentTitle(doc.title)}`}
+                    >
+                      <Pencil className="h-3.5 w-3.5" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
                       className="absolute right-1.5 top-1.5 h-7 w-7 bg-background/80 text-muted-foreground opacity-100 shadow-sm backdrop-blur transition-all duration-150 hover:bg-background hover:text-destructive sm:opacity-0 sm:group-hover:opacity-100 sm:focus-visible:opacity-100"
                       onClick={(e) => {
                         e.stopPropagation();
@@ -973,6 +1034,8 @@ const RepertoirePanel: React.FC = () => {
                 onFitPage={() => viewerRef.current?.fitPage()}
                 mappings={mappings}
                 currentMapping={currentMapping}
+                exerciseOptions={exerciseOptions}
+                onSelectMapping={setActiveMappingId}
                 onJumpPage={navigatePage}
                 onPreviousExercise={() => jumpToAdjacentMapping(-1)}
                 onNextExercise={() => jumpToAdjacentMapping(1)}
@@ -1110,6 +1173,9 @@ const RepertoirePanel: React.FC = () => {
                           onChange={updateMapping}
                           onDelete={deleteMapping}
                           isCurrent={currentMapping?.id === mapping.id}
+                          currentPage={currentPage}
+                          bookSource={selectedBookSource}
+                          onActivate={setActiveMappingId}
                         />
                       ))}
                     </div>
@@ -1128,6 +1194,7 @@ const RepertoirePanel: React.FC = () => {
           mappings={mappings}
           currentPage={currentPage}
           onSelect={(mapping) => {
+            setActiveMappingId(mapping.id);
             setPendingInitialPage(mapping.pageStart);
             setShowIndex(false);
             // Delay navigation to ensure DOM is ready after index closes
@@ -1166,6 +1233,40 @@ const RepertoirePanel: React.FC = () => {
               onClose={() => setClipboardImportOpen(false)}
             />
           )}
+        </DialogContent>
+      </Dialog>
+
+      <Dialog
+        open={Boolean(renamingDoc)}
+        onOpenChange={(open) => {
+          if (!open) setRenamingDoc(null);
+        }}
+      >
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="font-display text-2xl tracking-tight">Rename book</DialogTitle>
+            <DialogDescription className="text-sm leading-relaxed">
+              Give this PDF a name that is easy to find in your library.
+            </DialogDescription>
+          </DialogHeader>
+          <Input
+            value={renameValue}
+            onChange={(e) => setRenameValue(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') void confirmRename();
+            }}
+            placeholder="e.g. Dohnányi — Essential Finger Exercises"
+            className="mt-4"
+            aria-label="Book name"
+          />
+          <DialogFooter className="gap-2 sm:gap-2">
+            <Button variant="outline" onClick={() => setRenamingDoc(null)}>
+              Cancel
+            </Button>
+            <Button className="font-bold" onClick={() => void confirmRename()}>
+              Save name
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
 

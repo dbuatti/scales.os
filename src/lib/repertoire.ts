@@ -63,6 +63,20 @@ export const getMappingForPage = (
   return best;
 };
 
+/** Resolve the exercise for a page, honouring the one the user selected on a shared page. */
+export const getActiveMappingForPage = (
+  mappings: PageMapping[],
+  page: number,
+  preferredId?: string | null,
+): PageMapping | undefined => {
+  const preferred = preferredId
+    ? mappings.find(
+        (m) => m.id === preferredId && page >= m.pageStart && page <= m.pageEnd,
+      )
+    : undefined;
+  return preferred ?? getMappingForPage(mappings, page);
+};
+
 export const findMappingForExercise = (
   mappings: PageMapping[],
   exerciseId: string,
@@ -102,12 +116,15 @@ export const sortMappings = (mappings: PageMapping[]): PageMapping[] =>
 export const suggestNextExercise = (
   mappings: PageMapping[],
   options: ExerciseOption[],
+  bookSource?: BookSource,
 ): ExerciseOption | null => {
   const mappedIds = new Set(mappings.map((m) => m.exerciseId).filter(Boolean));
   const lastMapped = [...mappings].reverse().find((m) => m.exerciseId);
-  const source: ExerciseOption['source'] = lastMapped?.exerciseId?.startsWith('Dohnanyi-')
+  const inferredSource: ExerciseOption['source'] = lastMapped?.exerciseId?.startsWith('Dohnanyi-')
     ? 'dohnanyi'
     : 'hanon';
+  // When the open book is known, never suggest an exercise from the other book.
+  const source = bookSource ?? inferredSource;
   return options.find((o) => o.source === source && !mappedIds.has(o.id)) ?? null;
 };
 
@@ -206,8 +223,22 @@ export const setStoredBookSource = (documentId: string, source: BookSource): voi
   }
 };
 
+const FRIENDLY_TITLES: { pattern: RegExp; title: string }[] = [
+  {
+    pattern: /hanon|virtuoso/i,
+    title: 'Hanon — The Virtuoso Pianist',
+  },
+  {
+    pattern: /dohnanyi|dohnányi/i,
+    title: 'Dohnányi — Essential Finger Exercises',
+  },
+];
+
 export const formatDocumentTitle = (raw: string): string => {
   const withoutExt = raw.replace(/\.pdf$/i, '').trim();
+  const friendly = FRIENDLY_TITLES.find((entry) => entry.pattern.test(withoutExt));
+  if (friendly) return friendly.title;
+
   const cleaned = withoutExt
     .replace(/^imslp\s*\d+\s*-\s*pmlp\s*\d+\s*-/i, '')
     .replace(/[_-]+/g, ' ')

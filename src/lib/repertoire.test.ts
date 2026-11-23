@@ -6,6 +6,7 @@ import {
   detectBookSource,
   formatDocumentTitle,
   friendlyExerciseLabel,
+  getActiveMappingForPage,
   getLastOpenedDocumentId,
   getMappingForPage,
   getMappingOverlaps,
@@ -41,8 +42,13 @@ describe('detectBookSource', () => {
 });
 
 describe('formatDocumentTitle', () => {
-  it('strips the .pdf extension and IMSLP prefix', () => {
-    expect(formatDocumentTitle('IMSLP91547-PMLP03129-Hanon_Final.pdf')).toBe('Hanon Final');
+  it('turns known method-book filenames into readable titles', () => {
+    expect(formatDocumentTitle('IMSLP91547-PMLP03129-Hanon_Final.pdf')).toBe(
+      'Hanon — The Virtuoso Pianist',
+    );
+    expect(formatDocumentTitle('IMSLP461147-PMLP508711-Dohnanyi_SUVINI.pdf')).toBe(
+      'Dohnányi — Essential Finger Exercises',
+    );
   });
 
   it('replaces underscores and hyphens with spaces', () => {
@@ -77,6 +83,20 @@ describe('suggestNextExercise', () => {
   it('switches to Dohnányi when the latest mapping is Dohnányi', () => {
     const suggestion = suggestNextExercise([mapping(dohnanyi[0].id)], EXERCISE_OPTIONS);
     expect(suggestion?.id).toBe(dohnanyi[1].id);
+  });
+
+  it('suggests from the open book, even when earlier mappings are from another book', () => {
+    const suggestion = suggestNextExercise(
+      [mapping(hanon[0].id), mapping(hanon[1].id)],
+      EXERCISE_OPTIONS,
+      'dohnanyi',
+    );
+    expect(suggestion?.id).toBe(dohnanyi[0].id);
+  });
+
+  it('does not fall back to the other book once the open book is exhausted', () => {
+    const allDohnanyi = dohnanyi.map((option) => mapping(option.id));
+    expect(suggestNextExercise(allDohnanyi, EXERCISE_OPTIONS, 'dohnanyi')).toBeNull();
   });
 });
 
@@ -115,6 +135,26 @@ describe('getMappingForPage', () => {
     const mappings = [mapping(1, 2, 'A'), mapping(2, 3, 'B')];
     expect(getMappingForPage(mappings, 2)?.label).toBe('B');
     expect(getMappingForPage(mappings, 1)?.label).toBe('A');
+  });
+});
+
+describe('getActiveMappingForPage', () => {
+  const mapping = (pageStart: number, pageEnd: number, label: string): PageMapping => ({
+    ...createEmptyMapping(pageStart),
+    pageEnd,
+    label,
+  });
+
+  it('honours the exercise selected on a shared page', () => {
+    const a = mapping(2, 2, 'A');
+    const b = mapping(2, 2, 'B');
+    expect(getActiveMappingForPage([a, b], 2, b.id)?.label).toBe('B');
+  });
+
+  it('falls back when the selected exercise no longer covers the page', () => {
+    const a = mapping(2, 2, 'A');
+    const b = mapping(2, 2, 'B');
+    expect(getActiveMappingForPage([a, b], 3, b.id)?.label).toBeUndefined();
   });
 });
 
