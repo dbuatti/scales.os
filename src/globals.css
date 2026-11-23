@@ -235,6 +235,46 @@
   background-color: hsl(0 0% 100% / 0.12) !important;
 }
 
+/* Practice button system — one visual language for every control on the page. */
+.folder-sheet button,
+.folder-sheet [role='tab'],
+.folder-sheet [role='button'] {
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  transition: background-color 160ms ease, color 160ms ease, border-color 160ms ease, transform 160ms ease;
+}
+.folder-sheet button:active,
+.folder-sheet [role='tab']:active {
+  transform: scale(0.98);
+}
+/* Outline, secondary and ghost buttons become translucent paper on the folder. */
+.folder-sheet button[class*='border-input'],
+.folder-sheet button[class*='bg-background'],
+.folder-sheet button[class*='bg-secondary'],
+.folder-sheet button[class*='hover:bg-accent'] {
+  background-color: hsl(0 0% 100% / 0.12) !important;
+  border-color: hsl(0 0% 100% / 0.22) !important;
+  color: hsl(var(--folder-foreground)) !important;
+  box-shadow: none !important;
+}
+.folder-sheet button[class*='border-input']:hover,
+.folder-sheet button[class*='bg-background']:hover,
+.folder-sheet button[class*='bg-secondary']:hover,
+.folder-sheet button[class*='hover:bg-accent']:hover {
+  background-color: hsl(0 0% 100% / 0.22) !important;
+  color: hsl(var(--folder-foreground)) !important;
+}
+/* Selected toggles read as a solid white chip with the folder's accent text. */
+.folder-sheet [data-state='on'][class*='bg-primary'] {
+  background-color: hsl(0 0% 100%) !important;
+  border-color: hsl(0 0% 100%) !important;
+  color: hsl(var(--sheet-accent)) !important;
+  box-shadow: 0 1px 2px hsl(0 0% 0% / 0.12) !important;
+}
+.folder-sheet button[class*='hover:text-destructive']:hover {
+  color: hsl(4 90% 78%) !important;
+}
+
 /* Instrument Serif ships a single 400 weight. Keep display headings from faux-bolding. */
 .font-display {
   font-weight: 400;
