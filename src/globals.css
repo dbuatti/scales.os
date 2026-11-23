@@ -191,6 +191,50 @@
   }
 }
 
+/* One continuous manila folder: the active tab and everything below it share
+   the same solid colour, with translucent panels instead of separate cards. */
+.folder-sheet [class*="bg-card"],
+.folder-sheet .surface,
+.folder-sheet .surface-flat {
+  background: transparent !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+  backdrop-filter: none;
+}
+.folder-sheet [class*="bg-muted"] {
+  background-color: hsl(0 0% 100% / 0.08) !important;
+  border-color: hsl(0 0% 100% / 0.14) !important;
+  box-shadow: none !important;
+  backdrop-filter: none;
+}
+.folder-sheet [class*="border-border"] {
+  border-color: transparent !important;
+}
+.folder-sheet [class*="text-foreground"] {
+  color: hsl(var(--folder-foreground)) !important;
+}
+.folder-sheet [class*="text-muted-foreground"] {
+  color: hsl(var(--folder-foreground) / 0.72) !important;
+}
+.folder-sheet .text-primary,
+.folder-sheet .text-success,
+.folder-sheet .text-warning {
+  color: hsl(0 0% 100%) !important;
+}
+.folder-sheet .bg-primary,
+.folder-sheet .hover\:bg-primary\/90:hover,
+.folder-sheet [data-state="on"].bg-primary {
+  background-color: hsl(0 0% 100%) !important;
+  background-image: none !important;
+  color: hsl(var(--sheet-accent)) !important;
+  box-shadow: none !important;
+}
+.folder-sheet .bg-primary\/10,
+.folder-sheet .bg-accent\/10,
+.folder-sheet .bg-success\/10 {
+  background-color: hsl(0 0% 100% / 0.12) !important;
+}
+
 /* Instrument Serif ships a single 400 weight. Keep display headings from faux-bolding. */
 .font-display {
   font-weight: 400;

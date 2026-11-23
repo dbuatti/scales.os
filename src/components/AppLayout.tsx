@@ -57,7 +57,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children, headerRightContent, mob
                 "sticky top-0 z-50 w-full border-b border-border/40 bg-background transition-all duration-300",
                 isZenMode ? "h-12 opacity-60 hover:opacity-100" : "h-16"
             )}>
-                <div className="container flex h-full items-center justify-between gap-4 px-4 sm:px-6">
+                <div className="mx-auto flex h-full w-full max-w-5xl items-center justify-between gap-4 px-4 sm:px-6">
                     <Link to="/" aria-label="Scales OS home" className={cn("group flex items-center gap-2.5 tracking-tight transition-all shrink-0", isZenMode ? "text-base" : "text-lg")}>
                         <div aria-hidden="true" className={cn("bg-gradient-to-br from-primary to-primary/70 rounded-xl flex items-center justify-center text-primary-foreground  shadow-primary/25 transition-all duration-200 group-hover:rotate-[-4deg] group-hover:scale-105", isZenMode ? "w-7 h-7" : "w-9 h-9")}>
                             <Play className={cn("fill-current", isZenMode ? "w-3.5 h-3.5" : "w-4 h-4")} />
@@ -102,8 +102,8 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children, headerRightContent, mob
             )}
 
             {!isZenMode && (
-                <footer className="border-t border-border/60 py-10">
-                    <div className="container flex flex-col items-center justify-between gap-4 text-center md:flex-row md:text-left">
+                <footer className="border-t border-border/60 py-8">
+                    <div className="mx-auto flex w-full max-w-5xl flex-col items-center justify-between gap-4 px-4 text-center sm:px-6 md:flex-row md:text-left">
                         <div className="space-y-1">
                             <p className="font-display text-lg italic tracking-tight text-foreground/80">
                                 Built for pianists. Focused on technique.

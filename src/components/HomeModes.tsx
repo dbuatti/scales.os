@@ -36,7 +36,7 @@ interface HomeModesProps {
 
 /** Two manila-folder tabs. The active folder is a solid colour; the other stays as a pale tab. */
 const HomeModes: React.FC<HomeModesProps> = ({ active, onSelect }) => (
-  <div role="tablist" aria-label="Practice family" className="flex gap-2 sm:gap-3">
+  <div role="tablist" aria-label="Practice family" className="flex w-full">
     {MODES.map((mode, index) => {
       const isActive = active === mode.id;
       const tone = getFolderTone(mode.family);
@@ -51,17 +51,17 @@ const HomeModes: React.FC<HomeModesProps> = ({ active, onSelect }) => (
           onClick={() => onSelect(mode.id)}
           style={{ animationDelay: `${index * 60}ms` }}
           className={cn(
-            'group relative flex min-w-0 flex-1 items-center gap-2 rounded-t-xl border border-b-0 px-4 py-3 text-left animate-in fade-in slide-in-from-bottom-2 fill-mode-both duration-300 transition-all duration-200 active:scale-[0.99] focus-scale',
+            'group relative flex min-w-0 flex-1 items-center gap-2 rounded-t-xl border border-b-0 border-white/15 px-4 pb-4 pt-3 text-left shadow-[0_-2px_0_hsl(0_0%_100%_/_0.06)] transition-all duration-200 active:scale-[0.99] focus-scale',
             isActive
-              ? cn(tone.solid, 'text-folder-foreground shadow-sm')
-              : cn(tone.tint, tone.text, 'border-transparent hover:brightness-95'),
+              ? cn(tone.solid, 'text-folder-foreground')
+              : 'bg-white/10 text-folder-foreground/90 hover:bg-white/20',
           )}
         >
           <span
             aria-hidden="true"
             className={cn(
               'absolute -top-2 left-4 h-2 w-16 rounded-t-md sm:w-20',
-              isActive ? tone.solid : 'bg-border/70',
+              isActive ? tone.solid : 'bg-white/25',
             )}
           />
           <span

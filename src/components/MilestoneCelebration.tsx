@@ -3,6 +3,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Button } from '@/components/ui/button';
 import { useScales } from '@/context/ScalesContext';
 import { useSupabaseSession } from '@/hooks/use-supabase-session';
+import { supabase } from '@/integrations/supabase/client';
 import { Flame, Trophy, Star, Piano } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { getGradeRequirements } from '@/lib/scales';
@@ -104,6 +105,35 @@ const saveCelebrated = (userId: string | null, celebrated: Set<string>) => {
   }
 };
 
+/** Cloud state is the source of truth so a refresh or another device never replays a milestone. */
+const loadCelebratedFromCloud = async (userId: string): Promise<Set<string> | null> => {
+  try {
+    const { data, error } = await supabase
+      .from('scales_profiles')
+      .select('celebrated_milestones')
+      .eq('id', userId)
+      .maybeSingle();
+    if (error || !data || !Array.isArray(data.celebrated_milestones)) return null;
+    return new Set(
+      data.celebrated_milestones.filter((id): id is string => typeof id === 'string'),
+    );
+  } catch {
+    return null;
+  }
+};
+
+const saveCelebratedToCloud = async (userId: string, celebrated: Set<string>) => {
+  try {
+    const { error } = await supabase
+      .from('scales_profiles')
+      .update({ celebrated_milestones: [...celebrated] })
+      .eq('id', userId);
+    if (error) console.warn('Could not save celebrated milestones', error);
+  } catch {
+    // Local storage remains the fallback when the network is unavailable.
+  }
+};
+
 const MilestoneCelebration: React.FC = () => {
   const { log, streak, scaleMasteryBPMMap, exerciseMasteryBPMMap, isLoading } = useScales();
   const { userId } = useSupabaseSession();
@@ -111,41 +141,44 @@ const MilestoneCelebration: React.FC = () => {
   const [milestone, setMilestone] = useState<Milestone | null>(null);
   const [celebrated, setCelebrated] = useState<Set<string>>(() => loadCelebrated(userId));
   const [celebratedFor, setCelebratedFor] = useState<string | null>(userId);
+  const [isLoadingCelebrated, setIsLoadingCelebrated] = useState(Boolean(userId));
 
   useEffect(() => {
+    let active = true;
     setCelebrated(loadCelebrated(userId));
     setCelebratedFor(userId);
+
+    if (!userId) {
+      setIsLoadingCelebrated(false);
+      return () => {
+        active = false;
+      };
+    }
+
+    setIsLoadingCelebrated(true);
+    void loadCelebratedFromCloud(userId).then((fromCloud) => {
+      if (!active) return;
+      if (fromCloud) {
+        setCelebrated(fromCloud);
+        saveCelebrated(userId, fromCloud);
+      }
+      setIsLoadingCelebrated(false);
+    });
+
+    return () => {
+      active = false;
+    };
   }, [userId]);
 
-  const detectMilestone = useCallback((): Milestone | null => {
-    // Wait for the right account and its data, otherwise a stale log can
-    // trigger a celebration that was already seen for this user.
-    if (isLoading || userId !== celebratedFor) return null;
+  const getEarnedMilestoneIds = useCallback((): string[] => {
+    // Wait for the right account, its data, and its cloud-seen state.
+    if (isLoading || isLoadingCelebrated || !userId || userId !== celebratedFor) return [];
 
-    if (celebrated.has('first_session') && celebrated.has('first_mastery') &&
-        STREAK_MILESTONES.every(m => celebrated.has(`streak_${m}`))) {
-      return null;
-    }
-
-    if (log.length > 0 && !celebrated.has('first_session')) {
-      return getMilestone('first_session');
-    }
-
-    if (streak.current_streak >= 1 && !celebrated.has('streak_1')) {
-      return getMilestone('streak_1');
-    }
-    if (streak.current_streak >= 3 && !celebrated.has('streak_3')) {
-      return getMilestone('streak_3');
-    }
-    if (streak.current_streak >= 7 && !celebrated.has('streak_7')) {
-      return getMilestone('streak_7');
-    }
-    if (streak.current_streak >= 14 && !celebrated.has('streak_14')) {
-      return getMilestone('streak_14');
-    }
-    if (streak.current_streak >= 30 && !celebrated.has('streak_30')) {
-      return getMilestone('streak_30');
-    }
+    const earned: string[] = [];
+    if (log.length > 0) earned.push('first_session');
+    STREAK_MILESTONES.forEach((m) => {
+      if (streak.current_streak >= m) earned.push(`streak_${m}`);
+    });
 
     const grade1 = getGradeRequirements(1);
     const hasMastery = grade1.some(req => {
@@ -154,12 +187,18 @@ const MilestoneCelebration: React.FC = () => {
         : (exerciseMasteryBPMMap[req.practiceId] || 0);
       return bpm >= req.requiredBPM;
     });
-    if (hasMastery && !celebrated.has('first_mastery')) {
-      return getMilestone('first_mastery');
-    }
+    if (hasMastery) earned.push('first_mastery');
 
+    return earned;
+  }, [log, streak, scaleMasteryBPMMap, exerciseMasteryBPMMap, isLoading, isLoadingCelebrated, userId, celebratedFor]);
+
+  const detectMilestone = useCallback((): Milestone | null => {
+    const earned = getEarnedMilestoneIds();
+    for (const id of earned) {
+      if (!celebrated.has(id)) return getMilestone(id);
+    }
     return null;
-  }, [log, streak, scaleMasteryBPMMap, exerciseMasteryBPMMap, celebrated, isLoading, userId, celebratedFor]);
+  }, [getEarnedMilestoneIds, celebrated]);
 
   useEffect(() => {
     const m = detectMilestone();
@@ -169,16 +208,17 @@ const MilestoneCelebration: React.FC = () => {
     }
   }, [detectMilestone]);
 
-  // Any dismissal (Continue, X, Escape or outside click) counts as seen,
-  // so the same milestone never reappears on the next login.
+  // Any dismissal (Continue, X, Escape or outside click) marks every milestone
+  // earned right now as seen. Otherwise closing one dialog immediately opens
+  // the next queued one, which feels like the same popup repeating.
   const handleClose = (nextOpen: boolean) => {
     if (nextOpen) return;
-    if (milestone) {
-      const next = new Set(celebrated);
-      next.add(milestone.id);
-      setCelebrated(next);
-      saveCelebrated(userId, next);
-    }
+    const next = new Set(celebrated);
+    getEarnedMilestoneIds().forEach((id) => next.add(id));
+    if (milestone) next.add(milestone.id);
+    setCelebrated(next);
+    saveCelebrated(userId, next);
+    if (userId) void saveCelebratedToCloud(userId, next);
     setOpen(false);
     setMilestone(null);
   };
