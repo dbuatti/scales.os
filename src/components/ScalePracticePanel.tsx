@@ -71,13 +71,18 @@ interface ScalePracticePanelProps {
     family: 'scale' | 'arpeggio';
     suggestedScalePermutation: (NextFocus & { type: 'scale' | 'arpeggio' }) | undefined;
     quickPick?: { kind: 'scale' | 'arpeggio'; nonce: number } | null;
+    /** Explicit full-permutation load, separate from the family quick-pick. */
+    suggestionRequest?: {
+        item: NextFocus & { type: 'scale' | 'arpeggio' };
+        nonce: number;
+    } | null;
     /** Elapsed session seconds, lifted to the page so the timer can live in the tools rail. */
     sessionSeconds: number;
 }
 
 const ScalePracticePanel: React.FC<ScalePracticePanelProps> = ({ 
   currentBPM, addLogEntry, updateScaleMasteryBPM, scaleMasteryBPMMap, allScales, 
-  activeTab, family, suggestedScalePermutation, quickPick, sessionSeconds
+  activeTab, family, suggestedScalePermutation, quickPick, suggestionRequest, sessionSeconds
 }) => {
   
   const { 
@@ -146,6 +151,30 @@ const ScalePracticePanel: React.FC<ScalePracticePanelProps> = ({
     }
     setIsPermutationManuallyAdjusted(true);
   }, [quickPick, activeTab, selectedType, setIsPermutationManuallyAdjusted]);
+
+  // An explicit "Use suggested" action must load the full permutation. It does
+  // not go through quickPick, which only resets the family's default type.
+  useEffect(() => {
+    if (!suggestionRequest) return;
+    const parsed = parseScalePermutationId(suggestionRequest.item.scalePermutationId);
+    if (!parsed) return;
+
+    const [key, typeId] = parsed.scaleId.split('-');
+    const fullType = ALL_COMBINED_TYPES.find(t => t.replace(/\s/g, '') === typeId) || SCALE_TYPES[0];
+    const newHandConfig: HandConfiguration = parsed.handConfig === 'Hands separately'
+      ? HAND_CONFIGURATIONS[0]
+      : parsed.handConfig as HandConfiguration;
+
+    setSelectedKey(key as Key);
+    setSelectedType(fullType);
+    setSelectedArticulation(parsed.articulation);
+    setSelectedDirection(parsed.direction);
+    setSelectedHandConfig(newHandConfig);
+    setSelectedRhythm(parsed.rhythm);
+    setSelectedAccent(parsed.accent);
+    setSelectedOctaves(parsed.octaves);
+    setIsPermutationManuallyAdjusted(true);
+  }, [suggestionRequest, ALL_COMBINED_TYPES, setIsPermutationManuallyAdjusted]);
 
   useEffect(() => {
     if (activeTab === 'scales' && suggestedScalePermutation && !isPermutationManuallyAdjusted) {

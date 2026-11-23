@@ -46,16 +46,18 @@ const PracticeFocusCard: React.FC<PracticeFocusCardProps> = ({
           <p className="text-sm font-medium text-muted-foreground sm:text-base">{meta}</p>
         </div>
         {suggestionLabel && onLoadSuggestion && (
-          <button
+          <Button
             type="button"
+            variant="outline"
+            size="sm"
             onClick={onLoadSuggestion}
             disabled={isEngagingSuggestion}
-            className="inline-flex items-center gap-1.5 text-xs font-bold text-primary transition-colors hover:text-primary/80 disabled:opacity-60"
+            className="h-9 gap-2 border-primary/20 bg-background/70 px-3 text-xs font-bold text-primary hover:bg-background hover:text-primary focus-scale"
           >
             <Sparkles className="size-3.5" />
-            Load suggested: {suggestionLabel}
+            Use suggested: {suggestionLabel}
             <ArrowRight className="size-3.5" />
-          </button>
+          </Button>
         )}
       </div>
 

@@ -81,6 +81,10 @@ const PracticeCommandCenter: React.FC = () => {
   const [mode, setMode] = useState<'scales' | 'arpeggios'>('scales');
   const [isEngagingSuggestion, setIsEngagingSuggestion] = useState(false);
   const [scaleQuickPick, setScaleQuickPick] = useState<{ kind: 'scale' | 'arpeggio'; nonce: number } | null>(null);
+  const [suggestionRequest, setSuggestionRequest] = useState<{
+    item: Extract<NextFocus, { type: 'scale' | 'arpeggio' }>;
+    nonce: number;
+  } | null>(null);
   const firstLogTracked = useRef(false);
 
   const { sessionSeconds, isPracticeMode, startPractice } = usePracticeTransport();
@@ -116,9 +120,9 @@ const PracticeCommandCenter: React.FC = () => {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [handleBpmChange, activeLogSnapshotFunction]);
 
-  const scrollToPracticePanel = useCallback(() => {
+  const scrollToSetup = useCallback(() => {
     window.setTimeout(() => {
-      document.getElementById('practice-panel')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      document.getElementById('practice-modes')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }, 90);
   }, []);
 
@@ -131,17 +135,20 @@ const PracticeCommandCenter: React.FC = () => {
         return;
       }
       setIsEngagingSuggestion(true);
-      setIsPermutationManuallyAdjusted(false);
+      // Stop the passive suggestion effect from reapplying the old focus while
+      // the explicit request loads this one.
+      setIsPermutationManuallyAdjusted(true);
       setActivePermutationHighestBPM(0);
       const kind = item.type === 'arpeggio' ? 'arpeggio' : 'scale';
       setMode(kind === 'arpeggio' ? 'arpeggios' : 'scales');
-      setScaleQuickPick({ kind, nonce: Date.now() });
-      showSuccess(`Loaded suggestion: ${item.scaleItem.key} ${item.scaleItem.type}`);
-      await new Promise((resolve) => setTimeout(resolve, 300));
+      setSuggestionRequest({ item, nonce: Date.now() });
+      showSuccess(`Loaded ${item.scaleItem.key} ${item.scaleItem.type}.`);
+      // The focus card reads from activePracticeItem, so it updates in place —
+      // no scroll needed.
+      await new Promise((resolve) => setTimeout(resolve, 200));
       setIsEngagingSuggestion(false);
-      scrollToPracticePanel();
     },
-    [setIsPermutationManuallyAdjusted, setActivePermutationHighestBPM, navigate, scrollToPracticePanel],
+    [setIsPermutationManuallyAdjusted, setActivePermutationHighestBPM, navigate],
   );
 
   const handleSelectMode = useCallback(
@@ -256,7 +263,7 @@ const PracticeCommandCenter: React.FC = () => {
           targetBpm={targetBpm}
           masteryPercentage={masteryPercentage}
           remainingBpm={remainingBpm}
-          onAdjust={scrollToPracticePanel}
+          onAdjust={scrollToSetup}
         />
 
         <section
@@ -295,6 +302,7 @@ const PracticeCommandCenter: React.FC = () => {
               activeTab="scales"
               family={activeFolder === 'arpeggios' ? 'arpeggio' : 'scale'}
               quickPick={scaleQuickPick}
+              suggestionRequest={suggestionRequest}
               sessionSeconds={sessionSeconds}
             />
           </div>
