@@ -31,3 +31,7 @@ dist-ssr
 
 # Supabase CLI local cache
 supabase/.temp
+.env*
+
+# direnv (tracked - no secrets, just variable names)
+!.envrc
